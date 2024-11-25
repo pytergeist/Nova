@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "neurothread"
+version = "0.1.0"
+description = "A lightweight deep learning framework that leverages multithreading in python3.13"
+authors = ["pytergeist <tompopeworks@gmail.com>"]
+license = "GPL-3.0 license"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
