@@ -3,8 +3,8 @@
 from threading import Lock
 
 import numpy as np
-from autograd import Autograd
-from ops import add, subtract
+
+from neurothread.tensor import Autograd, add, subtract
 
 
 class Tensor:
