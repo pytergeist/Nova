@@ -4,7 +4,7 @@ from threading import Lock
 
 import numpy as np
 from autograd import Autograd
-from ops import add
+from ops import add, subtract
 
 
 class Tensor:
@@ -55,12 +55,33 @@ class Tensor:
         result._backward = _backward
         return result
 
+    def __sub__(self, other):
+        """
+        Performs element-wise subtraction of two tensors with autograd support.
+
+        Args:
+            other (Tensor): The tensor to add to `self`.
+
+        Returns:
+            Tensor: A new tensor representing the result of the addition.
+        """
+        other = other if isinstance(other, Tensor) else Tensor(other)
+        data, requires_grad = subtract(self, other)
+        result = Tensor(data, requires_grad=requires_grad)
+
+        def _backward():
+            grad_output = np.ones_like(result.data)
+            Autograd.subtract_backward(self, other, grad_output)
+
+        result._backward = _backward
+        return result
+
 
 if __name__ == "__main__":
     a = Tensor([1, 2, 3], requires_grad=True)
-    b = Tensor([4, 5, 6], requires_grad=True)
+    b = Tensor([4, 5, 7], requires_grad=True)
 
-    c = a + b  # Element-wise addition
+    c = a - b  # Element-wise addition
     print(c.data)  # [5, 7, 9]
 
     c.backward()  # Compute gradients
