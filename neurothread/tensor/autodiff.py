@@ -1,8 +1,8 @@
-# autograd.py
+# autodiff.py
 import numpy as np
 
 
-class Autograd:
+class AutoDiff:
 
     @staticmethod
     def add_backward(tensor, other, grad_output):

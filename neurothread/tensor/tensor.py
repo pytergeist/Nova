@@ -4,7 +4,7 @@ from threading import Lock
 
 import numpy as np
 
-from neurothread.tensor import Autograd, add, subtract
+from neurothread.tensor import AutoDiff, add, subtract
 
 
 class Tensor:
@@ -36,7 +36,7 @@ class Tensor:
 
     def __add__(self, other):
         """
-        Performs element-wise addition of two tensors with autograd support.
+        Performs element-wise addition of two tensors with operator overloading autograd support.
 
         Args:
             other (Tensor): The tensor to add to `self`.
@@ -50,14 +50,14 @@ class Tensor:
 
         def _backward():
             grad_output = np.ones_like(result.data)
-            Autograd.add_backward(self, other, grad_output)
+            AutoDiff.add_backward(self, other, grad_output)
 
         result._backward = _backward
         return result
 
     def __sub__(self, other):
         """
-        Performs element-wise subtraction of two tensors with autograd support.
+        Performs element-wise subtraction of two tensors with operator overloading autograd support.
 
         Args:
             other (Tensor): The tensor to add to `self`.
@@ -71,7 +71,7 @@ class Tensor:
 
         def _backward():
             grad_output = np.ones_like(result.data)
-            Autograd.subtract_backward(self, other, grad_output)
+            AutoDiff.subtract_backward(self, other, grad_output)
 
         result._backward = _backward
         return result

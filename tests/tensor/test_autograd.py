@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from neurothread.tensor import Autograd, Tensor
+from neurothread.tensor import AutoDiff, Tensor
 
 
 @pytest.mark.parametrize(
@@ -14,7 +14,7 @@ from neurothread.tensor import Autograd, Tensor
 def test_add_backward(data_a, data_b, grad_output, expected_grad_a, expected_grad_b):
     a = Tensor(data_a, requires_grad=True)
     b = Tensor(data_b, requires_grad=True)
-    Autograd.add_backward(a, b, np.array(grad_output))
+    AutoDiff.add_backward(a, b, np.array(grad_output))
     np.testing.assert_array_equal(a.grad, expected_grad_a)
     np.testing.assert_array_equal(b.grad, expected_grad_b)
 
@@ -31,6 +31,6 @@ def test_subtract_backward(
 ):
     a = Tensor(data_a, requires_grad=True)
     b = Tensor(data_b, requires_grad=True)
-    Autograd.subtract_backward(a, b, np.array(grad_output))
+    AutoDiff.subtract_backward(a, b, np.array(grad_output))
     np.testing.assert_array_equal(a.grad, expected_grad_a)
     np.testing.assert_array_equal(b.grad, expected_grad_b)

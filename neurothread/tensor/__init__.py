@@ -1,9 +1,9 @@
-from .autograd import Autograd
+from .autodiff import AutoDiff
 from .ops import add, subtract
 from .tensor import Tensor
 
 __all__ = [
     "add",
-    "Autograd",
+    "AutoDiff",
     "Tensor",
 ]
