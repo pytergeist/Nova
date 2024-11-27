@@ -76,6 +76,35 @@ class Tensor:
         result._backward = _backward
         return result
 
+    def __mul__(self, other):
+        raise NotImplementedError
+
+    def __truediv__(self, other):
+        raise NotImplementedError
+
+    def __floordiv__(self, other):
+        raise NotImplementedError
+
+    def __mod__(self, other):
+        raise NotImplementedError
+
+    def __pow__(self, other):
+        raise NotImplementedError
+
+    def __matmul__(self, other):
+        raise NotImplementedError
+
+    def __neg__(self):
+        raise NotImplementedError
+
+    def __pos__(self):
+        raise NotImplementedError
+
+    def __abs__(self):
+        raise NotImplementedError
+
+
+
 
 if __name__ == "__main__":
     a = Tensor([1, 2, 3], requires_grad=True)
