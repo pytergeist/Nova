@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 
-from neurothread.tensor import AutoDiff, Tensor
+from neurothread.autodiff.autodiff import AutoDiff
+from neurothread.tensor import Tensor
 
 
 @pytest.mark.parametrize(
