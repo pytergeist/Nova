@@ -104,8 +104,6 @@ class Tensor:
         raise NotImplementedError
 
 
-
-
 if __name__ == "__main__":
     a = Tensor([1, 2, 3], requires_grad=True)
     b = Tensor([4, 5, 7], requires_grad=True)
