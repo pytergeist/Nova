@@ -4,8 +4,8 @@ from threading import Lock
 
 import numpy as np
 
-from neurothread.tensor import AutoDiff, add, subtract
-
+from neurothread.autodiff.autodiff import AutoDiff
+from neurothread.operations.ops import add, subtract
 
 class Tensor:
     def __init__(self, data, requires_grad=False):
