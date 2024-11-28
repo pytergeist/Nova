@@ -1,16 +1,22 @@
-def add(tensor_a, tensor_b):
-    """
-    Element-wise addition of two tensors.
-    """
-    data = tensor_a.data + tensor_b.data
-    requires_grad = tensor_a.requires_grad or tensor_b.requires_grad
-    return data, requires_grad
+from .operation import Operation
+from neurothread.autodiff.autodiff import AutoDiff
 
+# Defining operations
 
-def subtract(tensor_a, tensor_b):
-    """
-    Element-wise subtraction of two tensors.
-    """
-    data = tensor_a.data - tensor_b.data
-    requires_grad = tensor_a.requires_grad or tensor_b.requires_grad
-    return data, requires_grad
+add_op = Operation(
+    "add",
+    lambda a, b: a.data + b.data,
+    lambda a, b, grad: (
+        AutoDiff.generic_backward_func(a, grad),
+        AutoDiff.generic_backward_func(b, grad),
+    ),
+)
+
+subtract_op = Operation(
+    "subtract",
+    lambda a, b: a.data - b.data,
+    lambda a, b, grad: (
+        AutoDiff.generic_backward_func(a, grad),
+        AutoDiff.generic_backward_func(b, -grad),
+    ),
+)

@@ -35,29 +35,10 @@ class AutoDiff:
         AutoDiff.BACKWARD_FUNCS[op_name](*args, **kwargs)
 
     @staticmethod
-    def _generic_backward_func(tensor, grad_output):
+    def generic_backward_func(tensor, grad_output):
         with tensor.lock:
             if tensor.requires_grad:
                 if tensor.grad is None:
                     tensor.grad = grad_output
                 else:
                     tensor.grad += grad_output
-
-
-# Register backward functions
-AutoDiff.register(
-    "add",
-    lambda tensor, other, grad_output: (
-        AutoDiff._generic_backward_func(tensor, grad_output),
-        AutoDiff._generic_backward_func(other, grad_output),
-    ),
-)
-
-
-AutoDiff.register(
-    "subtract",
-    lambda tensor, other, grad_output: (
-        AutoDiff._generic_backward_func(tensor, grad_output),
-        AutoDiff._generic_backward_func(other, -grad_output),
-    ),
-)

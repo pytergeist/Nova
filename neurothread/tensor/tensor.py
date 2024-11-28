@@ -5,18 +5,11 @@ from threading import Lock
 import numpy as np
 
 from neurothread.autodiff.autodiff import AutoDiff
-from neurothread.operations.ops import add, subtract
+from neurothread.operations.ops import add_op, subtract_op
 
 
 class Tensor:
     def __init__(self, data, requires_grad=False):
-        """
-        Initializes a Tensor object.
-
-        Args:
-            data: Numerical data (NumPy array or Python list).
-            requires_grad: If True, tracks gradients for this tensor.
-        """
         self.data = np.array(data, dtype=np.float32)
         self.requires_grad = requires_grad
         self.grad = None
@@ -24,85 +17,29 @@ class Tensor:
         self.lock = Lock()
 
     def backward(self):
-        """
-        Computes gradients for the current tensor and its dependencies.
-        """
         if not self.requires_grad:
             raise RuntimeError("Cannot backward a Tensor with requires_grad=False")
-
         if self.grad is None:
             self.grad = np.ones_like(self.data)
-
         self._backward()
 
-    def __add__(self, other):
-        """
-        Performs element-wise addition of two tensors with operator overloading autograd support.
-
-        Args:
-            other (Tensor): The tensor to add to `self`.
-
-        Returns:
-            Tensor: A new tensor representing the result of the addition.
-        """
+    def _apply_op(self, other, operation):
         other = other if isinstance(other, Tensor) else Tensor(other)
-        data, requires_grad = add(self, other)
-        result = Tensor(data, requires_grad=requires_grad)
+        data = operation.forward_func(self, other)
+        result = Tensor(data, requires_grad=self.requires_grad or other.requires_grad)
 
         def _backward():
             grad_output = np.ones_like(result.data)
-            AutoDiff.add_backward(self, other, grad_output)
+            operation.backward_func(self, other, grad_output)
 
         result._backward = _backward
         return result
+
+    def __add__(self, other):
+        return self._apply_op(other, add_op)
 
     def __sub__(self, other):
-        """
-        Performs element-wise subtraction of two tensors with operator overloading autograd support.
-
-        Args:
-            other (Tensor): The tensor to add to `self`.
-
-        Returns:
-            Tensor: A new tensor representing the result of the addition.
-        """
-        other = other if isinstance(other, Tensor) else Tensor(other)
-        data, requires_grad = subtract(self, other)
-        result = Tensor(data, requires_grad=requires_grad)
-
-        def _backward():
-            grad_output = np.ones_like(result.data)
-            AutoDiff.subtract_backward(self, other, grad_output)
-
-        result._backward = _backward
-        return result
-
-    def __mul__(self, other):
-        raise NotImplementedError
-
-    def __truediv__(self, other):
-        raise NotImplementedError
-
-    def __floordiv__(self, other):
-        raise NotImplementedError
-
-    def __mod__(self, other):
-        raise NotImplementedError
-
-    def __pow__(self, other):
-        raise NotImplementedError
-
-    def __matmul__(self, other):
-        raise NotImplementedError
-
-    def __neg__(self):
-        raise NotImplementedError
-
-    def __pos__(self):
-        raise NotImplementedError
-
-    def __abs__(self):
-        raise NotImplementedError
+        return self._apply_op(other, subtract_op)
 
 
 if __name__ == "__main__":
