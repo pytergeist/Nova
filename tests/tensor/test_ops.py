@@ -41,3 +41,21 @@ def test_subtract(data_a, data_b, expected_data, requires_grad):
 
     np.testing.assert_array_equal(result_data, expected_data)
     assert requires_grad_result == requires_grad
+
+@pytest.mark.parametrize(
+    "data_a, data_b, expected_data, requires_grad",
+    [
+        ([1, 2, 3], [4, 5, 6], [1, 3, 3], False),
+        ([0, 0, 0], [1, 1, 1], [1, 1, 1], False),
+        ([1, -1, 1], [-1, 1, -1], [-2, 2, -2], False),
+    ],
+)
+def test_right_subtract(data_a, data_b, expected_data, requires_grad):
+    a = Tensor(data_a)
+    b = Tensor(data_b)
+
+    result_data = subtract_op.forward_func(a, b)
+    requires_grad_result = a.requires_grad or b.requires_grad
+
+    np.testing.assert_array_equal(result_data, expected_data)
+    assert requires_grad_result == requires_grad

@@ -5,7 +5,7 @@ from threading import Lock
 import numpy as np
 
 from neurothread.autodiff.autodiff import AutoDiff
-from neurothread.operations.ops import add_op, subtract_op
+from neurothread.operations.ops import add_op, subtract_op, right_subtract_op
 
 
 class Tensor:
@@ -40,6 +40,9 @@ class Tensor:
 
     def __sub__(self, other):
         return self._apply_op(other, subtract_op)
+
+    def __rsub__(self, other):
+        return self._apply_op(other, right_subtract_op)
 
 
 if __name__ == "__main__":
