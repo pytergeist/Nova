@@ -4,7 +4,6 @@ from threading import Lock
 
 import numpy as np
 
-from neurothread.autodiff.autodiff import AutoDiff
 from neurothread.operations.ops import add_op, subtract_op, right_subtract_op
 
 
