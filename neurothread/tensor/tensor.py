@@ -4,7 +4,7 @@ from threading import Lock
 
 import numpy as np
 
-from neurothread.operations.ops import add_op, subtract_op, right_subtract_op
+from neurothread.operations.ops import add_op, right_subtract_op, subtract_op
 
 
 class Tensor:

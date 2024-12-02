@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
+from neurothread.operations.ops import add_op, right_subtract_op, subtract_op
 from neurothread.tensor import Tensor
-from neurothread.operations.ops import add_op, subtract_op, right_subtract_op
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,6 @@
-from .operation import Operation
 from neurothread.autodiff.autodiff import AutoDiff
+
+from .operation import Operation
 
 # Defining operations
 
@@ -29,5 +30,3 @@ right_subtract_op = Operation(
         AutoDiff.generic_backward_func(a, -grad),
     ),
 )
-
-

@@ -30,7 +30,9 @@ def test_add_backward(data_a, data_b, grad_output, expected_grad_a, expected_gra
         ([0, 0, 0], [1, 1, 1], [1, 1, 1], [1, 1, 1], [-1, -1, -1]),
     ],
 )
-def test_subtract_backward(data_a, data_b, grad_output, expected_grad_a, expected_grad_b):
+def test_subtract_backward(
+    data_a, data_b, grad_output, expected_grad_a, expected_grad_b
+):
     a = Tensor(data_a, requires_grad=True)
     b = Tensor(data_b, requires_grad=True)
     grad_output = np.array(grad_output)
