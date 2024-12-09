@@ -43,7 +43,7 @@ class Tensor:
     def __rsub__(self, other):
         return self._apply_op(other, right_subtract_op)
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         return self._apply_op(other, divide_op)
 
 
@@ -51,9 +51,9 @@ if __name__ == "__main__":
     a = Tensor([1, 2, 3], requires_grad=True)
     b = Tensor([4, 5, 7], requires_grad=True)
 
-    c = a - b  # Element-wise addition
-    print(c.data)  # [5, 7, 9]
+    c = a / b
+    print(c.data)  # [0.25, 0.4, 0.42857143]
 
     c.backward()  # Compute gradients
-    print(a.grad)  # [1, 1, 1] (since d(c)/d(a) = 1)
-    print(b.grad)  # [1, 1, 1] (since d(c)/d(b) = 1)
+    print(a.grad)  # [0.25,0.2,0.142857]
+    print(b.grad)  # [−0.0625,−0.08,−0.061224]
