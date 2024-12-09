@@ -36,7 +36,6 @@ divide_op = Operation(
     lambda a, b: a.data / b.data,
     lambda a, b, grad: (
         AutoDiff.generic_backward_func(a, grad / b.data),
-        AutoDiff.generic_backward_func(b, -grad * a.data / (b.data ** 2)),
+        AutoDiff.generic_backward_func(b, -grad * a.data / (b.data**2)),
     ),
 )
-

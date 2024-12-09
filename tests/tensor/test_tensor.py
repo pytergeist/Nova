@@ -53,7 +53,6 @@ def test_tensor_right_subtraction(data_a, data_b, expected_data):
 
 
 @pytest.mark.parametrize(
-
     "data_a, data_b, expected_grad_a, expected_grad_b",
     [
         ([1, 2, 3], [4, 5, 6], [1, 1, 1], [1, 1, 1]),
@@ -87,7 +86,7 @@ def test_tensor_backward_subtraction(data_a, data_b, expected_grad_a, expected_g
     np.testing.assert_array_equal(b.grad, expected_grad_b)
 
 
-@pytest.mark.parametrize( # TODO: is this correct?
+@pytest.mark.parametrize(  # TODO: is this correct?
     "data_a, data_b, expected_grad_a, expected_grad_b",
     [
         ([1, 2, 3], [4, 5, 6], [1, 1, 1], [-1, -1, -1]),
@@ -95,7 +94,9 @@ def test_tensor_backward_subtraction(data_a, data_b, expected_grad_a, expected_g
         ([1, -1, 1], [-1, 1, -1], [1, 1, 1], [-1, -1, -1]),
     ],
 )
-def test_tensor_backward_right_subtraction(data_a, data_b, expected_grad_a, expected_grad_b):
+def test_tensor_backward_right_subtraction(
+    data_a, data_b, expected_grad_a, expected_grad_b
+):
     a = Tensor(data_a, requires_grad=True)
     b = Tensor(data_b, requires_grad=True)
     c = a - b
