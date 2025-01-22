@@ -4,12 +4,8 @@ from threading import Lock
 
 import numpy as np
 
-from neurothread.operations.registry import (
-    add_op,
-    divide_op,
-    right_subtract_op,
-    subtract_op,
-)
+from neurothread.operations.registry import (add_op, divide_op,
+                                             right_subtract_op, subtract_op)
 
 
 class Tensor:
