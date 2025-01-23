@@ -103,3 +103,50 @@ def test_tensor_backward_right_subtraction(
     c.backward()
     np.testing.assert_array_equal(a.grad, expected_grad_a)
     np.testing.assert_array_equal(b.grad, expected_grad_b)
+
+
+@pytest.mark.parametrize(
+    "data_a, data_b, expected_data",
+    [
+        ([1, 2, 3], [4, 5, 6], [0.25, 0.40, 0.50]),
+        ([0, 0, 0], [1, 1, 1], [0.0, 0.0, 0.0]),
+        ([2, -4, 10], [-2, 2, 5], [-1.0, -2.0, 2.0]),
+    ],
+)
+def test_tensor_division(data_a, data_b, expected_data):
+    """Tests the forward pass of division (Tensor.__truediv__)."""
+    a = Tensor(data_a, requires_grad=True)
+    b = Tensor(data_b, requires_grad=True)
+    c = a / b
+
+    np.testing.assert_array_almost_equal(c.data, expected_data, decimal=5)
+    assert c.requires_grad is True
+
+
+@pytest.mark.parametrize(
+    "data_a, data_b, expected_grad_a, expected_grad_b",
+    [
+        (
+            [1.0, 2.0, 3.0],
+            [4.0, 5.0, 6.0],
+            [0.25, 0.2, 1/6],
+            [-0.0625, -0.08, -0.0833333],
+        ),
+        (
+            [2.0, -4.0],
+            [-1.0, 2.0],
+            [-1.0, 0.5],
+            [-2.0, 1.0],
+        ),
+    ],
+)
+def test_tensor_backward_division(data_a, data_b, expected_grad_a, expected_grad_b):
+    """Tests the backward pass (gradient) of division (Tensor.__truediv__)."""
+    a = Tensor(data_a, requires_grad=True)
+    b = Tensor(data_b, requires_grad=True)
+
+    c = a / b
+    c.backward()
+
+    np.testing.assert_array_almost_equal(a.grad, expected_grad_a, decimal=5)
+    np.testing.assert_array_almost_equal(b.grad, expected_grad_b, decimal=5)
