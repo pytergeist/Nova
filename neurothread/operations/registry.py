@@ -2,7 +2,7 @@ from neurothread.autodiff.autodiff import AutoDiff
 
 from .operation import Operation
 
-# Defining operations
+# Define operations forward and backward
 
 add_op = Operation(
     "add",
