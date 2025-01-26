@@ -6,8 +6,14 @@ from typing import Optional
 import numpy as np
 
 from threads.graph.node import Node
-from threads.operations.registry import (add_op, divide_op, right_subtract_op,
-                                         subtract_op)
+from threads.operations.registry import (
+    add_op,
+    divide_op,
+    right_subtract_op,
+    subtract_op,
+    matmul_op,
+    sum_op,
+)
 
 
 class Tensor:
@@ -66,6 +72,19 @@ class Tensor:
         )
         return Tensor(data=None, node=out_node)
 
+    def _apply_unary_op(self, operation):
+        """
+        Like _apply_op, but for single-input (unary) operations.
+        """
+        out_value = operation.forward_func(self)  # forward pass
+        out_node = Node(
+            value=out_value,
+            operation=operation,
+            parents=(self.node,),
+            requires_grad=self.node.requires_grad
+        )
+        return Tensor(data=None, node=out_node)
+
     def __add__(self, other):
         return self._apply_op(other, add_op)
 
@@ -78,14 +97,25 @@ class Tensor:
     def __truediv__(self, other):
         return self._apply_op(other, divide_op)
 
+    def __matmul__(self, other):
+        return self._apply_op(other, matmul_op)
+
+    def sum(self):
+        return self._apply_unary_op(sum_op)
+
+
 
 if __name__ == "__main__":
-    a = Tensor(np.array([1, 2, 3]), requires_grad=True)
-    b = Tensor(np.array([4, 5, 7]), requires_grad=True)
+    A = Tensor(np.random.randn(2, 3), requires_grad=True)
+    B = Tensor(np.random.randn(3, 4), requires_grad=True)
 
-    c = a / b
-    print(c.data)  # [0.25, 0.4, 0.42857143]
+    C = A @ B
+    print("Forward: ", C.data)
 
-    c.backward()  # Compute gradients
-    print(a.grad)  # [0.25,0.2,0.142857]
-    print(b.grad)  # [−0.0625,−0.08,−0.061224]
+    loss = C.sum()
+
+    loss.backward()
+
+    print("dLoss/dA = ", A.grad)
+    print("dLoss/dB = ", B.grad)
+

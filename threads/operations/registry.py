@@ -1,5 +1,6 @@
 # registry.py
 from .operation import Operation
+import numpy as np
 
 
 ########################
@@ -55,8 +56,52 @@ right_subtract_op = Operation(
 ########################
 def divide_backward(result, a, b, grad_output):
     grad_a = grad_output / b.value
-    grad_b = -grad_output * a.value / (b.value**2)
+    grad_b = -grad_output * a.value / (b.value ** 2)
     return (grad_a, grad_b)
 
 
 divide_op = Operation("divide", lambda a, b: a.data / b.data, divide_backward)
+
+
+def matmul_backward(result, a, b, grad_output):
+    """
+    Matrix multiply forward: result = a.data @ b.data
+
+    grad_output has the same shape as result.
+
+    - grad wrt a = grad_output @ b^T
+    - grad wrt b = a^T @ grad_output
+    """
+    A = a.value
+    B = b.value
+    dZ = grad_output
+
+    grad_a = dZ @ B.T
+    grad_b = A.T @ dZ
+    return grad_a, grad_b
+
+
+matmul_op = Operation(
+    "matmul",
+    lambda a, b: a.data @ b.data,  # forward pass
+    matmul_backward,  # backward pass
+)
+
+
+def sum_backward(result, a, grad_output):
+    """
+    Backward pass:
+      result = sum(a)
+
+    If 'result' is a scalar, 'grad_output' is also scalar (or shape () in NumPy).
+    The gradient wrt 'a' is just grad_output * ones_like(a.value).
+    """
+    grad_a = grad_output * np.ones_like(a.value)
+    return (grad_a,)
+
+
+sum_op = Operation(
+    op_name="sum",
+    forward_func=lambda a: np.sum(a.data),
+    backward_func=sum_backward
+)
