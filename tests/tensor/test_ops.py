@@ -60,7 +60,7 @@ def test_right_subtract(data_a, data_b, expected_data, requires_grad):
     a = Tensor(data_a)
     b = Tensor(data_b)
 
-    result_data = right_subtract_op.forward_func(b, a)
+    result_data = right_subtract_op.forward_func(a, b)
     requires_grad_result = a.requires_grad or b.requires_grad
 
     np.testing.assert_array_equal(result_data, expected_data)

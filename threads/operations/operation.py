@@ -15,4 +15,3 @@ class Operation:
         self.op_name = op_name
         self.forward_func = forward_func
         self.backward_func = backward_func
-        AutoDiff.register(op_name, backward_func)
