@@ -1,5 +1,6 @@
-import numpy as np
 from typing import Optional
+
+import numpy as np
 
 from threads.operations.operation import Operation
 
@@ -40,9 +41,11 @@ class Node:
                 parent.backward(pgrad)
 
     def __repr__(self):
-        return f"""Node(name={self.name}, value={self.value}, 
+        return f"""
+        Node(name={self.name}, value={self.value},
         operation={self.operation}, parents={self.parents},
-        requires_grad={self.requires_grad})"""
+        requires_grad={self.requires_grad})
+        """
 
 
 if __name__ == "__main__":

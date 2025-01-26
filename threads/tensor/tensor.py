@@ -2,15 +2,12 @@
 
 from threading import Lock
 from typing import Optional
+
 import numpy as np
 
 from threads.graph.node import Node
-from threads.operations.registry import (
-    add_op,
-    divide_op,
-    right_subtract_op,
-    subtract_op,
-)
+from threads.operations.registry import (add_op, divide_op, right_subtract_op,
+                                         subtract_op)
 
 
 class Tensor:
