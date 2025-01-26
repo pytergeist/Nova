@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from neurothread.tensor import Tensor
+from threads.tensor import Tensor
 
 
 @pytest.mark.parametrize(

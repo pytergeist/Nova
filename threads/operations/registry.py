@@ -1,4 +1,4 @@
-from neurothread.autodiff.autodiff import AutoDiff
+from threads.autodiff.autodiff import AutoDiff
 
 from .operation import Operation
 

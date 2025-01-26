@@ -1,5 +1,5 @@
 # operation.py
-from neurothread.autodiff.autodiff import AutoDiff
+from threads.autodiff.autodiff import AutoDiff
 
 
 class Operation:
@@ -7,7 +7,7 @@ class Operation:
         """
         Represents an operation with forward and backward logic.
 
-        Args:
+        Args:`x
             op_name (str): Name of the operation (e.g., "add").
             forward_func (callable): Function that computes the forward pass.
             backward_func (callable): Function that computes the backward pass.
