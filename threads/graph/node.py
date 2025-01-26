@@ -18,3 +18,8 @@ class Node:
         self.requires_grad = requires_grad
         self.grad = None
         self.name = None
+
+    def __repr__(self):
+        return f"""Node(name={self.name}, value={self.value}, 
+        operation={self.operation}, parents={self.parents},
+        requires_grad={self.requires_grad})"""
