@@ -107,6 +107,7 @@ def test_sum(input_data, expected_data, requires_grad):
     np.testing.assert_almost_equal(result_data, expected_data, decimal=5)
     assert requires_grad_result == requires_grad
 
+
 @pytest.mark.parametrize(
     "data_a, data_b, expected_data, requires_grad",
     [
@@ -114,14 +115,9 @@ def test_sum(input_data, expected_data, requires_grad):
             [[1.0, 2.0], [3.0, 4.0]],
             [[5.0, 6.0], [7.0, 8.0]],
             [[19.0, 22.0], [43.0, 50.0]],
-            False
+            False,
         ),
-        (
-            [[1.0, 2.0, 3.0]],
-            [[10.0], [20.0], [30.0]],
-            [[140.0]],
-            False
-        ),
+        ([[1.0, 2.0, 3.0]], [[10.0], [20.0], [30.0]], [[140.0]], False),
     ],
 )
 def test_matmul(data_a, data_b, expected_data, requires_grad):

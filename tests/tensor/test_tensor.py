@@ -179,11 +179,8 @@ def test_tensor_matmul_backward():
     using an example where A:(2,3) and B:(3,2).
     Then we sum up C into a scalar -> backward.
     """
-    A = np.array([[1.0, 2.0, 3.0],
-                  [4.0, 5.0, 6.0]], dtype=np.float32)
-    B = np.array([[7.0, 8.0],
-                  [9.0, 10.0],
-                  [11.0, 12.0]], dtype=np.float32)
+    A = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    B = np.array([[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]], dtype=np.float32)
 
     a = Tensor(A, requires_grad=True)
     b = Tensor(B, requires_grad=True)
