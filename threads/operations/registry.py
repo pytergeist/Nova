@@ -56,7 +56,7 @@ right_subtract_op = Operation(
 ########################
 def divide_backward(result, a, b, grad_output):
     grad_a = grad_output / b.value
-    grad_b = -grad_output * a.value / (b.value ** 2)
+    grad_b = -grad_output * a.value / (b.value**2)
     return (grad_a, grad_b)
 
 
@@ -101,7 +101,5 @@ def sum_backward(result, a, grad_output):
 
 
 sum_op = Operation(
-    op_name="sum",
-    forward_func=lambda a: np.sum(a.data),
-    backward_func=sum_backward
+    op_name="sum", forward_func=lambda a: np.sum(a.data), backward_func=sum_backward
 )

@@ -81,7 +81,7 @@ class Tensor:
             value=out_value,
             operation=operation,
             parents=(self.node,),
-            requires_grad=self.node.requires_grad
+            requires_grad=self.node.requires_grad,
         )
         return Tensor(data=None, node=out_node)
 
@@ -104,7 +104,6 @@ class Tensor:
         return self._apply_unary_op(sum_op)
 
 
-
 if __name__ == "__main__":
     A = Tensor(np.random.randn(2, 3), requires_grad=True)
     B = Tensor(np.random.randn(3, 4), requires_grad=True)
@@ -118,4 +117,3 @@ if __name__ == "__main__":
 
     print("dLoss/dA = ", A.grad)
     print("dLoss/dB = ", B.grad)
-
