@@ -1,6 +1,7 @@
 # registry.py
-from .operation import Operation
 import numpy as np
+
+from .operation import Operation
 
 
 ########################

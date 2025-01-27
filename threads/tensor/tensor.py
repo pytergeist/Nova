@@ -9,9 +9,9 @@ from threads.graph.node import Node
 from threads.operations.registry import (
     add_op,
     divide_op,
+    matmul_op,
     right_subtract_op,
     subtract_op,
-    matmul_op,
     sum_op,
 )
 
