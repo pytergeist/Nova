@@ -17,13 +17,17 @@ from threads.operations.registry import (
 
 
 class Tensor:
-    def __init__(self, data, requires_grad=False, node: Optional[Node] = None) -> None:
-        data = self._convert_to_numpy(data)
+    def __init__(
+            self, data, requires_grad=False, dtype=np.float32, node: Optional[Node] = None
+    ) -> None:
+        data = self._convert_to_numpy(data, dtype)
         self.node = self._build_leaf_node(data, requires_grad, node)
         self.lock = Lock()
 
-    def _convert_to_numpy(self, data: list) -> np.ndarray:
-        return np.asarray(data, dtype=np.float32)  # TODO: Needs editing
+    def _convert_to_numpy(
+            self, data: list, dtype
+    ) -> np.ndarray:  # TODO: create type classes
+        return np.asarray(data, dtype=dtype)
 
     @staticmethod
     def _build_leaf_node(data: np.ndarray, requires_grad: bool, node: Node) -> Node:
@@ -56,6 +60,11 @@ class Tensor:
     @property
     def value(self):
         return self.node.value
+
+    @staticmethod
+    def standardise_dtype(dtype):  # TODO: add more dtypes, create dtype maps
+        if dtype is None:
+            return np.float32
 
     def backward(self, grad_output: Optional[np.ndarray] = None):
         self.node.backward(grad_output)
