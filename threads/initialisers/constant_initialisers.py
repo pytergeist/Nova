@@ -4,7 +4,7 @@ from threads.initialisers.initialiser import Initialiser
 from threads.tensor import Tensor
 
 
-class ConstantInitialiser(Initialiser):
+class Constant(Initialiser):
     def __init__(self, value: float) -> None:
         self.value = value
 
@@ -20,7 +20,13 @@ class ConstantInitialiser(Initialiser):
         return cls(**config)
 
 
-class ZerosInitialiser(Initialiser):
+class Zeros(Initialiser):
     def __call__(self, shape, dtype, **kwargs) -> Tensor:
         dtype = Tensor.standardise_dtype(dtype)
         return Tensor(np.zeros(shape), dtype=dtype)
+
+
+class Ones(Initialiser):
+    def __call__(self, shape, dtype, **kwargs) -> Tensor:
+        dtype = Tensor.standardise_dtype(dtype)
+        return Tensor(np.ones(shape), dtype=dtype)
