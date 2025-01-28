@@ -18,14 +18,14 @@ from threads.operations.registry import (
 
 class Tensor:
     def __init__(
-            self, data, requires_grad=False, dtype=np.float32, node: Optional[Node] = None
+        self, data, requires_grad=False, dtype=np.float32, node: Optional[Node] = None
     ) -> None:
         data = self._convert_to_numpy(data, dtype)
         self.node = self._build_leaf_node(data, requires_grad, node)
         self.lock = Lock()
 
     def _convert_to_numpy(
-            self, data: list, dtype
+        self, data: list, dtype
     ) -> np.ndarray:  # TODO: create type classes
         return np.asarray(data, dtype=dtype)
 
