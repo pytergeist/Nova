@@ -10,7 +10,9 @@ class Constant(Initialiser):
 
     def __call__(self, shape, dtype, **kwargs) -> Tensor:
         dtype = Tensor.standardise_dtype(dtype)
-        return Tensor(self.value * np.ones(shape), dtype=dtype)
+        return Tensor(
+            self.value * np.ones(shape), dtype=dtype
+        )  # TODO: change from np calls to generate tensor data
 
     def get_config(self):
         return {"value": self.value}
