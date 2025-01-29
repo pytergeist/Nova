@@ -1,4 +1,4 @@
-# TODO: Replace numpy functionality with backend operations - written in c++?
+﻿# TODO: Replace numpy functionality with backend operations - written in c++?
 
 import os
 import numpy as np
@@ -44,7 +44,8 @@ class RandomNormal(RandomSeed):
         super().__init__(seed=seed)
 
     def _generate_random_normal_data(self, shape: Tuple[int, ...]) -> Any:
-        return np.random.normal(loc=self.mean, scale=self.stddev, size=shape)
+        rng = np.random.default_rng(self.seed)
+        return rng.normal(loc=self.mean, scale=self.stddev, size=shape)
 
     def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> "Tensor":
         dtype = Tensor.standardise_dtype(dtype)
@@ -54,11 +55,19 @@ class RandomNormal(RandomSeed):
         return {**super().get_config(), "mean": self.mean, "stddev": self.stddev}
 
 
-class TruncatedNormal(object):
-    def __init__(self):
-        raise NotImplementedError
+class RandomUniform(RandomSeed):
+    def __init__(self, minval: float = -1.0, maxval: float = 1.0, seed: int = None):
+        self.minval = minval
+        self.maxval = maxval
+        super().__init__(seed=seed)
 
+    def _generate_randon_uniform_data(self, shape: Tuple[int, ...]) -> Any:
+        rng = np.random.default_rng(self.seed)
+        return rng.uniform(low=self.minval, high=self.maxval, size=shape)
 
-class RandomUniform(object):
-    def __init__(self):
-        raise NotImplementedError
+    def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> "Tensor":
+        dtype = Tensor.standardise_dtype(dtype)
+        return Tensor(self._generate_randon_uniform_data(shape), dtype=dtype)
+
+    def get_config(self) -> Dict[str, Any]:
+        return {**super().get_config(), "minval": self.minval, "maxval": self.maxval}
