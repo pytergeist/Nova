@@ -1,8 +1,9 @@
 ﻿# TODO: Replace numpy functionality with backend operations - written in c++?
 
 import os
+from typing import Any, Dict, Tuple
+
 import numpy as np
-from typing import Dict, Any, Tuple
 
 from threads.initialisers.initialiser import Initialiser
 from threads.tensor import Tensor
