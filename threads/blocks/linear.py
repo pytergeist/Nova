@@ -1,6 +1,7 @@
-from threads.tensor import Tensor
+from threads import initialisers
 
-from .block import Block
+
+from threads.blocks.block import Block
 
 
 class Linear(Block):

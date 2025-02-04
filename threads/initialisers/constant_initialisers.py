@@ -32,7 +32,3 @@ class Ones(Initialiser):
     def __call__(self, shape, dtype, **kwargs) -> Tensor:
         dtype = Tensor.standardise_dtype(dtype)
         return Tensor(np.ones(shape), dtype=dtype)
-
-    @property
-    def name(self) -> str:
-        return "ones_initialiser"
