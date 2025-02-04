@@ -8,6 +8,10 @@ class Constant(Initialiser):
     def __init__(self, value: float) -> None:
         self.value = value
 
+    @property
+    def name(self) -> str:
+        return "constant_initialiser"
+
     def __call__(self, shape, dtype, **kwargs) -> Tensor:
         dtype = Tensor.standardise_dtype(dtype)
         return Tensor(
@@ -27,8 +31,16 @@ class Zeros(Initialiser):
         dtype = Tensor.standardise_dtype(dtype)
         return Tensor(np.zeros(shape), dtype=dtype)
 
+    @property
+    def name(self) -> str:
+        return "zeros_initialiser"
+
 
 class Ones(Initialiser):
     def __call__(self, shape, dtype, **kwargs) -> Tensor:
         dtype = Tensor.standardise_dtype(dtype)
         return Tensor(np.ones(shape), dtype=dtype)
+
+    @property
+    def name(self) -> str:
+        return "ones_initialiser"
