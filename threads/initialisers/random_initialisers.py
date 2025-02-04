@@ -17,10 +17,6 @@ class RandomSeed(Initialiser):  # TODO: helper functions should be moved to back
         self._ensure_seed_is_int()
         self._ensure_seed_is_32bit()
 
-    @property
-    def name(self) -> str:
-        return "random_seed"
-
     def _ensure_seed_is_int(self) -> None:
         if not isinstance(self.seed, int):
             raise ValueError(
@@ -48,10 +44,6 @@ class RandomNormal(RandomSeed):
         self.stddev = stddev
         super().__init__(seed=seed)
 
-    @property
-    def name(self) -> str:
-        return "random_normal"
-
     def _generate_random_normal_data(self, shape: Tuple[int, ...]) -> Any:
         rng = np.random.default_rng(self.seed)
         return rng.normal(loc=self.mean, scale=self.stddev, size=shape)
@@ -69,10 +61,6 @@ class RandomUniform(RandomSeed):
         self.minval = minval
         self.maxval = maxval
         super().__init__(seed=seed)
-
-    @property
-    def name(self) -> str:
-        return "random_uniform"
 
     def _generate_randon_uniform_data(self, shape: Tuple[int, ...]) -> Any:
         rng = np.random.default_rng(self.seed)
