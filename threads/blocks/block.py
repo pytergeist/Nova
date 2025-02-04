@@ -1,7 +1,5 @@
 from typing import Optional, Tuple
 
-from threads.tensor import Tensor
-
 
 class Block:
     def __init__(self):
@@ -16,7 +14,7 @@ class Block:
 
     def add_weight(
         self, shape: Optional[Tuple[int, int]] = None, initialiser=None, dtype=None
-    ):
+    ): # TODO: Add tensor with initialised weights and set it as a Node (for grad tracking/autodiff)
         pass
 
     def forward(self, *inputs):
