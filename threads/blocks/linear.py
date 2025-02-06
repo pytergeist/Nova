@@ -1,6 +1,4 @@
 from threads import initialisers
-
-
 from threads.blocks.block import Block
 
 
