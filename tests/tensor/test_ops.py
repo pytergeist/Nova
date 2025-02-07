@@ -1,14 +1,9 @@
 import numpy as np
 import pytest
 
-from threads.operations.registry import (
-    add_op,
-    divide_op,
-    matmul_op,
-    right_subtract_op,
-    subtract_op,
-    sum_op,
-)
+from threads.operations.registry import (add_op, divide_op, matmul_op,
+                                         right_subtract_op, subtract_op,
+                                         sum_op)
 from threads.tensor import Tensor
 
 
