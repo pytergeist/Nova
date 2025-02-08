@@ -1,5 +1,6 @@
+from typing import Any, Dict
+
 import pytest
-from typing import Dict, Any
 
 from threads.initialisers import Initialiser
 
