@@ -23,12 +23,24 @@ class Constant(Initialiser):
 
 
 class Zeros(Initialiser):
+    def __init__(self):
+        super().__init__()
+
+    def get_config(self):
+        return {}
+
     def __call__(self, shape, dtype, **kwargs) -> Tensor:
         dtype = Tensor.standardise_dtype(dtype)
         return Tensor(np.zeros(shape), dtype=dtype)
 
 
 class Ones(Initialiser):
+    def __init__(self):
+        super().__init__()
+
+    def get_config(self):
+        return {}
+
     def __call__(self, shape, dtype, **kwargs) -> Tensor:
         dtype = Tensor.standardise_dtype(dtype)
         return Tensor(np.ones(shape), dtype=dtype)

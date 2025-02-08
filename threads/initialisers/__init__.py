@@ -17,4 +17,4 @@ def get(name: str) -> "Initialiser":
     cls = _INITIALSERS.get(name)
     if cls is None:
         raise ValueError(f"Unknown initialiser: {name}")
-    return cls
+    return cls()

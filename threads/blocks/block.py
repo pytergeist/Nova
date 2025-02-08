@@ -1,9 +1,13 @@
 from typing import Optional, Tuple
 
+from threads import initialisers
+from threads.graph import Node
+from threads.initialisers import initialiser
+
 
 class Block:
     def __init__(self):
-        self._inheritance_lock = False
+        self._inheritance_lock = True
 
     def _check_super_called(self):  # TODO add inheritance_lock attr in child classes
         if getattr(self, "_inheritance_lock", True):
@@ -12,10 +16,23 @@ class Block:
                 "you forgot to call super.__init__()"
             )
 
+    @staticmethod
+    def _check_valid_kernel_initialiser(kernel_initialiser: "Initialiser") -> None:
+        if initialisers.get(kernel_initialiser) is None:
+            raise ValueError(f"Unknown initialiser: {kernel_initialiser}")
+
     def add_weight(
         self, shape: Optional[Tuple[int, int]] = None, initialiser=None, dtype=None
-    ):  # TODO: Add tensor with initialised weights and set it as a Node (for grad tracking/autodiff)
-        pass
+    ):
+        self._check_super_called()
+        self._check_valid_kernel_initialiser(initialiser)
+        initialiser = initialisers.get(initialiser)
+        return Node(
+            value=initialiser.__call__(shape, dtype),
+            operation=None,
+            parents=(),
+            requires_grad=True,
+        )
 
     def forward(self, *inputs):
         raise NotImplementedError
