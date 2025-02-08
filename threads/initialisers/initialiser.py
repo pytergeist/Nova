@@ -12,7 +12,7 @@ class Initialiser(ABC):  # TODO: create dtype class/types
         )
 
     @staticmethod
-    def camel_to_snake(name: str) -> str:
+    def camel_to_snake_case(name: str) -> str:
         """
         Convert CamelCase class names (e.g., 'RandomNormal')
         into snake_case strings (e.g., 'random_normal').
@@ -27,7 +27,7 @@ class Initialiser(ABC):  # TODO: create dtype class/types
         By default, convert the class name from CamelCase to snake_case.
         Subclasses can override this classmethod if they want a custom name.
         """
-        return cls.camel_to_snake(cls.__name__)
+        return cls.camel_to_snake_case(cls.__name__)
 
     @abstractmethod
     def get_config(self) -> Dict[str, Any]:
