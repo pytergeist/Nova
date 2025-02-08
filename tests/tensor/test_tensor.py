@@ -195,3 +195,7 @@ def test_tensor_matmul_backward():
 
     expected_grad_b = A.T @ np.ones_like(c.data)
     np.testing.assert_array_almost_equal(b.grad, expected_grad_b, decimal=5)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])
