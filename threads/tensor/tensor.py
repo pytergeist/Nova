@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 
-from threads.autodiff._node import Node
+from threads.autodiff._node import GraphNode
 from threads.operations.registry import (
     add_op,
     divide_op,
@@ -18,66 +18,53 @@ from threads.operations.registry import (
 
 class Tensor:
     def __init__(
-        self, data, requires_grad=False, dtype=np.float32, node: Optional[Node] = None
+        self, data, requires_grad=False, dtype=np.float32, node: Optional[GraphNode] = None
     ) -> None:
-        data = self._convert_to_numpy(data, dtype)
-        self.node = self._build_leaf_node(data, requires_grad, node)
-        self.lock = Lock()
+        if data is not None and not isinstance(data, np.ndarray):
+            data = np.array(data, dtype=dtype)
 
-    def _convert_to_numpy(
-        self, data: list, dtype
-    ) -> np.ndarray:  # TODO: create type classes
-        return np.asarray(data, dtype=dtype)
-
-    @staticmethod
-    def _build_leaf_node(data: np.ndarray, requires_grad: bool, node: Node) -> Node:
-        # TODO: write validation to ensure data is np array
+            # If no node is provided, build a leaf GraphNode.
         if node is None:
-            node = Node(
-                value=data,
-                operation=None,  # leaf nodes hold no op
-                parents=(),
-                requires_grad=requires_grad,
-            )
-        return node
+            node = GraphNode(value=data, operation=None, parents=(), requires_grad=requires_grad)
+        self._node = node
 
     @property
     def data(self) -> np.ndarray:
-        return self.node.value
+        return self._node.value
 
     @property
     def grad(self) -> np.ndarray:
-        return self.node.grad
+        return self._node.grad
 
     @grad.setter
     def grad(self, new_grad: np.ndarray):
-        self.node.grad = new_grad
+        self._node.grad = new_grad
 
     @property
     def requires_grad(self) -> np.ndarray:
-        return self.node.requires_grad
+        return self._node.requires_grad
 
     @property
     def value(self):
-        return self.node.value
+        return self._node.value
 
     @staticmethod
     def standardise_dtype(dtype):  # TODO: add more dtypes, create dtype maps
         if dtype is None:
             return np.float32
 
-    def backward(self, grad_output: Optional[np.ndarray] = None):
-        self.node.backward(grad_output)
+    def backward(self, grad_output: Optional[np.ndarray] = None) -> None:
+        self._node.backward(grad_output)
 
     def _apply_op(self, other, operation):
         other = other if isinstance(other, Tensor) else Tensor(other)
         out_value = operation.forward_func(self, other)
 
-        out_node = Node(
+        out_node = GraphNode(
             value=out_value,
             operation=operation,
-            parents=(self.node, other.node),
-            requires_grad=self.node.requires_grad or other.node.requires_grad,
+            parents=(self._node, other._node),
+            requires_grad=self._node.requires_grad or other._node.requires_grad,
         )
         return Tensor(data=None, node=out_node)
 
@@ -86,11 +73,11 @@ class Tensor:
         Like _apply_op, but for single-input (unary) operations.
         """
         out_value = operation.forward_func(self)  # forward pass
-        out_node = Node(
+        out_node = GraphNode(
             value=out_value,
             operation=operation,
-            parents=(self.node,),
-            requires_grad=self.node.requires_grad,
+            parents=(self._node,),
+            requires_grad=self._node.requires_grad,
         )
         return Tensor(data=None, node=out_node)
 
@@ -111,6 +98,9 @@ class Tensor:
 
     def sum(self):
         return self._apply_unary_op(sum_op)
+
+    def __repr__(self):
+        return f"Tensor(data={self.data}, requires_grad={self.requires_grad})"
 
 
 if __name__ == "__main__":

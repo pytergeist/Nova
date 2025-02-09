@@ -1,5 +1,5 @@
-from threads.autodiff._node import Node
+from threads.autodiff._node import GraphNode
 
 __all__ = [
-    "Node",
+    "GraphNode",
 ]
