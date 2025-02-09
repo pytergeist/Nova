@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 
-from threads.graph.node import Node
+from threads.autodiff._node import Node
 from threads.operations.registry import (
     add_op,
     divide_op,
