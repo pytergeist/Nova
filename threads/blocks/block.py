@@ -1,8 +1,7 @@
 from typing import Optional, Tuple
 
 from threads import initialisers
-from threads.graph import Node
-from threads.initialisers import initialiser
+from threads.tensor import Tensor
 
 
 class Block:
@@ -27,10 +26,8 @@ class Block:
         self._check_super_called()
         self._check_valid_kernel_initialiser(initialiser)
         initialiser = initialisers.get(initialiser)
-        return Node(
-            value=initialiser.__call__(shape, dtype),
-            operation=None,
-            parents=(),
+        return Tensor(
+            data=initialiser(shape, dtype).data,
             requires_grad=True,
         )
 

@@ -31,9 +31,9 @@ class Linear(Block):
             )
 
     def call(self, inputs):
-        output = inputs @ self.kernel.value
+        output = inputs @ self.kernel
         if self.bias:
-            output += self.bias.value
+            output += self.bias
         return output
 
 
@@ -42,4 +42,4 @@ if __name__ == "__main__":
     layer.build(input_shape=(None, 5))
     print(layer.kernel)
     inputs = initialisers.get("ones")((1, 5), dtype="float32")
-    print(layer.call(inputs=inputs))
+    print(layer.call(inputs=inputs).data)
