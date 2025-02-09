@@ -8,7 +8,7 @@ from threads.operations.operation import Operation
 class Node:
     def __init__(
         self,
-        value: np.ndarray, # TODO: Should this be a tensor: "Tensor"? is it ever not a tensor?
+        value: np.ndarray,  # TODO: Should this be a tensor: "Tensor"? is it ever not a tensor?
         operation: Optional[Operation] = None,
         parents: tuple = (),
         requires_grad: bool = False,

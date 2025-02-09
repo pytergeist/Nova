@@ -1,5 +1,4 @@
 # operation.py
-from threads.autodiff.autodiff import AutoDiff
 
 
 class Operation:

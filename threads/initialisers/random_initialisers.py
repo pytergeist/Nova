@@ -62,6 +62,12 @@ class RandomUniform(RandomSeed):
         self.maxval = maxval
         super().__init__(seed=seed)
 
+    def _ensure_minval_less_than_maxval(self) -> None:
+        if self.minval >= self.maxval:
+            raise ValueError(
+                f"minval must be less than maxval, but got minval={self.minval} and maxval={self.maxval}"
+            )
+
     def _generate_randon_uniform_data(self, shape: Tuple[int, ...]) -> Any:
         rng = np.random.default_rng(self.seed)
         return rng.uniform(low=self.minval, high=self.maxval, size=shape)
