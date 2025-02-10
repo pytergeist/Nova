@@ -40,6 +40,5 @@ class Linear(Block):
 if __name__ == "__main__":
     layer = Linear(units=10, kernel_initialiser="random_normal", bias=True)
     layer.build(input_shape=(None, 5))
-    print(layer.kernel)
+    print(layer.kernel._node)
     inputs = initialisers.get("ones")((1, 5), dtype="float32")
-    print(layer.call(inputs=inputs).data)
