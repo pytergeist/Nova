@@ -23,7 +23,7 @@ class Tensor:
         if data is not None and not isinstance(data, np.ndarray):
             data = np.array(data, dtype=dtype)
 
-            # If no node is provided, build a leaf GraphNode.
+        # If no node is provided, build a leaf GraphNode.
         if node is None:
             node = GraphNode(value=data, operation=None, parents=(), requires_grad=requires_grad)
         self._node = node
@@ -41,7 +41,7 @@ class Tensor:
         self._node.grad = new_grad
 
     @property
-    def requires_grad(self) -> np.ndarray:
+    def requires_grad(self) -> bool:
         return self._node.requires_grad
 
     @property

@@ -1,5 +1,5 @@
-from threads import initialisers
 from threads.blocks.block import Block
+from threads.tensor import Tensor
 
 
 class Linear(Block):
@@ -30,6 +30,9 @@ class Linear(Block):
                 initialiser=self.bias_initialiser,
             )
 
+    def forward(self, inputs):
+        return self.call(inputs)
+
     def call(self, inputs):
         output = inputs @ self.kernel
         if self.bias:
@@ -40,5 +43,8 @@ class Linear(Block):
 if __name__ == "__main__":
     layer = Linear(units=10, kernel_initialiser="random_normal", bias=True)
     layer.build(input_shape=(None, 5))
-    print(layer.kernel._node)
-    inputs = initialisers.get("ones")((1, 5), dtype="float32")
+    ll = layer(Tensor(data=[[1, 2, 3, 4, 5]]))
+    print(ll._node)
+
+
+
