@@ -1,4 +1,5 @@
 from typing import Optional, Tuple
+
 import numpy as np
 
 from threads.operations.operation import Operation
@@ -6,11 +7,11 @@ from threads.operations.operation import Operation
 
 class GraphNode:
     def __init__(
-            self,
-            value: np.ndarray,  # TODO: Should this be a tensor: "Tensor"? is it ever not a tensor?
-            operation: Optional[Operation] = None,
-            parents: Tuple["GraphNode", ...] = (),
-            requires_grad: bool = False,
+        self,
+        value: np.ndarray,  # TODO: Should this be a tensor: "Tensor"? is it ever not a tensor?
+        operation: Optional[Operation] = None,
+        parents: Tuple["GraphNode", ...] = (),
+        requires_grad: bool = False,
     ):
         self._value = value
         self._operation = operation

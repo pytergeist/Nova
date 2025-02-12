@@ -45,6 +45,3 @@ if __name__ == "__main__":
     layer.build(input_shape=(None, 5))
     ll = layer(Tensor(data=[[1, 2, 3, 4, 5]]))
     print(ll._node)
-
-
-

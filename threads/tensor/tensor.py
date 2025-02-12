@@ -18,14 +18,20 @@ from threads.operations.registry import (
 
 class Tensor:
     def __init__(
-        self, data, requires_grad=False, dtype=np.float32, node: Optional[GraphNode] = None
+        self,
+        data,
+        requires_grad=False,
+        dtype=np.float32,
+        node: Optional[GraphNode] = None,
     ) -> None:
         if data is not None and not isinstance(data, np.ndarray):
             data = np.array(data, dtype=dtype)
 
         # If no node is provided, build a leaf GraphNode.
         if node is None:
-            node = GraphNode(value=data, operation=None, parents=(), requires_grad=requires_grad)
+            node = GraphNode(
+                value=data, operation=None, parents=(), requires_grad=requires_grad
+            )
         self._node = node
 
     @property
