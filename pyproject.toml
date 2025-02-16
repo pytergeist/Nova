@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "neurothread"
-version = "0.1.0"
+name = "abditus"
+version = "0.1.1"
 description = "A lightweight deep learning framework that leverages multithreading in python3.13"
 authors = ["pytergeist <tompopeworks@gmail.com>"]
 license = "GPL-3.0 license"
