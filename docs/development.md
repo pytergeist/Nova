@@ -7,7 +7,7 @@
 - Implement numeric gradient checker to verify correctness backward pass for each operation
 - Implement layers module
 - Add activation functions
-- Add optimiser library 
+- Add optimiser library
 - Add multithreading cpu support
   - c++ module?
 - Add GPU support

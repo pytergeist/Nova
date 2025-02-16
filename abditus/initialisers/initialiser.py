@@ -2,7 +2,7 @@ import re
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple
 
-from threads.tensor import Tensor
+from abditus.tensor import Tensor
 
 
 class Initialiser(ABC):  # TODO: create dtype class/types

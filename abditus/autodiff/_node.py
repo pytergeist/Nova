@@ -2,7 +2,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from threads.operations.operation import Operation
+from abditus.operations.operation import Operation
 
 
 class GraphNode:

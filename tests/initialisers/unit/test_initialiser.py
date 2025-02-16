@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import pytest
 
-from threads.initialisers import Initialiser
+from abditus.initialisers import Initialiser
 
 
 class MockInitialiser(Initialiser):

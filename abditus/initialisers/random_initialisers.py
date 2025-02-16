@@ -5,8 +5,8 @@ from typing import Any, Dict, Tuple
 
 import numpy as np
 
-from threads.initialisers.initialiser import Initialiser
-from threads.tensor import Tensor
+from abditus.initialisers.initialiser import Initialiser
+from abditus.tensor import Tensor
 
 
 class RandomSeed(Initialiser):  # TODO: helper functions should be moved to backend ops?

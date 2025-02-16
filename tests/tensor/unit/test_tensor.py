@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from threads.tensor import Tensor
+from abditus.tensor import Tensor
 
 
 @pytest.mark.parametrize(

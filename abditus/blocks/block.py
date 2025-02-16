@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 
-from threads import initialisers
-from threads.tensor import Tensor
+from abditus import initialisers
+from abditus.tensor import Tensor
 
 
 class Block:

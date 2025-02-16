@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from threads.operations.registry import (
+from abditus.operations.registry import (
     add_op,
     divide_op,
     matmul_op,
@@ -9,7 +9,7 @@ from threads.operations.registry import (
     subtract_op,
     sum_op,
 )
-from threads.tensor import Tensor
+from abditus.tensor import Tensor
 
 
 @pytest.mark.parametrize(

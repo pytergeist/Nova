@@ -1,7 +1,7 @@
 import numpy as np
 
-from threads.initialisers.initialiser import Initialiser
-from threads.tensor import Tensor
+from abditus.initialisers.initialiser import Initialiser
+from abditus.tensor import Tensor
 
 
 class Constant(Initialiser):

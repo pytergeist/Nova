@@ -5,8 +5,8 @@ from typing import Optional
 
 import numpy as np
 
-from threads.autodiff._node import GraphNode
-from threads.operations.registry import (
+from abditus.autodiff._node import GraphNode
+from abditus.operations.registry import (
     add_op,
     divide_op,
     matmul_op,

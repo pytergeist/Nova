@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from threads.initialisers.random_initialisers import (
+from abditus.initialisers.random_initialisers import (
     RandomNormal,
     RandomSeed,
     RandomUniform,

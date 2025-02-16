@@ -1,5 +1,5 @@
-from threads.blocks.block import Block
-from threads.tensor import Tensor
+from abditus.blocks.block import Block
+from abditus.tensor import Tensor
 
 
 class Linear(Block):
