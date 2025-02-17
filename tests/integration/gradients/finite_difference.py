@@ -34,13 +34,19 @@ def finite_difference_jacobian(f, x, epsilon=1.5e-8):
 
         jacobian[:, i] = (f_pos - f_neg) / (2*epsilon)
 
+        if jacobian.size == 1:
+            jacobian = jacobian.ravel()
+
     return jacobian
 
 
 def f(x):
-    return [x**2, x**11]
+    return [x**2, x**3, x/2, x]
 
 
 if __name__ == "__main__":
-    x = [10, 10, 10]
-    print(finite_difference_jacobian(f, x, 1.5e-8))
+    x = [1.3, .44, 50, 10.4, 1.3]
+    jac = finite_difference_jacobian(f, x, 1.5e-8)
+    print(jac)
+    print(jac.size)
+    print(jac.shape)
