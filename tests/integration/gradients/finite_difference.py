@@ -4,6 +4,7 @@ import numpy as np
 def finite_difference(f, x, epsilon):
     """
     fn to calculate numerical derivative using finite difference approximation
+    This fn only computes scalar gradients for functions, not vectors
 
     f'(x_i) = (f(x + ε*e_i) - f(x - ε*e_i)) / 2*ε)
     """
@@ -17,6 +18,10 @@ def finite_difference(f, x, epsilon):
         dx[i] = epsilon
         grad[i] = (f(x + dx) - f(x - dx)) / (2 * epsilon)
     return grad
+
+
+def finite_difference_jacobian():
+    pass
 
 
 def f(x):
