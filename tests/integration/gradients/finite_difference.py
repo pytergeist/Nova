@@ -39,14 +39,3 @@ def finite_difference_jacobian(f, x, epsilon=1.5e-8):
             jacobian = jacobian.ravel()
 
     return jacobian
-
-
-def f(x):
-    return [x, x, x, x]
-
-
-if __name__ == "__main__":
-    x = 10
-    jac = finite_difference_jacobian(f, x, epsilon=1.5e-8)
-    print(jac)
-    print(jac.shape)
