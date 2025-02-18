@@ -3,10 +3,25 @@ import numpy as np
 
 def finite_difference_jacobian(f, x, epsilon=1.5e-8):
     """
-    fn to generalise finite difference method for approximating the
-    jacobian matrix using the below equation:
-    f'(x_i) = (f(x + ε*e_i) - f(x - ε*e_i)) / 2*ε)
-    This fn can compute both jacobian and scalar gradients
+    Compute an approximate Jacobian matrix using the finite difference method.
+
+    This function generalizes the finite difference method for approximating the
+    Jacobian matrix using the formula:
+
+        f'(x_i) = (f(x + ε * e_i) - f(x - ε * e_i)) / (2 * ε)
+
+    It can be used to compute both Jacobians and scalar gradients.
+
+    Args:
+        x (scalar or array-like): A scalar or vector of shape (n,).
+        f (callable): A transformation function that takes an input of shape (n,)
+            and returns an output of shape (m,).
+        epsilon (float, optional): A small scalar value for the finite difference
+            approximation. Defaults to 1.5e-8.
+
+    Returns:
+        numpy.ndarray: The approximate Jacobian matrix of first-order partial derivatives,
+            with shape (m, n).
     """
     x = np.atleast_1d(np.asarray(x, dtype=np.float64))
     f0 = np.atleast_1d(np.asarray(f(x), dtype=np.float64)).ravel()
@@ -24,3 +39,14 @@ def finite_difference_jacobian(f, x, epsilon=1.5e-8):
             jacobian = jacobian.ravel()
 
     return jacobian
+
+
+def f(x):
+    return [x, x, x, x]
+
+
+if __name__ == "__main__":
+    x = 10
+    jac = finite_difference_jacobian(f, x, epsilon=1.5e-8)
+    print(jac)
+    print(jac.shape)
