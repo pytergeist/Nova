@@ -64,7 +64,7 @@ def divide_backward(result, a, b, grad_output):
 divide_op = Operation("divide", lambda a, b: a.data / b.data, divide_backward)
 
 
-def matmul_backward(result, a, b, grad_output):
+def matmul_backward(result, a, b, grad_output): # TODO: Should there be switching between dot/matmul for 1d/2d arrays?
     """
     Matrix multiply forward: result = a.data @ b.data
 
