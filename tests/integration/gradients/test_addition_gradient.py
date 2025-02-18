@@ -1,8 +1,10 @@
 import numpy as np
 import pytest
 
-from tests.integration.gradients.finite_difference import finite_difference_jacobian
 from abditus.tensor import Tensor
+from tests.integration.gradients.finite_difference import finite_difference_jacobian
+
+# TODO: Add parameterisation for multiple test cases
 
 
 def fn_numpy(x):
@@ -33,3 +35,7 @@ def test_addition_grad():
         atol=1e-7,
         err_msg="Autodiff gradient does not match numerical gradient for addition.",
     )
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])
