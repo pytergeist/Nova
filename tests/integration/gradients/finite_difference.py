@@ -5,37 +5,40 @@ def finite_difference_jacobian(f, x, epsilon=1.5e-8):
     """
     Compute an approximate Jacobian matrix using the finite difference method.
 
-    This function generalizes the finite difference method for approximating the
-    Jacobian matrix using the formula:
-
-        f'(x_i) = (f(x + ε * e_i) - f(x - ε * e_i)) / (2 * ε)
-
-    It can be used to compute both Jacobians and scalar gradients.
+    This function now supports inputs where x can be a multi-dimensional array.
+    The Jacobian is computed with respect to the flattened version of x.
 
     Args:
-        x (scalar or array-like): A scalar or vector of shape (n,).
-        f (callable): A transformation function that takes an input of shape (n,)
-            and returns an output of shape (m,).
-        epsilon (float, optional): A small scalar value for the finite difference
-            approximation. Defaults to 1.5e-8.
+        f (callable): A function that accepts an array x and returns an array.
+        x (scalar or array-like): Input value(s).
+        epsilon (float, optional): Perturbation size. Defaults to 1.5e-8.
 
     Returns:
-        numpy.ndarray: The approximate Jacobian matrix of first-order partial derivatives,
-            with shape (m, n).
+        numpy.ndarray: The approximate Jacobian with shape (f(x).size, x.size)
     """
-    x = np.atleast_1d(np.asarray(x, dtype=np.float64))
+    x = np.asarray(x, dtype=np.float64)
     f0 = np.atleast_1d(np.asarray(f(x), dtype=np.float64)).ravel()
-    jacobian = np.zeros((f0.shape[0], x.size), dtype=np.float64)
-    for i in range(x.size):
-        dx = np.zeros_like(x, dtype=np.float32)
-        dx[i] = epsilon
+    jacobian = np.zeros((f0.size, x.size), dtype=np.float64)
 
-        f_pos = np.atleast_1d(np.array(f(x + dx), dtype=np.float64)).ravel()
-        f_neg = np.atleast_1d(np.array(f(x - dx), dtype=np.float64)).ravel()
+    for flat_idx, multi_idx in enumerate(np.ndindex(x.shape)):
+        dx = np.zeros_like(x, dtype=np.float64)
+        dx[multi_idx] = epsilon
 
-        jacobian[:, i] = (f_pos - f_neg) / (2 * epsilon)
+        f_pos = np.atleast_1d(np.asarray(f(x + dx), dtype=np.float64)).ravel()
+        f_neg = np.atleast_1d(np.asarray(f(x - dx), dtype=np.float64)).ravel()
 
-        if jacobian.size == 1:
-            jacobian = jacobian.ravel()
+        jacobian[:, flat_idx] = (f_pos - f_neg) / (2 * epsilon)
 
     return jacobian
+
+
+if __name__ == "__main__":
+
+    def f(x):
+        return [x, x]
+
+    x = [10, 10, 10]
+
+    numerical_jacobian = finite_difference_jacobian(f, x, epsilon=1.5e-8)
+    print(numerical_jacobian)
+    print(numerical_jacobian.shape)

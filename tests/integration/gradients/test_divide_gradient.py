@@ -4,7 +4,6 @@ import pytest
 from abditus.tensor import Tensor
 from tests.integration.gradients.finite_difference import finite_difference_jacobian
 
-
 # TODO: Add parameterisation for multiple test cases
 
 
