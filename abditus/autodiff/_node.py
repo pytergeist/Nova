@@ -43,6 +43,16 @@ class Node:
     def parents(self) -> Tuple["Node", ...]:
         return self._parents
 
+    def _zero_grad(self, visited: Optional[set[id]] = None):
+        if visited is None:
+            visited = set()
+        if id(self) in visited:
+            return
+        visited.add(id(self))
+        self._grad = np.zeros_like(self._value)
+        for parent in self._parents:
+            parent._zero_grad(visited)
+
     def backward(self, grad_output: Optional[np.ndarray] = None):
         """
         Recursively compute gradients for parents.
