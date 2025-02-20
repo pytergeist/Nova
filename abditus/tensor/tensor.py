@@ -6,6 +6,7 @@ from typing import Optional
 import numpy as np
 
 from abditus.autodiff._node import GraphNode
+from abditus.autodiff.engine import Engine
 from abditus.operations.registry import (
     add_op,
     divide_op,
@@ -22,16 +23,16 @@ class Tensor:
         data,
         requires_grad=False,
         dtype=np.float32,
+        engine: Engine = Engine(),
         node: Optional[GraphNode] = None,
     ) -> None:
+        self.engine = engine
         if data is not None and not isinstance(data, np.ndarray):
             data = np.array(data, dtype=dtype)
 
         # If no node is provided, build a leaf GraphNode.
         if node is None:
-            node = GraphNode(
-                value=data, operation=None, parents=(), requires_grad=requires_grad
-            )
+            node = self.engine.build_leaf_node(data, requires_grad)
         self._node = node
 
     @property
