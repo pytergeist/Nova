@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 
-from abditus.autodiff._node import GraphNode
+from abditus.autodiff._node import Node
 from abditus.autodiff.engine import Engine
 from abditus.operations.registry import (
     add_op,
@@ -24,7 +24,7 @@ class Tensor:
         requires_grad=False,
         dtype=np.float32,
         engine: Engine = Engine(),
-        node: Optional[GraphNode] = None,
+        node: Optional[Node] = None,
     ) -> None:
         self.engine = engine
         if data is not None and not isinstance(data, np.ndarray):
@@ -67,7 +67,7 @@ class Tensor:
         other = other if isinstance(other, Tensor) else Tensor(other)
         out_value = operation.forward_func(self, other)
 
-        out_node = GraphNode(
+        out_node = Node(
             value=out_value,
             operation=operation,
             parents=(self._node, other._node),
@@ -80,7 +80,7 @@ class Tensor:
         Like _apply_op, but for single-input (unary) operations.
         """
         out_value = operation.forward_func(self)  # forward pass
-        out_node = GraphNode(
+        out_node = Node(
             value=out_value,
             operation=operation,
             parents=(self._node,),

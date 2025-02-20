@@ -5,12 +5,12 @@ import numpy as np
 from abditus.operations.operation import Operation
 
 
-class GraphNode:
+class Node:
     def __init__(
         self,
         value: np.ndarray,  # TODO: Should this be a tensor: "Tensor"? is it ever not a tensor?
         operation: Optional[Operation] = None,
-        parents: Tuple["GraphNode", ...] = (),
+        parents: Tuple["Node", ...] = (),
         requires_grad: bool = False,
     ):
         self._value = value
@@ -40,7 +40,7 @@ class GraphNode:
         return self._operation
 
     @property
-    def parents(self) -> Tuple["GraphNode", ...]:
+    def parents(self) -> Tuple["Node", ...]:
         return self._parents
 
     def backward(self, grad_output: Optional[np.ndarray] = None):
@@ -75,5 +75,5 @@ class GraphNode:
 
 
 if __name__ == "__main__":
-    root_node = GraphNode(np.array([1, 2, 3]))
+    root_node = Node(np.array([1, 2, 3]))
     print(root_node)

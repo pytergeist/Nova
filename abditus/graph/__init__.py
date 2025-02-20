@@ -1,5 +1,5 @@
-from abditus.autodiff._node import GraphNode
+from abditus.autodiff._node import Node
 
 __all__ = [
-    "GraphNode",
+    "Node",
 ]

@@ -2,7 +2,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from abditus.autodiff._node import GraphNode
+from abditus.autodiff._node import Node
 from abditus.operations.operation import Operation
 
 
@@ -14,11 +14,11 @@ class Engine:
         self,
         data: np.ndarray,
         operation: Optional[Operation] = None,
-        parents: Tuple["GraphNode", ...] = (),
+        parents: Tuple["Node", ...] = (),
         requires_grad: bool = False,
     ):
 
-        return GraphNode(
+        return Node(
             value=data,
             operation=operation,
             parents=parents,
