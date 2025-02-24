@@ -61,7 +61,7 @@ class Tensor:
             return np.float32
 
     def backward(self, grad_output: Optional[np.ndarray] = None) -> None:
-        self._node._zero_grad() # TODO:
+        self._node._zero_grad()  # TODO:
         self._node.backward(grad_output)
 
     def _apply_op(self, other, operation):
@@ -113,6 +113,7 @@ class Tensor:
 
 if __name__ == "__main__":
     from abditus.graph.print_graph import print_graph, print_graph_with_grad
+
     A = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
     B = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
     C = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
@@ -120,11 +121,11 @@ if __name__ == "__main__":
     D = A + A + A
     D.backward()
     print_graph(D._node)
-    print('-'*10)
+    print("-" * 10)
     print_graph_with_grad(D._node)
-    print('='*20)
+    print("=" * 20)
     D = A + B + C
     D.backward()
     print_graph(D._node)
-    print('-' * 10)
+    print("-" * 10)
     print_graph_with_grad(D._node)
