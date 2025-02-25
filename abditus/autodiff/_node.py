@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Set
 
 import numpy as np
 
@@ -43,7 +43,7 @@ class Node:
     def parents(self) -> Tuple["Node", ...]:
         return self._parents
 
-    def _zero_grad(self, visited: Optional[set[id]] = None):
+    def _zero_grad(self, visited: Optional[Set[int]] = None) -> None:
         if visited is None:
             visited = set()
         if id(self) in visited:
