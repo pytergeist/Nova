@@ -1,4 +1,4 @@
-from typing import Set, Optional
+from typing import Optional, Set
 
 from abditus.autodiff._node import Node
 
@@ -30,3 +30,21 @@ def print_graph_with_grad(
 
     for parent in node.parents:
         print_graph_with_grad(parent, level + 1, visited)
+
+
+def print_tree(graph, node, parent=None, prefix="", is_last=True):
+    if parent is None:
+        print(node)
+        children = graph[node]
+        for i, child in enumerate(children):
+            child_is_last = i == len(children) - 1
+            print_tree(graph, child, node, "", child_is_last)
+    else:
+        connector = "└──> " if is_last else "├──> "
+        print(prefix + connector + str(node))
+
+        new_prefix = prefix + ("    " if is_last else "│   ")
+        children = [child for child in graph[node] if child != parent]
+        for i, child in enumerate(children):
+            child_is_last = i == len(children) - 1
+            print_tree(graph, child, node, new_prefix, child_is_last)
