@@ -1,4 +1,9 @@
-def print_graph(node, level=0):
+from typing import Set, Optional
+
+from abditus.autodiff._node import Node
+
+
+def print_graph(node: Node, level: int = 0) -> None:
     indent = "  " * level
     op_name = node.operation.__class__.__name__ if node.operation else "Leaf"
     print(f"{indent}{op_name} (value={node.value})")
@@ -6,7 +11,9 @@ def print_graph(node, level=0):
         print_graph(parent, level + 1)
 
 
-def print_graph_with_grad(node, level=0, visited=None):
+def print_graph_with_grad(
+    node: None, level: int = 0, visited: Optional[Set[int]] = None
+) -> None:
     if visited is None:
         visited = set()
     indent = "  " * level
