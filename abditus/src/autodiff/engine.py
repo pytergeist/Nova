@@ -7,8 +7,15 @@ from abditus.src.operations.operation import Operation
 
 
 class Engine:
-    def __init__(self):
-        pass
+    def __init__(self) -> None:
+        self.node_idx_counter = 0  # TODO: This is in here for dev/debug purposes
+        # TODO: Why node_idx starting at 8 in the print_graph function
+
+    def _update_node_state(self) -> None:
+        self.node_idx_counter += 1
+
+    def _set_node_idx(self, node: Node) -> None:
+        node.idx = self.node_idx_counter
 
     def build_node(
         self,
@@ -16,30 +23,35 @@ class Engine:
         operation: Optional[Operation] = None,
         parents: Tuple["Node", ...] = (),
         requires_grad: bool = False,
-    ):
-
-        return Node(
+    ) -> "Node":
+        self._update_node_state()
+        node = Node(
             value=data,
             operation=operation,
             parents=parents,
             requires_grad=requires_grad,
         )
+        self._set_node_idx(node)
+        return node
 
-    def build_leaf_node(self, data, requires_grad):
-        return self.build_node(
+    def build_leaf_node(self, data, requires_grad) -> "Node":
+        self._update_node_state()
+        node = self.build_node(
             data=data, operation=None, parents=(), requires_grad=requires_grad
         )
+        self._set_node_idx(node)
+        return node
 
-    def __enter__(self):
+    def __enter__(self) -> "Engine":
         return self
 
-    def __del__(self):
+    def __del__(self) -> None:
         print("Engine deleted")
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
         return False
 
-    def current(self):
+    def current(self) -> "Engine":
         return self
 
 

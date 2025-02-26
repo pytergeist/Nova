@@ -1,11 +1,7 @@
 import numpy as np
 import pytest
 
-from abditus.src.initialisers import (
-    RandomNormal,
-    RandomSeed,
-    RandomUniform,
-)
+from abditus.src.initialisers import RandomNormal, RandomSeed, RandomUniform
 
 """
 TODO: Implement pytest requests for grabbing the initialiser class for generic tests

@@ -4,8 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from abditus.src.autodiff import Node
-from abditus.src.autodiff import Engine
+from abditus.src.autodiff import Engine, Node
 from abditus.src.operations import (
     add_op,
     divide_op,
