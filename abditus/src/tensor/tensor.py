@@ -21,7 +21,7 @@ class Tensor:
         data,
         requires_grad=False,
         dtype=np.float32,
-        engine: Engine = Engine(),
+        engine: Engine = Engine(),  # TODO: add engine=None, add get_current() for use with context manager pattern
         node: Optional[Node] = None,
     ) -> None:
         self.engine = engine

@@ -20,7 +20,7 @@ class Block:
         if initialisers.get(kernel_initialiser) is None:
             raise ValueError(f"Unknown initialiser: {kernel_initialiser}")
 
-    def add_weight(
+    def add_weight(  # TODO: are we setting weights as nodes? is this why we see the comp graph start at node idx 2?
         self, shape: Optional[Tuple[int, int]] = None, initialiser=None, dtype=None
     ):
         self._check_super_called()

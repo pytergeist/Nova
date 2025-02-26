@@ -1,3 +1,4 @@
+from abditus.src.autodiff import Engine
 from abditus.src.blocks.block import Block
 from abditus.src.graph import print_graph
 from abditus.src.tensor import Tensor
@@ -45,4 +46,5 @@ if __name__ == "__main__":
     layer = Linear(units=10, kernel_initialiser="random_normal", bias=True)
     layer.build(input_shape=(None, 5))
     ll = layer(Tensor(data=[[1, 2, 3, 4, 5]]))
+    # print([node for node in ll.engine.created_nodes])
     print_graph(ll._node)

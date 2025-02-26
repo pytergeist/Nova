@@ -9,13 +9,18 @@ from abditus.src.operations.operation import Operation
 class Engine:
     def __init__(self) -> None:
         self.node_idx_counter = 0  # TODO: This is in here for dev/debug purposes
-        # TODO: Why node_idx starting at 8 in the print_graph function
+        self.created_nodes = (
+            []
+        )  # TODO: Why node_idx starting at 8 in the print_graph function
 
     def _update_node_state(self) -> None:
         self.node_idx_counter += 1
 
     def _set_node_idx(self, node: Node) -> None:
         node.idx = self.node_idx_counter
+
+    def _add_created_node(self, node: Node) -> None:
+        self.created_nodes.append(node)
 
     def build_node(
         self,
@@ -32,15 +37,13 @@ class Engine:
             requires_grad=requires_grad,
         )
         self._set_node_idx(node)
+        self._add_created_node(node)
         return node
 
     def build_leaf_node(self, data, requires_grad) -> "Node":
-        self._update_node_state()
-        node = self.build_node(
+        return self.build_node(
             data=data, operation=None, parents=(), requires_grad=requires_grad
         )
-        self._set_node_idx(node)
-        return node
 
     def __enter__(self) -> "Engine":
         return self
