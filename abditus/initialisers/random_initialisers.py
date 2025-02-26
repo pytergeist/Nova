@@ -5,7 +5,7 @@ from typing import Any, Dict, Tuple
 
 import numpy as np
 
-from abditus.initialisers.initialiser import Initialiser
+from abditus.initialisers import Initialiser
 from abditus.tensor import Tensor
 
 
