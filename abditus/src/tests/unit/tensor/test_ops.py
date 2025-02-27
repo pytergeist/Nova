@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from abditus.src.backend.core import Tensor
 from abditus.src.backend.operations import (
     add_op,
     divide_op,
@@ -9,7 +10,6 @@ from abditus.src.backend.operations import (
     subtract_op,
     sum_op,
 )
-from abditus.src.tensor import Tensor
 
 
 @pytest.mark.parametrize(

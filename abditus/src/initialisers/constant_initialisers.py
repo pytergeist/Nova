@@ -1,7 +1,7 @@
 import numpy as np
 
+from abditus.src.backend.core import Tensor
 from abditus.src.initialisers.initialiser import Initialiser
-from abditus.src.tensor import Tensor
 
 
 class Constant(Initialiser):
@@ -12,7 +12,7 @@ class Constant(Initialiser):
         dtype = Tensor.standardise_dtype(dtype)
         return Tensor(
             self.value * np.ones(shape), dtype=dtype
-        )  # TODO: change from np calls to generate tensor data
+        )  # TODO: change from np calls to generate core data
 
     def get_config(self):
         return {"value": self.value}

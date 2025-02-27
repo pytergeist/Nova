@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from abditus.src.tensor import Tensor
+from abditus.src.backend.core import Tensor
 from abditus.src.tests.integration.gradients import finite_difference_jacobian
 
 # TODO: Add parameterisation for multiple test cases

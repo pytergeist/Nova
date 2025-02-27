@@ -78,11 +78,11 @@ def test_random_normal_generate_random_normal_data_values(seed, shape, mean, std
     np.testing.assert_array_equal(data, expected)
 
 
-# def test_random_normal_call(): # TODO: Implement shape/dtype property for tensor, need to fix node issue first
+# def test_random_normal_call(): # TODO: Implement shape/dtype property for core, need to fix node issue first
 #     random_normal = RandomNormal(mean=0.0, stddev=1.0, seed=42)
-#     tensor = random_normal((4, 4), dtype="float32")
-#     assert tensor.shape == (4, 4)
-#     assert tensor.dtype == "float32"
+#     core = random_normal((4, 4), dtype="float32")
+#     assert core.shape == (4, 4)
+#     assert core.dtype == "float32"
 
 
 @pytest.mark.parametrize(
@@ -134,11 +134,11 @@ def test_random_uniform_generate_random_uniform_data_values():
     assert np.all(data >= -1.0) and np.all(data <= 1.0)
 
 
-# def test_random_uniform_call(): # TODO: Implement shape/dtype property for tensor, need to fix node issue first
+# def test_random_uniform_call(): # TODO: Implement shape/dtype property for core, need to fix node issue first
 #     random_uniform = RandomUniform(minval=-1.0, maxval=1.0, seed=42)
-#     tensor = random_uniform((4, 4), dtype="float32")
-#     assert tensor.shape == (4, 4)
-#     assert tensor.dtype == "float32"
+#     core = random_uniform((4, 4), dtype="float32")
+#     assert core.shape == (4, 4)
+#     assert core.dtype == "float32"
 
 
 if __name__ == "__main__":

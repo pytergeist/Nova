@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 
 from abditus.src import initialisers
-from abditus.src.tensor import Tensor
+from abditus.src.backend.core import Tensor
 
 
 class Block:

@@ -8,7 +8,7 @@ from abditus.src.backend.operations import Operation
 class Node:
     def __init__(
         self,
-        value: np.ndarray,  # TODO: Should this be a tensor: "Tensor"? is it ever not a tensor?
+        value: np.ndarray,  # TODO: Should this be a core: "Tensor"? is it ever not a core?
         operation: Optional[Operation] = None,
         parents: Tuple["Node", ...] = (),
         requires_grad: bool = False,

@@ -1,4 +1,4 @@
-# tensor
+# core
 
 from typing import Optional
 

@@ -1,6 +1,6 @@
-from abditus.src.blocks.block import Block
+from abditus.src.backend.core import Tensor
 from abditus.src.backend.graph import print_graph
-from abditus.src.tensor import Tensor
+from abditus.src.blocks.block import Block
 
 
 class Linear(Block):
