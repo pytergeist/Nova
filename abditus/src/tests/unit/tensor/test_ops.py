@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from abditus.src.operations import (
+from abditus.src.backend.operations import (
     add_op,
     divide_op,
     matmul_op,

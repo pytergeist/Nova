@@ -2,8 +2,8 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from abditus.src.autodiff._node import Node
-from abditus.src.operations.operation import Operation
+from abditus.src.backend.autodiff._node import Node
+from abditus.src.backend.operations import Operation
 
 
 class Engine:

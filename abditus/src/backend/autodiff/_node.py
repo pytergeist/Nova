@@ -2,7 +2,7 @@ from typing import Optional, Set, Tuple
 
 import numpy as np
 
-from abditus.src.operations.operation import Operation
+from abditus.src.backend.operations import Operation
 
 
 class Node:

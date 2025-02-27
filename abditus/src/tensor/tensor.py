@@ -4,8 +4,8 @@ from typing import Optional
 
 import numpy as np
 
-from abditus.src.autodiff import Engine, Node
-from abditus.src.operations import (
+from abditus.src.backend.autodiff import Engine, Node
+from abditus.src.backend.operations import (
     add_op,
     divide_op,
     matmul_op,
@@ -110,7 +110,7 @@ class Tensor:
 
 
 if __name__ == "__main__":
-    from abditus.src.graph.print_graph import print_graph, print_graph_with_grad
+    from abditus.src.backend.graph import print_graph, print_graph_with_grad
 
     A = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
     B = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
