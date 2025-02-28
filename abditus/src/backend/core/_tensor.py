@@ -22,7 +22,9 @@ class Tensor:
         requires_grad=False,
         dtype=np.float32,
         engine: Engine = Engine(),  # TODO: add engine=None, add get_current() for use with context manager pattern
-        node: Optional[Node] = None,
+        node: Optional[
+            Node
+        ] = None,  # TODO: should this be here? as the engine manages all nodes
     ) -> None:
         self.engine = engine
         if data is not None and not isinstance(data, np.ndarray):
@@ -79,8 +81,8 @@ class Tensor:
         Like _apply_op, but for single-input (unary) operations.
         """
         out_value = operation.forward_func(self)  # forward pass
-        out_node = Node(
-            value=out_value,
+        out_node = self.engine.build_node(
+            data=out_value,
             operation=operation,
             parents=(self._node,),
             requires_grad=self._node.requires_grad,
