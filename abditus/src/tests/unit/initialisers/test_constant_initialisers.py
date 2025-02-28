@@ -6,7 +6,7 @@ from abditus.src.initialisers import Constant, Ones, Zeros
 
 def test_constant_initialiser_init_value():
     constant = Constant(1.0)
-    assert constant(1, "float32").value == 1.0
+    assert constant(1, "float32") == 1.0
 
 
 def test_constant_initialiser_get_config():
@@ -32,8 +32,8 @@ def test_constant_initialiser_from_config():
 )
 def test_constant_initialiser_call_method(shape, dtype, expected):
     constant = Constant(1.0)
-    tensor = constant(shape, dtype)
-    np.testing.assert_array_equal(tensor.data, expected)
+    output = constant(shape, dtype)
+    np.testing.assert_array_equal(output, expected)
 
 
 def test_zeros_initialiser_get_config():
@@ -49,8 +49,8 @@ def test_zeros_initialiser_from_config():
 
 def test_zeros_initialiser_call_method():
     zeros = Zeros()
-    tensor = zeros((2, 2), "float32")
-    np.testing.assert_array_equal(tensor.data, np.zeros((2, 2)))
+    output = zeros((2, 2), "float32")
+    np.testing.assert_array_equal(output, np.zeros((2, 2)))
 
 
 def test_ones_initialiser_get_config():
@@ -66,8 +66,8 @@ def test_ones_initialiser_from_config():
 
 def test_ones_initialiser_call_method():
     ones = Ones()
-    tensor = ones((2, 2), "float32")
-    np.testing.assert_array_equal(tensor.data, np.ones((2, 2)))
+    output = ones((2, 2), "float32")
+    np.testing.assert_array_equal(output, np.ones((2, 2)))
 
 
 if __name__ == "__main__":

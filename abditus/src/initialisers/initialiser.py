@@ -2,11 +2,11 @@ import re
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple
 
-from abditus.src.backend.core import Tensor
+import numpy as np
 
 
 class Initialiser(ABC):  # TODO: create dtype class/types
-    def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> "Tensor":
+    def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> np.ndarray:
         raise NotImplementedError(
             "Initialiser subclasses must implement a __call__ method"
         )

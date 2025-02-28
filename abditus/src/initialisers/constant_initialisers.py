@@ -1,6 +1,5 @@
 import numpy as np
 
-from abditus.src.backend.core import Tensor
 from abditus.src.initialisers.initialiser import Initialiser
 
 
@@ -8,10 +7,9 @@ class Constant(Initialiser):
     def __init__(self, value: float) -> None:
         self.value = value
 
-    def __call__(self, shape, dtype, **kwargs) -> Tensor:
-        dtype = Tensor.standardise_dtype(dtype)
-        return Tensor(
-            self.value * np.ones(shape), dtype=dtype
+    def __call__(self, shape, dtype, **kwargs) -> np.ndarray:  # TODO: Add dtype here?
+        return self.value * np.ones(
+            shape
         )  # TODO: change from np calls to generate core data
 
     def get_config(self):
@@ -29,9 +27,8 @@ class Zeros(Initialiser):
     def get_config(self):
         return {}
 
-    def __call__(self, shape, dtype, **kwargs) -> Tensor:
-        dtype = Tensor.standardise_dtype(dtype)
-        return Tensor(np.zeros(shape), dtype=dtype)
+    def __call__(self, shape, dtype, **kwargs) -> np.ndarray:
+        return np.zeros(shape)
 
 
 class Ones(Initialiser):
@@ -41,6 +38,5 @@ class Ones(Initialiser):
     def get_config(self):
         return {}
 
-    def __call__(self, shape, dtype, **kwargs) -> Tensor:
-        dtype = Tensor.standardise_dtype(dtype)
-        return Tensor(np.ones(shape), dtype=dtype)
+    def __call__(self, shape, dtype, **kwargs) -> np.ndarray:
+        return np.ones(shape)

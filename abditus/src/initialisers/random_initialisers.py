@@ -5,7 +5,6 @@ from typing import Any, Dict, Tuple
 
 import numpy as np
 
-from abditus.src.backend.core import Tensor
 from abditus.src.initialisers import Initialiser
 
 
@@ -44,13 +43,14 @@ class RandomNormal(RandomSeed):
         self.stddev = stddev
         super().__init__(seed=seed)
 
-    def _generate_random_normal_data(self, shape: Tuple[int, ...]) -> Any:
+    def _generate_random_normal_data(
+        self, shape: Tuple[int, ...]
+    ) -> Any:  # TODO: Add dtype here?
         rng = np.random.default_rng(self.seed)
         return rng.normal(loc=self.mean, scale=self.stddev, size=shape)
 
-    def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> "Tensor":
-        dtype = Tensor.standardise_dtype(dtype)
-        return Tensor(self._generate_random_normal_data(shape), dtype=dtype)
+    def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> np.ndarray:
+        return self._generate_random_normal_data(shape)
 
     def get_config(self) -> Dict[str, Any]:
         return {**super().get_config(), "mean": self.mean, "stddev": self.stddev}
@@ -68,13 +68,14 @@ class RandomUniform(RandomSeed):
                 f"minval must be less than maxval, but got minval={self.minval} and maxval={self.maxval}"
             )
 
-    def _generate_randon_uniform_data(self, shape: Tuple[int, ...]) -> Any:
+    def _generate_randon_uniform_data(
+        self, shape: Tuple[int, ...]
+    ) -> Any:  # TODO: Add dtype here?
         rng = np.random.default_rng(self.seed)
         return rng.uniform(low=self.minval, high=self.maxval, size=shape)
 
-    def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> "Tensor":
-        dtype = Tensor.standardise_dtype(dtype)
-        return Tensor(self._generate_randon_uniform_data(shape), dtype=dtype)
+    def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> np.ndarray:
+        return self._generate_randon_uniform_data(shape)
 
     def get_config(self) -> Dict[str, Any]:
         return {**super().get_config(), "minval": self.minval, "maxval": self.maxval}
