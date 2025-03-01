@@ -21,7 +21,7 @@ class Tensor:
         data,
         requires_grad=False,
         dtype=np.float32,
-        engine: Engine = Engine(),  # TODO: add engine=None, add get_current() for use with context manager pattern
+        engine: Engine = Engine(),  # TODO: add engine=None, add get_current() for use with context manager pattern - is this correct?
         node: Optional[
             Node
         ] = None,  # TODO: should this be here? as the engine manages all nodes

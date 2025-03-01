@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 
 from abditus.src import initialisers
-from abditus.src.backend.core import Tensor
+from abditus.src.backend.core import Variable
 
 
 class Block:
@@ -26,10 +26,7 @@ class Block:
         self._check_super_called()
         self._check_valid_kernel_initialiser(initialiser)
         initialiser = initialisers.get(initialiser)
-        return Tensor(  # TODO: This needs to be removing - we need a wrapper class that manages tensor creation
-            data=initialiser(shape, dtype),
-            requires_grad=True,
-        )
+        return Variable(data=initialiser(shape, dtype))
 
     def forward(self, *inputs):
         raise NotImplementedError

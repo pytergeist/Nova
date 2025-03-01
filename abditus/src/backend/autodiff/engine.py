@@ -13,11 +13,11 @@ class Engine:
             []
         )  # TODO: Why node_idx starting at 8 in the print_graph function
 
-    def _update_node_state(self) -> None:
+    def _update_node_idx(self) -> None:
         self.node_idx_counter += 1
 
     def _set_node_idx(self, node: Node) -> None:
-        node.idx = self.node_idx_counter
+        setattr(node, "idx", self.node_idx_counter)
 
     def _add_created_node(self, node: Node) -> None:
         self.created_nodes.append(node)
@@ -29,7 +29,7 @@ class Engine:
         parents: Tuple["Node", ...] = (),
         requires_grad: bool = False,
     ) -> "Node":
-        self._update_node_state()
+        self._update_node_idx()
         node = Node(
             value=data,
             operation=operation,

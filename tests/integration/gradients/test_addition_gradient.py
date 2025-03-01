@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from abditus.src.backend.core import Tensor
-from abditus.src.tests.integration.gradients import finite_difference_jacobian
+from tests.integration.gradients import finite_difference_jacobian
 
 # TODO: Add parameterisation for multiple test cases
 # TODO: Implement integration tests for larger computation graphs
