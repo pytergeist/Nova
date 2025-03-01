@@ -3,6 +3,7 @@ from typing import Optional, Set, Tuple
 import numpy as np
 
 from abditus.src.backend.autodiff._node import Node
+from abditus.src.backend.graph import TopologicalSort
 from abditus.src.backend.operations import Operation
 
 
@@ -84,27 +85,30 @@ class Engine:
             data=data, operation=None, parents=(), requires_grad=requires_grad
         )
 
-    def set_node_gradient_if_none(self, node: Node, grad_output) -> np.ndarray:
+    @staticmethod
+    def set_node_gradient_if_none(node: Node, grad_output) -> np.ndarray:
         if grad_output is None:
             grad_output = np.ones_like(node._value, dtype=node._value.dtype)
         return grad_output
 
-    def backward(self, node: Node, grad_output: np.ndarray) -> None:
+    def backward(self, start_node: Node, start_grad: np.ndarray):
         """Performs the backward pass through the computational graph.
 
         Args:
             start_node (Node): The node to start the backward pass from.
+            start_grad (np.ndarray): The gradient of the output tensor.
         """
-        node.check_node_requires_grad_comp()
-        grad_output = self.set_node_gradient_if_none(node, grad_output)
-        node.update_node_gradient(grad_output)
-        if node.operation is None:
-            return
-
-        parent_grads = node._operation.backward_func(node, *node._parents, grad_output)
-        for parent, pgrad in zip(node.parents, parent_grads):
-            if parent.requires_grad:
-                self.backward(parent, pgrad)
+        sorted_nodes = TopologicalSort(start_node).sort()
+        start_grad = self.set_node_gradient_if_none(start_node, start_grad)
+        start_node.update_node_gradient(start_grad)
+        for node in sorted_nodes:
+            if node.operation is None:
+                continue
+            parent_grads = node.operation.backward_func(node, *node.parents, node.grad)
+            for parent, pgrad in zip(node.parents, parent_grads):
+                if parent.requires_grad:
+                    pgrad = self.set_node_gradient_if_none(parent, pgrad)
+                    parent.update_node_gradient(pgrad)
 
     def __enter__(self) -> "Engine":
         """Enter method for context manager pattern."""
