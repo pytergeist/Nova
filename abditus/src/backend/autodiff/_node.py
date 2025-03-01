@@ -102,28 +102,21 @@ class Node:
         for parent in self._parents:
             parent._zero_grad(visited)
 
-    def backward(self, grad_output: Optional[np.ndarray] = None):
-        """
-        Recursively compute gradients for parents.
-        """
-        if not self._requires_grad:
-            return
+    def update_node_gradient(self, grad_output: Optional[np.ndarray] = None) -> None:
+        """Update the gradient of the node.
 
-        if grad_output is None:
-            grad_output = np.ones_like(self._value, dtype=self._value.dtype)
-
+        Args:
+            grad_output (Optional[np.ndarray]): The gradient of the output tensor.
+        """
         if self._grad is None:
             self._grad = grad_output
         else:
             self._grad += grad_output
 
-        if self._operation is None:
+    def check_node_requires_grad_comp(self):
+        """Check if the node requires gradients computation."""
+        if not self._requires_grad:
             return
-
-        parent_grads = self._operation.backward_func(self, *self._parents, grad_output)
-        for parent, pgrad in zip(self.parents, parent_grads):
-            if parent.requires_grad:
-                parent.backward(pgrad)
 
     def __repr__(self):
         return f"""

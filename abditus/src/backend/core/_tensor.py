@@ -103,7 +103,7 @@ class Tensor:
          and recursively computes gradients for parents.
         """
         self._node._zero_grad()
-        self._node.backward(grad_output)
+        self.engine.backward(self._node, grad_output)
 
     def _apply_op(
         self, other: Union["Tensor", np.ndarray, float, int], operation: Operation

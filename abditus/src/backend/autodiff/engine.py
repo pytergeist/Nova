@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Set, Tuple
 
 import numpy as np
 
@@ -17,6 +17,7 @@ class Engine:
         node_idx_counter (int): The counter used to keep track of the node index.
         created_nodes (List[Node]): A list of created nodes for debugging purposes.
     """
+
     def __init__(self) -> None:
         self.node_idx_counter = 0  # TODO: This is in here for dev/debug purposes
         self.created_nodes = (
@@ -82,6 +83,28 @@ class Engine:
         return self.build_node(
             data=data, operation=None, parents=(), requires_grad=requires_grad
         )
+
+    def set_node_gradient_if_none(self, node: Node, grad_output) -> np.ndarray:
+        if grad_output is None:
+            grad_output = np.ones_like(node._value, dtype=node._value.dtype)
+        return grad_output
+
+    def backward(self, node: Node, grad_output: np.ndarray) -> None:
+        """Performs the backward pass through the computational graph.
+
+        Args:
+            start_node (Node): The node to start the backward pass from.
+        """
+        node.check_node_requires_grad_comp()
+        grad_output = self.set_node_gradient_if_none(node, grad_output)
+        node.update_node_gradient(grad_output)
+        if node.operation is None:
+            return
+
+        parent_grads = node._operation.backward_func(node, *node._parents, grad_output)
+        for parent, pgrad in zip(node.parents, parent_grads):
+            if parent.requires_grad:
+                self.backward(parent, pgrad)
 
     def __enter__(self) -> "Engine":
         """Enter method for context manager pattern."""
