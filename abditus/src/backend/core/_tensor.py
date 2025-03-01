@@ -21,7 +21,6 @@ class Tensor:
      module) and the autodiff engine to perform element-wise operations on tensors in the forward pass and track
      their gradients in the backward pass. It is used as a base class for the Variable class, which
       is used as a model parameter in the high-level neural network API.
-    .
 
     Attributes:
         data (np.ndarray): The underlying data of the tensor.
