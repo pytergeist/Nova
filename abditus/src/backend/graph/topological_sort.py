@@ -9,7 +9,9 @@ class TopologicalSort:
         self.visited = set()
         self.order = []
 
-    def dfs(self, node: Node):
+    def dfs(
+        self, node: Node
+    ):  # TODO: Make this iterative DFS - Recursive can cause max depth issues
         if id(node) not in self.visited:
             self.visited.add(id(node))
             for parent in node.parents:
