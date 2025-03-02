@@ -1,0 +1,64 @@
+name: documentation
+
+on:
+  push:
+    branches:
+      - main
+      - feature/sphinx-docs
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # Setup Python 3.13
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.11'
+
+      # Print Python version for debugging
+      - name: Check Python version
+        run: python --version
+
+      # Install Poetry
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry --version
+
+      # Install dependencies using Poetry
+      - name: Install dependencies
+        run: |
+          poetry install --no-root
+        env:
+          POETRY_VIRTUALENVS_IN_PROJECT: true
+
+      # Check installed dependencies
+      - name: Check installed dependencies
+        run: |
+          poetry show
+
+      # Generate documentation for SQLBuilder
+      - name: Generate abditus documentation with sphinx-apidoc
+        run: |
+          poetry run  sphinx-apidoc -o docs abditus/src
+
+      - name: Build abditus Sphinx documentation
+        run: |
+          cd docs
+          poetry run sphinx-build -b html source build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/sphinx-docs') }}
+        with:
+          publish_branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/build/html
+          force_orphan: true
