@@ -6,7 +6,9 @@ import numpy as np
 
 
 class Initialiser(ABC):  # TODO: create dtype class/types
-    def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> np.ndarray:
+    def __call__(
+        self, shape: Tuple[int, ...], dtype, **kwargs: Any
+    ) -> np.ndarray:  # TODO: Does this need a super lock?
         raise NotImplementedError(
             "Initialiser subclasses must implement a __call__ method"
         )
