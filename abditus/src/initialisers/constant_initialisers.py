@@ -6,6 +6,7 @@ from abditus.src.initialisers.initialiser import Initialiser
 class Constant(Initialiser):
     def __init__(self, value: float) -> None:
         self.value = value
+        super().__init__()
 
     def __call__(self, shape, dtype, **kwargs) -> np.ndarray:  # TODO: Add dtype here?
         return self.value * np.ones(
