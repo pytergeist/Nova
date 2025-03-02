@@ -10,13 +10,13 @@ class Node:
 
     This class represents a node in the computational graph used for autodiff operations.
     It is used to store the value of the node, the operation that created the node,
-    the parents of the node, and whether the node requires gradients.
+    the parents of the node, and whether the node requires finite_difference.
 
     Attributes:
         value (np.ndarray): The value (data) of the node.
         operation (Optional[Operation]): The operation that created the node (found in the operations module).
         parents (Tuple["Node", ...]): The parent nodes of the node (makes up the graph representation).
-        requires_grad (bool): True if gradients should be computed, False otherwise.
+        requires_grad (bool): True if finite_difference should be computed, False otherwise.
         grad (Optional[np.ndarray]): The gradient of the node.
     """
 
@@ -63,7 +63,7 @@ class Node:
         read-only after initialisation.
 
         Returns:
-            bool: True if gradients should be computed, False otherwise.
+            bool: True if finite_difference should be computed, False otherwise.
         """
         return self._requires_grad
 
@@ -99,7 +99,7 @@ class Node:
             self._grad += grad_output
 
     def check_node_requires_grad_comp(self):
-        """Check if the node requires gradients computation."""
+        """Check if the node requires finite_difference computation."""
         if not self._requires_grad:
             return
 

@@ -20,7 +20,7 @@ class Variable(Tensor):
 
         Args:
             data (np.ndarray): A numpy array containing the tensor data.
-            requires_grad (bool, optional): Flag to indicate if gradients should be computed.
+            requires_grad (bool, optional): Flag to indicate if finite_difference should be computed.
                 Always to True.
             **kwargs: Additional keyword arguments to be passed to the parent Tensor class.
         """

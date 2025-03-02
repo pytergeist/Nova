@@ -19,12 +19,12 @@ class Tensor:
 
     This class represents a tensor that uses operator overloading, registered operations (from the operations
      module) and the autodiff engine to perform element-wise operations on tensors in the forward pass and track
-     their gradients in the backward pass. It is used as a base class for the Variable class, which
+     their finite_difference in the backward pass. It is used as a base class for the Variable class, which
       is used as a model parameter in the high-level neural network API.
 
     Attributes:
         data (np.ndarray): The underlying data of the tensor.
-        requires_grad (bool): True if gradients should be computed, False otherwise.
+        requires_grad (bool): True if finite_difference should be computed, False otherwise.
         dtype (np.dtype): The data type of the tensor.
         engine (Engine): The autodiff engine used to build the computational graph.
         node (Node): The node in the computational graph that represents the tensor.
@@ -82,7 +82,7 @@ class Tensor:
             attribute is read-only.
 
         Returns:
-            bool: True if gradients should be computed, False otherwise.
+            bool: True if finite_difference should be computed, False otherwise.
         """
         return self._node.requires_grad
 
@@ -94,13 +94,13 @@ class Tensor:
             return np.float32
 
     def backward(self, grad_output: Optional[np.ndarray] = None) -> None:
-        """Backward pass to compute gradients.
+        """Backward pass to compute finite_difference.
 
         Args:
             grad_output (np.ndarray, optional): The gradient of the output tensor. Defaults to None.
 
-        Zero's out the gradients of the current node to prevent double counting
-         and recursively computes gradients for parents.
+        Zero's out the finite_difference of the current node to prevent double counting
+         and recursively computes finite_difference for parents.
         """
         self.engine.backward(self._node, grad_output)
 

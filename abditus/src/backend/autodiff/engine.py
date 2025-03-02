@@ -58,7 +58,7 @@ class Engine:
             data (np.ndarray): The data for the node.
             operation (Optional[Operation]): The operation that created the node.
             parents (Tuple["Node", ...]): The parent nodes of the node.
-            requires_grad (bool): Flag to indicate if gradients should be computed.
+            requires_grad (bool): Flag to indicate if finite_difference should be computed.
 
         Returns:
             Node: The created node.
@@ -79,7 +79,7 @@ class Engine:
 
         Args:
             data (np.ndarray): The data for the node.
-            requires_grad (bool): Flag to indicate if gradients should be computed.
+            requires_grad (bool): Flag to indicate if finite_difference should be computed.
 
         Returns:
             Node: The created leaf node (a node with no children).
@@ -96,7 +96,7 @@ class Engine:
 
     @staticmethod
     def _zero_grad(sorted_nodes: List[Node]) -> List[Node]:
-        """Recursively zero out gradients for parents.
+        """Recursively zero out finite_difference for parents.
 
         Args:
             visited (Optional[Set[int]]): A set of visited node ids to prevent infinite loops.
