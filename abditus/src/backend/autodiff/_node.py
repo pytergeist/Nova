@@ -87,21 +87,6 @@ class Node:
         """
         return self._parents
 
-    def _zero_grad(self, visited: Optional[Set[int]] = None) -> None:
-        """Recursively zero out gradients for parents.
-
-        Args:
-            visited (Optional[Set[int]]): A set of visited node ids to prevent infinite loops.
-        """
-        if visited is None:
-            visited = set()
-        if id(self) in visited:
-            return
-        visited.add(id(self))
-        self._grad = np.zeros_like(self._value)
-        for parent in self._parents:
-            parent._zero_grad(visited)
-
     def update_node_gradient(self, grad_output: Optional[np.ndarray] = None) -> None:
         """Update the gradient of the node.
 

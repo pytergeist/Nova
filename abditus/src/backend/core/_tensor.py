@@ -102,7 +102,6 @@ class Tensor:
         Zero's out the gradients of the current node to prevent double counting
          and recursively computes gradients for parents.
         """
-        self._node._zero_grad()
         self.engine.backward(self._node, grad_output)
 
     def _apply_op(

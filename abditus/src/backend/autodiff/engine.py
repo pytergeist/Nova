@@ -1,4 +1,4 @@
-from typing import Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 import numpy as np
 
@@ -91,6 +91,16 @@ class Engine:
             grad_output = np.ones_like(node._value, dtype=node._value.dtype)
         return grad_output
 
+    @staticmethod
+    def _zero_grad(sorted_nodes: List[Node]) -> List[Node]:
+        """Recursively zero out gradients for parents.
+
+        Args:
+            visited (Optional[Set[int]]): A set of visited node ids to prevent infinite loops.
+        """
+        [setattr(node, "grad", np.zeros_like(node.value)) for node in sorted_nodes]
+        return sorted_nodes
+
     def backward(self, start_node: Node, start_grad: np.ndarray):
         """Performs the backward pass through the computational graph.
 
@@ -101,6 +111,7 @@ class Engine:
         sorted_nodes = TopologicalSort().sort(
             start_node, mode="iterative", reverse=False
         )
+        sorted_nodes = self._zero_grad(sorted_nodes)
         start_grad = self.set_node_gradient_if_none(start_node, start_grad)
         start_node.update_node_gradient(start_grad)
         for node in sorted_nodes:
