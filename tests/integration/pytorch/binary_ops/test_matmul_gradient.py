@@ -5,9 +5,6 @@ import torch
 from tests.integration.gradient.finite_difference import finite_difference_jacobian
 
 
-# TODO: Add parameterisation for multiple test cases
-
-
 def fn_numpy(x):
     return x @ x
 
