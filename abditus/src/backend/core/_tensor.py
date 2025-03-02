@@ -197,6 +197,9 @@ class Tensor:
         """
         return self._apply_op(other, matmul_op)
 
+    def __array__(self, dtype=None):
+        return self.data if dtype is None else self.data.astype(dtype)
+
     def sum(self):
         """Sum the elements of the tensor.
 

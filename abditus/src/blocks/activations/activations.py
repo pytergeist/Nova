@@ -1,8 +1,9 @@
-import re
 from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 import numpy as np
+
+from abditus.src.blocks.block import Block
 
 
 class Activation(ABC):
@@ -38,12 +39,12 @@ class Activation(ABC):
         return cls(**config)
 
 
-class ReLU(Activation):
+class ReLU(Block, Activation):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, data: np.ndarray, **kwargs: Any) -> np.ndarray:
-        return np.maximum(0, data)
+    def __call__(self, inputs: np.ndarray, **kwargs: Any) -> np.ndarray:
+        return np.maximum(0, inputs)
 
     def get_config(self) -> Dict[str, Any]:
         return {}

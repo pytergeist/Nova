@@ -2,8 +2,8 @@ from typing import Any, Dict
 
 import pytest
 
-from abditus.src import activations
-from abditus.src.activations.activations import Activation, ReLU
+from abditus.src.blocks import activations
+from abditus.src.blocks.activations.activations import Activation, ReLU
 
 
 class MockActivation(Activation):

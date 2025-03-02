@@ -1,7 +1,10 @@
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
 from abditus.src import initialisers
 from abditus.src.backend.core import Variable
+
+if TYPE_CHECKING:
+    from abditus.src.initialisers import Initialiser
 
 
 class Block:
