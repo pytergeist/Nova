@@ -20,7 +20,7 @@ jobs:
       - name: Set up Python 3.13
         uses: actions/setup-python@v3
         with:
-          python-version: '3.11'
+          python-version: '3.13'
 
       # Print Python version for debugging
       - name: Check Python version
@@ -60,5 +60,5 @@ jobs:
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/build/html
+          publish_dir: ./docs/build
           force_orphan: true
