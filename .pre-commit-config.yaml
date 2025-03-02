@@ -1,0 +1,35 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^.*README\..*$
+      - id: end-of-file-fixer
+        exclude: ^.*README\..*$
+      - id: check-added-large-files
+        exclude: ^.*README\..*$
+
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        description: "Black: The uncompromising Python code formatter"
+        entry: black
+        language: python
+        minimum_pre_commit_version: 2.9.2
+        require_serial: true
+        types_or: [python, pyi]
+        files: ^abditus
+
+      - id: isort
+        name: isort (python)
+        entry: isort
+        language: python
+        types: [python]
+        files: ^abditus
+
+      - id: flake8
+        name: flake8
+        entry: flake8
+        language: python
+        files: ^abditus
