@@ -17,7 +17,7 @@ class TopologicalSort:
         self.visited: Set[int] = set()
         self.order: list = []
 
-    def dfs(
+    def dfs_recursive(
         self, node: Node
     ):  # TODO: Make this iterative DFS - Recursive can cause max depth issues
         """Depth-first search traversal of the graph. Currently implemented recursively.
@@ -31,21 +31,52 @@ class TopologicalSort:
                 self.dfs(parent)
             self.order.append(node)
 
-    def sort(self, start_node: Node, reverse: bool = True) -> List[Node]:
+    def dfs_iterative(self, node: Node):
+        """Depth-first search traversal of the graph. Currently implemented iteratively.
+
+        Args:
+            node (Node): The current node in the traversal.
+        """
+        stack = [node]
+        while stack:
+            current_node = stack.pop()
+            if id(current_node) not in self.visited:
+                self.visited.add(id(current_node))
+                for parent in current_node.parents:
+                    stack.append(parent)
+                self.order.append(current_node)
+
+    def sort(
+        self, start_node: Node, mode: str = "iterative", reverse: bool = False
+    ) -> List[Node]:
         """Sort the nodes in the graph topologically.
 
         The Engine class is used to build the computational graph, the starting node is the node that
         the .backward function is called on (last node in the graph). Therefore, the topological sort needs to be
         reversed for backpropagation.
 
+        IMPORTANT NOTE: The graph for backpropagation needs to be returned in reverse order, the behaviour of the
+        two DFS algorithms is different. The recursive DFS will add child nodes after there parents, returning the
+        graph sorted from the first created node to the last; therefore the order needs to be reversed. The iterative
+        DFS will add child nodes before there parents, returning the graph sorted from the last created node to the
+        first; therefore the order does not need to be reversed.
+
         Args:
             start_node (Node): The node to start the topological sort from.
+            mode (str): The mode to use for the depth-first search traversal, either iterative or recursive
             reverse (bool): True if the order should be reversed, False otherwise.
 
         returns:
             List[Node]: The topological sort order of the nodes in the graph.
         """
-        self.dfs(start_node)
+        assert mode in [
+            "iterative",
+            "recursive",
+        ], f"Invalid mode: {mode}, please choose between iterative or recursive"
+
+        dfs_fn = getattr(self, "".join(["dfs_", mode]))
+        dfs_fn(start_node)
+
         if reverse:
             return self.order[::-1]
         return self.order
@@ -65,8 +96,8 @@ if __name__ == "__main__":
 
     D.backward()
 
-    order = TopologicalSort(D._node).sort()
+    order = TopologicalSort().sort(D._node, reverse=False)
 
-    print([type(n) for n in order])
+    print([n.idx for n in order])
 
     print_graph(D._node)

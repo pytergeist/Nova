@@ -98,7 +98,9 @@ class Engine:
             start_node (Node): The node to start the backward pass from.
             start_grad (np.ndarray): The gradient of the output tensor.
         """
-        sorted_nodes = TopologicalSort().sort(start_node, reverse=True)
+        sorted_nodes = TopologicalSort().sort(
+            start_node, mode="iterative", reverse=False
+        )
         start_grad = self.set_node_gradient_if_none(start_node, start_grad)
         start_node.update_node_gradient(start_grad)
         for node in sorted_nodes:
