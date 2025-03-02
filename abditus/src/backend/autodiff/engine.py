@@ -1,4 +1,4 @@
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Type
 
 import numpy as np
 
@@ -19,11 +19,14 @@ class Engine:
         created_nodes (List[Node]): A list of created nodes for debugging purposes.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self, sorter_cls: Type[TopologicalSort] = TopologicalSort
+    ) -> None:  # TODO: Replace typehint with better sort typehint
         self.node_idx_counter = 0  # TODO: This is in here for dev/debug purposes
         self.created_nodes = (
             []
         )  # TODO: Why node_idx starting at 8 in the print_graph function
+        self.sorter_cls = sorter_cls
 
     def _update_node_idx(self) -> None:
         """Updates the node index counter."""
@@ -88,7 +91,7 @@ class Engine:
     @staticmethod
     def set_node_gradient_if_none(node: Node, grad_output) -> np.ndarray:
         if grad_output is None:
-            grad_output = np.ones_like(node._value, dtype=node._value.dtype)
+            grad_output = np.ones_like(node.value, dtype=node.value.dtype)
         return grad_output
 
     @staticmethod
@@ -108,9 +111,8 @@ class Engine:
             start_node (Node): The node to start the backward pass from.
             start_grad (np.ndarray): The gradient of the output tensor.
         """
-        sorted_nodes = TopologicalSort().sort(
-            start_node, mode="iterative", reverse=False
-        )
+        sorter = self.sorter_cls()
+        sorted_nodes = sorter.sort(start_node, mode="iterative", reverse=False)
         sorted_nodes = self._zero_grad(sorted_nodes)
         start_grad = self.set_node_gradient_if_none(start_node, start_grad)
         start_node.update_node_gradient(start_grad)
