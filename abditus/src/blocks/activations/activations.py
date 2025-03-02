@@ -3,6 +3,8 @@ from typing import Any, Dict
 
 import numpy as np
 
+from abditus.src.backend.core import Tensor
+from abditus.src.backend.operations import relu_op
 from abditus.src.blocks.block import Block
 
 
@@ -43,8 +45,10 @@ class ReLU(Block, Activation):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, inputs: np.ndarray, **kwargs: Any) -> np.ndarray:
-        return np.maximum(0, inputs)
+    def __call__(self, inputs: Tensor, **kwargs):
+        if isinstance(inputs, Tensor):
+            return inputs._apply_unary_op(relu_op)
+        return Tensor(np.maximum(0, inputs))
 
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self):
         return {}

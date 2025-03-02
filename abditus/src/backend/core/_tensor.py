@@ -8,6 +8,7 @@ from abditus.src.backend.operations import (
     add_op,
     divide_op,
     matmul_op,
+    relu_op,
     right_subtract_op,
     subtract_op,
     sum_op,

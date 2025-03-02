@@ -1,3 +1,4 @@
+from .activation_registry import relu_op
 from .operation import Operation
 from .registry import (
     add_op,
@@ -16,4 +17,5 @@ __all__ = [
     "divide_op",
     "matmul_op",
     "sum_op",
+    "relu_op",
 ]
