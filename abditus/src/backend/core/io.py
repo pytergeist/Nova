@@ -2,16 +2,16 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from abditus.src.backend.dtypes import as_dtype
+from abditus.src.backend.core.dtypes import as_dtype
 
 from ._tensor import Tensor
 from .variable import Variable
 
 if TYPE_CHECKING:
-    from abditus.src.backend.dtypes import DType
+    from abditus.src.backend.core.dtypes import DType
 
 
-def as_numpy_array(data: list | np.ndarray, dtype: "DType") -> np.ndarray:
+def as_numpy_array(data: list | np.ndarray, dtype: "DType" = "float32") -> np.ndarray:
     """Converts a list to a numpy array.
 
     Args:
@@ -33,7 +33,9 @@ def as_numpy_array(data: list | np.ndarray, dtype: "DType") -> np.ndarray:
     raise ValueError(f"Invalid data type provided: {type(data)}")
 
 
-def as_tensor(data: np.ndarray, requires_grad: bool = False, dtype="float32") -> Tensor:
+def as_tensor(
+    data: np.ndarray, requires_grad: bool = False, dtype: "DType" = "float32"
+) -> Tensor:
     """Converts a numpy array to a tensor.
 
     Args:
@@ -49,7 +51,7 @@ def as_tensor(data: np.ndarray, requires_grad: bool = False, dtype="float32") ->
     return Tensor(data=array, requires_grad=requires_grad, dtype=dtype)
 
 
-def as_variable(data: np.ndarray, dtype: np.dtype = "float32") -> Variable:
+def as_variable(data: np.ndarray, dtype: "DType" = "float32") -> Variable:
     """Converts a numpy array to a variable tensor.
 
     Args:
