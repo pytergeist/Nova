@@ -1,4 +1,4 @@
-name: Abditus Integration Tests
+name: Abditus Unit Tests
 
 on:
   push:
@@ -33,7 +33,10 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-root
 
-      - name: Run unit tests for builders
+      - name: Export PYTHONPATH
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
+
+      - name: Run unit tests for tensor module
         run: poetry run pytest -v tests/unit/tensor
 
 
@@ -57,7 +60,10 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-root
 
-      - name: Run unit tests for queries
+      - name: Export PYTHONPATH
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
+
+      - name: Run unit tests for activations module
         run: poetry run pytest -v tests/unit/activations
 
   test_initialisers:
@@ -80,5 +86,8 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-root
 
-      - name: Run unit tests for registry
+      - name: Export PYTHONPATH
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
+
+      - name: Run unit tests for initialisers module
         run: poetry run pytest -v tests/unit/initialisers
