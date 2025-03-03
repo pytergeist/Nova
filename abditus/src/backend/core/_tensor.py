@@ -214,6 +214,96 @@ class Tensor:
         """
         return self._apply_op(other, maximum_op)
 
+    def __mul__(self, other):
+        raise NotImplementedError("Multiplication not yet implemented")
+
+    def __rmul__(self, other):
+        raise NotImplementedError("Multiplication not yet implemented")
+
+    def __pow__(self, other):
+        raise NotImplementedError("Power not yet implemented")
+
+    def __rpow__(self, other):
+        raise NotImplementedError("Power not yet implemented")
+
+    def __neg__(self):
+        raise NotImplementedError("Negation not yet implemented")
+
+    def __floordiv__(self, other):
+        raise NotImplementedError("Floor division not yet implemented")
+
+    def __rfloordiv__(self, other):
+        raise NotImplementedError("Floor division not yet implemented")
+
+    def __radd__(self, other):
+        raise NotImplementedError("Addition not yet implemented")
+
+    def __rtruediv__(self, other):
+        raise NotImplementedError("Division not yet implemented")
+
+    def exp(self):
+        raise NotImplementedError("Exponential not yet implemented")
+
+    def log(self):
+        raise NotImplementedError("Logarithm not yet implemented")
+
+    def sqrt(self):
+        raise NotImplementedError("Square root not yet implemented")
+
+    def sin(self):
+        raise NotImplementedError("Sine not yet implemented")
+
+    def cos(self):
+        raise NotImplementedError("Cosine not yet implemented")
+
+    def tan(self):
+        raise NotImplementedError("Tangent not yet implemented")
+
+    def __abs__(self):
+        raise NotImplementedError("Absolute value not yet implemented")
+
+    def mean(self):
+        raise NotImplementedError("Mean not yet implemented")
+
+    def min(self):
+        raise NotImplementedError("Minimum not yet implemented")
+
+    def argmax(self):
+        raise NotImplementedError("Argmax not yet implemented")
+
+    def argmin(self):
+        raise NotImplementedError("Argmin not yet implemented")
+
+    def prod(self):
+        raise NotImplementedError("Product not yet implemented")
+
+    def shape(self):
+        raise NotImplementedError("Shape not yet implemented")
+
+    def reshape(self):
+        raise NotImplementedError("Reshape not yet implemented")
+
+    def flatten(self):
+        raise NotImplementedError("Flatten not yet implemented")
+
+    def transpose(self):
+        raise NotImplementedError("Transpose not yet implemented")
+
+    def expand_dims(self):
+        raise NotImplementedError("Expand dims not yet implemented")
+
+    def squeeze(self):
+        raise NotImplementedError("Squeeze not yet implemented")
+
+    def __getitem__(self, item):
+        raise NotImplementedError("Indexing not yet implemented")
+
+    def __setitem__(self, key, value):
+        raise NotImplementedError("Indexing not yet implemented")
+
+    def astype(self):
+        raise NotImplementedError("astype not yet implemented")
+
     def __repr__(self):
         return f"Tensor(data={self.data}, requires_grad={self.requires_grad})"
 
