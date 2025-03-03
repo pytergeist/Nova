@@ -5,6 +5,7 @@ from typing import Any, Dict, Tuple
 
 import numpy as np
 
+from abditus.src.backend import io
 from abditus.src.initialisers import Initialiser
 
 
@@ -50,7 +51,7 @@ class RandomNormal(RandomSeed):
         return rng.normal(loc=self.mean, scale=self.stddev, size=shape)
 
     def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> np.ndarray:
-        return self._generate_random_normal_data(shape)
+        return io.as_numpy_array(self._generate_random_normal_data(shape), dtype=dtype)
 
     def get_config(self) -> Dict[str, Any]:
         return {**super().get_config(), "mean": self.mean, "stddev": self.stddev}
@@ -75,7 +76,7 @@ class RandomUniform(RandomSeed):
         return rng.uniform(low=self.minval, high=self.maxval, size=shape)
 
     def __call__(self, shape: Tuple[int, ...], dtype, **kwargs: Any) -> np.ndarray:
-        return self._generate_randon_uniform_data(shape)
+        return io.as_numpy_array(self._generate_randon_uniform_data(shape), dtype=dtype)
 
     def get_config(self) -> Dict[str, Any]:
         return {**super().get_config(), "minval": self.minval, "maxval": self.maxval}

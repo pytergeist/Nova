@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from abditus.src.backend.dtypes import as_dtype
@@ -5,16 +7,22 @@ from abditus.src.backend.dtypes import as_dtype
 from ._tensor import Tensor
 from .variable import Variable
 
+if TYPE_CHECKING:
+    from abditus.src.backend.dtypes import DType
 
-def as_numpy_array(data: list, dtype) -> np.ndarray:
+
+def as_numpy_array(data: list | np.ndarray, dtype: "DType") -> np.ndarray:
     """Converts a list to a numpy array.
 
     Args:
         data (list): The list to convert to a numpy array.
+        dtype (DType): The data type of the numpy array (see backend.dtypes module).
 
     Returns:
         np.ndarray: A numpy array.
     """
+
+    dtype = as_dtype(dtype)
 
     if isinstance(data, np.ndarray):
         return data

@@ -1,5 +1,4 @@
-import io
-
+from . import io
 from ._tensor import Tensor
 from .variable import Variable
 

@@ -1,6 +1,6 @@
 import numpy as np
 
-from abditus.src.backend.core import Tensor
+from ._tensor import Tensor
 
 
 class Variable(Tensor):

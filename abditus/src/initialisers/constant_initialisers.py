@@ -1,5 +1,6 @@
 import numpy as np
 
+from abditus.src.backend import io
 from abditus.src.initialisers.initialiser import Initialiser
 
 
@@ -9,8 +10,8 @@ class Constant(Initialiser):
         super().__init__()
 
     def __call__(self, shape, dtype, **kwargs) -> np.ndarray:  # TODO: Add dtype here?
-        return self.value * np.ones(
-            shape
+        return io.as_numpy_array(
+            self.value * np.ones(shape), dtype=dtype
         )  # TODO: change from np calls to generate core data
 
     def get_config(self):
@@ -29,7 +30,7 @@ class Zeros(Initialiser):
         return {}
 
     def __call__(self, shape, dtype, **kwargs) -> np.ndarray:
-        return np.zeros(shape)
+        return io.as_numpy_array(np.zeros(shape), dtype=dtype)
 
 
 class Ones(Initialiser):
@@ -40,4 +41,4 @@ class Ones(Initialiser):
         return {}
 
     def __call__(self, shape, dtype, **kwargs) -> np.ndarray:
-        return np.ones(shape)
+        return io.as_numpy_array(np.ones(shape), dtype=dtype)
