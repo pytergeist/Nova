@@ -1,4 +1,4 @@
-name: Abditus Unit Tests
+name: Abditus Integration Tests
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
         run: poetry install --no-root
 
       - name: Run unit tests for builders
-        run: poetry run pytest -v test/unit/tensor
+        run: poetry run pytest -v tests/unit/tensor
 
 
   test_activations:
@@ -58,7 +58,7 @@ jobs:
         run: poetry install --no-root
 
       - name: Run unit tests for queries
-        run: poetry run pytest -v test/unit/activations
+        run: poetry run pytest -v tests/unit/activations
 
   test_initialisers:
     runs-on: ubuntu-latest
@@ -81,4 +81,4 @@ jobs:
         run: poetry install --no-root
 
       - name: Run unit tests for registry
-        run: poetry run pytest -v test/unit/initialisers
+        run: poetry run pytest -v tests/unit/initialisers
