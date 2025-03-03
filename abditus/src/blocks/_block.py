@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
 from abditus.src import initialisers
-from abditus.src.backend.core import Variable
+from abditus.src.backend import io
 
 if TYPE_CHECKING:
     from abditus.src.initialisers import Initialiser
@@ -47,12 +47,12 @@ class Block(ABC):
             raise ValueError(f"Unknown initialiser: {kernel_initialiser}")
 
     def add_weight(
-        self, shape: Optional[Tuple[int, int]] = None, initialiser=None, dtype=None
+        self, shape: Optional[Tuple[int, ...]] = None, initialiser=None, dtype=None
     ):
         self._check_super_called()
         self._check_valid_kernel_initialiser(initialiser)
         initialiser = initialisers.get(initialiser)
-        return Variable(data=initialiser(shape, dtype))
+        return io.as_variable(data=initialiser(shape, dtype))
 
     def forward(self, *inputs):
         raise NotImplementedError

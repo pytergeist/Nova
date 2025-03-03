@@ -3,9 +3,8 @@ from typing import Any, Dict
 import pytest
 
 from abditus.src.backend.core import Tensor
-from abditus.src.blocks import activations
+from abditus.src.blocks import Block, activations
 from abditus.src.blocks.activations.activations import ReLU
-from abditus.src.blocks import Block
 
 
 class MockActivation(Block):
