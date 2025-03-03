@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 import pytest
 
+from abditus.src.backend.core import Tensor
 from abditus.src.blocks import activations
 from abditus.src.blocks.activations.activations import Activation, ReLU
 
@@ -53,7 +54,7 @@ def test_from_config_method_returns_instance_of_activation():
 @pytest.mark.parametrize(
     "activation_fn, data, expected",
     [
-        ("relu", [1, 1], [1, 1]),
+        ("relu", Tensor([1.0, 1.0]), [1, 1]),
         # [0, 0],
         # [-1, 0],
         # [[1, 0, -1], [1, 0, 0]],

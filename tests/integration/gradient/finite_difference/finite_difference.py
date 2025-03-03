@@ -2,8 +2,7 @@ import numpy as np
 
 
 def finite_difference_jacobian(f, x, epsilon=1.5e-8):
-    """
-    Compute an approximate Jacobian matrix using the finite difference method.
+    """Compute an approximate Jacobian matrix using the finite difference method.
 
     This function now supports inputs where x can be a multi-dimensional array.
     The Jacobian is computed with respect to the flattened version of x.

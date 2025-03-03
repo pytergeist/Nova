@@ -1,4 +1,4 @@
-from typing import List, Optional, Set, Tuple, Type
+from typing import List, Optional, Tuple, Type
 
 import numpy as np
 
@@ -33,8 +33,8 @@ class Engine:
         self.node_idx_counter += 1
 
     def _set_node_idx(self, node: Node) -> None:
-        """Sets the node index attribute on the node.
-            Used in the build_node method to set the node index on the node instance.
+        """Sets the node index attribute on the node. Used in the build_node method to
+        set the node index on the node instance.
 
         Args:
             node (Node): The node to set the index on.
@@ -139,8 +139,9 @@ class Engine:
 
     def current(self) -> "Engine":
         """Returns the current engine instance.
-        Designed to be used with the context manager pattern, e.g. with Engine.current() as engine:
-        similar to with Gradient.tape() as tape: in TensorFlow.
+
+        Designed to be used with the context manager pattern, e.g. with Engine.current()
+        as engine: similar to with Gradient.tape() as tape: in TensorFlow.
         """
         return self
 

@@ -1,4 +1,4 @@
-from typing import Optional, Set, Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -6,7 +6,7 @@ from abditus.src.backend.operations import Operation
 
 
 class Node:
-    """A Node in the computational graph, used for autodiff operations
+    """A Node in the computational graph, used for autodiff operations.
 
     This class represents a node in the computational graph used for autodiff operations.
     It is used to store the value of the node, the operation that created the node,
@@ -35,8 +35,8 @@ class Node:
 
     @property
     def value(self) -> np.ndarray:
-        """Value property getter. There is no corresponding setter as the value attribute is
-        read-only after initialisation.
+        """Value property getter. There is no corresponding setter as the value
+        attribute is read-only after initialisation.
 
         Returns:
             np.ndarray: The array of data or scalar stored in node.
@@ -54,13 +54,16 @@ class Node:
 
     @grad.setter
     def grad(self, grad_value: np.ndarray) -> None:
-        """Grad property setter. Updates the grad property of the node."""
+        """Grad property setter.
+
+        Updates the grad property of the node.
+        """
         self._grad = grad_value
 
     @property
     def requires_grad(self) -> bool:
-        """Grad property getter. There is no corresponding setter as the grad attribute is
-        read-only after initialisation.
+        """Grad property getter. There is no corresponding setter as the grad attribute
+        is read-only after initialisation.
 
         Returns:
             bool: True if finite_difference should be computed, False otherwise.
@@ -69,8 +72,8 @@ class Node:
 
     @property
     def operation(self) -> Optional[Operation]:
-        """Operation property getter. There is no corresponding setter as the operation attribute is
-        read-only after initialisation.
+        """Operation property getter. There is no corresponding setter as the operation
+        attribute is read-only after initialisation.
 
         Returns:
             Optional[Operation]: The operation that created the node.
@@ -79,8 +82,8 @@ class Node:
 
     @property
     def parents(self) -> Tuple["Node", ...]:
-        """Parents property getter. There is no corresponding setter as the operation attribute is
-        read-only after initialisation.
+        """Parents property getter. There is no corresponding setter as the operation
+        attribute is read-only after initialisation.
 
         Returns:
             Tuple["Node", ...]: The parent nodes of the node.

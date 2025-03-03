@@ -97,9 +97,7 @@ def test_true_div(data_a, data_b, expected_data, requires_grad):
     ],
 )
 def test_sum(input_data, expected_data, requires_grad):
-    """
-    Tests sum_op's forward_func using arrays with various shapes.
-    """
+    """Tests sum_op's forward_func using arrays with various shapes."""
     a = Tensor(input_data)
     result_data = sum_op.forward_func(a)
     requires_grad_result = a.requires_grad
@@ -121,9 +119,7 @@ def test_sum(input_data, expected_data, requires_grad):
     ],
 )
 def test_matmul(data_a, data_b, expected_data, requires_grad):
-    """
-    Tests matmul_op's forward_func for matrix multiplication.
-    """
+    """Tests matmul_op's forward_func for matrix multiplication."""
     a = Tensor(data_a)
     b = Tensor(data_b)
 

@@ -8,11 +8,7 @@ from .operation import Operation
 # ADD
 ########################
 def add_backward(result, a, b, grad_output):
-    """
-    c = a + b
-    derivative wrt a = grad_output
-    derivative wrt b = grad_output
-    """
+    """C = a + b derivative wrt a = grad_output derivative wrt b = grad_output."""
     return (grad_output, grad_output)
 
 
@@ -105,4 +101,24 @@ def sum_backward(result, a, grad_output):
 
 sum_op = Operation(
     op_name="sum", forward_func=lambda a: np.sum(a.data), backward_func=sum_backward
+)
+
+
+def maximum_backward(result, a, b, grad_output):
+    """
+    result = np.maximum(a.value, b.value)
+    We take a subgradient approach:
+      grad wrt a = grad_output if a.value >= b.value, else 0
+      grad wrt b = grad_output if b.value >  a.value, else 0
+    (Ties are broken to favor 'a' in this version.)
+    """
+    grad_a = grad_output * (a.value >= b.value)
+    grad_b = grad_output * (b.value > a.value)
+    return (grad_a, grad_b)
+
+
+maximum_op = Operation(
+    op_name="maximum",
+    forward_func=lambda a, b: np.maximum(a.data, b.data),
+    backward_func=maximum_backward,
 )

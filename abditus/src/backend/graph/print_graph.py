@@ -5,7 +5,7 @@ from abditus.src.backend.autodiff import Node
 
 def print_graph(node: Node, level: int = 0) -> None:
     indent = "  " * level
-    op_name = node.operation.__class__.__name__ if node.operation else "Leaf"
+    op_name = node.operation.op_name if node.operation else "Leaf"
     print(f"{indent}{op_name} (node_idx={node.idx})")
     for parent in node.parents:
         print_graph(parent, level + 1)

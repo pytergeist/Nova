@@ -161,9 +161,7 @@ def test_tensor_backward_division(data_a, data_b, expected_grad_a, expected_grad
     ],
 )
 def test_tensor_sum_backward(data):
-    """
-    For s = a.sum(), we expect ds/da = 1 for every element in `a`.
-    """
+    """For s = a.sum(), we expect ds/da = 1 for every element in `a`."""
     a = Tensor(data, requires_grad=True)
     s = a.sum()
 
@@ -174,9 +172,9 @@ def test_tensor_sum_backward(data):
 
 
 def test_tensor_matmul_backward():
-    """
-    Checks gradient correctness for C = A @ B,
-    using an example where A:(2,3) and B:(3,2).
+    """Checks gradient correctness for C = A @ B, using an example where A:(2,3) and
+    B:(3,2).
+
     Then we sum up C into a scalar -> backward.
     """
     A = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)

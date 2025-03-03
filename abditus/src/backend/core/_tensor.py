@@ -8,7 +8,7 @@ from abditus.src.backend.operations import (
     add_op,
     divide_op,
     matmul_op,
-    relu_op,
+    maximum_op,
     right_subtract_op,
     subtract_op,
     sum_op,
@@ -16,7 +16,8 @@ from abditus.src.backend.operations import (
 
 
 class Tensor:
-    """A Tensor data-structure that uses operator overloading to perform element-wise operations.
+    """A Tensor data-structure that uses operator overloading to perform element-wise
+    operations.
 
     This class represents a tensor that uses operator overloading, registered operations (from the operations
      module) and the autodiff engine to perform element-wise operations on tensors in the forward pass and track
@@ -53,7 +54,8 @@ class Tensor:
 
     @property
     def data(self) -> np.ndarray:
-        """Data property getter. There is no corresponding setter as the data attribute is read-only.
+        """Data property getter. There is no corresponding setter as the data attribute
+        is read-only.
 
         Returns:
             np.ndarray: The underlying data of the tensor.
@@ -79,8 +81,8 @@ class Tensor:
 
     @property
     def requires_grad(self) -> bool:
-        """Grad (gradient) property getter. There is no corresponding setter as the requires_grad
-            attribute is read-only.
+        """Grad (gradient) property getter. There is no corresponding setter as the
+        requires_grad attribute is read-only.
 
         Returns:
             bool: True if finite_difference should be computed, False otherwise.
@@ -116,7 +118,6 @@ class Tensor:
 
         Returns:
             Tensor: The result of the operation (a third Tensor).
-
         """
         other = other if isinstance(other, Tensor) else Tensor(other)
         out_value = operation.forward_func(self, other)
@@ -130,9 +131,7 @@ class Tensor:
         return Tensor(data=None, node=out_node)
 
     def _apply_unary_op(self, operation: Operation) -> "Tensor":
-        """
-        Like _apply_op, but for single-input (unary) operations.
-        """
+        """Like _apply_op, but for single-input (unary) operations."""
         out_value = operation.forward_func(self)  # forward pass
         out_node = self.engine.build_node(
             data=out_value,
@@ -194,7 +193,6 @@ class Tensor:
 
         Returns:
             Tensor: The result of the matrix multiplication
-
         """
         return self._apply_op(other, matmul_op)
 
@@ -209,25 +207,25 @@ class Tensor:
         """
         return self._apply_unary_op(sum_op)
 
+    def maximum(self, other: Union["Tensor", np.ndarray]):
+        """Elementwise max between this tensor and `other`.
+
+        Mimics np.maximum(self, other).
+        """
+        return self._apply_op(other, maximum_op)
+
     def __repr__(self):
         return f"Tensor(data={self.data}, requires_grad={self.requires_grad})"
 
 
 if __name__ == "__main__":
-    from abditus.src.backend.graph import print_graph, print_graph_with_grad
 
-    A = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
-    B = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
-    C = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
+    A = Tensor(np.array([1.0, -1.0, 1.0]), requires_grad=True)
+    A = A.maximum(0.0)
 
-    D = A + A + A
-    D.backward()
-    print_graph(D._node)
-    print("-" * 10)
-    print_graph_with_grad(D._node)
-    print("=" * 20)
-    D = A + B + C
-    D.backward()
-    print_graph(D._node)
-    print("-" * 10)
-    print_graph_with_grad(D._node)
+    print(A)
+
+    A.backward()
+
+    print(A)
+    print(A.grad)

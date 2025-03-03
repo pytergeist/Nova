@@ -1,6 +1,5 @@
 from abditus.src.backend.core import Tensor
-from abditus.src.backend.graph import print_graph
-from abditus.src.blocks.block import Block
+from abditus.src.blocks._block import Block
 
 
 class Linear(Block):
@@ -42,14 +41,16 @@ class Linear(Block):
 
 
 if __name__ == "__main__":
+    from abditus.src.backend.graph import print_graph
     from abditus.src.blocks.activations.activations import ReLU
 
     layer = Linear(units=10, kernel_initialiser="random_normal", bias=True)
     layer.build(input_shape=(None, 5))
     ll = layer(Tensor(data=[[1, 2, 3, 4, 5]]))
     relu = ReLU()
-    print(ll.data)
-    print(relu(ll))
+    ll = relu(ll)
+    # print(ll.data)
+    # print(relu(ll))
 
     # print([node for node in ll.engine.created_nodes])
     print_graph(ll._node)

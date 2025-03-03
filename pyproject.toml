@@ -23,7 +23,16 @@ sphinx-rtd-theme = "^3.0.2"
 pytest-cov = "^6.0.0"
 torch = "2.6.0"
 pre-commit = "^4.1.0"
+docformatter = "^1.7.5"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.flake8]
+max-line-length = 88
+exclude = [".git", "__pycache__", "build", "dist"]
+
+[tool.isort]
+profile = "black"

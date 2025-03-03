@@ -4,8 +4,7 @@ from typing import Any, Dict
 import numpy as np
 
 from abditus.src.backend.core import Tensor
-from abditus.src.backend.operations import relu_op
-from abditus.src.blocks.block import Block
+from abditus.src.blocks._block import Block
 
 
 class Activation(ABC):
@@ -18,16 +17,14 @@ class Activation(ABC):
 
     @staticmethod
     def lower_case(name: str) -> str:  # TODO: what about leaky_relu?
-        """
-        Convert CamelCase class names (e.g., 'RandomNormal')
-        into snake_case strings (e.g., 'random_normal').
-        """
+        """Convert CamelCase class names (e.g., 'RandomNormal') into snake_case strings
+        (e.g., 'random_normal')."""
         return name.lower()
 
     @classmethod
     def name(cls) -> str:
-        """
-        By default, convert the class name from CamelCase to snake_case.
+        """By default, convert the class name from CamelCase to snake_case.
+
         Subclasses can override this classmethod if they want a custom name.
         """
         return cls.lower_case(cls.__name__)
@@ -46,9 +43,7 @@ class ReLU(Block, Activation):
         super().__init__()
 
     def __call__(self, inputs: Tensor, **kwargs):
-        if isinstance(inputs, Tensor):
-            return inputs._apply_unary_op(relu_op)
-        return Tensor(np.maximum(0, inputs))
+        return inputs.maximum(0)
 
     def get_config(self):
         return {}

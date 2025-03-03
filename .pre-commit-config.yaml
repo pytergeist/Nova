@@ -11,6 +11,14 @@ repos:
 
   - repo: local
     hooks:
+      - id: isort
+        name: isort (python)
+        entry: isort
+        language: python
+        types: [ python ]
+        files: ^abditus
+
+
       - id: black
         name: black
         description: "Black: The uncompromising Python code formatter"
@@ -21,12 +29,6 @@ repos:
         types_or: [python, pyi]
         files: ^abditus
 
-      - id: isort
-        name: isort (python)
-        entry: isort
-        language: python
-        types: [python]
-        files: ^abditus
 
       - id: flake8
         name: flake8
