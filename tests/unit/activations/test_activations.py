@@ -4,10 +4,11 @@ import pytest
 
 from abditus.src.backend.core import Tensor
 from abditus.src.blocks import activations
-from abditus.src.blocks.activations.activations import Activation, ReLU
+from abditus.src.blocks.activations.activations import ReLU
+from abditus.src.blocks import Block
 
 
-class MockActivation(Activation):
+class MockActivation(Block):
     def get_config(self) -> Dict[str, Any]:
         return {}
 
@@ -25,7 +26,7 @@ def test_call_method_raises_not_implamented_error():
     ],
 )
 def test_name_lower_case(name, expected):
-    assert Activation.lower_case(name) == expected
+    assert MockActivation.lower_case(name) == expected
 
 
 def test_name_method_returns_snake_case_class_name():

@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Optional, Tuple
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
 from abditus.src import initialisers
 from abditus.src.backend.core import Variable
@@ -7,7 +8,7 @@ if TYPE_CHECKING:
     from abditus.src.initialisers import Initialiser
 
 
-class Block:
+class Block(ABC):
     def __init__(self):
         self._inheritance_lock = True
 
@@ -17,6 +18,28 @@ class Block:
                 f"In layer {self.__class__.__name__},"
                 "you forgot to call super.__init__()"
             )
+
+    @staticmethod
+    def lower_case(name: str) -> str:  # TODO: what about leaky_relu?
+        """Convert class names (e.g., 'Linear, ReLU') into lower case strings
+        (e.g., 'linear, relu')."""
+        return name.lower()
+
+    @classmethod
+    def name(cls) -> str:
+        """By default, convert the class name from CamelCase to snake_case.
+
+        Subclasses can override this classmethod if they want a custom name.
+        """
+        return cls.lower_case(cls.__name__)
+
+    @abstractmethod
+    def get_config(self) -> Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_config(cls, config: Dict[str, Any]) -> "Block":
+        return cls(**config)
 
     @staticmethod
     def _check_valid_kernel_initialiser(kernel_initialiser: "Initialiser") -> None:
