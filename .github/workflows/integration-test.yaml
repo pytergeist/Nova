@@ -1,4 +1,4 @@
-name: Abditus Unit Tests
+name: Abditus Integration Tests
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
 
 
 jobs:
-  tensor_module:
+  finite_difference_gradients:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,11 +36,11 @@ jobs:
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
-      - name: Run unit tests for tensor module
-        run: poetry run pytest -v tests/unit/tensor
+      - name: Run integration tests for finite difference gradients
+        run: poetry run pytest -v tests/integration/gradient/finite_difference
 
 
-  activations_module:
+  pytorch_gradients:
     runs-on: ubuntu-latest
 
     steps:
@@ -63,31 +63,5 @@ jobs:
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
-      - name: Run unit tests for activations module
-        run: poetry run pytest -v tests/unit/activations
-
-  initialisers_module:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "${{ runner.tool_cache }}/python/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: poetry install --no-root
-
-      - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
-
-      - name: Run unit tests for initialisers module
-        run: poetry run pytest -v tests/unit/initialisers
+      - name: Run unit tests for pytorch gradients
+        run: poetry run pytest -v tests/integration/gradient/pytorch/
