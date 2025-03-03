@@ -13,25 +13,31 @@ class ReLU(Block):
         return {}
 
 
-class GeLU(Block):
-    raise NotImplementedError("GeLU activation function is not implemented.")
+class GeLU:
+    def __init__(self):
+        raise NotImplementedError("GeLU activation function is not implemented.")
 
 
-class Sigmoind(Block):
-    raise NotImplementedError("Sigmoid activation function is not implemented.")
+class Sigmoind:
+    def __init__(self):
+        raise NotImplementedError("Sigmoid activation function is not implemented.")
 
 
-class Tanh(Block):
-    raise NotImplementedError("Tanh activation function is not implemented.")
+class Tanh:
+    def __init__(self):
+        raise NotImplementedError("Tanh activation function is not implemented.")
 
 
-class LeakyReLU(Block):
-    raise NotImplementedError("LeakyReLU activation function is not implemented.")
+class LeakyReLU:
+    def __init__(self):
+        raise NotImplementedError("LeakyReLU activation function is not implemented.")
 
 
-class Softmax(Block):
-    raise NotImplementedError("Softmax activation function is not implemented.")
+class Softmax:
+    def __init__(self):
+        raise NotImplementedError("Softmax activation function is not implemented.")
 
 
-class Softplus(Block):
-    raise NotImplementedError("Softplus activation function is not implemented.")
+class Softplus:
+    def __init__(self):
+        raise NotImplementedError("Softplus activation function is not implemented.")

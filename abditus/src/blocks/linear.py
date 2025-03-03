@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from abditus.src.backend.core import Tensor
 from abditus.src.blocks._block import Block
 
@@ -29,6 +31,14 @@ class Linear(Block):
                 shape=(self.units,),
                 initialiser=self.bias_initialiser,
             )
+
+    def get_config(self) -> Dict[str, Any]:
+        return {
+            "units": self.units,
+            "kernel_initialiser": self.kernel_initialiser,
+            "bias": self.bias,
+            "bias_initialiser": self.bias_initialiser,
+        }
 
     def forward(self, inputs):
         return self.call(inputs)
