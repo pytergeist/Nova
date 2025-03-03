@@ -5,8 +5,24 @@ from abditus.src.backend.autodiff import Node
 
 def print_graph(node: Node, level: int = 0) -> None:
     indent = "  " * level
-    op_name = node.operation.op_name if node.operation else "Leaf"
-    print(f"{indent}{op_name} (node_idx={node.idx})")
+    # Determine a label for this node:
+    if node.operation and node.operation.op_name:
+        label = node.operation.op_name
+    elif node.role:
+        label = node.role
+    else:
+        label = "Leaf"
+
+    # If there are parent nodes, build a string that shows each parent's index and its role.
+    if node.parents:
+        operands = " & ".join(
+            f"{parent.idx} [{' ' + parent.role if parent.role else 'Leaf'}]".strip()
+            for parent in node.parents
+        )
+        print(f"{indent}{label} (node_idx={node.idx}) ({operands})")
+    else:
+        print(f"{indent}{label} (node_idx={node.idx})")
+
     for parent in node.parents:
         print_graph(parent, level + 1)
 

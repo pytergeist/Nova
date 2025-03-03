@@ -51,6 +51,7 @@ class Engine:
         operation: Optional[Operation] = None,
         parents: Tuple["Node", ...] = (),
         requires_grad: bool = False,
+        role=None,
     ) -> "Node":
         """Builds a node in the computational graph.
 
@@ -69,12 +70,13 @@ class Engine:
             operation=operation,
             parents=parents,
             requires_grad=requires_grad,
+            role=role,
         )
         self._set_node_idx(node)
         self._add_created_node(node)
         return node
 
-    def build_leaf_node(self, data, requires_grad) -> "Node":
+    def build_leaf_node(self, data, requires_grad, role=None) -> "Node":
         """Builds a leaf node in the computational graph.
 
         Args:
@@ -85,7 +87,11 @@ class Engine:
             Node: The created leaf node (a node with no children).
         """
         return self.build_node(
-            data=data, operation=None, parents=(), requires_grad=requires_grad
+            data=data,
+            operation=None,
+            parents=(),
+            requires_grad=requires_grad,
+            role=role,
         )
 
     @staticmethod

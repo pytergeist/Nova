@@ -34,7 +34,7 @@ def as_numpy_array(data: list | np.ndarray, dtype: "DType" = "float32") -> np.nd
 
 
 def as_tensor(
-    data: np.ndarray, requires_grad: bool = False, dtype: "DType" = "float32"
+    data: np.ndarray, requires_grad: bool = False, dtype: "DType" = "float32", role=None
 ) -> Tensor:
     """Converts a numpy array to a tensor.
 
@@ -48,10 +48,10 @@ def as_tensor(
     """
     dtype = as_dtype(dtype)
     array = np.array(data, dtype=dtype)
-    return Tensor(data=array, requires_grad=requires_grad, dtype=dtype)
+    return Tensor(data=array, requires_grad=requires_grad, dtype=dtype, role=role)
 
 
-def as_variable(data: np.ndarray, dtype: "DType" = "float32") -> Variable:
+def as_variable(data: np.ndarray, dtype: "DType" = "float32", role=None) -> Variable:
     """Converts a numpy array to a variable tensor.
 
     Args:
@@ -63,4 +63,4 @@ def as_variable(data: np.ndarray, dtype: "DType" = "float32") -> Variable:
     """
     dtype = as_dtype(dtype)
     array = np.array(data, dtype=dtype)
-    return Variable(data=array, requires_grad=True, dtype=dtype)
+    return Variable(data=array, requires_grad=True, dtype=dtype, role=role)

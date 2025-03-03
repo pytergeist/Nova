@@ -23,13 +23,18 @@ class Linear(Block):
 
     def build(self, input_shape):
         self.kernel = self.add_weight(
-            shape=(input_shape[-1], self.units),
+            shape=(
+                self.units,
+                input_shape[-1],
+            ),
             initialiser=self.kernel_initialiser,
+            role="kernel",
         )
         if self.bias:
             self.bias = self.add_weight(
                 shape=(self.units,),
                 initialiser=self.bias_initialiser,
+                role="bias",
             )
 
     def get_config(self) -> Dict[str, Any]:
@@ -44,7 +49,9 @@ class Linear(Block):
         return self.call(inputs)
 
     def call(self, inputs):
-        output = inputs @ self.kernel
+        # For an input of shape (batch, in_features) and a kernel of shape (units, in_features),
+        # we compute the output as: output = inputs @ kernel.T + bias.
+        output = inputs @ self.kernel.T
         if self.bias:
             output += self.bias
         return output

@@ -8,6 +8,7 @@ from .registry import (
     right_subtract_op,
     subtract_op,
     sum_op,
+    transpose_op,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "sum_op",
     "relu_op",
     "maximum_op",
+    "transpose_op",
 ]

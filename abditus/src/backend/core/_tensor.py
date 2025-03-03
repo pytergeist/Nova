@@ -1,18 +1,12 @@
-from typing import Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 import numpy as np
 
+import abditus.src.backend.operations as ops
 from abditus.src.backend.autodiff import Engine, Node
-from abditus.src.backend.operations import (
-    Operation,
-    add_op,
-    divide_op,
-    matmul_op,
-    maximum_op,
-    right_subtract_op,
-    subtract_op,
-    sum_op,
-)
+
+if TYPE_CHECKING:
+    from abditus.src.backend.operations import Operation
 
 
 class Tensor:
@@ -42,6 +36,7 @@ class Tensor:
         node: Optional[
             Node
         ] = None,  # TODO: should this be here? as the engine manages all nodes
+        role: Optional[str] = None,
     ) -> None:
         self.engine = engine
         if data is not None and not isinstance(data, np.ndarray):
@@ -49,7 +44,7 @@ class Tensor:
 
         # If no node is provided, build a leaf GraphNode.
         if node is None:
-            node = self.engine.build_leaf_node(data, requires_grad)
+            node = self.engine.build_leaf_node(data, requires_grad, role=role)
         self._node = node
 
     @property
@@ -108,7 +103,10 @@ class Tensor:
         self.engine.backward(self._node, grad_output)
 
     def _apply_op(
-        self, other: Union["Tensor", np.ndarray, float, int], operation: Operation
+        self,
+        other: Union["Tensor", np.ndarray, float, int],
+        operation: "Operation",
+        role=None,
     ):
         """Apply a binary operation to this tensor and another tensor or scalar.
 
@@ -127,10 +125,11 @@ class Tensor:
             operation=operation,
             parents=(self._node, other._node),
             requires_grad=self._node.requires_grad or other._node.requires_grad,
+            role=role,
         )
         return Tensor(data=None, node=out_node)
 
-    def _apply_unary_op(self, operation: Operation) -> "Tensor":
+    def _apply_unary_op(self, operation: "Operation") -> "Tensor":
         """Like _apply_op, but for single-input (unary) operations."""
         out_value = operation.forward_func(self)  # forward pass
         out_node = self.engine.build_node(
@@ -150,7 +149,7 @@ class Tensor:
         Returns:
             Tensor: The result of the addition.
         """
-        return self._apply_op(other, add_op)
+        return self._apply_op(other, ops.add_op)
 
     def __sub__(self, other: Union["Tensor", np.ndarray, float, int]) -> "Tensor":
         """Subtraction operator overload.
@@ -161,7 +160,7 @@ class Tensor:
         Returns:
             Tensor: The result of the subtraction.
         """
-        return self._apply_op(other, subtract_op)
+        return self._apply_op(other, ops.subtract_op)
 
     def __rsub__(self, other: Union["Tensor", np.ndarray, float, int]) -> "Tensor":
         """Right subtraction operator overload.
@@ -172,7 +171,7 @@ class Tensor:
         Returns:
             Tensor: The result of the subtraction.
         """
-        return self._apply_op(other, right_subtract_op)
+        return self._apply_op(other, ops.right_subtract_op)
 
     def __truediv__(self, other: Union["Tensor", np.ndarray, float, int]) -> "Tensor":
         """Division operator overload.
@@ -183,7 +182,7 @@ class Tensor:
         Returns:
             Tensor: The result of the division.
         """
-        return self._apply_op(other, divide_op)
+        return self._apply_op(other, ops.divide_op)
 
     def __matmul__(self, other: Union["Tensor", np.ndarray]) -> "Tensor":
         """Matrix multiplication operator overload.
@@ -194,7 +193,7 @@ class Tensor:
         Returns:
             Tensor: The result of the matrix multiplication
         """
-        return self._apply_op(other, matmul_op)
+        return self._apply_op(other, ops.matmul_op)
 
     def __array__(self, dtype=None):
         return self.data if dtype is None else self.data.astype(dtype)
@@ -205,14 +204,14 @@ class Tensor:
         Returns:
             Tensor: The sum of the tensor elements.
         """
-        return self._apply_unary_op(sum_op)
+        return self._apply_unary_op(ops.sum_op)
 
     def maximum(self, other: Union["Tensor", np.ndarray]):
         """Elementwise max between this tensor and `other`.
 
         Mimics np.maximum(self, other).
         """
-        return self._apply_op(other, maximum_op)
+        return self._apply_op(other, ops.maximum_op)
 
     def __mul__(self, other):
         raise NotImplementedError("Multiplication not yet implemented")
@@ -286,8 +285,12 @@ class Tensor:
     def flatten(self):
         raise NotImplementedError("Flatten not yet implemented")
 
-    def transpose(self):
-        raise NotImplementedError("Transpose not yet implemented")
+    def transpose(self) -> "Tensor":
+        return self._apply_unary_op(ops.transpose_op)
+
+    @property
+    def T(self):
+        return self.transpose()
 
     def expand_dims(self):
         raise NotImplementedError("Expand dims not yet implemented")
@@ -305,11 +308,13 @@ class Tensor:
         raise NotImplementedError("astype not yet implemented")
 
     def __repr__(self):
-        return f"Tensor(data={self.data}, requires_grad={self.requires_grad})"
+        role_str = (
+            f", role={self._node.role}" if getattr(self._node, "role", None) else ""
+        )
+        return f"Tensor(data={self.data}, requires_grad={self.requires_grad}{role_str})"
 
 
 if __name__ == "__main__":
-
     A = Tensor(np.array([1.0, -1.0, 1.0]), requires_grad=True)
     A = A.maximum(0.0)
 

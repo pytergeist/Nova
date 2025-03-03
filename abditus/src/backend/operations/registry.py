@@ -122,3 +122,19 @@ maximum_op = Operation(
     forward_func=lambda a, b: np.maximum(a.data, b.data),
     backward_func=maximum_backward,
 )
+
+
+def transpose_backward(result, a, grad_output):
+    """
+    For a transpose operation, the backward pass simply transposes the gradient.
+    Since the forward pass is: result = transpose(a.data),
+    the derivative wrt 'a' is simply: transpose(grad_output).
+    """
+    return (np.transpose(grad_output),)
+
+
+transpose_op = Operation(
+    op_name="transpose",
+    forward_func=lambda a: np.transpose(a.data),
+    backward_func=transpose_backward,
+)

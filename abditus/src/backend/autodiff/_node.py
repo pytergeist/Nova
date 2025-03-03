@@ -26,12 +26,14 @@ class Node:
         operation: Optional[Operation] = None,
         parents: Tuple["Node", ...] = (),
         requires_grad: bool = False,
+        role: Optional[str] = None,
     ):
         self._value = value
         self._operation = operation
         self._parents = parents
         self._requires_grad = requires_grad
         self._grad = None
+        self._role = role
 
     @property
     def value(self) -> np.ndarray:
@@ -71,6 +73,15 @@ class Node:
         return self._requires_grad
 
     @property
+    def role(self) -> Optional[str]:
+        """The role of this node (e.g., 'bias', 'kernel')."""
+        return self._role
+
+    @role.setter
+    def role(self, role: Optional[str]) -> None:
+        self._role = role
+
+    @property
     def operation(self) -> Optional[Operation]:
         """Operation property getter. There is no corresponding setter as the operation
         attribute is read-only after initialisation.
@@ -107,11 +118,11 @@ class Node:
             return
 
     def __repr__(self):
-        return f"""
-        Node(value={self.value},
-        operation={self.operation}, parents={self.parents},
-        requires_grad={self.requires_grad})
-        """
+        role_str = f", role={self._role}" if self._role else ""
+        return (
+            f"Node(value={self.value}, operation={self.operation}, "
+            f"parents={self.parents}, requires_grad={self.requires_grad}{role_str})"
+        )
 
 
 if __name__ == "__main__":
