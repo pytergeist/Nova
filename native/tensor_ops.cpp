@@ -1,8 +1,12 @@
 #include <iostream>
 #include <stdexcept>
-#include <variant>
+
 #include <vector>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 using namespace std;
+namespace py = pybind11;
 
 using VectorOrScalar = variant<vector<double>, double>;
 
@@ -54,14 +58,7 @@ VectorOrScalar add(const VectorOrScalar &a, const VectorOrScalar &b) {
   throw invalid_argument("Unsupported operand types for addition.");
 }
 
-int main() {
-  vector<double> v1 = {1, 2, 3};
-  double v2 = 2;
-  VectorOrScalar result = add(v1, v2);
-  const auto &v3 = get<vector<double>>(result);
-  for (auto i : v3) {
-    cout << i << " ";
-  }
-  cout << endl;
-  return 0;
+PYBIND11_MODULE(vector_math, m) {
+  m.doc() = "Tensor math";
+  m.def("add", &add, "Add two vectors/scalars");
 }
