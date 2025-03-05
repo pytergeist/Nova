@@ -58,7 +58,7 @@ VectorOrScalar add(const VectorOrScalar &a, const VectorOrScalar &b) {
   throw invalid_argument("Unsupported operand types for addition.");
 }
 
-PYBIND11_MODULE(vector_math, m) {
+PYBIND11_MODULE(abtensor, m) {
   m.doc() = "Tensor math";
   m.def("add", &add, "Add two vectors/scalars");
 }
