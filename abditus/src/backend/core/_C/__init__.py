@@ -1,3 +1,3 @@
-import abtensor
+import abmath
 
-__all__ = ["abtensor"]
+__all__ = ["abmath"]
