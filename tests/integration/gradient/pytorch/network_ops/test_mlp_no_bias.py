@@ -1,13 +1,11 @@
 import numpy as np
-import torch
 import pytest
+import torch
 
 from abditus.src.backend.core import Tensor  # your tensor class
-from abditus.src.blocks.linear import Linear
 from abditus.src.blocks.activations.activations import ReLU
-
-from abditus.src.initialisers import Constant, Zeros, Ones, RandomNormal, RandomUniform
-
+from abditus.src.blocks.linear import Linear
+from abditus.src.initialisers import Constant, Ones, RandomNormal, RandomUniform, Zeros
 
 network_configs = [
     # 2-layer network: input 5 -> hidden 10 -> output 1, activation after first layer only.
@@ -26,11 +24,7 @@ def compute_autodiff_network_grad(x, initializer, config):
 
     layers = []
     for i in range(1, len(layer_sizes)):
-        layer = Linear(
-            units=layer_sizes[i],
-            kernel_initialiser=initializer,
-            bias=False
-        )
+        layer = Linear(units=layer_sizes[i], kernel_initialiser=initializer, bias=False)
         if i == 1:
             layer.build(input_shape=x.shape)
         else:
@@ -118,7 +112,7 @@ def test_network_grad(initializer, config):
             pytorch_grads[key],
             rtol=1e-5,
             atol=1e-7,
-            err_msg=f"Gradient for {key} does not match PyTorch gradient using {initializer.__class__.__name__} and config {config}."
+            err_msg=f"Gradient for {key} does not match PyTorch gradient using {initializer.__class__.__name__} and config {config}.",
         )
 
 
