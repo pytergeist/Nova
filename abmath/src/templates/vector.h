@@ -39,7 +39,7 @@ Vector<T> operator+(const Vector<T> &a, const Vector<T> &b) {
   return result;
 }
 
-// vecotr + scalar
+// vector + scalar
 template <typename T> Vector<T> operator+(const Vector<T> &a, const T &scalar) {
   Vector<T> result(a.size());
   for (std::size_t i = 0; i < a.size(); ++i)
