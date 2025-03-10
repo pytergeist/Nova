@@ -30,7 +30,7 @@ class Tensor:
         self,
         data,
         requires_grad=False,
-        dtype=np.float32,
+        dtype=np.float32,  # TODO: add type hints for dtype
         engine: Engine = Engine(),
         # TODO: add engine=None, add get_current() for use with context manager pattern - is this correct?
         node: Optional[
