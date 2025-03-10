@@ -123,8 +123,3 @@ class Node:
             f"Node(value={self.value}, operation={self.operation}, "
             f"parents={self.parents}, requires_grad={self.requires_grad}{role_str})"
         )
-
-
-if __name__ == "__main__":
-    root_node = Node(np.array([1, 2, 3]))
-    print(root_node)

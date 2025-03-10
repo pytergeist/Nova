@@ -23,9 +23,7 @@ class Engine:
         self, sorter_cls: Type[TopologicalSort] = TopologicalSort
     ) -> None:  # TODO: Replace typehint with better sort typehint
         self.node_idx_counter = 0  # TODO: This is in here for dev/debug purposes
-        self.created_nodes = (
-            []
-        )  # TODO: Why node_idx starting at 8 in the print_graph function
+        self.created_nodes = []
         self.sorter_cls = sorter_cls
 
     def _update_node_idx(self) -> None:
@@ -150,11 +148,3 @@ class Engine:
         as engine: similar to with Gradient.tape() as tape: in TensorFlow.
         """
         return self
-
-
-# if __name__ == "__main__":
-#     import time
-#     with Engine() as engine:
-#         print(engine)
-#         time.sleep(5)
-#         print(engine.current())
