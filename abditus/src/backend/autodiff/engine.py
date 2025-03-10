@@ -75,12 +75,15 @@ class Engine:
         self._add_created_node(node)
         return node
 
-    def build_leaf_node(self, data, requires_grad, role=None) -> Node:
+    def build_leaf_node(
+        self, data, requires_grad, role: Optional[Literal["kernel", "bias"]] = None
+    ) -> Node:
         """Builds a leaf node in the computational graph.
 
         Args:
             data (np.ndarray): The data for the node.
             requires_grad (bool): Flag to indicate if finite_difference should be computed.
+            role (Optional[Literal["kernel", "bias"]]): The role of the node (used for weights).
 
         Returns:
             Node: The created leaf node (a node with no children).

@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Literal, Optional, Tuple
 
 import numpy as np
 
@@ -26,7 +26,7 @@ class Node:
         operation: Optional[Operation] = None,
         parents: Tuple["Node", ...] = (),
         requires_grad: bool = False,
-        role: Optional[str] = None,
+        role: Optional[Literal["kernel", "bias"]] = None,
     ):
         self._value = value
         self._operation = operation
@@ -78,7 +78,7 @@ class Node:
         return self._role
 
     @role.setter
-    def role(self, role: Optional[str]) -> None:
+    def role(self, role: Optional[Literal["kernel", "bias"]]) -> None:
         self._role = role
 
     @property

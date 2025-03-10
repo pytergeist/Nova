@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Literal, Optional, Union
 
 import numpy as np
 
@@ -6,6 +6,7 @@ import abditus.src.backend.operations as ops
 from abditus.src.backend.autodiff import Engine, Node
 
 if TYPE_CHECKING:
+    from abditus.src.backend.core.dtypes import DType
     from abditus.src.backend.operations import Operation
 
 
@@ -30,7 +31,7 @@ class Tensor:
         self,
         data,
         requires_grad=False,
-        dtype=np.float32,  # TODO: add type hints for dtype
+        dtype: "DType" = np.float32,
         engine: Engine = Engine(),
         # TODO: add engine=None, add get_current() for use with context manager pattern - is this correct?
         node: Optional[
@@ -86,7 +87,7 @@ class Tensor:
 
     @staticmethod
     def standardise_dtype(
-        dtype,
+        dtype: "DType",
     ):  # TODO: This needs to be abstracted into a separate module
         if dtype is None:
             return np.float32
@@ -106,7 +107,7 @@ class Tensor:
         self,
         other: Union["Tensor", np.ndarray, float, int],
         operation: "Operation",
-        role=None,
+        role: Optional[Literal["kernel", "bias"]] = None,
     ):
         """Apply a binary operation to this tensor and another tensor or scalar.
 
