@@ -9,10 +9,6 @@ class Variable(Tensor):
     This class represents a tensor that is used as a parameter in a model.
     It inherits from the Tensor class and is employed in the base classes for the
     high-level neural network API.
-
-    Attributes:
-        data (np.ndarray): The underlying data of the tensor.
-        requires_grad (bool): Always True for Variable tensors, overridden from Tensor.
     """
 
     def __init__(self, data: np.ndarray, requires_grad: bool = True, **kwargs) -> None:
