@@ -4,6 +4,7 @@ from .registry import (
     add_op,
     divide_op,
     exponential_op,
+    log_op,
     matmul_op,
     maximum_op,
     multiply_op,
@@ -28,4 +29,5 @@ __all__ = [
     "multiply_op",
     "power_op",
     "exponential_op",
+    "log_op",
 ]

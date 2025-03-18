@@ -266,7 +266,12 @@ class Tensor:
         return self._apply_unary_op(ops.exponential_op)
 
     def log(self):
-        raise NotImplementedError("Logarithm not yet implemented")
+        """Natural logarithm.
+
+        Returns:
+            Tensor: The natural logarithm of the tensor.
+        """
+        return self._apply_unary_op(ops.log_op)
 
     def sqrt(self):
         raise NotImplementedError("Square root not yet implemented")

@@ -187,3 +187,18 @@ exponential_op = Operation(
     forward_func=lambda a: np.exp(a.data),
     backward_func=exponential_backward,
 )
+
+
+def log_backward(result, a, grad_output):
+    """
+    c = ln(a)
+    dc/da = 1/a * grad_output
+    """
+    return (grad_output / a.value,)
+
+
+log_op = Operation(
+    op_name="log",
+    forward_func=lambda a: np.log(a.data),
+    backward_func=log_backward,
+)
