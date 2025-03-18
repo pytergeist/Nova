@@ -31,7 +31,7 @@ def test_mul_grad():
         numerical_vector_grad,
         rtol=1e-5,
         atol=1e-7,
-        err_msg="Autodiff gradient does not match numerical gradient for addition.",
+        err_msg="Autodiff gradient does not match numerical gradient for multiplication.",
     )
 
 

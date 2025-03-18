@@ -202,3 +202,18 @@ log_op = Operation(
     forward_func=lambda a: np.log(a.data),
     backward_func=log_backward,
 )
+
+
+def sqrt_backward(result, a, grad_output):
+    """
+    c = sqrt(a)
+    dc/da = 1/(2 * sqrt(a)) * grad_output
+    """
+    return (grad_output / (2 * np.sqrt(a.value)),)
+
+
+sqrt_op = Operation(
+    op_name="sqrt",
+    forward_func=lambda a: np.sqrt(a.data),
+    backward_func=sqrt_backward,
+)

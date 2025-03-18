@@ -8,20 +8,20 @@ from tests.integration.gradient.finite_difference import finite_difference_jacob
 
 
 def fn_numpy(x):
-    return np.exp(x)
+    return np.sqrt(x)
 
 
 def compute_autodiff_gradient(x):
     x_tensor = Tensor(x, requires_grad=True)
 
-    output = x_tensor.exp()
+    output = x_tensor.sqrt()
 
     output.backward()
 
     return x_tensor.grad
 
 
-def test_exponential_grad():
+def test_log_grad():
     x_test = np.random.rand(5)
 
     numerical_jacobian = finite_difference_jacobian(fn_numpy, x_test, epsilon=1.5e-8)
@@ -33,7 +33,7 @@ def test_exponential_grad():
         numerical_vector_grad,
         rtol=1e-5,
         atol=1e-7,
-        err_msg="Autodiff gradient does not match numerical gradient for exponential.",
+        err_msg="Autodiff gradient does not match numerical gradient for square root.",
     )
 
 

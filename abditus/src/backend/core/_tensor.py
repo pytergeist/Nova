@@ -274,7 +274,12 @@ class Tensor:
         return self._apply_unary_op(ops.log_op)
 
     def sqrt(self):
-        raise NotImplementedError("Square root not yet implemented")
+        """Square root.
+
+        Returns:
+            Tensor: The square root of the tensor.
+        """
+        return self._apply_unary_op(ops.sqrt_op)
 
     def sin(self):
         raise NotImplementedError("Sine not yet implemented")

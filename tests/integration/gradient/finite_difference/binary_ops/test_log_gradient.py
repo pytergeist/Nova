@@ -33,7 +33,7 @@ def test_log_grad():
         numerical_vector_grad,
         rtol=1e-5,
         atol=1e-7,
-        err_msg="Autodiff gradient does not match numerical gradient for division.",
+        err_msg="Autodiff gradient does not match numerical gradient for natural logarithm.",
     )
 
 
