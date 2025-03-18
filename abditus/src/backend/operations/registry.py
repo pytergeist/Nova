@@ -138,3 +138,19 @@ transpose_op = Operation(
     forward_func=lambda a: np.transpose(a.data),
     backward_func=transpose_backward,
 )
+
+
+def multiply_backward(result, a, b, grad_output):
+    """
+    c = a * b
+    dc/da = b * grad_output
+    dc/db = a * grad_output
+    """
+    return b.value * grad_output, a.value * grad_output
+
+
+multiply_op = Operation(
+    op_name="multiplication",
+    forward_func=lambda a, b: a.data * b.data,
+    backward_func=multiply_backward,
+)

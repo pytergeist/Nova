@@ -215,7 +215,15 @@ class Tensor:
         return self._apply_op(other, ops.maximum_op)
 
     def __mul__(self, other):
-        raise NotImplementedError("Multiplication not yet implemented")
+        """Multiplication operator overload.
+
+        args:
+            other (Union[Tensor, np.ndarray): The other tensor or array.
+
+        Returns:
+            Tensor: The result of the matrix multiplication
+        """
+        return self._apply_op(other, ops.multiply_op)
 
     def __rmul__(self, other):
         raise NotImplementedError("Multiplication not yet implemented")

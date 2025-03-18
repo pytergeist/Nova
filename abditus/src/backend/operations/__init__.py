@@ -5,6 +5,7 @@ from .registry import (
     divide_op,
     matmul_op,
     maximum_op,
+    multiply_op,
     right_subtract_op,
     subtract_op,
     sum_op,
@@ -22,4 +23,5 @@ __all__ = [
     "relu_op",
     "maximum_op",
     "transpose_op",
+    "multiply_op",
 ]
