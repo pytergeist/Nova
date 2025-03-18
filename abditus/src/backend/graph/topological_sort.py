@@ -17,9 +17,7 @@ class TopologicalSort:
         self.visited: Set[int] = set()
         self.order: list = []
 
-    def dfs_recursive(
-        self, node: Node
-    ):  # TODO: Make this iterative DFS - Recursive can cause max depth issues
+    def dfs_recursive(self, node: Node):
         """Depth-first search traversal of the graph. Currently implemented recursively.
 
         Args:
@@ -80,24 +78,3 @@ class TopologicalSort:
         if reverse:
             return self.order[::-1]
         return self.order
-
-
-if __name__ == "__main__":
-    import numpy as np
-
-    from abditus.src.backend.core import Tensor
-    from abditus.src.backend.graph import print_graph
-
-    A = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
-    B = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
-    C = Tensor(np.ones_like([1, 1, 1]), requires_grad=True)
-
-    D = A + B + C
-
-    D.backward()
-
-    order = TopologicalSort().sort(D._node, reverse=False)
-
-    print([n.idx for n in order])
-
-    print_graph(D._node)
