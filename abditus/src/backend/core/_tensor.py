@@ -258,7 +258,12 @@ class Tensor:
         raise NotImplementedError("Division not yet implemented")
 
     def exp(self):
-        raise NotImplementedError("Exponential not yet implemented")
+        """Exponential function.
+
+        Returns:
+            Tensor: The exponential of the tensor.
+        """
+        return self._apply_unary_op(ops.exponential_op)
 
     def log(self):
         raise NotImplementedError("Logarithm not yet implemented")

@@ -172,3 +172,18 @@ power_op = Operation(
     forward_func=lambda a, b: a.data**b.data,
     backward_func=power_backward,
 )
+
+
+def exponential_backward(result, a, grad_output):
+    """
+    c = exp(a)
+    dc/da = exp(a) * grad_output
+    """
+    return (result.value * grad_output,)
+
+
+exponential_op = Operation(
+    op_name="exponential",
+    forward_func=lambda a: np.exp(a.data),
+    backward_func=exponential_backward,
+)

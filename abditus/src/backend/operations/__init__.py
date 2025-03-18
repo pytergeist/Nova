@@ -3,6 +3,7 @@ from .operation import Operation
 from .registry import (
     add_op,
     divide_op,
+    exponential_op,
     matmul_op,
     maximum_op,
     multiply_op,
@@ -26,4 +27,5 @@ __all__ = [
     "transpose_op",
     "multiply_op",
     "power_op",
+    "exponential_op",
 ]
