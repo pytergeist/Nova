@@ -154,3 +154,21 @@ multiply_op = Operation(
     forward_func=lambda a, b: a.data * b.data,
     backward_func=multiply_backward,
 )
+
+
+def power_backward(result, a, b, grad_output):
+    """
+    c = a ** b
+    dc/da = b * a ** (b - 1) * grad_output
+    dc/db = a ** b * log(a) * grad_output
+    """
+    grad_a = (b.value * a.value ** (b.value - 1)) * grad_output
+    grad_b = (a.value**b.value * np.log(a.value)) * grad_output
+    return grad_a, grad_b
+
+
+power_op = Operation(
+    op_name="power",
+    forward_func=lambda a, b: a.data**b.data,
+    backward_func=power_backward,
+)

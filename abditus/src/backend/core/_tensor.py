@@ -218,7 +218,7 @@ class Tensor:
         """Multiplication operator overload.
 
         args:
-            other (Union[Tensor, np.ndarray): The other tensor or array.
+            other (Union[Tensor, np.ndarray]): The other tensor or array.
 
         Returns:
             Tensor: The result of the matrix multiplication
@@ -229,7 +229,15 @@ class Tensor:
         raise NotImplementedError("Multiplication not yet implemented")
 
     def __pow__(self, other):
-        raise NotImplementedError("Power not yet implemented")
+        """Poweroperator overload.
+
+        args:
+            other (Union[Tensor, np.ndarray, scalar]): The other tensor or array or scalar.
+
+        Returns:
+            Tensor: The result of the matrix multiplication
+        """
+        return self._apply_op(other, ops.power_op)
 
     def __rpow__(self, other):
         raise NotImplementedError("Power not yet implemented")
