@@ -313,15 +313,3 @@ class Tensor:
             f", role={self._node.role}" if getattr(self._node, "role", None) else ""
         )
         return f"Tensor(data={self.data}, requires_grad={self.requires_grad}{role_str})"
-
-
-if __name__ == "__main__":
-    A = Tensor(np.array([1.0, -1.0, 1.0]), requires_grad=True)
-    A = A.maximum(0.0)
-
-    print(A)
-
-    A.backward()
-
-    print(A)
-    print(A.grad)
