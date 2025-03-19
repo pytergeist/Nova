@@ -8,16 +8,20 @@
 
 namespace abmath {
 
-template <typename T> class Vector {
+template <typename T>
+class Vector {
 public:
-  // create a vector with a given number of elements
-  explicit Vector(std::size_t size) : data_(size) {};
+  // Create a vector with a given number of elements.
+  explicit Vector(std::size_t size) : data_(size) {}
 
-  // read/write access for elements
-  T &operator[](std::size_t i) { return data_[i]; };
-  const T &operator[](std::size_t i) const { return data_[i]; };
+  // New constructor: initialize from a std::vector.
+  Vector(const std::vector<T>& values) : data_(values) {}
 
-  std::size_t size() const { return data_.size(); };
+  // Read/write access for elements.
+  T &operator[](std::size_t i) { return data_[i]; }
+  const T &operator[](std::size_t i) const { return data_[i]; }
+
+  std::size_t size() const { return data_.size(); }
 
   void print() const {
     for (const auto &value : data_)
@@ -28,6 +32,7 @@ public:
 private:
   std::vector<T> data_;
 };
+
 
 // vector vector
 template <typename T>

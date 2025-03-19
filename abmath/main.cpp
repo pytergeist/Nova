@@ -1,6 +1,6 @@
 
-#include "operations.h"
-#include "vector.h"
+#include "src/AbMath/templates/operations.h"
+#include "src/AbMath/templates/vector.h"
 #include <iostream>
 
 int main() {
