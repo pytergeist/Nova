@@ -66,7 +66,7 @@ PYBIND11_MODULE(abmath, m) {
   // Vector + scalar
   m.def(
       "add",
-      [](const abmath::Vector<double> &a, double scalar) { return a + scalar; },
+      [](const abmath::Vector<double> &a, const double scalar) { return a + scalar; },
       "Add a vector and a scalar");
 
   // Scalar + Vector
@@ -76,5 +76,5 @@ PYBIND11_MODULE(abmath, m) {
       "Add a scalar and a vector");
 
   // Scalar + Scalar
-  m.def("add", [](double a, double b) { return a + b; }, "Add two scalars");
+  m.def("add", [](const double a, const double b) { return a + b; }, "Add two scalars");
 }
