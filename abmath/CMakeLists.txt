@@ -16,7 +16,5 @@ find_package(pybind11 REQUIRED)
 pybind11_add_module(abmath src/AbMath/python/bindings.cpp)
 target_include_directories(abmath PRIVATE src/AbMath/templates)
 
-add_executable(AbMathExecutable main.cpp)
-target_include_directories(AbMathExecutable PRIVATE src/AbMath/templates)
-add_executable(AbMathExecutable tensor.cpp)
+add_executable(AbMathExecutable src/AbMath/core/main.cpp src/AbMath/core/tensor.cpp src/AbMath/core/tensor.cpp)
 target_include_directories(AbMathExecutable PRIVATE src/AbMath/core)
