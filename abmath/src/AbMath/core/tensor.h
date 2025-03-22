@@ -26,9 +26,13 @@ class Tensor {
       }
 
       Tensor<T> operator+(const Tensor<T> &tensor) const;
+      Tensor<T> operator+(const T &scalar) const;
       Tensor<T> operator-(const Tensor<T> &tensor) const;
+      Tensor<T> operator-(const T &scalar) const;
       Tensor<T> operator*(const Tensor<T> &tensor) const;
+      Tensor<T> operator*(const T &scalar) const;
       Tensor<T> operator/(const Tensor<T> &tensor) const;
+      Tensor<T> operator/(const T &scalar) const;
 
 };
 
