@@ -3,7 +3,7 @@
 /*
 This file contains template functions for operator overiding simple element wise arithmatic operations
 in the tensor class. The current implamentations are for +,-,/,* operators for tensor/tensor and tensor/scalar
-operations
+operations; TODO: Use std::transform instead of for loops in operator overload functions
  */
 // Constructor definition.
 template <typename T>
