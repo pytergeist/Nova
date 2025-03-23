@@ -1,80 +1,72 @@
-#include "../templates/operations.h"
-#include "../templates/vector.h"
-#include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include <pybind11/stl.h>      // for automatic conversion of std::vector
+#include <pybind11/numpy.h>    // for numpy array conversion
+#include <sstream>             // for string stream in __repr__
+#include "../core/tensor.h"
 
 namespace py = pybind11;
 
 PYBIND11_MODULE(abmath, m) {
-  m.doc() = "abmath linear algebra module";
+    m.doc() = "AbMath Tensor module exposing Tensor<double>";
 
-  // Expose the Vector class for doubles (you can similarly expose for other
-  // types)
-  py::class_<abmath::Vector<double>>(m, "Vector")
-      .def(py::init<std::size_t>())
-      .def(py::init<const std::vector<double> &>()) // Constructor from
-                                                    // std::vector<double>
-      .def("__getitem__",
-           [](const abmath::Vector<double> &self, std::size_t i) {
-             if (i >= self.size())
-               throw py::index_error();
-             return self[i];
-           })
-      .def("__setitem__",
-           [](abmath::Vector<double> &self, std::size_t i, double value) {
-             if (i >= self.size())
-               throw py::index_error();
-             self[i] = value;
-           })
-      .def("size", &abmath::Vector<double>::size)
-      .def("print", &abmath::Vector<double>::print)
-      // New method to convert to a NumPy array.
-      .def("to_numpy",
-           [](const abmath::Vector<double> &self) {
-             // Create a NumPy array with the same size as the vector.
-             auto result = py::array_t<double>(self.size());
-             // Request a buffer info from the array.
-             auto buf = result.request();
-             double *ptr = static_cast<double *>(buf.ptr);
-             // Copy data from the vector into the NumPy array.
-             for (std::size_t i = 0; i < self.size(); i++) {
-               ptr[i] = self[i];
-             }
-             return result;
-           })
-      .def("__repr__", [](const abmath::Vector<double> &self) {
-        std::string s = "Vector([";
-        for (std::size_t i = 0; i < self.size(); ++i) {
-          s += std::to_string(self[i]);
-          if (i != self.size() - 1)
-            s += ", ";
-        }
-        s += "])";
-        return s;
-      });
-
-  // Expose the add operation with overloads
-  // Vector + Vector
-  m.def(
-      "add",
-      [](const abmath::Vector<double> &a, const abmath::Vector<double> &b) {
-        return a + b;
-      },
-      "Add two vectors");
-
-  // Vector + scalar
-  m.def(
-      "add",
-      [](const abmath::Vector<double> &a, const double scalar) { return a + scalar; },
-      "Add a vector and a scalar");
-
-  // Scalar + Vector
-  m.def(
-      "add",
-      [](double scalar, const abmath::Vector<double> &a) { return scalar + a; },
-      "Add a scalar and a vector");
-
-  // Scalar + Scalar
-  m.def("add", [](const double a, const double b) { return a + b; }, "Add two scalars");
+    // Bind Tensor<double>
+    py::class_<Tensor<double> >(m, "Tensor")
+            .def(py::init<const std::vector<double> &>(),
+                 "Create a Tensor from a list of doubles.")
+            .def("__repr__", [](const Tensor<double> &t) {
+                std::ostringstream oss;
+                oss << t;
+                return oss.str();
+            })
+           // Add a method to convert the tensor data to a numpy array.
+           .def("to_numpy", [](const Tensor<double>& t) {
+               // Allocate a numpy array of the same size as the tensor data.
+               py::array_t<double> np_arr(t.arr.size());
+               // Request a buffer info from the numpy array.
+               auto buf = np_arr.request();
+               double *ptr = static_cast<double *>(buf.ptr);
+               // Copy the tensor's data into the numpy array.
+               std::copy(t.arr.begin(), t.arr.end(), ptr);
+               return np_arr;
+           }, "Return the tensor as a numpy array.")
+            // Overload for Tensor + Tensor
+            .def("__add__",
+                 (Tensor<double> (Tensor<double>::*)(const Tensor<double> &) const)
+                 &Tensor<double>::operator+,
+                 "Element-wise addition of two Tensors.")
+            // Overload for Tensor + scalar
+            .def("__add__",
+                 (Tensor<double> (Tensor<double>::*)(const double &) const)
+                 &Tensor<double>::operator+,
+                 "Element-wise addition of a Tensor and a scalar.")
+            // Overload for Tensor - Tensor
+            .def("__sub__",
+                 (Tensor<double> (Tensor<double>::*)(const Tensor<double> &) const)
+                 &Tensor<double>::operator-,
+                 "Element-wise subtraction of two Tensors.")
+            // Overload for Tensor - scalar
+            .def("__sub__",
+                 (Tensor<double> (Tensor<double>::*)(const double &) const)
+                 &Tensor<double>::operator-,
+                 "Element-wise subtraction of a scalar from a Tensor.")
+            // Overload for Tensor * Tensor
+            .def("__mul__",
+                 (Tensor<double> (Tensor<double>::*)(const Tensor<double> &) const)
+                 &Tensor<double>::operator*,
+                 "Element-wise multiplication of two Tensors.")
+            // Overload for Tensor * scalar
+            .def("__mul__",
+                 (Tensor<double> (Tensor<double>::*)(const double &) const)
+                 &Tensor<double>::operator*,
+                 "Element-wise multiplication of a Tensor with a scalar.")
+            // Overload for Tensor / Tensor
+            .def("__truediv__",
+                 (Tensor<double> (Tensor<double>::*)(const Tensor<double> &) const)
+                 &Tensor<double>::operator/,
+                 "Element-wise division of two Tensors.")
+            // Overload for Tensor / scalar
+            .def("__truediv__",
+                 (Tensor<double> (Tensor<double>::*)(const double &) const)
+                 &Tensor<double>::operator/,
+                 "Element-wise division of a Tensor by a scalar.");
 }
