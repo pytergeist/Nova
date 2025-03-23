@@ -14,6 +14,8 @@ class Tensor {
 
     explicit Tensor(const std::vector<T> &data);
 
+    explicit Tensor(const T &value);
+
     friend std::ostream &operator<<(std::ostream &os, const Tensor &tensor) {
         os << "Tensor(";
         for (size_t i = 0; i < tensor.arr.size(); ++i) {
@@ -26,13 +28,9 @@ class Tensor {
       }
 
       Tensor<T> operator+(const Tensor<T> &tensor) const;
-      Tensor<T> operator+(const T &scalar) const;
       Tensor<T> operator-(const Tensor<T> &tensor) const;
-      Tensor<T> operator-(const T &scalar) const;
       Tensor<T> operator*(const Tensor<T> &tensor) const;
-      Tensor<T> operator*(const T &scalar) const;
       Tensor<T> operator/(const Tensor<T> &tensor) const;
-      Tensor<T> operator/(const T &scalar) const;
 
 };
 
