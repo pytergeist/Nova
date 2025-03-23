@@ -5,8 +5,8 @@ from typing import Any, Dict, Tuple
 
 import numpy as np
 
-from abditus.src.backend import io
-from abditus.src.initialisers import Initialiser
+from nova.src.backend import io
+from nova.src.initialisers import Initialiser
 
 
 class RandomSeed(Initialiser):  # TODO: helper functions should be moved to backend ops?

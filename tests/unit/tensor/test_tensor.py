@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from abditus.src.backend.core import Tensor
+from nova.src.backend.core import Tensor
 
 
 @pytest.mark.parametrize(

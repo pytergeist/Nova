@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import torch
 
-from abditus.src.backend.core import Tensor
+from nova.src.backend.core import Tensor
 
 
 def compute_autodiff_gradient(x):

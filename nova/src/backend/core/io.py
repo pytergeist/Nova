@@ -2,13 +2,13 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from abditus.src.backend.core.dtypes import as_dtype
+from nova.src.backend.core.dtypes import as_dtype
 
 from ._tensor import Tensor
 from .variable import Variable
 
 if TYPE_CHECKING:
-    from abditus.src.backend.core.dtypes import DType
+    from nova.src.backend.core.dtypes import DType
 
 
 def as_numpy_array(data: list | np.ndarray, dtype: "DType" = "float32") -> np.ndarray:

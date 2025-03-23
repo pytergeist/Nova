@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(AbMath LANGUAGES CXX)
+project(Fusion LANGUAGES CXX)
 
 # Specify the target architecture (Apple Silicon)
 set(CMAKE_OSX_ARCHITECTURES "arm64")
@@ -13,8 +13,8 @@ set(PYBIND11_FINDPYTHON ON CACHE BOOL "Force pybind11 to use FindPython")
 
 find_package(pybind11 REQUIRED)
 
-pybind11_add_module(abmath src/AbMath/python/bindings.cpp)
-target_include_directories(abmath PRIVATE src/AbMath/templates)
+pybind11_add_module(fusion src/Fusion/python/bindings.cpp)
+target_include_directories(fusion PRIVATE src/Fusion/templates)
 
-add_executable(AbMathExecutable src/AbMath/core/main.cpp src/AbMath/core/tensor.tpp src/AbMath/core/tensor.tpp)
-target_include_directories(AbMathExecutable PRIVATE src/AbMath/core)
+add_executable(FusionExecutable src/Fusion/core/main.cpp src/Fusion/core/tensor.tpp src/Fusion/core/tensor.tpp)
+target_include_directories(FusionExecutable PRIVATE src/Fusion/core)

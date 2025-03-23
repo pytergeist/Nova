@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import pytest
 
-from abditus.src.initialisers import Initialiser
+from nova.src.initialisers import Initialiser
 
 
 class MockInitialiser(Initialiser):

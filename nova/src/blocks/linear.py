@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
-from abditus.src.backend.core import Tensor
-from abditus.src.blocks._block import Block
+from nova.src.backend.core import Tensor
+from nova.src.blocks._block import Block
 
 
 class Linear(Block):
@@ -58,8 +58,8 @@ class Linear(Block):
 
 
 if __name__ == "__main__":
-    from abditus.src.backend.graph import print_graph
-    from abditus.src.blocks.activations.activations import ReLU
+    from nova.src.backend.graph import print_graph
+    from nova.src.blocks.activations.activations import ReLU
 
     layer = Linear(units=10, kernel_initialiser="random_normal", bias=True)
     layer.build(input_shape=(None, 5))

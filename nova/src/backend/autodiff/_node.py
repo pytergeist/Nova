@@ -2,7 +2,7 @@ from typing import Literal, Optional, Tuple
 
 import numpy as np
 
-from abditus.src.backend.operations import Operation
+from nova.src.backend.operations import Operation
 
 
 class Node:

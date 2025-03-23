@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 import torch
 
-from abditus.src.backend.core import Tensor  # your tensor class
-from abditus.src.blocks.activations.activations import ReLU
-from abditus.src.blocks.linear import Linear
-from abditus.src.initialisers import Constant, Ones, RandomNormal, RandomUniform, Zeros
+from nova.src.backend.core import Tensor  # your tensor class
+from nova.src.blocks.activations.activations import ReLU
+from nova.src.blocks.linear import Linear
+from nova.src.initialisers import Constant, Ones, RandomNormal, RandomUniform, Zeros
 
 network_configs = [
     # 2-layer network: input 5 -> hidden 10 -> output 1, activation after first layer only.

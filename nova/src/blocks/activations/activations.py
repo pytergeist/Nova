@@ -1,5 +1,5 @@
-from abditus.src.backend.core import Tensor
-from abditus.src.blocks._block import Block
+from nova.src.backend.core import Tensor
+from nova.src.blocks._block import Block
 
 
 class ReLU(Block):

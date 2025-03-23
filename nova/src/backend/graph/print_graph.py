@@ -1,6 +1,6 @@
 from typing import Optional, Set
 
-from abditus.src.backend.autodiff import Node
+from nova.src.backend.autodiff import Node
 
 
 def print_graph(node: Node, level: int = 0) -> None:

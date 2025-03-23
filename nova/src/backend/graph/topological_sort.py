@@ -1,6 +1,6 @@
 from typing import List, Set
 
-from abditus.src.backend.autodiff import Node
+from nova.src.backend.autodiff import Node
 
 
 class TopologicalSort:

@@ -2,9 +2,9 @@ from typing import List, Literal, Optional, Tuple, Type
 
 import numpy as np
 
-from abditus.src.backend.autodiff._node import Node
-from abditus.src.backend.graph import TopologicalSort
-from abditus.src.backend.operations import Operation
+from nova.src.backend.autodiff._node import Node
+from nova.src.backend.graph import TopologicalSort
+from nova.src.backend.operations import Operation
 
 
 class Engine:

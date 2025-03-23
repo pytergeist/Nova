@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from abditus.src.initialisers import Constant, Ones, Zeros
+from nova.src.initialisers import Constant, Ones, Zeros
 
 
 def test_constant_initialiser_init_value():

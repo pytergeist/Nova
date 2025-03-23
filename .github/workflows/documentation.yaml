@@ -45,11 +45,11 @@ jobs:
           poetry show
 
       # Generate documentation for SQLBuilder
-      - name: Generate abditus documentation with sphinx-apidoc
+      - name: Generate nova documentation with sphinx-apidoc
         run: |
           poetry run  sphinx-apidoc -o docs abditus/src
 
-      - name: Build abditus Sphinx documentation
+      - name: Build nova Sphinx documentation
         run: |
           cd docs
           poetry run sphinx-build -b html source build

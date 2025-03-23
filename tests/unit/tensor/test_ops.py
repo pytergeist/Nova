@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from abditus.src.backend.core import Tensor
-from abditus.src.backend.operations import (
+from nova.src.backend.core import Tensor
+from nova.src.backend.operations import (
     add_op,
     divide_op,
     matmul_op,

@@ -2,9 +2,9 @@ from typing import Any, Dict
 
 import pytest
 
-from abditus.src.backend.core import Tensor
-from abditus.src.blocks import Block, activations
-from abditus.src.blocks.activations.activations import ReLU
+from nova.src.backend.core import Tensor
+from nova.src.blocks import Block, activations
+from nova.src.blocks.activations.activations import ReLU
 
 
 class MockActivation(Block):

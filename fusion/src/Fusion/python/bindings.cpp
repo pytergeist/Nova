@@ -6,8 +6,8 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(abmath, m) {
-    m.doc() = "AbMath Tensor module exposing Tensor<double>";
+PYBIND11_MODULE(fusion, m) {
+    m.doc() = "Fusion Tensor module exposing Tensor<double>";
 
     // Bind Tensor<double>
     py::class_<Tensor<double> >(m, "Tensor")

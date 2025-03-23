@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from .activations import ReLU
 
 if TYPE_CHECKING:
-    from abditus.src.blocks import Block
+    from nova.src.blocks import Block
 
 _OBJECTS = [
     ReLU,

@@ -1,7 +1,7 @@
 import numpy as np
 
-from abditus.src.backend import io
-from abditus.src.initialisers.initialiser import Initialiser
+from nova.src.backend import io
+from nova.src.initialisers.initialiser import Initialiser
 
 
 class Constant(Initialiser):

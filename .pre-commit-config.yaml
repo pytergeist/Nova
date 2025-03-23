@@ -16,7 +16,7 @@ repos:
         entry: isort
         language: python
         types: [ python ]
-        files: ^abditus
+        files: ^nova
 
 
       - id: black
@@ -27,11 +27,11 @@ repos:
         minimum_pre_commit_version: 2.9.2
         require_serial: true
         types_or: [python, pyi]
-        files: ^abditus
+        files: ^nova
 
 
       - id: flake8
         name: flake8
         entry: flake8
         language: python
-        files: ^abditus
+        files: ^nova

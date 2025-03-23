@@ -9,10 +9,10 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../abditus"))
+sys.path.insert(0, os.path.abspath("../../nova"))
 
 
-project = "abditus"
+project = "nova"
 copyright = "2025, Tom Pope"
 author = "Tom Pope"
 release = "0.1.1"

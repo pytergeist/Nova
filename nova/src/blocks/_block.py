@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
 
-from abditus.src import initialisers
-from abditus.src.backend import io
+from nova.src import initialisers
+from nova.src.backend import io
 
 if TYPE_CHECKING:
-    from abditus.src.initialisers import Initialiser
+    from nova.src.initialisers import Initialiser
 
 
 class Block(ABC):

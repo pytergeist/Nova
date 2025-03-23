@@ -2,12 +2,12 @@ from typing import TYPE_CHECKING, Literal, Optional, Union
 
 import numpy as np
 
-import abditus.src.backend.operations as ops
-from abditus.src.backend.autodiff import Engine, Node
+import nova.src.backend.operations as ops
+from nova.src.backend.autodiff import Engine, Node
 
 if TYPE_CHECKING:
-    from abditus.src.backend.core.dtypes import DType
-    from abditus.src.backend.operations import Operation
+    from nova.src.backend.core.dtypes import DType
+    from nova.src.backend.operations import Operation
 
 
 class Tensor:
