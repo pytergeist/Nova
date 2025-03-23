@@ -32,14 +32,13 @@ class Tensor:
         data,
         requires_grad=False,
         dtype: "DType" = np.float32,
-        engine: Engine = Engine(),
-        # TODO: add engine=None, add get_current() for use with context manager pattern - is this correct?
+        engine: Optional[Engine] = None,
         node: Optional[
             Node
         ] = None,  # TODO: should this be here? as the engine manages all nodes
         role: Optional[str] = None,
     ) -> None:
-        self.engine = engine
+        self.engine = engine.get_current() if engine else Engine()
         if data is not None and not isinstance(data, np.ndarray):
             data = np.array(data, dtype=dtype)
 

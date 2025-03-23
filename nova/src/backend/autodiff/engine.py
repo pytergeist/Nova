@@ -145,7 +145,7 @@ class Engine:
         """Exit method for context manager pattern."""
         return False
 
-    def current(self) -> "Engine":
+    def get_current(self) -> "Engine":
         """Returns the current engine instance.
 
         Designed to be used with the context manager pattern, e.g. with Engine.current()
