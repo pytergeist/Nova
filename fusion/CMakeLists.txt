@@ -16,5 +16,5 @@ find_package(pybind11 REQUIRED)
 pybind11_add_module(fusion src/Fusion/python/bindings.cpp)
 target_include_directories(fusion PRIVATE src/Fusion/templates)
 
-add_executable(FusionExecutable src/Fusion/core/main.cpp src/Fusion/core/tensor.tpp src/Fusion/core/tensor.tpp)
+add_executable(FusionExecutable src/Fusion/core/main.cpp src/Fusion/core/tensor_ops.tpp src/Fusion/core/tensor_ops.tpp)
 target_include_directories(FusionExecutable PRIVATE src/Fusion/core)
