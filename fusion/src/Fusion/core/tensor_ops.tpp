@@ -85,3 +85,4 @@ template <typename T> Tensor<T> Tensor<T>::pow(const Tensor<T> &tensor) const {
   return elementwise_binary_op(
       *this, tensor, [](T base, T exp) -> T { return std::pow(base, exp); });
 }
+
