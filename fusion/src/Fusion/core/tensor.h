@@ -28,6 +28,7 @@ public:
   Tensor<T> operator*(const Tensor<T> &tensor) const;
   Tensor<T> operator/(const Tensor<T> &tensor) const;
   Tensor<T> pow(const Tensor<T> &tensor) const;
+  Tensor<T> sqrt() const;
 };
 
 #include "tensor_ops.tpp"

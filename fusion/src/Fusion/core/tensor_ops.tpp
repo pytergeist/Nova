@@ -23,6 +23,24 @@
  * @param op Binary operation to perform.
  * @return Tensor<T> The resulting tensor.
  */
+
+template <typename T, typename UnaryOp>
+Tensor<T> elementwise_unary_op(const Tensor<T> &a, UnaryOp op) {
+  std::vector<T> result;
+  if (a.arr.size() >= 1) {
+    result.resize(a.arr.size());
+    for (size_t i = 0; i < a.arr.size(); i++) {
+      result[i] = op(a.arr[i]);
+    }
+  } else if (a.arr.size() == 1) {
+    result.resize(a.arr.size());
+    result[0] = op(a.arr[0]);
+  } else {
+    throw std::invalid_argument("Tensor sizes do not match");
+  }
+  return Tensor<T>(result);
+}
+
 template <typename T, typename BinaryOp>
 Tensor<T> elementwise_binary_op(const Tensor<T> &a, const Tensor<T> &b,
                                 BinaryOp op) {
@@ -86,3 +104,8 @@ template <typename T> Tensor<T> Tensor<T>::pow(const Tensor<T> &tensor) const {
       *this, tensor, [](T base, T exp) -> T { return std::pow(base, exp); });
 }
 
+// sqrt(tensor)
+template <typename T> Tensor<T> Tensor<T>::sqrt() const {
+  return elementwise_unary_op(*this,
+                              [](T base) -> T { return std::sqrt(base); });
+}
