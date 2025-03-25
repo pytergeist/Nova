@@ -27,7 +27,7 @@
 template <typename T, typename UnaryOp>
 Tensor<T> elementwise_unary_op(const Tensor<T> &a, UnaryOp op) {
   std::vector<T> result;
-  if (a.arr.size() >= 1) {
+  if (a.arr.size() > 1) {
     result.resize(a.arr.size());
     for (size_t i = 0; i < a.arr.size(); i++) {
       result[i] = op(a.arr[i]);
