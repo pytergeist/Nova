@@ -44,10 +44,10 @@ jobs:
         run: |
           poetry show
 
-      # Generate documentation for SQLBuilder
+      # Generate documentation for Nova
       - name: Generate nova documentation with sphinx-apidoc
         run: |
-          poetry run  sphinx-apidoc -o docs abditus/src
+          poetry run  sphinx-apidoc -o docs nova/src
 
       - name: Build nova Sphinx documentation
         run: |
