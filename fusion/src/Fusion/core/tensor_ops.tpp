@@ -72,7 +72,10 @@ Tensor<T>::Tensor(const std::vector<T> &data) : arr(data) {}
 // Constructor from a scalar.
 template <typename T> Tensor<T>::Tensor(const T &value) : arr(1, value) {}
 
-// Operator overloads (all now work with Tensor<T> arguments)
+/* Operator overloads for binary operations (all now work with Tensor<T>
+ * arguments) and take one argument (other tensor), the binary operations are
+ * applied elementwise between *this (current tensor and other tensor).
+ */
 
 // tensor + tensor
 template <typename T>
@@ -104,8 +107,25 @@ template <typename T> Tensor<T> Tensor<T>::pow(const Tensor<T> &tensor) const {
       *this, tensor, [](T base, T exp) -> T { return std::pow(base, exp); });
 }
 
+/* Operator overloads for unary operations.
+ * Takes no arguments (), the binary operations are applied elementwise
+ * to *this (current tensor).
+ */
+
 // sqrt(tensor)
 template <typename T> Tensor<T> Tensor<T>::sqrt() const {
   return elementwise_unary_op(*this,
                               [](T base) -> T { return std::sqrt(base); });
+}
+
+// exp(tensor)
+template <typename T> Tensor<T> Tensor<T>::exp() const {
+  return elementwise_unary_op(*this,
+                              [](T base) -> T { return std::exp(base); });
+}
+
+// log(tensor)
+template <typename T> Tensor<T> Tensor<T>::log() const {
+  return elementwise_unary_op(*this,
+                              [](T base) -> T { return std::log(base); });
 }

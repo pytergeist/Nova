@@ -22,13 +22,17 @@ public:
     os << ")";
     return os;
   }
-
+  // binary operations
   Tensor<T> operator+(const Tensor<T> &tensor) const;
   Tensor<T> operator-(const Tensor<T> &tensor) const;
   Tensor<T> operator*(const Tensor<T> &tensor) const;
   Tensor<T> operator/(const Tensor<T> &tensor) const;
   Tensor<T> pow(const Tensor<T> &tensor) const;
+
+  // unary operations
   Tensor<T> sqrt() const;
+  Tensor<T> exp() const;
+  Tensor<T> log() const;
 };
 
 #include "tensor_ops.tpp"
