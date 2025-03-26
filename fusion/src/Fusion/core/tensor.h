@@ -15,22 +15,9 @@ public:
 
   explicit Tensor(const std::vector<T> &data);
 
-  // explicit Tensor(const std::vector<std::vector<T>> &data);
-
   explicit Tensor(const T &value);
 
-  // friend std::ostream &operator<<(std::ostream &os, const Tensor &tensor) {
-  //   os << "Tensor(";
-  //   for (size_t i = 0; i < tensor.arr.size(); ++i) {
-  //     os << tensor.arr[i];
-  //     if (i < tensor.arr.size() - 1)
-  //       os << ", ";
-  //   }
-  //   os << ")";
-  //   return os;
-  // }
-
-  std::ostream &print_2d_tensor(std::ostream &os, const Tensor &tensor) const {
+  static std::ostream &print_2d_tensor(std::ostream &os, const Tensor &tensor) {
     os << std::endl;
     for (size_t i = 0; i < tensor.arr.size(); ++i) {
       for (size_t j = 0; j < tensor.arr[i].size(); ++j) {
@@ -44,7 +31,7 @@ public:
     return os;
   }
 
-  std::ostream &print_1d_tensor(std::ostream &os, const Tensor &tensor) const {
+  static std::ostream &print_1d_tensor(std::ostream &os, const Tensor &tensor) {
     for (size_t i = 0; i < tensor.arr.size(); ++i) {
       os << tensor.arr[i];
       if (i < tensor.arr.size() - 1)
@@ -57,10 +44,10 @@ public:
   friend std::ostream &operator<<(std::ostream &os, const Tensor &tensor) {
     os << "Tensor(";
     if constexpr (is_std_vector<T>::value) {
-      tensor.print_2d_tensor(os, tensor);
+      print_2d_tensor(os, tensor);
     }
     if constexpr (!is_std_vector<T>::value) {
-      tensor.print_1d_tensor(os, tensor);
+      print_1d_tensor(os, tensor);
     }
     return os;
   }
