@@ -61,6 +61,8 @@ public:
 
   Tensor<T> operator/(const Tensor<T> &tensor) const;
 
+  Tensor<T> matmul(const Tensor<T> &tensor) const;
+
   Tensor<T> pow(const Tensor<T> &tensor) const;
 
   // unary operations

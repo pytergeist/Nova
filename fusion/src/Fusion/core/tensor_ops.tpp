@@ -129,3 +129,50 @@ template <typename T> Tensor<T> Tensor<T>::log() const {
   return elementwise_unary_op(*this,
                               [](T base) -> T { return std::log(base); });
 }
+
+template <typename T>
+Tensor<T> Tensor<T>::matmul(const Tensor<T> &tensor) const {
+  if constexpr (is_std_vector<T>::value) {
+    size_t const rows = this->arr.size();
+    size_t const cols = tensor.arr[0].size();
+    std::vector<std::vector<double>> result;
+    result.resize(rows);
+    for (size_t i = 0; i < rows; i++) {
+      result[i].resize(cols);
+      for (size_t j = 0; j < cols; j++) {
+        result[i][j] = 0;
+      }
+    }
+
+    for (size_t i = 0; i < rows; i++) {
+      for (size_t j = 0; j < cols; j++) {
+        for (size_t k = 0; k < this->arr[i].size(); k++) {
+          result[i][j] += this->arr[i][k] * tensor.arr[k][j];
+        }
+      }
+    }
+    return Tensor<T>(result);
+    // } else if (!is_std_vector<T>::value) {
+    //     size_t const rows = this->arr.size();
+    //     constexpr int cols = 1;
+    //     std::vector<std::vector<double> > result;
+    //     result.resize(rows);
+    //     for (size_t i = 0; i < rows; i++) {
+    //         result[i].resize(cols);
+    //         for (size_t j = 0; j < cols; j++) {
+    //             result[i][j] = 0;
+    //         }
+    //     }
+    //
+    //     for (size_t i = 0; i < rows; i++) {
+    //         for (size_t j = 0; j < cols; j++) {
+    //             for (size_t k = 0; k < this->arr[i].size(); k++) {
+    //                 result[i][j] += this->arr[i][k] * tensor.arr[j];
+    //             }
+    //         }
+    //     }
+    return Tensor<T>(result);
+  } else {
+    throw std::invalid_argument("Tensor sizes do not match");
+  }
+}
