@@ -25,8 +25,8 @@ public:
       os << tensor.arr[i];
       if ((i % stride) != (stride - 1)) {
         os << ", ";
-      }
-      else os << std::endl;
+      } else
+        os << std::endl;
     }
     os << ")";
     return os;
@@ -62,7 +62,7 @@ public:
 
   Tensor<T> operator/(const Tensor<T> &tensor) const;
 
-  // Tensor<T> matmul(const Tensor<T> &tensor) const;
+  Tensor<T> matmul(const Tensor<T> &tensor) const;
 
   Tensor<T> pow(const Tensor<T> &tensor) const;
 
