@@ -66,7 +66,7 @@ Tensor<T> elementwise_binary_op(const Tensor<T> &a, const Tensor<T> &b,
 // Constructor definitions
 
 // Constructor from a vector.
-template <typename T>
+template <typename T> // TODO: Add error checking for mismatched shape and data size
 Tensor<T>::Tensor(const std::vector<T> &data, const std::vector<size_t> &shape) : arr(data), shape(shape) {}
 
 // Constructor from a scalar.
