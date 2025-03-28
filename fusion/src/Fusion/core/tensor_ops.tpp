@@ -68,8 +68,7 @@ Tensor<T> elementwise_binary_op(const Tensor<T> &a, const Tensor<T> &b,
 // Constructor from a vector.
 template <typename T> // TODO: Add error checking for mismatched shape and data
                       // size
-                      Tensor<T>::Tensor(const std::vector<T> &data,
-                                        const std::vector<size_t> &shape)
+Tensor<T>::Tensor(const std::vector<T> &data, const std::vector<size_t> &shape)
     : arr(data), shape(shape) {}
 
 // Constructor from a scalar.
@@ -141,10 +140,9 @@ Tensor<T> Tensor<T>::matmul(const Tensor<T> &tensor) const {
 
     std::vector<double> result(result_size, 0.0);
     const size_t m = this->shape[0];
-    const size_t n = this->shape[1]; // also tensor2.shape[0]
+    const size_t n = this->shape[1];
     const size_t p = tensor.shape[1];
 
-    // Perform the matrix multiplication.
     for (size_t i = 0; i < m; i++) {
       for (size_t j = 0; j < p; j++) {
         double sum = 0.0;
