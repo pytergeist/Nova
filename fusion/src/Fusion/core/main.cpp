@@ -1,7 +1,7 @@
 #include "tensor.h"
 
 int main() {
-  Tensor<double> const tensor2({2.0, 2.0, 3, 4, 5}, {1});
+  Tensor<double> const tensor2({2.0, 2.0, 3, 4}, {2, 2});
 
 
 
@@ -18,15 +18,15 @@ int main() {
 
 
 
-
-  std::cout << plus_tensor << std::endl;
-  std::cout << minus_tensor << std::endl;
-  std::cout << times_tensor << std::endl;
-  std::cout << pow_tensor << std::endl;
-  std::cout << times_tensor << std::endl;
-  std::cout << sqrt_tensor << std::endl;
-  std::cout << exp_tensor << std::endl;
-  std::cout << log_tensor << std::endl;
+  std::cout << tensor2 << std::endl;
+  // std::cout << plus_tensor << std::endl;
+  // std::cout << minus_tensor << std::endl;
+  // std::cout << times_tensor << std::endl;
+  // std::cout << pow_tensor << std::endl;
+  // std::cout << times_tensor << std::endl;
+  // std::cout << sqrt_tensor << std::endl;
+  // std::cout << exp_tensor << std::endl;
+  // std::cout << log_tensor << std::endl;
 
 
 

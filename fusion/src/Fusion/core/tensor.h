@@ -20,13 +20,13 @@ public:
 
   static std::ostream &print_2d_tensor(std::ostream &os, const Tensor &tensor) {
     os << std::endl;
+    const size_t stride = tensor.shape[1];
     for (size_t i = 0; i < tensor.arr.size(); ++i) {
-      for (size_t j = 0; j < tensor.arr[i].size(); ++j) {
-        os << tensor.arr[i][j];
-        if (j < tensor.arr[i].size() - 1)
-          os << ", ";
+      os << tensor.arr[i];
+      if ((i % stride) != (stride - 1)) {
+        os << ", ";
       }
-      os << std::endl;
+      else os << std::endl;
     }
     os << ")";
     return os;
@@ -44,10 +44,10 @@ public:
 
   friend std::ostream &operator<<(std::ostream &os, const Tensor &tensor) {
     os << "Tensor(";
-    if constexpr (is_std_vector<T>::value) {
+    if (tensor.shape.size() == 2) {
       print_2d_tensor(os, tensor);
     }
-    if constexpr (!is_std_vector<T>::value) {
+    if (tensor.shape.size() == 1) {
       print_1d_tensor(os, tensor);
     }
     return os;
