@@ -27,7 +27,8 @@
 template <typename T, typename UnaryOp>
 Tensor<T> elementwise_unary_op(const Tensor<T> &a, UnaryOp op) {
   std::vector<T> result;
-  if (a.arr.size() > 1) { // TODO: This won't work for dim > 2??
+  if (a.arr.size() > 1) {
+    // TODO: This won't work for dim > 2??
     result.resize(a.arr.size());
     for (size_t i = 0; i < a.arr.size(); i++) {
       result[i] = op(a.arr[i]);
@@ -67,7 +68,7 @@ Tensor<T> elementwise_binary_op(const Tensor<T> &a, const Tensor<T> &b,
 
 // Constructor from a vector.
 template <typename T> // TODO: Add error checking for mismatched shape and data
-                      // size
+// size
 Tensor<T>::Tensor(const std::vector<T> &data, const std::vector<size_t> &shape)
     : arr(data), shape(shape) {}
 
@@ -132,11 +133,13 @@ template <typename T> Tensor<T> Tensor<T>::log() const {
                               [](T base) -> T { return std::log(base); });
 }
 
+// matmul(tensor)
 template <typename T>
 Tensor<T> Tensor<T>::matmul(const Tensor<T> &tensor) const {
   if (this->shape.size() == 2 && tensor.shape.size() == 2 &&
+      // TODO: remove hard coding and abstract checks into diff fns
       this->shape[1] == tensor.shape[0]) {
-    const size_t result_size = this->shape[0] * this->shape[1];
+    const size_t result_size = this->shape[0] * tensor.shape[1];
 
     std::vector<double> result(result_size, 0.0);
     const size_t m = this->shape[0];
@@ -152,6 +155,21 @@ Tensor<T> Tensor<T>::matmul(const Tensor<T> &tensor) const {
         result[i * p + j] = sum;
       }
     }
-    return Tensor(result, {this->shape[0], this->shape[1]});
+    return Tensor(result, {m, p});
   }
+  if (this->shape.size() == 2 && tensor.shape.size() == 1 &&
+      this->shape[1] == tensor.shape[0]) {
+    const size_t m = this->shape[0];
+    const size_t n = this->shape[1];
+    std::vector<T> result(m, 0.0);
+    for (size_t i = 0; i < m; i++) {
+      double sum = 0.0;
+      for (size_t k = 0; k < n; k++) {
+        sum += this->arr[i * n + k] * tensor.arr[k];
+      }
+      result[i] = sum;
+    }
+    return Tensor<T>(result, {m});
+  }
+  throw std::invalid_argument("Tensor sizes do not match");
 }
