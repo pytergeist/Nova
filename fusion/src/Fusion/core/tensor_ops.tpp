@@ -27,7 +27,7 @@
 template <typename T, typename UnaryOp>
 Tensor<T> elementwise_unary_op(const Tensor<T> &a, UnaryOp op) {
   std::vector<T> result;
-  if (a.arr.size() > 1) {
+  if (a.arr.size() > 1) { // TODO: This won't work for dim > 2??
     result.resize(a.arr.size());
     for (size_t i = 0; i < a.arr.size(); i++) {
       result[i] = op(a.arr[i]);
@@ -75,7 +75,7 @@ template <typename T> Tensor<T>::Tensor(const T &value) : arr(1, value) {}
 /* Operator overloads for binary operations (all now work with Tensor<T>
  * arguments) and take one argument (other tensor), the binary operations are
  * applied elementwise between *this (current tensor and other tensor).
- */
+*/
 
 // tensor + tensor
 template <typename T>
