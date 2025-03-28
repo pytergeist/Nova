@@ -1,52 +1,34 @@
 #include "tensor.h"
 
 int main() {
-  Tensor<std::vector<double>> const tensor1({{1.0, 2.0}, {3.0, 4.0}});
+  Tensor<double> const tensor2({2.0, 2.0, 3, 4, 5}, {1});
 
-  Tensor<double> const tensor2({2.0, 2.0});
-  Tensor<std::vector<double>> const tensor3({{1.0, 2.0}, {3.0, 4.0}});
 
-  Tensor<std::vector<double>> const tensor4 = tensor1.matmul(tensor3);
 
-  // size_t const rows = tensor1.arr.size();
-  // constexpr int cols = 1;
-  // std::vector<std::vector<double>> result;
-  // result.resize(rows);
-  // for (size_t i = 0; i < rows; i++) {
-  //     result[i].resize(cols);
-  //     for (size_t j = 0; j < cols; j++) {
-  //         result[i][j] = 0;
-  //     }
-  // }
-  //
-  // for (size_t i = 0; i < rows; i++) {
-  //     for (size_t j = 0; j < cols; j++) {
-  //         for (size_t k = 0; k < tensor1.arr[i].size(); k++) {
-  //             result[i][j] += tensor1.arr[i][k]*tensor2.arr[j];
-  //         }
-  //     }
-  // }
-  //
-  // size_t const rows = tensor1.arr.size();
-  // size_t const cols = tensor1.arr[0].size();
-  // std::vector<std::vector<double>> result;
-  // result.resize(rows);
-  // for (size_t i = 0; i < rows; i++) {
-  //     result[i].resize(cols);
-  //     for (size_t j = 0; j < cols; j++) {
-  //       result[i][j] = 0;
-  //     }
-  // }
-  //
-  // for (size_t i = 0; i < rows; i++) {
-  //     for (size_t j = 0; j < cols; j++) {
-  //         for (size_t k = 0; k < tensor1.arr[i].size(); k++) {
-  //             result[i][j] += tensor1.arr[i][k]*tensor2.arr[k][j];
-  //         }
-  //     }
-  // }
-  // Tensor<std::vector<double>> const tensor3(result);
+  Tensor<double> plus_tensor = tensor2+tensor2;
+  Tensor<double> minus_tensor = tensor2-tensor2;
+  Tensor<double> divide_tensor = tensor2/tensor2;
+  Tensor<double> times_tensor = tensor2*tensor2;
+  Tensor<double> pow_tensor = tensor2.pow(tensor2);
+  Tensor<double> sqrt_tensor = tensor2.sqrt();
+  Tensor<double> exp_tensor = tensor2.exp();
+  Tensor<double> log_tensor = tensor2.log();
 
-  std::cout << tensor4 << std::endl;
+  ;
+
+
+
+
+  std::cout << plus_tensor << std::endl;
+  std::cout << minus_tensor << std::endl;
+  std::cout << times_tensor << std::endl;
+  std::cout << pow_tensor << std::endl;
+  std::cout << times_tensor << std::endl;
+  std::cout << sqrt_tensor << std::endl;
+  std::cout << exp_tensor << std::endl;
+  std::cout << log_tensor << std::endl;
+
+
+
   return 0;
 }

@@ -12,8 +12,9 @@ struct is_std_vector<std::vector<T, A>> : std::true_type {};
 template <typename T> class Tensor {
 public:
   std::vector<T> arr;
+  std::vector<size_t> shape;
 
-  explicit Tensor(const std::vector<T> &data);
+  explicit Tensor(const std::vector<T> &data, const std::vector<size_t> &shape);
 
   explicit Tensor(const T &value);
 
@@ -61,7 +62,7 @@ public:
 
   Tensor<T> operator/(const Tensor<T> &tensor) const;
 
-  Tensor<T> matmul(const Tensor<T> &tensor) const;
+  // Tensor<T> matmul(const Tensor<T> &tensor) const;
 
   Tensor<T> pow(const Tensor<T> &tensor) const;
 
