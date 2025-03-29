@@ -69,7 +69,16 @@ Tensor<T> elementwise_binary_op(const Tensor<T> &a, const Tensor<T> &b,
 template <typename T> // TODO: Add error checking for mismatched shape and data
 // size
 Tensor<T>::Tensor(const std::vector<T> &data, const std::vector<size_t> &shape)
-    : arr(data), shape(shape) {}
+    : arr(data), shape(shape) {
+  size_t expected = 1;
+  for (auto const dim : shape) {
+    expected *= dim;
+  }
+  if (expected != arr.size()) {
+    throw std::invalid_argument(
+        "The provided Tensor shape does not match data shape");
+  }
+}
 
 // Constructor from a scalar.
 template <typename T> Tensor<T>::Tensor(const T &value) : arr(1, value) {}
@@ -139,8 +148,8 @@ Tensor<T> matrix_2d_op(const Tensor<T> &tensor1, const Tensor<T> &tensor2) {
 
   std::vector<double> result(result_size, 0.0);
   const size_t m = tensor1.shape[0];
-  const size_t n = tensor1.shape[1];
-  const size_t p = tensor1.shape[1];
+  const size_t n = tensor2.shape[1];
+  const size_t p = tensor2.shape[1];
 
   for (size_t i = 0; i < m; i++) {
     for (size_t j = 0; j < p; j++) {
