@@ -11,7 +11,7 @@ PYBIND11_MODULE(fusion, m) {
 
   // Bind Tensor<double>
   py::class_<Tensor<double>>(m, "Tensor")
-      .def(py::init<const std::vector<double> &>(),
+      .def(py::init<const std::vector<double>, const std::vector<size_t> &>(),
            "Create a Tensor from a list of doubles.")
       .def(py::init<const double &>(),
            "Create a Tensor from a list of doubles.")

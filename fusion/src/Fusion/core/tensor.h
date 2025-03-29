@@ -62,8 +62,6 @@ public:
 
   Tensor<T> operator/(const Tensor<T> &tensor) const;
 
-  [[nodiscard]] Tensor<T> matmul(const Tensor<T> &tensor) const;
-
   [[nodiscard]] Tensor<T> pow(const Tensor<T> &tensor) const;
 
   // unary operations
@@ -72,6 +70,9 @@ public:
   [[nodiscard]] Tensor<T> exp() const;
 
   [[nodiscard]] Tensor<T> log() const;
+
+  // matrix operations
+  [[nodiscard]] Tensor<T> matmul(const Tensor<T> &tensor) const;
 };
 
 #include "tensor_ops.tpp"

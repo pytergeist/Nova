@@ -1,5 +1,4 @@
 #pragma once
-#include <functional> // for std::plus, std::minus, etc.
 #include <stdexcept>
 #include <vector>
 
@@ -49,18 +48,21 @@ Tensor<T> elementwise_binary_op(const Tensor<T> &a, const Tensor<T> &b,
     result.resize(a.arr.size());
     for (size_t i = 0; i < a.arr.size(); ++i)
       result[i] = op(a.arr[i], b.arr[i]);
-  } else if (a.arr.size() == 1) {
+    return Tensor<T>(result, a.shape);
+  }
+  if (a.arr.size() == 1) {
     result.resize(b.arr.size());
     for (size_t i = 0; i < b.arr.size(); ++i)
       result[i] = op(a.arr[0], b.arr[i]);
-  } else if (b.arr.size() == 1) {
+    return Tensor<T>(result, b.shape);
+  }
+  if (b.arr.size() == 1) {
     result.resize(a.arr.size());
     for (size_t i = 0; i < a.arr.size(); ++i)
       result[i] = op(a.arr[i], b.arr[0]);
-  } else {
-    throw std::invalid_argument("Tensor sizes do not match");
+    return Tensor<T>(result, a.shape);
   }
-  return Tensor<T>(result, a.shape);
+  throw std::invalid_argument("Tensor sizes do not match");
 }
 
 // Constructor definitions
@@ -81,7 +83,8 @@ Tensor<T>::Tensor(const std::vector<T> &data, const std::vector<size_t> &shape)
 }
 
 // Constructor from a scalar.
-template <typename T> Tensor<T>::Tensor(const T &value) : arr(1, value) {}
+template <typename T>
+Tensor<T>::Tensor(const T &value) : arr(1, value), shape({1}) {}
 
 /* Operator overloads for binary operations (all now work with Tensor<T>
  * arguments) and take one argument (other tensor), the binary operations are
