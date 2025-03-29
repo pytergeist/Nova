@@ -1,5 +1,4 @@
 #pragma once
-#include "tensor.h"
 #include <functional> // for std::plus, std::minus, etc.
 #include <stdexcept>
 #include <vector>
