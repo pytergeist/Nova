@@ -6,10 +6,10 @@
 // ---------- Unary Operations Tests ----------
 
 TEST(TensorOpsTest, UnarySqrtTest) {
-  std::vector<double> data = {4.0, 9.0, 16.0};
-  std::vector<size_t> shape = {3};
-  Tensor<double> tensor(data, shape);
-  Tensor<double> result = tensor.sqrt();
+  const std::vector<double> data = {4.0, 9.0, 16.0};
+  const std::vector<size_t> shape = {3};
+  const Tensor<double> tensor(data, shape);
+  const Tensor<double> result = tensor.sqrt();
 
   std::vector<double> expected = {2.0, 3.0, 4.0};
   ASSERT_EQ(result.arr.size(), expected.size());
