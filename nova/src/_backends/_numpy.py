@@ -1,54 +1,51 @@
-import numpy as np
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class NumpyBackend:
     def __init__(self):
-        pass
+        self.backend = None
+        try:
+            import numpy
+            self.backend = numpy
+        except ImportError:
+            raise ImportError("Fusion backend not found. Please install the fusion package.")
+
+    def add(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
+        return self.backend.add(v1, v2)
+
+    def subtract(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
+        return self.backend.subtract(v1, v2)
+
+    def multiply(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
+        return self.backend.multiply(v1, v2)
+
+    def divide(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
+        return self.backend.divide(v1, v2)
 
     @staticmethod
-    def add(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
-        return np.add(v1, v2)
+    def matmul(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
+        return self.backend.matmul(v1, v2)
 
-    @staticmethod
-    def subtract(v1, v2) -> np.ndarray:
-        return np.subtract(v1, v2)
+    def sum(self, v1: "np.ndarray") -> "np.ndarray":
+        return self.backend.sum(v1)
 
-    @staticmethod
-    def multiply(v1, v2) -> np.ndarray:
-        return np.multiply(v1, v2)
+    def maximum(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
+        return self.backend.maximum(v1, v2)
 
-    @staticmethod
-    def divide(v1, v2) -> np.ndarray:
-        return np.divide(v1, v2)
+    def transpose(self, v1: "np.ndarray") -> "np.ndarray":
+        return self.backend.transpose(v1)
 
-    @staticmethod
-    def matmul(v1, v2) -> np.ndarray:
-        return np.matmul(v1, v2)
+    def power(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
+        return self.backend.power(v1, v2)
 
-    @staticmethod
-    def sum(v1: np.ndarray) -> np.ndarray:
-        return np.sum(v1)
+    def exp(self, v1: "np.ndarray") -> "np.ndarray":
+        return self.backend.exp(v1)
 
-    @staticmethod
-    def maximum(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
-        return np.maximum(v1, v2)
+    def log(self, v1: "np.ndarray") -> "np.ndarray":
+        return self.backend.log(v1)
 
-    @staticmethod
-    def transpose(v1: np.ndarray) -> np.ndarray:
-        return np.transpose(v1)
-
-    @staticmethod
-    def power(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
-        return np.power(v1, v2)
-
-    @staticmethod
-    def exp(v1: np.ndarray) -> np.ndarray:
-        return np.exp(v1)
-
-    @staticmethod
-    def log(v1: np.ndarray) -> np.ndarray:
-        return np.log(v1)
-
-    @staticmethod
-    def sqrt(v1: np.ndarray) -> np.ndarray:
-        return np.sqrt(v1)
+    def sqrt(self, v1: "np.ndarray") -> "np.ndarray":
+        return self.backend.sqrt(v1)
