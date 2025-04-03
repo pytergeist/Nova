@@ -1,5 +1,5 @@
-from ._fusion import FusionBackend
-from ._numpy import NumpyBackend
+from nova.src._backends._fusion import FusionBackend
+from nova.src._backends._numpy import NumpyBackend
 
 
 class Backend:
@@ -9,6 +9,7 @@ class Backend:
         will be abstractions on top of the numpy/fusion package - they will serve to simply define the implemented
         elementwise/matrix functions needed throughout development.
     """
+
     def __init__(self):
         self._backend = None
 
@@ -20,8 +21,10 @@ class Backend:
     @staticmethod
     def _get_backend():
         try:
-            getattr(FusionBackend(), 'fusion')
-        except ImportError:
-            return FusionBackend()
-        else:
-            return NumpyBackend()
+            fusion_backend = FusionBackend()
+            assert getattr(fusion_backend, "backend") is not None
+            return fusion_backend
+        except AssertionError:
+            numpy_backend = NumpyBackend()
+            assert getattr(numpy_backend, "backend") is not None
+            return numpy_backend

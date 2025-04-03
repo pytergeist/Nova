@@ -2,8 +2,9 @@
 import numpy as np
 
 from .operation import Operation
+from nova.src._backends._backend import Backend
 
-
+backend = Backend()
 ########################
 # ADD
 ########################
@@ -12,7 +13,7 @@ def add_backward(result, a, b, grad_output):
     return (grad_output, grad_output)
 
 
-add_op = Operation("add", lambda a, b: a.data + b.data, add_backward)
+add_op = Operation("add", lambda a, b: backend.add(a.data, b.data), add_backward)
 
 
 ########################
@@ -27,7 +28,7 @@ def subtract_backward(result, a, b, grad_output):
     return grad_output, -grad_output
 
 
-subtract_op = Operation("subtract", lambda a, b: a.data - b.data, subtract_backward)
+subtract_op = Operation("subtract", lambda a, b: backend.subtract(a.data, b.data), subtract_backward)
 
 
 ########################
@@ -44,7 +45,7 @@ def right_subtract_backward(result, a, b, grad_output):
 
 
 right_subtract_op = Operation(
-    "right_subtract", lambda a, b: b.data - a.data, right_subtract_backward
+    "right_subtract", lambda a, b: backend.subtract(b.data, a.data), right_subtract_backward
 )
 
 
@@ -57,7 +58,7 @@ def divide_backward(result, a, b, grad_output):
     return (grad_a, grad_b)
 
 
-divide_op = Operation("divide", lambda a, b: a.data / b.data, divide_backward)
+divide_op = Operation("divide", lambda a, b: backend.divide(a.data, b.data), divide_backward)
 
 
 def matmul_backward(

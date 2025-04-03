@@ -8,10 +8,10 @@ class FusionBackend:
     def __init__(self):
         self.backend = None
         try:
-            import fusion
-            self.backend = fusion
+            import fusion_math
+            self.backend = fusion_math
         except ImportError:
-            raise ImportError("Fusion backend not found. Please install the fusion package.")
+            print("Fusion backend not found. Please install the fusion package.")
 
     def add(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
         return self.backend.add(v1, v2)
