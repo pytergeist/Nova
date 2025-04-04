@@ -25,7 +25,6 @@ class NumpyBackend:
     def divide(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
         return self.backend.divide(v1, v2)
 
-    @staticmethod
     def matmul(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
         return self.backend.matmul(v1, v2)
 
