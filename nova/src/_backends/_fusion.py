@@ -9,6 +9,7 @@ class FusionBackend:
         self.backend = None
         try:
             import fusion_math
+
             self.backend = fusion_math
         except ImportError:
             print("Fusion backend not found. Please install the fusion package.")

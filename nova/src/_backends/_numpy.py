@@ -9,9 +9,12 @@ class NumpyBackend:
         self.backend = None
         try:
             import numpy
+
             self.backend = numpy
         except ImportError:
-            raise ImportError("Fusion backend not found. Please install the fusion package.")
+            raise ImportError(
+                "Fusion backend not found. Please install the fusion package."
+            )
 
     def add(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
         return self.backend.add(v1, v2)

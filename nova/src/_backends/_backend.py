@@ -4,10 +4,10 @@ from nova.src._backends._numpy import NumpyBackend
 
 class Backend:
     """Backend class that delegates to the appropriate backend.
-        This class is necessary during the development of the library to allow
-        the codebase/user to switch between the two backends. The np/fs backends
-        will be abstractions on top of the numpy/fusion package - they will serve to simply define the implemented
-        elementwise/matrix functions needed throughout development.
+    This class is necessary during the development of the library to allow
+    the codebase/user to switch between the two backends. The np/fs backends
+    will be abstractions on top of the numpy/fusion package - they will serve to simply define the implemented
+    elementwise/matrix functions needed throughout development.
     """
 
     def __init__(self):
