@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import torch
 
-from nova.src.backend.core import Tensor  # your tensor class
+from nova.src.backend.core import Tensor
 from nova.src.blocks.activations.activations import ReLU
 from nova.src.blocks.linear import Linear
 from nova.src.initialisers import Constant, Ones, RandomNormal, RandomUniform, Zeros
@@ -52,7 +52,6 @@ def compute_autodiff_network_grad(x, initializer, config):
 
 
 def compute_pytorch_network_grad(x, initializer, config):
-    # Unpack configuration.
     layer_sizes = config["layers"]
     activations = config["activations"]
 
