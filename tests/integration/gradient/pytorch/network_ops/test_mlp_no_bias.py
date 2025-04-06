@@ -111,7 +111,8 @@ def test_network_grad(initializer, config):
             pytorch_grads[key],
             rtol=1e-5,
             atol=1e-7,
-            err_msg=f"Gradient for {key} does not match PyTorch gradient using {initializer.__class__.__name__} and config {config}.",
+            err_msg=f"Gradient for {key} does not match PyTorch gradient using"
+                    f" {initializer.__class__.__name__} and config {config}.",
         )
 
 
