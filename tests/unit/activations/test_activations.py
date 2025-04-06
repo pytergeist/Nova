@@ -55,10 +55,7 @@ def test_from_config_method_returns_instance_of_activation():
     "activation_fn, data, expected",
     [
         ("relu", Tensor([1.0, 1.0]), [1, 1]),
-        # [0, 0],
-        # [-1, 0],
-        # [[1, 0, -1], [1, 0, 0]],
-        # [[1, 10, 20, 30, -4, -3, -2, -1], [1, 10, 20, 30, 0, 0, 0, 0]],
+        ("relu", Tensor([-1.0, 1.0]), [0, 1]),
     ],
 )
 def test_relu_call_method(activation_fn, data, expected):
