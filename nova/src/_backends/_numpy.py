@@ -9,6 +9,7 @@ class NumpyBackend:
         self.backend = None
         try:
             import numpy
+
             self.backend = numpy
         except ImportError:
             raise ImportError(

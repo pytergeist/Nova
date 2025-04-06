@@ -7,10 +7,6 @@ from tests.integration.gradient.finite_difference import finite_difference_jacob
 # TODO: Add parameterisation for multiple test cases
 
 
-def fn_numpy(x):
-    return x - x
-
-
 def compute_autodiff_gradient(x):
     x_tensor = Tensor(x, requires_grad=True)
 
@@ -21,10 +17,14 @@ def compute_autodiff_gradient(x):
     return x_tensor.grad
 
 
-def test_subtraction_grad():
+def test_subtraction_grad(request):
     x_test = np.random.rand(5)
+    fn = request.getfixturevalue("binary_fn_numpy")
 
-    numerical_jacobian = finite_difference_jacobian(fn_numpy, x_test, epsilon=1.5e-8)
+    def partial_fn(x):
+        return fn(x, fn_str='subtract')
+
+    numerical_jacobian = finite_difference_jacobian(partial_fn, x_test, epsilon=1.5e-8)
     numerical_vector_grad = np.dot(np.ones(x_test.shape), numerical_jacobian)
     analytical_grad = compute_autodiff_gradient(x_test)
 
