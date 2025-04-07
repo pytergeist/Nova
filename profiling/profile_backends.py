@@ -5,7 +5,6 @@ from nova.src._backends._numpy import NumpyBackend
 
 
 def profile_operation(backend, op_func, repeat=10):
-    # Run a warmup call
     op_func(backend)
     start = time.perf_counter()
     for _ in range(repeat):
@@ -15,22 +14,17 @@ def profile_operation(backend, op_func, repeat=10):
 
 
 def main():
-    # Define input data
     shape = (1000, 1000)
     a = np.random.rand(*shape).astype(np.float64)
     b = np.random.rand(*shape).astype(np.float64)
     scalar = np.float32(0.5)
 
-    # For matrix multiplication, use two square matrices.
     matmul_a = np.random.rand(*shape).astype(np.float64)
     matmul_b = np.random.rand(*shape).astype(np.float64)
 
-    # Instantiate both backends
     fusion_backend = FusionBackend()
     numpy_backend = NumpyBackend()
 
-    # Dictionary mapping operation names to lambda functions.
-    # Each lambda takes a backend instance and calls the corresponding method.
     operations = {
         "addition": lambda be: be.add(a, b),
         "subtraction": lambda be: be.subtract(a, b),
