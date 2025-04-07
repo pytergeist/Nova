@@ -25,6 +25,8 @@ pytest-cov = "^6.0.0"
 torch = "2.6.0"
 pre-commit = "^4.1.0"
 docformatter = "^1.7.5"
+mypy = "^1.15.0"
+pybind11-stubgen = "^2.5.3"
 
 [build-system]
 requires = ["poetry-core"]
