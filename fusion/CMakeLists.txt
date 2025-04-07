@@ -13,8 +13,8 @@ set(CMAKE_PREFIX_PATH "/opt/homebrew")
 set(PYBIND11_FINDPYTHON ON CACHE BOOL "Force pybind11 to use FindPython")
 find_package(pybind11 REQUIRED)
 
-pybind11_add_module(fusion src/Fusion/python/bindings.cpp)
-target_include_directories(fusion PRIVATE src/Fusion/templates)
+pybind11_add_module(fusion_math src/Fusion/python/bindings.cpp)
+target_include_directories(fusion_math PRIVATE src/Fusion/templates)
 
 add_executable(FusionExecutable
         src/Fusion/core/main.cpp
