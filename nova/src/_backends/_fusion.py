@@ -25,6 +25,11 @@ class FusionBackend:
         fusion_tensor = self.backend.Tensor(array.flatten(), array.shape)
         return fusion_tensor
 
+    def _convert_scalar_to_tensor(self, scalar: "np.float32") -> "fusion_math.Tensor":
+        """Convert numpy arrays to fusion tensors."""
+        fusion_tensor = self.backend.Tensor(scalar)
+        return fusion_tensor
+
     @staticmethod
     def _convert_tensor_to_numpy(tensor: "fusion_math.Tensor") -> "np.ndarray":
         """Convert fusion tensors to numpy arrays."""
@@ -66,9 +71,9 @@ class FusionBackend:
         tensor2 = tensor1.sum()
         return self._convert_tensor_to_numpy(tensor2)
 
-    def maximum(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
+    def maximum(self, v1: "np.ndarray", scalar: "np.float32") -> "np.ndarray":
         tensor1 = self._convert_numpy_to_tensor(v1)
-        tensor2 = self._convert_numpy_to_tensor(v2)
+        tensor2 = self._convert_scalar_to_tensor(scalar)
         tensor3 = tensor1.maximum(tensor2)
         return self._convert_tensor_to_numpy(tensor3)
 
