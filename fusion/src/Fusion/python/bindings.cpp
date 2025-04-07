@@ -74,5 +74,9 @@ PYBIND11_MODULE(fusion, m) {
       .def("__truediv__",
            (Tensor<double>(Tensor<double>::*)(const double &) const) &
                Tensor<double>::operator/,
-           "Element-wise division of a Tensor by a scalar.");
+           "Element-wise division of a Tensor by a scalar.")
+
+      .def("__matmul__", &Tensor<double>::matmul,
+           "Matrix multiplication of two Tensors. "
+           "For a 2D Tensor @ 2D Tensor or 2D Tensor @ 1D Tensor.");
 }
