@@ -59,7 +59,6 @@ class FusionBackend:
         tensor3 = tensor1 / tensor2
         return self._convert_tensor_to_numpy(tensor3)
 
-    @staticmethod
     def matmul(self, v1: "np.ndarray", v2: "np.ndarray") -> "np.ndarray":
         tensor1 = self._convert_numpy_to_tensor(v1)
         tensor2 = self._convert_numpy_to_tensor(v2)
