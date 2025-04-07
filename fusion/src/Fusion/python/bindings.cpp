@@ -25,16 +25,33 @@ PYBIND11_MODULE(fusion_math, m) {
       .def(
           "to_numpy",
           [](const Tensor<double> &t) {
-            // Allocate a numpy array of the same size as the tensor data.
-            py::array_t<double> np_arr(t.arr.size());
-            // Request a buffer info from the numpy array.
+            // Convert the tensor shape (std::vector<size_t>) to a vector of
+            // py::ssize_t
+            std::vector<py::ssize_t> shape(t.shape.begin(), t.shape.end());
+
+            // Compute strides: for row-major order, the stride for dimension i
+            // is the product of sizes for dimensions i+1... multiplied by
+            // sizeof(double)
+            std::vector<py::ssize_t> strides(shape.size());
+            py::ssize_t stride = sizeof(double);
+            // Iterate in reverse order to compute the stride for each dimension
+            for (ssize_t i = shape.size() - 1; i >= 0; --i) {
+              strides[i] = stride;
+              stride *= shape[i];
+            }
+
+            // Create a numpy array with the given shape and strides.
+            // This allocates an array of the appropriate size.
+            py::array_t<double> np_arr(shape, strides);
+
+            // Copy the tensor's data into the numpy array's buffer.
             auto buf = np_arr.request();
             double *ptr = static_cast<double *>(buf.ptr);
-            // Copy the tensor's data into the numpy array.
             std::copy(t.arr.begin(), t.arr.end(), ptr);
+
             return np_arr;
           },
-          "Return the tensor as a numpy array.")
+          "Return the tensor as a numpy array with the proper shape.")
       // Overload for Tensor + Tensor
       .def("__add__",
            (Tensor<double>(Tensor<double>::*)(const Tensor<double> &) const) &
@@ -102,5 +119,9 @@ PYBIND11_MODULE(fusion_math, m) {
 
       .def("transpose", &Tensor<double>::transpose,
            "transpose of a tensor. "
-           "For a 2D Tensor.transpose().");
+           "For a 2D Tensor.transpose().")
+
+      .def("maximum", &Tensor<double>::maximum,
+           "transpose of a tensor. "
+           "For a 2D Tensor.maximum().");
 }

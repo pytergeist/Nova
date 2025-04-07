@@ -73,6 +73,8 @@ public:
 
   [[nodiscard]] Tensor<T> sum() const;
 
+  [[nodiscard]] Tensor<T> maximum(const Tensor<T> &tensor) const;
+
   // matrix operations
   [[nodiscard]] Tensor<T> matmul(const Tensor<T> &tensor) const;
   [[nodiscard]] Tensor<T> transpose() const;
