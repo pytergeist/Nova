@@ -1,5 +1,11 @@
+import sys
+
 from nova.src._backends._fusion import FusionBackend
 from nova.src._backends._numpy import NumpyBackend
+
+sys.path.append(
+    "/Users/tompope/Documents/Documents - Tom’s MacBook Air/toms_personal_devs/deep_learning/Nova/fusion/build"
+)
 
 
 class Backend:
@@ -28,3 +34,9 @@ class Backend:
             numpy_backend = NumpyBackend()
             assert getattr(numpy_backend, "backend") is not None
             return numpy_backend
+
+
+if __name__ == "__main__":
+    backend = Backend()
+    bb = backend._get_backend()
+    print(bb)
