@@ -71,8 +71,11 @@ public:
 
   [[nodiscard]] Tensor<T> log() const;
 
+  [[nodiscard]] Tensor<T> sum() const;
+
   // matrix operations
   [[nodiscard]] Tensor<T> matmul(const Tensor<T> &tensor) const;
+  [[nodiscard]] Tensor<T> transpose() const;
 };
 
 #include "tensor_ops.tpp"

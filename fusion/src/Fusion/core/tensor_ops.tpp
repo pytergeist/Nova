@@ -1,4 +1,5 @@
 #pragma once
+#include <numeric>
 #include <stdexcept>
 #include <vector>
 
@@ -144,6 +145,12 @@ template <typename T> Tensor<T> Tensor<T>::log() const {
                               [](T base) -> T { return std::log(base); });
 }
 
+// sum(tensor)
+template <typename T> Tensor<T> Tensor<T>::sum() const {
+  T total = std::accumulate(arr.begin(), arr.end(), T());
+  return Tensor<T>(total);
+}
+
 // matmul fn for 2D Tensor @ 2D Tensor
 template <typename T>
 Tensor<T> matrix_2d_op(const Tensor<T> &tensor1, const Tensor<T> &tensor2) {
@@ -195,4 +202,25 @@ Tensor<T> Tensor<T>::matmul(const Tensor<T> &tensor) const {
     return matrix_1d_op(*this, tensor);
   }
   throw std::invalid_argument("Tensor sizes do not match");
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::transpose() const {
+  // Ensure the tensor is 2D.
+  if (this->shape.size() != 2) {
+    throw std::invalid_argument("Transpose only supports 2D tensors");
+  }
+
+  size_t m = this->shape[0];
+  size_t n = this->shape[1];
+
+  std::vector<T> transposed(m * n, T{});
+
+  for (size_t i = 0; i < m; ++i) {
+    for (size_t j = 0; j < n; ++j) {
+      transposed[j * m + i] = this->arr[i * n + j];
+    }
+  }
+
+  return Tensor<T>(transposed, {n, m});
 }
