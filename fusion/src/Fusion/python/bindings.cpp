@@ -1,4 +1,4 @@
-#include "../core/tensor.h"
+#include "../tensor/tensor.h"
 #include <pybind11/numpy.h> // for numpy array conversion
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h> // for automatic conversion of std::vector

@@ -17,10 +17,10 @@ pybind11_add_module(fusion_math src/Fusion/python/bindings.cpp)
 target_include_directories(fusion_math PRIVATE src/Fusion/templates)
 
 add_executable(FusionExecutable
-        src/Fusion/core/main.cpp
-        src/Fusion/core/tensor_ops.tpp
+        src/Fusion/tensor/main.cpp
+        src/Fusion/tensor/tensor_ops.tpp
 )
-target_include_directories(FusionExecutable PRIVATE src/Fusion/core)
+target_include_directories(FusionExecutable PRIVATE src/Fusion/tensor)
 
 # ------------------- Google Test Setup -------------------
 enable_testing()
@@ -30,7 +30,7 @@ find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 add_executable(FusionTests src/Fusion/tests/tensor_ops_tests.cpp)
-target_include_directories(FusionTests PRIVATE src/Fusion/core)
+target_include_directories(FusionTests PRIVATE src/Fusion/tensor)
 target_link_libraries(FusionTests PRIVATE GTest::gtest GTest::gtest_main pthread)
 
 add_test(NAME FusionTests COMMAND FusionTests)
