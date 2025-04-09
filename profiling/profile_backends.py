@@ -1,5 +1,7 @@
 import time
+
 import numpy as np
+
 from nova.src._backends._fusion import FusionBackend
 from nova.src._backends._numpy import NumpyBackend
 
@@ -47,5 +49,5 @@ def main():
         print(f"  NumPy backend:  {numpy_time:.6f} sec per run\n")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

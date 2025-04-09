@@ -4,8 +4,8 @@ import pytest
 from nova.src.backend.core import Tensor
 from tests.integration.gradient.finite_difference import finite_difference_jacobian
 
-
 # TODO: Add parameterisation for multiple test cases
+
 
 def compute_autodiff_gradient(x):
     x_tensor = Tensor(x, requires_grad=True)
@@ -23,7 +23,7 @@ def test_log_grad(request):
     fn = request.getfixturevalue("unary_fn_numpy")
 
     def partial_fn(x):
-        return fn(x, fn_str='log')
+        return fn(x, fn_str="log")
 
     numerical_jacobian = finite_difference_jacobian(partial_fn, x_test, epsilon=1.5e-8)
     numerical_vector_grad = np.dot(np.ones(x_test.shape), numerical_jacobian)

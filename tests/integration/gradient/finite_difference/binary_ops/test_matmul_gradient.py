@@ -4,7 +4,6 @@ import pytest
 from nova.src.backend.core import Tensor
 from tests.integration.gradient.finite_difference import finite_difference_jacobian
 
-
 # TODO: Add parameterisation for multiple test cases
 
 
@@ -23,7 +22,7 @@ def test_matmul_grad(request):  # TODO: Should there be a test for matmul or 1D 
     fn = request.getfixturevalue("binary_fn_numpy")
 
     def partial_fn(x):
-        return fn(x, fn_str='matmul')
+        return fn(x, fn_str="matmul")
 
     numerical_jacobian = finite_difference_jacobian(partial_fn, x_test, epsilon=1.5e-8)
     numerical_jacobian = numerical_jacobian.squeeze()

@@ -23,7 +23,7 @@ def test_power_grad(request):
     fn = request.getfixturevalue("binary_fn_numpy")
 
     def partial_fn(x):
-        return fn(x, fn_str='pow')
+        return fn(x, fn_str="pow")
 
     numerical_jacobian = finite_difference_jacobian(partial_fn, x_test, epsilon=1.5e-8)
     numerical_vector_grad = np.dot(np.ones(x_test.shape), numerical_jacobian)

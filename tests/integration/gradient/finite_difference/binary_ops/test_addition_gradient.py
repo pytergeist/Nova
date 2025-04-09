@@ -1,11 +1,8 @@
 import numpy as np
 import pytest
 
-from functools import partial
-
 from nova.src.backend.core import Tensor
 from tests.integration.gradient.finite_difference import finite_difference_jacobian
-
 
 # TODO: Add parameterisation for multiple test cases
 # TODO: Implement integration tests for larger computation graphs

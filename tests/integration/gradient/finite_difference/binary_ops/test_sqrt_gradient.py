@@ -22,8 +22,7 @@ def test_log_grad(request):
     fn = request.getfixturevalue("unary_fn_numpy")
 
     def partial_fn(x):
-        return fn(x, fn_str='sqrt')
-
+        return fn(x, fn_str="sqrt")
 
     numerical_jacobian = finite_difference_jacobian(partial_fn, x_test, epsilon=1.5e-8)
     numerical_vector_grad = np.dot(np.ones(x_test.shape), numerical_jacobian)

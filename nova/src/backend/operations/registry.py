@@ -1,8 +1,9 @@
 # registry.py
 import numpy as np
 
-from .operation import Operation
 from nova.src._backends._backend import Backend
+
+from .operation import Operation
 
 backend = Backend()
 
