@@ -15,4 +15,10 @@ public:
     queue.push(value);
     condition.notify_one();
   }
+  void wait_and_pop(T &value) {
+    std::unique_lock<std::mutex> lock(mutex);
+    condition.wait(lock, [this] { return !queue.empty(); });
+    value = std::move(queue.front());
+    queue.pop();
+  }
 };
