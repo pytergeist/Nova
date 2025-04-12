@@ -54,4 +54,4 @@ public:
   }
 };
 
-#endif //THREAD_POOL_H
+#endif // THREAD_POOL_H
