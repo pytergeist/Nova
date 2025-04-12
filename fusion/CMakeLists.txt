@@ -17,7 +17,7 @@ pybind11_add_module(fusion_math src/Fusion/python/bindings.cpp)
 target_include_directories(fusion_math PRIVATE src/Fusion/templates)
 
 add_executable(FusionExecutable
-        src/Fusion/tensor/main.cpp
+        src/Fusion/main.cpp
         src/Fusion/tensor/tensor_ops.tpp
 )
 target_include_directories(FusionExecutable PRIVATE src/Fusion/tensor)
