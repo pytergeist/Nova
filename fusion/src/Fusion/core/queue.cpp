@@ -41,4 +41,9 @@ public:
     queue_.pop();
     return res;
   }
+
+  bool empty() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return queue_.empty();
+  }
 };
