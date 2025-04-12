@@ -54,4 +54,4 @@ public:
   }
 };
 
-#endif THREAD_SAFE_QUEUE_H
+#endif // THREAD_SAFE_QUEUE_H
