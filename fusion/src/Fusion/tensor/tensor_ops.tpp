@@ -2,6 +2,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <vector>
+#include <cblas.h>
 
 /**
  * @brief Helper function that applies a binary operation element-wise.
@@ -160,22 +161,24 @@ Tensor<T> Tensor<T>::sum() const {
 // matmul fn for 2D Tensor @ 2D Tensor
 template<typename T>
 Tensor<T> matrix_2d_op(const Tensor<T> &tensor1, const Tensor<T> &tensor2) {
-    const size_t result_size = tensor1.shape[0] * tensor2.shape[1];
 
-    std::vector<double> result(result_size, 0.0);
     const size_t m = tensor1.shape[0];
     const size_t n = tensor1.shape[1];
     const size_t p = tensor2.shape[1];
+    const size_t result_size = m * p;
+    std::vector<double> result(result_size, 0.0);
 
-    for (size_t i = 0; i < m; i++) {
-        for (size_t j = 0; j < p; j++) {
-            double sum = 0.0;
-            for (size_t k = 0; k < n; k++) {
-                sum += tensor1.arr[i * n + k] * tensor2.arr[k * p + j];
-            }
-            result[i * p + j] = sum;
-        }
-    }
+    const double alpha = 1.0;
+    const double beta  = 0.0;
+
+
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                m, p, n,
+                alpha,
+                tensor1.arr.data(), n,
+                tensor2.arr.data(), p,
+                beta,
+                result.data(), p);
     return Tensor<T>(result, {m, p});
 }
 
@@ -185,13 +188,22 @@ Tensor<T> matrix_1d_op(const Tensor<T> &tensor1, const Tensor<T> &tensor2) {
     const size_t m = tensor1.shape[0];
     const size_t n = tensor1.shape[1];
     std::vector<T> result(m, 0.0);
-    for (size_t i = 0; i < m; i++) {
-        double sum = 0.0;
-        for (size_t k = 0; k < n; k++) {
-            sum += tensor1.arr[i * n + k] * tensor2.arr[k];
-        }
-        result[i] = sum;
-    }
+
+    const double alpha = 1.0;
+    const double beta  = 0.0;
+
+    cblas_dgemv(CblasRowMajor,
+                CblasNoTrans,
+                m,
+                n,
+                alpha,
+                tensor1.arr.data(),
+                n,
+                tensor2.arr.data(),
+                1,
+                beta,
+                result.data(),
+                1);
     return Tensor<T>(result, {m});
 }
 
