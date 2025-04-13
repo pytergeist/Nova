@@ -176,7 +176,7 @@ Tensor<T> matrix_2d_op(const Tensor<T> &tensor1, const Tensor<T> &tensor2) {
             result[i * p + j] = sum;
         }
     }
-    return Tensor(result, {m, p});
+    return Tensor<T>(result, {m, p});
 }
 
 // matmul fn for 2D Tensor @ 1D Tensor
