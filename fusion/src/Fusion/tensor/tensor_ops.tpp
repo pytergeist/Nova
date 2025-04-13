@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <vector>
 #include <cblas.h>
+#include <algorithm>
+#include <execution>
 
 /**
  * @brief Helper function that applies a binary operation element-wise.
@@ -28,43 +30,38 @@ template<typename T, typename UnaryOp>
 Tensor<T> elementwise_unary_op(const Tensor<T> &a, UnaryOp op) {
     std::vector<T> result;
     if (a.arr.size() > 1) {
-        // TODO: This won't work for dim > 2??
         result.resize(a.arr.size());
-        for (size_t i = 0; i < a.arr.size(); i++) {
-            result[i] = op(a.arr[i]);
-        }
+        std::transform(a.arr.begin(), a.arr.end(), result.begin(), op);
     } else if (a.arr.size() == 1) {
         result.resize(a.arr.size());
         result[0] = op(a.arr[0]);
     } else {
-        throw std::invalid_argument("Tensor sizes do not match");
+        throw std::invalid_argument("Tensor sizes do not match"); // TODO: Write errors/exceptions classes for more descriptive msg's
     }
     return Tensor<T>(result, a.shape);
 }
 
 template<typename T, typename BinaryOp>
-Tensor<T> elementwise_binary_op(const Tensor<T> &a, const Tensor<T> &b,
-                                BinaryOp op) {
+Tensor<T> elementwise_binary_op(const Tensor<T>& a, const Tensor<T>& b, BinaryOp op) {
     std::vector<T> result;
     if (a.arr.size() == b.arr.size()) {
         result.resize(a.arr.size());
-        for (size_t i = 0; i < a.arr.size(); ++i)
-            result[i] = op(a.arr[i], b.arr[i]);
+        std::transform(a.arr.begin(), a.arr.end(), b.arr.begin(), result.begin(), op);
         return Tensor<T>(result, a.shape);
     }
-    if (a.arr.size() == 1) {
-        result.resize(b.arr.size());
-        for (size_t i = 0; i < b.arr.size(); ++i)
-            result[i] = op(a.arr[0], b.arr[i]);
-        return Tensor<T>(result, b.shape);
-    }
-    if (b.arr.size() == 1) {
-        result.resize(a.arr.size());
-        for (size_t i = 0; i < a.arr.size(); ++i)
-            result[i] = op(a.arr[i], b.arr[0]);
-        return Tensor<T>(result, a.shape);
-    }
-    throw std::invalid_argument("Tensor sizes do not match");
+    if (a.arr.size() != 1 && b.arr.size() != 1)
+        throw std::invalid_argument("Tensor sizes do not match");
+
+    const bool a_is_scalar = a.arr.size() == 1;
+    const auto& vec = a_is_scalar ? b.arr : a.arr;
+    T scalar = a_is_scalar ? a.arr[0] : b.arr[0];
+
+    result.resize(vec.size());
+    std::transform(vec.begin(), vec.end(), result.begin(),
+                   [&](const auto& x) {
+                       return a_is_scalar ? op(scalar, x) : op(x, scalar);
+                   });
+    return Tensor<T>(result, a_is_scalar ? b.shape : a.shape);
 }
 
 // Constructor definitions
