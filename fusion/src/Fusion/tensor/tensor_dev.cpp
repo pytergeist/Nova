@@ -1,11 +1,13 @@
 #include "eigen_tensor.h"
 #include "storage_tensor.h"
+#include <Eigen/Dense>
+#include <initializer_list>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 
 template <typename T>
-class Tensor { // TODO: evaluate the memory overhead of this approach...
+class Tensor {
 public:
   std::unique_ptr<ITensorStorage<T>> storage;
 
@@ -17,6 +19,7 @@ public:
           "Unsupported device type - currently only supports CPU");
     }
   }
+
   explicit Tensor(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
                                       Eigen::RowMajor> &matrix) {
     storage =
@@ -24,8 +27,52 @@ public:
     static_cast<EigenTensorStorage<T> *>(storage.get())->matrix = matrix;
   }
 
+  void setValues(std::initializer_list<T> values) {
+    size_t expected = storage->rows() * storage->cols();
+    if (values.size() != expected) {
+      throw std::invalid_argument(
+          "Incorrect number of values provided to setValues");
+    }
+    auto cpuStorage = dynamic_cast<EigenTensorStorage<T> *>(storage.get());
+    if (!cpuStorage) {
+      throw std::runtime_error("Unsupported storage type in setValues");
+    }
+    size_t idx = 0;
+    for (const auto &val : values) {
+      // Since we're using row-major ordering,
+      // the element at index idx corresponds to row = idx/cols, col = idx%cols.
+      cpuStorage->matrix(idx / storage->cols(), idx % storage->cols()) = val;
+      ++idx;
+    }
+  }
+
+
+  void setValues(std::initializer_list<std::initializer_list<T>> nestedValues) {
+    if (nestedValues.size() != storage->rows()) {
+      throw std::invalid_argument("Row count mismatch in nested setValues");
+    }
+    auto cpuStorage = dynamic_cast<EigenTensorStorage<T> *>(storage.get());
+    if (!cpuStorage) {
+      throw std::runtime_error(
+          "Unsupported storage type in setValues (nested)");
+    }
+    size_t row = 0;
+    for (const auto &rowList : nestedValues) {
+      if (rowList.size() != storage->cols()) {
+        throw std::invalid_argument(
+            "Column count mismatch in nested setValues");
+      }
+      size_t col = 0;
+      for (const auto &val : rowList) {
+        cpuStorage->matrix(row, col) = val;
+        ++col;
+      }
+      ++row;
+    }
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
-    const EigenTensorStorage<T> *cpuStorage =
+    const auto *cpuStorage =
         dynamic_cast<const EigenTensorStorage<T> *>(tensor.storage.get());
     if (cpuStorage) {
       os << "Tensor(" << std::endl << cpuStorage->matrix << std::endl << ")";
@@ -35,14 +82,14 @@ public:
     return os;
   }
 
+  // overload the + operator
   Tensor<T> operator+(const Tensor<T> &other) const {
     if (this->storage->rows() != other.storage->rows() ||
         this->storage->cols() != other.storage->cols() ||
         this->storage->device() != other.storage->device()) {
       throw std::invalid_argument(
           "Tensor shape or device mismatch in addition");
-    }
-
+        }
     const auto *cpuThis =
         dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
     const auto *cpuOther =
@@ -50,31 +97,85 @@ public:
     if (!cpuThis || !cpuOther) {
       throw std::invalid_argument("Unsupported storage type for addition");
     }
-
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
         resultMat = cpuThis->matrix + cpuOther->matrix;
     return Tensor<T>(resultMat);
   }
+
+  // overload the - operator
+  Tensor<T> operator-(const Tensor<T> &other) const {
+    if (this->storage->rows() != other.storage->rows() ||
+        this->storage->cols() != other.storage->cols() ||
+        this->storage->device() != other.storage->device()) {
+      throw std::invalid_argument(
+          "Tensor shape or device mismatch in addition");
+        }
+    const auto *cpuThis =
+        dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
+    const auto *cpuOther =
+        dynamic_cast<const EigenTensorStorage<T> *>(other.storage.get());
+    if (!cpuThis || !cpuOther) {
+      throw std::invalid_argument("Unsupported storage type for addition");
+    }
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+        resultMat = cpuThis->matrix - cpuOther->matrix;
+    return Tensor<T>(resultMat);
+  }
+
+
+  // overload the / operator
+  Tensor<T> operator/(const Tensor<T> &other) const {
+    if (this->storage->rows() != other.storage->rows() ||
+        this->storage->cols() != other.storage->cols() ||
+        this->storage->device() != other.storage->device()) {
+      throw std::invalid_argument(
+          "Tensor shape or device mismatch in addition");
+        }
+    const auto *cpuThis =
+        dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
+    const auto *cpuOther =
+        dynamic_cast<const EigenTensorStorage<T> *>(other.storage.get());
+    if (!cpuThis || !cpuOther) {
+      throw std::invalid_argument("Unsupported storage type for addition");
+    }
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+        resultMat = cpuThis->matrix / cpuOther->matrix;
+    return Tensor<T>(resultMat);
+  }
+
+    // overload the + operator
+    Tensor<T> operator*(const Tensor<T> &other) const {
+      if (this->storage->rows() != other.storage->rows() ||
+          this->storage->cols() != other.storage->cols() ||
+          this->storage->device() != other.storage->device()) {
+          throw std::invalid_argument(
+              "Tensor shape or device mismatch in addition");
+          }
+      const auto *cpuThis =
+          dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
+      const auto *cpuOther =
+          dynamic_cast<const EigenTensorStorage<T> *>(other.storage.get());
+      if (!cpuThis || !cpuOther) {
+          throw std::invalid_argument("Unsupported storage type for addition");
+      }
+      Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+          resultMat = cpuThis->matrix * cpuOther->matrix;
+      return Tensor<T>(resultMat);
+  }
 };
+
+
+#include "tensor.h"
+#include <iostream>
 
 int main() {
   Tensor<double> tensorA(2, 2, Device::CPU);
   Tensor<double> tensorB(2, 2, Device::CPU);
 
-  auto storageA =
-      dynamic_cast<EigenTensorStorage<double> *>(tensorA.storage.get());
-  auto storageB =
-      dynamic_cast<EigenTensorStorage<double> *>(tensorB.storage.get());
-  if (!storageA || !storageB) {
-    std::cerr << "Error: dynamic cast failed!" << std::endl;
-    return 1;
-  }
+  tensorA.setValues({1, 2, 3, 4});
+  tensorB.setValues({5, 6, 7, 8});
 
-  storageA->matrix << 1, 2, 3, 4;
-
-  storageB->matrix << 5, 6, 7, 8;
-
-  const Tensor<double> tensorC = tensorA + tensorB;
+  Tensor<double> tensorC = tensorA + tensorB;
 
   std::cout << "tensorA:\n" << tensorA << std::endl;
   std::cout << "tensorB:\n" << tensorB << std::endl;
