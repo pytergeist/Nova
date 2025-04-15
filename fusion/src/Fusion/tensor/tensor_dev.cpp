@@ -172,6 +172,28 @@ public:
     return Tensor<T>(resultMat);
   }
 
+  Tensor<T> exp() const {
+    const auto *cpuThis =
+        dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
+    if (!cpuThis) {
+      throw std::runtime_error("Unsupported storage type for sqrt");
+    }
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+        resultMat = cpuThis->matrix.array().exp().matrix();
+    return Tensor<T>(resultMat);
+  }
+
+  Tensor<T> log() const {
+    const auto *cpuThis =
+        dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
+    if (!cpuThis) {
+      throw std::runtime_error("Unsupported storage type for sqrt");
+    }
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+        resultMat = cpuThis->matrix.array().log().matrix();
+    return Tensor<T>(resultMat);
+  }
+
   Tensor<T> pow(const T exponent) const {
     const auto *cpuThis =
         dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
@@ -191,7 +213,7 @@ int main() {
   tensorA.setValues({1, 2, 3, 4});
   tensorB.setValues({5, 6, 7, 8});
 
-  Tensor<double> tensorC = tensorA / tensorB;
+  Tensor<double> tensorC = tensorA.log();
 
   std::cout << "tensorA:\n" << tensorA << std::endl;
   std::cout << "tensorB:\n" << tensorB << std::endl;
