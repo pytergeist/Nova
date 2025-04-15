@@ -204,16 +204,57 @@ public:
         resultMat = cpuThis->matrix.array().pow(exponent).matrix();
     return Tensor<T>(resultMat);
   }
+
+  Tensor<T> sum() const {
+    const auto *cpuThis =
+        dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
+    if (!cpuThis) {
+      throw std::runtime_error("Unsupported storage type for sum");
+    }
+    T total = cpuThis->matrix.sum();
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> totalMat(
+        1, 1);
+    totalMat(0, 0) = total;
+    return Tensor<T>(totalMat);
+  }
+
+  Tensor<T> maximum(const Tensor<T> &other) const {
+    const auto *cpuThis =
+        dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
+    const auto *cpuOther =
+        dynamic_cast<const EigenTensorStorage<T> *>(other.storage.get());
+    if (!cpuThis || !cpuOther) {
+      throw std::invalid_argument("Unsupported storage type for maximum");
+    }
+
+    if (other.storage->rows() == 1 && other.storage->cols() == 1) {
+      T threshold = cpuOther->matrix(0, 0);
+      Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+          resultMat = (cpuThis->matrix.array() >= threshold)
+                          .select(cpuThis->matrix.array(), T(0))
+                          .matrix();
+      return Tensor<T>(resultMat);
+    }
+
+    if (this->storage->rows() == other.storage->rows() &&
+        this->storage->cols() == other.storage->cols()) {
+      Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+          resultMat = cpuThis->matrix.cwiseMax(cpuOther->matrix);
+      return Tensor<T>(resultMat);
+    }
+
+    throw std::invalid_argument("Tensor shapes do not match for maximum");
+  }
 };
 
 int main() {
   Tensor<double> tensorA(2, 2, Device::CPU);
-  Tensor<double> tensorB(2, 2, Device::CPU);
+  Tensor<double> tensorB(1, 1, Device::CPU);
 
-  tensorA.setValues({1, 2, 3, 4});
-  tensorB.setValues({5, 6, 7, 8});
+  tensorA.setValues({1, 2, 3, 9});
+  tensorB.setValues({9});
 
-  Tensor<double> tensorC = tensorA.log();
+  Tensor<double> tensorC = tensorA.maximum(tensorB);
 
   std::cout << "tensorA:\n" << tensorA << std::endl;
   std::cout << "tensorB:\n" << tensorB << std::endl;
