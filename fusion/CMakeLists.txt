@@ -18,30 +18,34 @@ set(PYBIND11_FINDPYTHON ON CACHE BOOL "Force pybind11 to use FindPython")
 find_package(pybind11 REQUIRED)
 
 # ------------------- Find OpenBLAS -------------------
-# Locate the OpenBLAS library in Homebrew's directory.
 find_library(OPENBLAS_LIB openblas PATHS /opt/homebrew/opt/openblas/lib)
 if(NOT OPENBLAS_LIB)
     message(FATAL_ERROR "OpenBLAS library not found in /opt/homebrew/opt/openblas/lib")
 endif()
-# Set the OpenBLAS include directory.
 set(OPENBLAS_INCLUDE_DIR /opt/homebrew/opt/openblas/include)
+
+# ------------------- Find Eigen3 -------------------
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+# If find_package fails, you can instead manually add:
+# set(EIGEN3_INCLUDE_DIR "/opt/homebrew/include/eigen3")
 
 # ------------------- pybind11 Module -------------------
 pybind11_add_module(fusion_math src/Fusion/python/bindings.cpp)
 target_include_directories(fusion_math PRIVATE
         src/Fusion/templates
         ${OPENBLAS_INCLUDE_DIR}
+        ${EIGEN3_INCLUDE_DIR}  # Or directly use /opt/homebrew/include/eigen3 if not found by find_package
 )
-target_link_libraries(fusion_math PRIVATE ${OPENBLAS_LIB})
+target_link_libraries(fusion_math PRIVATE ${OPENBLAS_LIB}
+        # Alternatively, if using find_package: Eigen3::Eigen
+)
 
 # ------------------- Fusion Executable -------------------
-add_executable(FusionExecutable
-        src/Fusion/main.cpp
-        src/Fusion/tensor/tensor_ops.tpp
-)
+add_executable(FusionExecutable src/Fusion/main.cpp)
 target_include_directories(FusionExecutable PRIVATE
         src/Fusion/tensor
         ${OPENBLAS_INCLUDE_DIR}
+        ${EIGEN3_INCLUDE_DIR}  # Add Eigen include path here as well
 )
 target_link_libraries(FusionExecutable PRIVATE ${OPENBLAS_LIB})
 
@@ -56,6 +60,7 @@ add_executable(FusionTests src/Fusion/tests/tensor_ops_tests.cpp)
 target_include_directories(FusionTests PRIVATE
         src/Fusion/tensor
         ${OPENBLAS_INCLUDE_DIR}
+        ${EIGEN3_INCLUDE_DIR}  # And here if tests use Eigen as well
 )
 target_link_libraries(FusionTests PRIVATE
         GTest::gtest

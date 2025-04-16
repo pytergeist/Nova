@@ -2,7 +2,6 @@
 #define TENSOR_STORAGE_H
 
 #include <cstddef>
-#include <memory>
 
 enum class Device {
   CPU,

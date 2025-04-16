@@ -1,191 +1,281 @@
+// tensor_ops_test.cpp
+
 #include "../tensor/tensor.h"
+#include <Eigen/Dense>
 #include <cmath>
 #include <gtest/gtest.h>
 #include <stdexcept>
+#include <vector>
 
-// ---------- Unary Operations Tests ----------
+//------------------------------------------------------------------------------
+// Helper: Create a Tensor<T> from vector data and a shape.
+// If the shape has one element, we treat it as an n×1 tensor.
+// If the shape has two elements, we create an n×m matrix.
+// Throws std::invalid_argument if the data size does not match.
+template <typename T>
+Tensor<T> create_tensor(const std::vector<T> &data,
+                        const std::vector<size_t> &shape) {
+  if (shape.size() == 1) {
+    size_t n = shape[0];
+    if (data.size() != n)
+      throw std::invalid_argument("Data size does not match for 1D tensor");
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> mat(n, 1);
+    for (size_t i = 0; i < n; i++) {
+      mat(i, 0) = data[i];
+    }
+    return Tensor<T>(mat);
+  } else if (shape.size() == 2) {
+    size_t rows = shape[0], cols = shape[1];
+    if (data.size() != rows * cols)
+      throw std::invalid_argument("Data size does not match for 2D tensor");
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> mat(rows,
+                                                                          cols);
+    for (size_t i = 0; i < rows; i++) {
+      for (size_t j = 0; j < cols; j++) {
+        mat(i, j) = data[i * cols + j];
+      }
+    }
+    return Tensor<T>(mat);
+  } else {
+    throw std::invalid_argument("Unsupported shape dimensions");
+  }
+}
+
+//------------------------------------------------------------------------------
+// Helper: Flatten the tensor (row-major) into a std::vector<T>.
+// This function assumes the Tensor uses an EigenTensorStorage.
+template <typename T> std::vector<T> flatten(const Tensor<T> &t) {
+  auto cpuStorage = dynamic_cast<EigenTensorStorage<T> *>(t.storage.get());
+  if (!cpuStorage)
+    throw std::runtime_error("Tensor does not use EigenTensorStorage");
+  size_t count = cpuStorage->matrix.size();
+  return std::vector<T>(cpuStorage->matrix.data(),
+                        cpuStorage->matrix.data() + count);
+}
+
+//------------------------------------------------------------------------------
+// Unary Operations Tests
 
 TEST(TensorOpsTest, UnarySqrtTest) {
-  const std::vector<double> data = {4.0, 9.0, 16.0};
-  const std::vector<size_t> shape = {3};
-  const Tensor<double> tensor(data, shape);
-  const Tensor<double> result = tensor.sqrt();
+  std::vector<double> data = {4.0, 9.0, 16.0};
+  std::vector<size_t> shape = {3}; // 3×1 tensor.
+  Tensor<double> tensor = create_tensor(data, shape);
+  Tensor<double> result = tensor.sqrt();
 
   std::vector<double> expected = {2.0, 3.0, 4.0};
-  ASSERT_EQ(result.arr.size(), expected.size());
+  std::vector<double> resultVec = flatten(result);
+  ASSERT_EQ(resultVec.size(), expected.size());
   for (size_t i = 0; i < expected.size(); ++i) {
-    EXPECT_NEAR(result.arr[i], expected[i], 1e-6);
+    EXPECT_NEAR(resultVec[i], expected[i], 1e-6);
   }
 }
 
 TEST(TensorOpsTest, UnaryExpTest) {
-  const std::vector<double> data = {0.0, 1.0};
-  const std::vector<size_t> shape = {2};
-  const Tensor<double> tensor(data, shape);
-  const Tensor<double> result = tensor.exp();
+  std::vector<double> data = {0.0, 1.0};
+  std::vector<size_t> shape = {2}; // 2×1 tensor.
+  Tensor<double> tensor = create_tensor(data, shape);
+  Tensor<double> result = tensor.exp();
 
-  const std::vector<double> expected = {std::exp(0.0), std::exp(1.0)};
-  ASSERT_EQ(result.arr.size(), expected.size());
+  std::vector<double> expected = {std::exp(0.0), std::exp(1.0)};
+  std::vector<double> resultVec = flatten(result);
+  ASSERT_EQ(resultVec.size(), expected.size());
   for (size_t i = 0; i < expected.size(); ++i) {
-    EXPECT_NEAR(result.arr[i], expected[i], 1e-6);
+    EXPECT_NEAR(resultVec[i], expected[i], 1e-6);
   }
 }
 
-// Test elementwise log: tensor.log() should return the natural logarithms.
 TEST(TensorOpsTest, UnaryLogTest) {
-  const std::vector<double> data = {std::exp(1.0), std::exp(2.0)};
-  const std::vector<size_t> shape = {2};
-  const Tensor<double> tensor(data, shape);
-  const Tensor<double> result = tensor.log();
+  std::vector<double> data = {std::exp(1.0), std::exp(2.0)};
+  std::vector<size_t> shape = {2}; // 2×1 tensor.
+  Tensor<double> tensor = create_tensor(data, shape);
+  Tensor<double> result = tensor.log();
 
   std::vector<double> expected = {1.0, 2.0};
-  ASSERT_EQ(result.arr.size(), expected.size());
+  std::vector<double> resultVec = flatten(result);
+  ASSERT_EQ(resultVec.size(), expected.size());
   for (size_t i = 0; i < expected.size(); ++i) {
-    EXPECT_NEAR(result.arr[i], expected[i], 1e-6);
+    EXPECT_NEAR(resultVec[i], expected[i], 1e-6);
   }
 }
 
-// ---------- Binary Operations Tests ----------
+//------------------------------------------------------------------------------
+// Binary Operations Tests
 
-// Test elementwise binary operations: addition, subtraction, multiplication,
-// division, and pow.
 TEST(TensorOpsTest, BinaryOperationsTest) {
   std::vector<double> data1 = {1.0, 2.0, 3.0};
   std::vector<double> data2 = {4.0, 5.0, 6.0};
-  std::vector<size_t> shape = {3};
-  Tensor<double> t1(data1, shape);
-  Tensor<double> t2(data2, shape);
+  std::vector<size_t> shape = {3}; // 3×1 tensors.
+  Tensor<double> t1 = create_tensor(data1, shape);
+  Tensor<double> t2 = create_tensor(data2, shape);
 
   // Addition
-  Tensor<double> add_result = t1 + t2;
-  std::vector<double> expected_add = {5.0, 7.0, 9.0};
-  for (size_t i = 0; i < expected_add.size(); ++i) {
-    EXPECT_NEAR(add_result.arr[i], expected_add[i], 1e-6);
+  Tensor<double> addResult = t1 + t2;
+  std::vector<double> expectedAdd = {5.0, 7.0, 9.0};
+  std::vector<double> addVec = flatten(addResult);
+  for (size_t i = 0; i < expectedAdd.size(); ++i) {
+    EXPECT_NEAR(addVec[i], expectedAdd[i], 1e-6);
   }
 
   // Subtraction
-  Tensor<double> sub_result = t2 - t1;
-  std::vector<double> expected_sub = {3.0, 3.0, 3.0};
-  for (size_t i = 0; i < expected_sub.size(); ++i) {
-    EXPECT_NEAR(sub_result.arr[i], expected_sub[i], 1e-6);
+  Tensor<double> subResult = t2 - t1;
+  std::vector<double> expectedSub = {3.0, 3.0, 3.0};
+  std::vector<double> subVec = flatten(subResult);
+  for (size_t i = 0; i < expectedSub.size(); ++i) {
+    EXPECT_NEAR(subVec[i], expectedSub[i], 1e-6);
   }
 
-  // Multiplication
-  Tensor<double> mul_result = t1 * t2;
-  std::vector<double> expected_mul = {4.0, 10.0, 18.0};
-  for (size_t i = 0; i < expected_mul.size(); ++i) {
-    EXPECT_NEAR(mul_result.arr[i], expected_mul[i], 1e-6);
+  // Elementwise Multiplication
+  Tensor<double> mulResult = t1 * t2;
+  std::vector<double> expectedMul = {4.0, 10.0, 18.0};
+  std::vector<double> mulVec = flatten(mulResult);
+  for (size_t i = 0; i < expectedMul.size(); ++i) {
+    EXPECT_NEAR(mulVec[i], expectedMul[i], 1e-6);
   }
 
-  // Division
-  Tensor<double> div_result = t2 / t1;
-  std::vector<double> expected_div = {4.0, 2.5, 2.0};
-  for (size_t i = 0; i < expected_div.size(); ++i) {
-    EXPECT_NEAR(div_result.arr[i], expected_div[i], 1e-6);
+  // Elementwise Division
+  Tensor<double> divResult = t2 / t1;
+  std::vector<double> expectedDiv = {4.0, 2.5, 2.0};
+  std::vector<double> divVec = flatten(divResult);
+  for (size_t i = 0; i < expectedDiv.size(); ++i) {
+    EXPECT_NEAR(divVec[i], expectedDiv[i], 1e-6);
   }
 
-  // Pow: t1.pow(t2) computes elementwise power (i.e. 1^4, 2^5, 3^6)
-  Tensor<double> pow_result = t1.pow(t2);
-  std::vector<double> expected_pow = {std::pow(1.0, 4.0), std::pow(2.0, 5.0),
-                                      std::pow(3.0, 6.0)};
-  for (size_t i = 0; i < expected_pow.size(); ++i) {
-    EXPECT_NEAR(pow_result.arr[i], expected_pow[i], 1e-6);
+  // Pow: Note that Tensor::pow takes a scalar exponent.
+  // Here, we raise each element of t1 to the 4th power.
+  Tensor<double> powResult = t1.pow(4.0);
+  std::vector<double> expectedPow;
+  for (double d : data1) {
+    expectedPow.push_back(std::pow(d, 4.0));
+  }
+  std::vector<double> powVec = flatten(powResult);
+  for (size_t i = 0; i < expectedPow.size(); ++i) {
+    EXPECT_NEAR(powVec[i], expectedPow[i], 1e-6);
   }
 }
 
-// Test binary operations with one tensor being a scalar.
+//------------------------------------------------------------------------------
+// Binary Operation With "Scalar"
+// Since our Tensor class does not support direct scalar–tensor operations,
+// we simulate a scalar by creating a tensor of matching shape with all elements
+// equal.
 TEST(TensorOpsTest, BinaryOpWithScalarTest) {
   std::vector<double> data = {2.0, 4.0, 6.0};
-  std::vector<size_t> shape = {3};
-  Tensor<double> tensor(data, shape);
-  Tensor<double> scalar(2.0);
+  std::vector<size_t> shape = {3}; // 3×1 tensor.
+  Tensor<double> tensor = create_tensor(data, shape);
 
-  // Scalar + tensor
-  const Tensor<double> add_result = scalar + tensor;
-  std::vector<double> expected_add;
-  for (double const d : data) {
-    expected_add.push_back(2.0 + d);
+  // Create a tensor (of same shape) filled with 2.0.
+  std::vector<double> scalarData(shape[0], 2.0);
+  Tensor<double> scalarTensor = create_tensor(scalarData, shape);
+
+  // Test addition: scalar + tensor.
+  Tensor<double> addResult = scalarTensor + tensor;
+  std::vector<double> expectedAdd;
+  for (double d : data) {
+    expectedAdd.push_back(2.0 + d);
   }
-  for (size_t i = 0; i < expected_add.size(); ++i) {
-    EXPECT_NEAR(add_result.arr[i], expected_add[i], 1e-6);
+  std::vector<double> addVec = flatten(addResult);
+  for (size_t i = 0; i < expectedAdd.size(); ++i) {
+    EXPECT_NEAR(addVec[i], expectedAdd[i], 1e-6);
   }
 
-  // Tensor - scalar
-  Tensor<double> sub_result = tensor - scalar;
-  std::vector<double> expected_sub;
-  for (double const d : data) {
-    expected_sub.push_back(d - 2.0);
+  // Test subtraction: tensor - scalar.
+  Tensor<double> subResult = tensor - scalarTensor;
+  std::vector<double> expectedSub;
+  for (double d : data) {
+    expectedSub.push_back(d - 2.0);
   }
-  for (size_t i = 0; i < expected_sub.size(); ++i) {
-    EXPECT_NEAR(sub_result.arr[i], expected_sub[i], 1e-6);
+  std::vector<double> subVec = flatten(subResult);
+  for (size_t i = 0; i < expectedSub.size(); ++i) {
+    EXPECT_NEAR(subVec[i], expectedSub[i], 1e-6);
   }
 }
 
-// Test that operations on tensors with incompatible sizes (non-scalar) throw an
-// exception.
+//------------------------------------------------------------------------------
+// Mismatched Sizes Test
+
 TEST(TensorOpsTest, MismatchedSizeTest) {
   std::vector<double> data1 = {1.0, 2.0};
   std::vector<double> data2 = {3.0, 4.0, 5.0};
-  std::vector<size_t> shape1 = {2};
-  std::vector<size_t> shape2 = {3};
-  Tensor<double> t1(data1, shape1);
-  Tensor<double> t2(data2, shape2);
+  std::vector<size_t> shape1 = {2}; // 2×1 tensor.
+  std::vector<size_t> shape2 = {3}; // 3×1 tensor.
+  Tensor<double> t1 = create_tensor(data1, shape1);
+  Tensor<double> t2 = create_tensor(data2, shape2);
 
-  EXPECT_THROW({ auto result = t1 + t2; }, std::invalid_argument);
+  EXPECT_THROW(
+      {
+        auto result = t1 + t2;
+        (void)result;
+      },
+      std::invalid_argument);
 }
 
-// ---------- Matrix Multiplication Tests ----------
+//------------------------------------------------------------------------------
+// Matrix Multiplication Tests
 
-// Test for 2D x 2D matrix multiplication.
-// For matrices A (2x2) and B (2x2):
-// A = [1, 2; 3, 4], B = [5, 6; 7, 8]
-// Expected A.matmul(B) = [19, 22; 43, 50]
 TEST(TensorOpsTest, MatrixMultiplication2DTest) {
+  // Define two 2x2 matrices:
+  // A = [1, 2;
+  //      3, 4]
+  // B = [5, 6;
+  //      7, 8]
+  // Expected: A.matmul(B) = [19, 22;
+  //                           43, 50]
   std::vector<double> dataA = {1, 2, 3, 4};
   std::vector<size_t> shapeA = {2, 2};
-  const Tensor<double> A(dataA, shapeA);
+  Tensor<double> A = create_tensor(dataA, shapeA);
 
   std::vector<double> dataB = {5, 6, 7, 8};
   std::vector<size_t> shapeB = {2, 2};
-  const Tensor<double> B(dataB, shapeB);
+  Tensor<double> B = create_tensor(dataB, shapeB);
 
-  const Tensor<double> result = A.matmul(B);
-  const std::vector<double> expected = {19, 22, 43, 50};
-  ASSERT_EQ(result.arr.size(), expected.size());
+  Tensor<double> result = A.matmul(B);
+  std::vector<double> expected = {19, 22, 43, 50};
+  std::vector<double> resVec = flatten(result);
+  ASSERT_EQ(resVec.size(), expected.size());
   for (size_t i = 0; i < expected.size(); ++i) {
-    EXPECT_NEAR(result.arr[i], expected[i], 1e-6);
+    EXPECT_NEAR(resVec[i], expected[i], 1e-6);
   }
 }
 
-// Test for 2D x 1D matrix multiplication.
-// For a 2x3 matrix A = [1, 2, 3; 4, 5, 6] and vector v = [1, 1, 1],
-// Expected A.matmul(v) = [6, 15]
 TEST(TensorOpsTest, MatrixMultiplication1DTest) {
-  const std::vector<double> dataA = {1, 2, 3, 4, 5, 6};
-  const std::vector<size_t> shapeA = {2, 3};
-  const Tensor<double> A(dataA, shapeA);
+  // For a 2x3 matrix A and a 3×1 tensor v:
+  // A = [1, 2, 3;
+  //      4, 5, 6]
+  // v = [1; 1; 1]  (represented as a 3×1 tensor)
+  // Expected: A.matmul(v) = [6; 15]
+  std::vector<double> dataA = {1, 2, 3, 4, 5, 6};
+  std::vector<size_t> shapeA = {2, 3};
+  Tensor<double> A = create_tensor(dataA, shapeA);
 
-  const std::vector<double> dataV = {1, 1, 1};
-  const std::vector<size_t> shapeV = {3};
-  const Tensor<double> v(dataV, shapeV);
+  std::vector<double> dataV = {1, 1, 1};
+  // Using a 1D shape for v creates a 3×1 tensor.
+  std::vector<size_t> shapeV = {3};
+  Tensor<double> v = create_tensor(dataV, shapeV);
 
-  const Tensor<double> result = A.matmul(v);
-  const std::vector<double> expected = {6, 15};
-  ASSERT_EQ(result.arr.size(), expected.size());
+  Tensor<double> result = A.matmul(v);
+  std::vector<double> expected = {6, 15};
+  std::vector<double> resVec = flatten(result);
+  ASSERT_EQ(resVec.size(), expected.size());
   for (size_t i = 0; i < expected.size(); ++i) {
-    EXPECT_NEAR(result.arr[i], expected[i], 1e-6);
+    EXPECT_NEAR(resVec[i], expected[i], 1e-6);
   }
 }
 
-// Test that calling matmul with unsupported shapes (e.g., 1D x 1D) throws an
-// exception.
 TEST(TensorOpsTest, MatrixMultiplicationInvalidShapeTest) {
-  const std::vector<double> data = {1, 2, 3};
-  const std::vector<size_t> shape = {3};
-  const Tensor<double> tensor(data, shape);
+  std::vector<double> data = {1, 2, 3};
+  std::vector<size_t> shape = {3}; // 3×1 tensor.
+  Tensor<double> tensor = create_tensor(data, shape);
 
-  EXPECT_THROW({ auto result = tensor.matmul(tensor); }, std::invalid_argument);
+  EXPECT_THROW(
+      {
+        auto result = tensor.matmul(tensor);
+        (void)result;
+      },
+      std::invalid_argument);
 }
+
+//------------------------------------------------------------------------------
+// main() for Google Test
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
