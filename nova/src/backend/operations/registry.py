@@ -70,23 +70,24 @@ divide_op = Operation(
 )
 
 
-def matmul_backward(
-    result, a, b, grad_output
-):  # TODO: Should there be switching between dot/matmul for 1d/2d arrays?
-    """
-    Matrix multiply forward: result = a.data @ b.data
-
-    grad_output has the same shape as result.
-
-    - grad wrt a = grad_output @ b^T
-    - grad wrt b = a^T @ grad_output
-    """
+def matmul_backward(result, a, b, grad_output):
     A = a.value
     B = b.value
     dZ = grad_output
 
+    if dZ.ndim == 1:
+        dZ = dZ[:, None]
+    if B.ndim == 1:
+        B = B[:, None]
+
     grad_a = dZ @ B.T
     grad_b = A.T @ dZ
+
+    if a.value.ndim == 1:
+        grad_a = grad_a.ravel()
+    if b.value.ndim == 1:
+        grad_b = grad_b.ravel()
+
     return grad_a, grad_b
 
 
