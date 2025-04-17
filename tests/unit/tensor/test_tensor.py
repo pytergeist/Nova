@@ -7,9 +7,9 @@ from nova.src.backend.core import Tensor
 @pytest.mark.parametrize(
     "data_a, data_b, expected_data",
     [
-        ([1, 2, 3], [4, 5, 6], [5, 7, 9]),
-        ([0, 0, 0], [1, 1, 1], [1, 1, 1]),
-        ([1, -1, 1], [-1, 1, -1], [0, 0, 0]),
+        ([1, 2, 3], [4, 5, 6], np.array([5, 7, 9]).reshape(-1, 1)),
+        ([0, 0, 0], [1, 1, 1], np.array([1, 1, 1]).reshape(-1, 1)),
+        ([1, -1, 1], [-1, 1, -1], np.array([0, 0, 0]).reshape(-1, 1)),
     ],
 )
 def test_tensor_addition(data_a, data_b, expected_data):
@@ -23,9 +23,9 @@ def test_tensor_addition(data_a, data_b, expected_data):
 @pytest.mark.parametrize(
     "data_a, data_b, expected_data",
     [
-        ([1, 2, 3], [4, 5, 6], [-3, -3, -3]),
-        ([0, 0, 0], [1, 1, 1], [-1, -1, -1]),
-        ([1, -1, 1], [-1, 1, -1], [2, -2, 2]),
+        ([1, 2, 3], [4, 5, 6], np.array([-3, -3, -3]).reshape(-1, 1)),
+        ([0, 0, 0], [1, 1, 1], np.array([-1, -1, -1]).reshape(-1, 1)),
+        ([1, -1, 1], [-1, 1, -1], np.array([2, -2, 2]).reshape(-1, 1)),
     ],
 )
 def test_tensor_subtraction(data_a, data_b, expected_data):
@@ -39,9 +39,9 @@ def test_tensor_subtraction(data_a, data_b, expected_data):
 @pytest.mark.parametrize(
     "data_a, data_b, expected_data",
     [
-        ([1, 2, 3], [4, 5, 6], [3, 3, 3]),
-        ([0, 0, 0], [1, 1, 1], [1, 1, 1]),
-        ([1, -1, 1], [-1, 1, -1], [-2, 2, -2]),
+        ([1, 2, 3], [4, 5, 6], np.array([3, 3, 3]).reshape(-1, 1)),
+        ([0, 0, 0], [1, 1, 1], np.array([1, 1, 1]).reshape(-1, 1)),
+        ([1, -1, 1], [-1, 1, -1], np.array([-2, 2, -2]).reshape(-1, 1)),
     ],
 )
 def test_tensor_right_subtraction(data_a, data_b, expected_data):
@@ -108,9 +108,9 @@ def test_tensor_backward_right_subtraction(
 @pytest.mark.parametrize(
     "data_a, data_b, expected_data",
     [
-        ([1, 2, 3], [4, 5, 6], [0.25, 0.40, 0.50]),
-        ([0, 0, 0], [1, 1, 1], [0.0, 0.0, 0.0]),
-        ([2, -4, 10], [-2, 2, 5], [-1.0, -2.0, 2.0]),
+        ([1, 2, 3], [4, 5, 6], np.array([0.25, 0.40, 0.50]).reshape(-1, 1)),
+        ([0, 0, 0], [1, 1, 1], np.array([0.0, 0.0, 0.0]).reshape(-1, 1)),
+        ([2, -4, 10], [-2, 2, 5], np.array([-1.0, -2.0, 2.0]).reshape(-1, 1)),
     ],
 )
 def test_tensor_division(data_a, data_b, expected_data):

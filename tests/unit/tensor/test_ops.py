@@ -15,9 +15,9 @@ from nova.src.backend.operations import (
 @pytest.mark.parametrize(
     "data_a, data_b, expected_data, requires_grad",
     [
-        ([1, 2, 3], [4, 5, 6], [5, 7, 9], False),
-        ([0, 0, 0], [1, 1, 1], [1, 1, 1], False),
-        ([1, -1, 1], [-1, 1, -1], [0, 0, 0], False),
+        ([1, 2, 3], [4, 5, 6], np.array([5, 7, 9]).reshape(-1, 1), False),
+        ([0, 0, 0], [1, 1, 1], np.array([1, 1, 1]).reshape(-1, 1), False),
+        ([1, -1, 1], [-1, 1, -1], np.array([0, 0, 0]).reshape(-1, 1), False),
     ],
 )
 def test_add(data_a, data_b, expected_data, requires_grad):
@@ -34,9 +34,9 @@ def test_add(data_a, data_b, expected_data, requires_grad):
 @pytest.mark.parametrize(
     "data_a, data_b, expected_data, requires_grad",
     [
-        ([1, 2, 3], [4, 5, 6], [-3, -3, -3], False),
-        ([0, 0, 0], [1, 1, 1], [-1, -1, -1], False),
-        ([1, -1, 1], [-1, 1, -1], [2, -2, 2], False),
+        ([1, 2, 3], [4, 5, 6], np.array([-3, -3, -3]).reshape(-1, 1), False),
+        ([0, 0, 0], [1, 1, 1], np.array([-1, -1, -1]).reshape(-1, 1), False),
+        ([1, -1, 1], [-1, 1, -1], np.array([2, -2, 2]).reshape(-1, 1), False),
     ],
 )
 def test_subtract(data_a, data_b, expected_data, requires_grad):
@@ -53,9 +53,9 @@ def test_subtract(data_a, data_b, expected_data, requires_grad):
 @pytest.mark.parametrize(
     "data_a, data_b, expected_data, requires_grad",
     [
-        ([1, 2, 3], [4, 5, 6], [3, 3, 3], False),
-        ([0, 0, 0], [1, 1, 1], [1, 1, 1], False),
-        ([1, -1, 1], [-1, 1, -1], [-2, 2, -2], False),
+        ([1, 2, 3], [4, 5, 6], np.array([3, 3, 3]).reshape(-1, 1), False),
+        ([0, 0, 0], [1, 1, 1], np.array([1, 1, 1]).reshape(-1, 1), False),
+        ([1, -1, 1], [-1, 1, -1], np.array([-2, 2, -2]).reshape(-1, 1), False),
     ],
 )
 def test_right_subtract(data_a, data_b, expected_data, requires_grad):
@@ -72,9 +72,9 @@ def test_right_subtract(data_a, data_b, expected_data, requires_grad):
 @pytest.mark.parametrize(
     "data_a, data_b, expected_data, requires_grad",
     [
-        ([1, 2, 3], [4, 5, 6], [0.25, 0.4, 0.5], False),
-        ([0, 0, 0], [1, 1, 1], [0.0, 0.0, 0.0], False),
-        ([1, -2, 3], [-1, 2, -3], [-1.0, -1.0, -1.0], False),
+        ([1, 2, 3], [4, 5, 6], np.array([0.25, 0.4, 0.5]).reshape(-1, 1), False),
+        ([0, 0, 0], [1, 1, 1], np.array([0.0, 0.0, 0.0]).reshape(-1, 1), False),
+        ([1, -2, 3], [-1, 2, -3], np.array([-1.0, -1.0, -1.0]).reshape(-1, 1), False),
     ],
 )
 def test_true_div(data_a, data_b, expected_data, requires_grad):

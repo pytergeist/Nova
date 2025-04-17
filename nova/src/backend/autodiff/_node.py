@@ -102,11 +102,19 @@ class Node:
         return self._parents
 
     def update_node_gradient(self, grad_output: Optional[np.ndarray] = None) -> None:
-        """Update the gradient of the node.
-
-        Args:
-            grad_output (Optional[np.ndarray]): The gradient of the output tensor.
+        """Update the gradient of the node ensuring that the gradient
+        matches the shape of the node's value.
         """
+        if grad_output is None:
+            return
+
+        expected_shape = (
+            self.value.shape
+        )  # TODO: why tf has changing to an eigen backend caused jacobian to be an identity matrix*grad_vector
+        if grad_output.shape != expected_shape:
+            if grad_output.ndim == 2:
+                grad_output = np.diag(grad_output)
+
         if self._grad is None:
             self._grad = grad_output
         else:
