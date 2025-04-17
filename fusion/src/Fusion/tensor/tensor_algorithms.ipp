@@ -1,5 +1,5 @@
-#ifndef TENSOR_ALGORITHMS_H
-#define TENSOR_ALGORITHMS_H
+#ifndef TENSOR_ALGORITHMS_IPP
+#define TENSOR_ALGORITHMS_IPP
 
 template <typename T>
 Tensor<T> Tensor<T>::matmul(const Tensor<T> &other) const {
@@ -42,4 +42,4 @@ Tensor<T> Tensor<T>::transpose() const {
     return Tensor<T>(transposedMat);
 }
 
-#endif // TENSOR_ALGORITHMS_H
+#endif // TENSOR_ALGORITHMS_IPP

@@ -1,5 +1,5 @@
-#ifndef TENSOR_IO_H
-#define TENSOR_IO_H
+#ifndef TENSOR_IO_IPP
+#define TENSOR_IO_IPP
 
 template <typename T>
 std::ostream& operator<<(std::ostream &os, const Tensor<T> &tensor) {
@@ -14,4 +14,4 @@ std::ostream& operator<<(std::ostream &os, const Tensor<T> &tensor) {
 }
 
 
-#endif //TENSOR_IO_H
+#endif //TENSOR_IO_IPP

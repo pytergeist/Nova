@@ -1,5 +1,5 @@
-#ifndef TENSOR_REDUCTIONS_H
-#define TENSOR_REDUCTIONS_H
+#ifndef TENSOR_REDUCTIONS_IPP
+#define TENSOR_REDUCTIONS_IPP
 
 template<typename T>
 Tensor<T> Tensor<T>::sum() const {
@@ -44,4 +44,4 @@ Tensor<T> Tensor<T>::maximum(const Tensor<T> &other) const {
     throw std::invalid_argument("Tensor shapes do not match for maximum");
 }
 
-#endif // TENSOR_REDUCTIONS_H
+#endif // TENSOR_REDUCTIONS_IPP
