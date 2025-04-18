@@ -2,7 +2,7 @@
 #define TENSOR_IO_IPP
 
 template <typename T>
-std::ostream& operator<<(std::ostream &os, const Tensor<T> &tensor) {
+inline std::ostream& operator<<(std::ostream &os, const Tensor<T> &tensor) {
     const auto *cpuStorage =
             dynamic_cast<const EigenTensorStorage<T> *>(tensor.storage.get());
     if (cpuStorage) {

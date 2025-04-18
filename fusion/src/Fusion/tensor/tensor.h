@@ -9,6 +9,11 @@
 #include <iostream>
 #include <stdexcept>
 
+template <typename T> class Tensor;
+
+template <typename T>
+std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor);
+
 template <typename T> class Tensor {
 public:
   std::unique_ptr<ITensorStorage<T>> storage;
@@ -22,7 +27,8 @@ public:
 
   void setValues(std::initializer_list<std::initializer_list<T>> nestedValues);
 
-  friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor);
+  friend std::ostream &operator<< <T>(std::ostream &os,
+                                      const Tensor<T> &tensor);
 
   // overload the + operator
   Tensor<T> operator+(const Tensor<T> &other) const;
