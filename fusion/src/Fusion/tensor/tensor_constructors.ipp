@@ -1,26 +1,35 @@
 #ifndef TENSOR_CONSTRUCTORS_IPP
 #define TENSOR_CONSTRUCTORS_IPP
+#include <vector>
 
 
-template <typename T>
+template<typename T>
 Tensor<T>::Tensor(size_t rows, size_t cols, Device device) {
     if (device == Device::CPU) {
-        storage = std::make_unique<EigenTensorStorage<T>>(rows, cols);
+        storage = std::make_unique<EigenTensorStorage<T> >(rows, cols);
+        shape_ = {rows, cols};
     } else {
         throw std::invalid_argument("Unsupported device type");
     }
 }
 
-template <typename T>
+template<typename T>
 Tensor<T>::Tensor(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
-                                    Eigen::RowMajor> &matrix) {
+    Eigen::RowMajor> &matrix) {
     storage =
-        std::make_unique<EigenTensorStorage<T>>(matrix.rows(), matrix.cols());
+            std::make_unique<EigenTensorStorage<T> >(matrix.rows(), matrix.cols());
+    shape_ = {
+        static_cast<size_t>(matrix.rows()),
+        static_cast<size_t>(matrix.cols())
+    };
     static_cast<EigenTensorStorage<T> *>(storage.get())->matrix = matrix;
 }
 
+template<typename T>
+std::vector<size_t> Tensor<T>::shape() const { return this->shape_; }
 
-template <typename T>
+
+template<typename T>
 void Tensor<T>::setValues(std::initializer_list<T> values) {
     size_t expected = storage->rows() * storage->cols();
     if (values.size() != expected) {
@@ -39,7 +48,7 @@ void Tensor<T>::setValues(std::initializer_list<T> values) {
 }
 
 
-template <typename T>
+template<typename T>
 void Tensor<T>::setValues(std::initializer_list<std::initializer_list<T> > nestedValues) {
     if (nestedValues.size() != storage->rows()) {
         throw std::invalid_argument("Row count mismatch in nested setValues");

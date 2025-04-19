@@ -54,5 +54,9 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def("sum", &PyT::sum, "Sum of all elements.")
       .def("transpose", &PyT::transpose, "Transpose of the Tensor.")
       .def("maximum", &PyT::maximum,
-           "Element-wise maximum with another Tensor.");
+           "Element-wise maximum with another Tensor.")
+      .def("shape", &Tensor<T>::shape, "shape of Tensor.")
+      .def_property_readonly(
+          "dtype", [](const Tensor<T> &) { return py::dtype::of<T>(); },
+          "The NumPy dtype of this tensor’s elements");
 }

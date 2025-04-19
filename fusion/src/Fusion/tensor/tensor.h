@@ -17,11 +17,16 @@ std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor);
 template <typename T> class Tensor {
 public:
   std::unique_ptr<ITensorStorage<T>> storage;
+  std::vector<size_t> shape_;
 
   explicit Tensor(size_t rows, size_t cols, Device device = Device::CPU);
 
   explicit Tensor(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
-                                      Eigen::RowMajor> &matrix);
+                                      Eigen::RowMajor>
+                      &matrix); // TODO: add shape attribute to nested eigen
+                                // matrix constructor
+
+  [[nodiscard]] std::vector<size_t> shape() const;
 
   void setValues(std::initializer_list<T> values);
 
