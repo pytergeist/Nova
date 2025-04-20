@@ -64,6 +64,8 @@ public:
   Tensor<T> matmul(const Tensor<T> &other) const;
 
   Tensor<T> transpose() const;
+
+  Tensor<T> diagonal() const;
 };
 
 #include "tensor_algorithms.ipp"

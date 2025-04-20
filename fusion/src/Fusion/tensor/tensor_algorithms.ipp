@@ -1,7 +1,7 @@
 #ifndef TENSOR_ALGORITHMS_IPP
 #define TENSOR_ALGORITHMS_IPP
 
-template <typename T>
+template<typename T>
 Tensor<T> Tensor<T>::matmul(const Tensor<T> &other) const {
     if (this->storage->cols() != other.storage->rows()) {
         throw std::invalid_argument("Matrix dimension mismatch for matmul");
@@ -30,7 +30,7 @@ Tensor<T> Tensor<T>::matmul(const Tensor<T> &other) const {
     return Tensor<T>(resultMat);
 }
 
-template <typename T>
+template<typename T>
 Tensor<T> Tensor<T>::transpose() const {
     const auto *cpuThis =
             dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
@@ -40,6 +40,17 @@ Tensor<T> Tensor<T>::transpose() const {
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
             transposedMat = cpuThis->matrix.transpose();
     return Tensor<T>(transposedMat);
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::diagonal() const {
+    const auto *cpuThis =
+            dynamic_cast<const EigenTensorStorage<T> *>(this->storage.get());
+    if (!cpuThis) {
+        throw std::runtime_error("Unsupported storage type for transpose");
+    }
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> diagonalMat = cpuThis->matrix.diagonal();
+    return Tensor<T>(diagonalMat);
 }
 
 #endif // TENSOR_ALGORITHMS_IPP
