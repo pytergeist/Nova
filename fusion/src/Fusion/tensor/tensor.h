@@ -23,8 +23,7 @@ public:
 
   explicit Tensor(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
                                       Eigen::RowMajor>
-                      &matrix); // TODO: add shape attribute to nested eigen
-                                // matrix constructor
+                      &matrix); // matrix constructor
 
   [[nodiscard]] std::vector<size_t> shape() const;
 
