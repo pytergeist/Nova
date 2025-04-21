@@ -26,6 +26,17 @@ Tensor<T>::Tensor(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
 }
 
 template<typename T>
+Tensor<T>::Tensor(T value, Device device) {
+    if (device == Device::CPU) {
+        storage = std::make_unique<EigenTensorStorage<T> >(1, 1);
+        shape_ = {};
+        static_cast<EigenTensorStorage<T> *>(storage.get())->matrix(0, 0) = value;
+    } else {
+        throw std::invalid_argument("Unsupported device type");
+    }
+}
+
+template<typename T>
 std::vector<size_t> Tensor<T>::shape() const { return this->shape_; }
 
 

@@ -11,7 +11,6 @@
 namespace py = pybind11;
 
 namespace tensor_py_helpers {
-
 inline Tensor<double>
 make_tensor_from_shape_and_list(const std::vector<size_t> &shape,
                                 const std::vector<double> &values) {
@@ -29,11 +28,8 @@ make_tensor_from_shape_and_list(const std::vector<size_t> &shape,
   return Tensor<double>(mat);
 }
 
-inline Tensor<double> make_tensor_from_scalar(double v) {
-  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> mat(1,
-                                                                             1);
-  mat(0, 0) = v;
-  return Tensor<double>(mat);
+inline Tensor<double> make_tensor_from_scalar(double scalar) {
+  return Tensor<double>(scalar);
 }
 
 inline py::array_t<double> tensor_to_numpy(const Tensor<double> &t) {
@@ -53,6 +49,11 @@ inline py::array_t<double> tensor_to_numpy(const Tensor<double> &t) {
   } else if (rows == 1 && cols > 1) {
     shape = {py::ssize_t(cols)};
     strides = {static_cast<py::ssize_t>(sizeof(double))};
+  } else if (t.shape().empty()) {
+    const auto *cpu =
+        dynamic_cast<const EigenTensorStorage<double> *>(t.storage.get());
+    double v = cpu->matrix(0, 0);
+    return py::float_(v);
   } else {
     shape = {py::ssize_t(rows), py::ssize_t(cols)};
     strides = {py::ssize_t(cols * sizeof(double)), py::ssize_t(sizeof(double))};
@@ -65,5 +66,4 @@ inline py::array_t<double> tensor_to_numpy(const Tensor<double> &t) {
             ptr);
   return arr;
 }
-
 } // namespace tensor_py_helpers

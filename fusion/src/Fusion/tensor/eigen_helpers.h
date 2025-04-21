@@ -11,6 +11,7 @@ Tensor<T> binary_elementwise_op(const Tensor<T> &a, const Tensor<T> &b,
                                 BinaryOp op, const char *op_name) {
   if (a.storage->rows() != b.storage->rows() ||
       a.storage->cols() != b.storage->cols() ||
+      a.storage->cols() != b.storage->cols() ||
       a.storage->device() != b.storage->device()) {
     throw std::invalid_argument(
         std::string("Tensor shape/device mismatch in ") + op_name);

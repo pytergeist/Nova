@@ -59,5 +59,5 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def_property_readonly(
           "dtype", [](const Tensor<T> &) { return py::dtype::of<T>(); },
           "The NumPy dtype of this tensor’s elements")
-     .def("diagonal", &Tensor<T>::diagonal, "Diagonal of Tensor.");
+      .def("diagonal", &Tensor<T>::diagonal, "Diagonal of Tensor.");
 }

@@ -21,9 +21,11 @@ public:
 
   explicit Tensor(size_t rows, size_t cols, Device device = Device::CPU);
 
-  explicit Tensor(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
-                                      Eigen::RowMajor>
-                      &matrix); // matrix constructor
+  explicit Tensor(
+      const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic,
+                          Eigen::RowMajor> &matrix); // matrix constructor
+
+  explicit Tensor(T value, Device device = Device::CPU);
 
   [[nodiscard]] std::vector<size_t> shape() const;
 
