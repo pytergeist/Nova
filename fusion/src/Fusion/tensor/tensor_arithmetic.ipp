@@ -45,7 +45,7 @@ template<typename T>
 Tensor<T> Tensor<T>::sqrt() const {
     return tensor_detail::unary_elementwise_op(
         *this,
-        [](auto& A){ return A.array().sqrt().matrix(); },
+        [](auto& A){ return A.array().sqrt().matrix();},
         "sqrt"
     );
 }
