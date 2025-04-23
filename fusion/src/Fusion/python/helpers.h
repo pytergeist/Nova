@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../tensor/tensor.h"
-#include <algorithm>
+
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <sstream>
@@ -11,59 +11,40 @@
 namespace py = pybind11;
 
 namespace tensor_py_helpers {
-inline Tensor<double>
-make_tensor_from_shape_and_list(const std::vector<size_t> &shape,
-                                const std::vector<double> &values) {
-  if (shape.size() != 2) {
-    throw std::runtime_error(
-        "Shape must be a vector of 2 elements [rows, cols]");
-  }
-  size_t rows = shape[0], cols = shape[1];
-  if (values.size() != rows * cols) {
-    throw std::runtime_error("Number of values does not match provided shape");
-  }
-  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> mat(
-      rows, cols);
-  std::copy(values.begin(), values.end(), mat.data());
-  return Tensor<double>(mat);
-}
-
-inline Tensor<double> make_tensor_from_scalar(double scalar) {
-  return Tensor<double>(scalar);
-}
 
 inline py::array_t<double> tensor_to_numpy(const Tensor<double> &t) {
-  const auto *cpuStorage =
-      dynamic_cast<const EigenTensorStorage<double> *>(t.storage.get());
-  if (!cpuStorage) {
-    throw std::runtime_error("Tensor does not use EigenTensorStorage");
+  // Downcast storage
+  auto *cpu = dynamic_cast<const EigenTensorStorage<double> *>(t.storage.get());
+  if (!cpu) {
+    throw std::runtime_error("tensor_to_numpy: unsupported storage");
   }
-  size_t rows = cpuStorage->rows();
-  size_t cols = cpuStorage->cols();
 
-  std::vector<py::ssize_t> shape;
-  std::vector<py::ssize_t> strides;
-  if (cols == 1 && rows > 1) {
-    shape = {py::ssize_t(rows)};
-    strides = {static_cast<py::ssize_t>(sizeof(double))};
-  } else if (rows == 1 && cols > 1) {
-    shape = {py::ssize_t(cols)};
-    strides = {static_cast<py::ssize_t>(sizeof(double))};
-  } else if (t.shape().empty()) {
-    const auto *cpu =
-        dynamic_cast<const EigenTensorStorage<double> *>(t.storage.get());
-    double v = cpu->matrix(0, 0);
-    return py::float_(v);
+  size_t rows = cpu->matrix.rows();
+  size_t cols = cpu->matrix.cols();
+
+  // Build shape & strides
+  std::vector<ssize_t> shape, strides;
+  if (rows == 1 && cols == 1) {
+    // scalar
+    return py::float_(cpu->matrix(0, 0));
+  } else if (rows == 1) {
+    shape = {static_cast<ssize_t>(cols)};
+    strides = {static_cast<ssize_t>(sizeof(double))};
+  } else if (cols == 1) {
+    shape = {static_cast<ssize_t>(rows)};
+    strides = {static_cast<ssize_t>(sizeof(double))};
   } else {
-    shape = {py::ssize_t(rows), py::ssize_t(cols)};
-    strides = {py::ssize_t(cols * sizeof(double)), py::ssize_t(sizeof(double))};
+    shape = {static_cast<ssize_t>(rows), static_cast<ssize_t>(cols)};
+    strides = {static_cast<ssize_t>(cols * sizeof(double)),
+               static_cast<ssize_t>(sizeof(double))};
   }
 
+  // Create array and copy
   py::array_t<double> arr(shape, strides);
   auto buf = arr.request();
-  double *ptr = static_cast<double *>(buf.ptr);
-  std::copy(cpuStorage->matrix.data(), cpuStorage->matrix.data() + rows * cols,
-            ptr);
+  double *dst = static_cast<double *>(buf.ptr);
+  std::copy(cpu->matrix.data(), cpu->matrix.data() + rows * cols, dst);
   return arr;
 }
+
 } // namespace tensor_py_helpers
