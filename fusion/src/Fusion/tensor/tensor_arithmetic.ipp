@@ -41,6 +41,17 @@ Tensor<T> Tensor<T>::operator/(const Tensor<T>& other) const {
 }
 
 // Unary ops:
+
+
+template<typename T>
+Tensor<T> Tensor<T>::operator-() const {
+    return tensor_detail::unary_elementwise_op(
+        *this,
+        [](auto& A){ return (-A.array()).matrix(); },
+        "negation"
+    );
+}
+
 template<typename T>
 Tensor<T> Tensor<T>::sqrt() const {
     return tensor_detail::unary_elementwise_op(

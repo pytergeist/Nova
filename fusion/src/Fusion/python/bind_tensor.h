@@ -37,9 +37,15 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
 
       // operator overloads
       .def("__add__", &PyT::operator+)
-      .def("__sub__", &PyT::operator-)
+      .def("__sub__",
+           py::overload_cast<const PyT &>(&PyT::operator-, py::const_),
+           "Elementwise subtract (tensor - tensor)")
       .def("__mul__", &PyT::operator*)
       .def("__truediv__", &PyT::operator/)
+
+      // unary negation:
+      .def("__neg__", py::overload_cast<>(&PyT::operator-, py::const_),
+           "Unary negation (-tensor)")
 
       // matrix ops & elementwise functions
       .def("__matmul__", &PyT::matmul, "Matrix multiplication of two Tensors.")

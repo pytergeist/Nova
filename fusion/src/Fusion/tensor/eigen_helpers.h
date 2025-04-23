@@ -4,6 +4,15 @@
 #include "tensor.h"
 #include <functional>
 
+template <typename T> bool is_scalar(const Tensor<T> &x) {
+  // rank-0: shape_ was set to {} by your scalar constructor
+  if (x.shape().empty())
+    return true;
+  // or fallback: any single-element tensor
+  auto *s = dynamic_cast<const EigenTensorStorage<T> *>(x.storage.get());
+  return (s->rows() * s->cols() == 1);
+}
+
 namespace tensor_detail {
 template <typename T, typename BinaryOp>
 Tensor<T> binary_elementwise_op(const Tensor<T> &a, const Tensor<T> &b,
@@ -24,7 +33,7 @@ Tensor<T> binary_elementwise_op(const Tensor<T> &a, const Tensor<T> &b,
                                 op_name);
   }
 
-  if (a.shape().empty()) { // TODO: abstract this method
+  if (is_scalar(a) && !is_scalar(b)) { // TODO: abstract this method
     T scalar = lhs->matrix(0, 0);
     auto rows = rhs->matrix.rows();
     auto cols = rhs->matrix.cols();
@@ -36,7 +45,7 @@ Tensor<T> binary_elementwise_op(const Tensor<T> &a, const Tensor<T> &b,
     return Tensor<T>(resultMat);
   }
 
-  if (b.shape().empty()) {
+  if (is_scalar(b) && !is_scalar(a)) {
     T scalar = rhs->matrix(0, 0);
     auto rows = lhs->matrix.rows();
     auto cols = lhs->matrix.cols();

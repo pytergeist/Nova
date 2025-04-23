@@ -39,8 +39,11 @@ public:
   // overload the + operator
   Tensor<T> operator+(const Tensor<T> &other) const;
 
-  // overload the - operator
+  // overload the - operator for tensor - tensor
   Tensor<T> operator-(const Tensor<T> &other) const;
+
+  // overload the - operator for -tensor
+  Tensor<T> operator-() const;
 
   // overload the / operator
   Tensor<T> operator/(const Tensor<T> &other) const;
