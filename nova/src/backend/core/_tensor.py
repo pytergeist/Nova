@@ -138,14 +138,7 @@ class Tensor(_C.Tensor):
             requires_grad=self._node.requires_grad or other._node.requires_grad,
             role=role,
         )
-        out = Tensor.__new__(Tensor)
-        object.__setattr__(out, "_node", out_node)
-        object.__setattr__(out, "engine", self.engine)
-        out_rows, out_cols = cpp_out.shape()
-        super(Tensor, out).__init__(out_rows, out_cols)
-        out.set_values(cpp_out.to_numpy().ravel().tolist())
-
-        return out
+        return self._create_new_fusion_wrapped_tensor(out_node, cpp_out)
 
     def _apply_unary_op(self, operation: "Operation") -> "Tensor":
         cpp_self = get_cpp(self)
@@ -157,12 +150,17 @@ class Tensor(_C.Tensor):
             parents=(self._node,),
             requires_grad=self.requires_grad,
         )
+        return self._create_new_fusion_wrapped_tensor(out_node, cpp_out)
+
+    def _create_new_fusion_wrapped_tensor(
+        self, node: "Node", fusion_tensor: _C.Tensor
+    ) -> "Tensor":
         out = Tensor.__new__(Tensor)
-        object.__setattr__(out, "_node", out_node)
+        object.__setattr__(out, "_node", node)
         object.__setattr__(out, "engine", self.engine)
-        out_rows, out_cols = cpp_out.shape()
+        out_rows, out_cols = fusion_tensor.shape()
         super(Tensor, out).__init__(out_rows, out_cols)
-        out.set_values(cpp_out.to_numpy().ravel().tolist())
+        out.set_values(fusion_tensor.to_numpy().ravel().tolist())
         return out
 
     def __add__(self, other: Union["Tensor", np.ndarray, float, int]) -> "Tensor":
