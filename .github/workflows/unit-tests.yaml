@@ -1,4 +1,4 @@
-name: Abditus Unit Tests
+name: Nova Unit Tests
 
 on:
   push:
