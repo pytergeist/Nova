@@ -1,11 +1,7 @@
 # registry.py
 import numpy as np
 
-from nova.src._backends._backend import Backend
-
 from .operation import Operation
-
-backend = Backend()
 
 
 ########################
@@ -16,7 +12,7 @@ def add_backward(result, a, b, grad_output):
     return (grad_output, grad_output)
 
 
-add_op = Operation("add", lambda a, b: backend.add(a.data, b.data), add_backward)
+add_op = Operation("__add__", lambda a, b: a.data + b.data, add_backward)
 
 
 ########################
@@ -31,9 +27,7 @@ def subtract_backward(result, a, b, grad_output):
     return grad_output, -grad_output
 
 
-subtract_op = Operation(
-    "subtract", lambda a, b: backend.subtract(a.data, b.data), subtract_backward
-)
+subtract_op = Operation("__sub__", lambda a, b: a.data - b.data, subtract_backward)
 
 
 ########################
@@ -50,8 +44,8 @@ def right_subtract_backward(result, a, b, grad_output):
 
 
 right_subtract_op = Operation(
-    "right_subtract",
-    lambda a, b: backend.subtract(b.data, a.data),
+    "__rsub__",
+    lambda a, b: b.data - a.data,
     right_subtract_backward,
 )
 
@@ -65,9 +59,7 @@ def divide_backward(result, a, b, grad_output):
     return (grad_a, grad_b)
 
 
-divide_op = Operation(
-    "divide", lambda a, b: backend.divide(a.data, b.data), divide_backward
-)
+divide_op = Operation("__truediv__", lambda a, b: a.data / b.data, divide_backward)
 
 
 def matmul_backward(result, a, b, grad_output):
@@ -92,7 +84,7 @@ def matmul_backward(result, a, b, grad_output):
 
 
 matmul_op = Operation(
-    "matmul",
+    "__matmul__",
     lambda a, b: a.data @ b.data,  # forward pass
     matmul_backward,  # backward pass
 )
@@ -111,8 +103,8 @@ def sum_backward(result, a, grad_output):
 
 
 sum_op = Operation(
-    op_name="sum",
-    forward_func=lambda a: backend.sum(a.data),
+    name="sum",
+    forward_func=lambda a: np.sum(a.data),
     backward_func=sum_backward,
 )
 
@@ -131,8 +123,8 @@ def maximum_backward(result, a, b, grad_output):
 
 
 maximum_op = Operation(
-    op_name="maximum",
-    forward_func=lambda a, b: backend.maximum(a.data, b.data),
+    name="maximum",
+    forward_func=lambda a, b: np.maximum(a.data, b.data),
     backward_func=maximum_backward,
 )
 
@@ -143,12 +135,12 @@ def transpose_backward(result, a, grad_output):
     Since the forward pass is: result = transpose(a.data),
     the derivative wrt 'a' is simply: transpose(grad_output).
     """
-    return (backend.transpose(grad_output),)
+    return (np.transpose(grad_output),)
 
 
 transpose_op = Operation(
-    op_name="transpose",
-    forward_func=lambda a: backend.transpose(a.data),
+    name="transpose",
+    forward_func=lambda a: np.transpose(a.data),
     backward_func=transpose_backward,
 )
 
@@ -163,8 +155,8 @@ def multiply_backward(result, a, b, grad_output):
 
 
 multiply_op = Operation(
-    op_name="multiplication",
-    forward_func=lambda a, b: backend.multiply(a.data, b.data),
+    name="__mul__",
+    forward_func=lambda a, b: a.data * b.data,
     backward_func=multiply_backward,
 )
 
@@ -176,13 +168,13 @@ def power_backward(result, a, b, grad_output):
     dc/db = a ** b * log(a) * grad_output
     """
     grad_a = (b.value * a.value ** (b.value - 1)) * grad_output
-    grad_b = (a.value**b.value * backend.log(a.value)) * grad_output
+    grad_b = (a.value**b.value * np.log(a.value)) * grad_output
     return grad_a, grad_b
 
 
 power_op = Operation(
-    op_name="power",
-    forward_func=lambda a, b: backend.power(a.data, b.data),
+    name="__pow__",
+    forward_func=lambda a, b: a.data**b.data,
     backward_func=power_backward,
 )
 
@@ -196,8 +188,8 @@ def exponential_backward(result, a, grad_output):
 
 
 exponential_op = Operation(
-    op_name="exponential",
-    forward_func=lambda a: backend.exp(a.data),
+    name="exp",
+    forward_func=lambda a: np.exp(a.data),
     backward_func=exponential_backward,
 )
 
@@ -211,8 +203,8 @@ def log_backward(result, a, grad_output):
 
 
 log_op = Operation(
-    op_name="log",
-    forward_func=lambda a: backend.log(a.data),
+    name="log",
+    forward_func=lambda a: np.log(a.data),
     backward_func=log_backward,
 )
 
@@ -222,11 +214,11 @@ def sqrt_backward(result, a, grad_output):
     c = sqrt(a)
     dc/da = 1/(2 * sqrt(a)) * grad_output
     """
-    return (grad_output / (2 * backend.sqrt(a.value)),)
+    return (grad_output / (2 * np.sqrt(a.value)),)
 
 
 sqrt_op = Operation(
-    op_name="sqrt",
-    forward_func=lambda a: backend.sqrt(a.data),
+    name="sqrt",
+    forward_func=lambda a: np.sqrt(a.data),
     backward_func=sqrt_backward,
 )

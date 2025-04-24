@@ -1,16 +1,17 @@
-from typing import TYPE_CHECKING, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal, Optional, Sequence, Union
 
 import numpy as np
 
 import nova.src.backend.operations as ops
 from nova.src.backend.autodiff import Engine, Node
+from nova.src.backend.core import _C
 
 if TYPE_CHECKING:
     from nova.src.backend.core.dtypes import DType
     from nova.src.backend.operations import Operation
 
 
-class Tensor:
+class Tensor(_C.Tensor):
     """A Tensor data-structure that uses operator overloading to perform element-wise
     operations.
 
@@ -29,23 +30,27 @@ class Tensor:
 
     def __init__(
         self,
-        data,
-        requires_grad=False,
-        dtype: "DType" = np.float32,
+        data: Union[Sequence, np.ndarray, float, int],
+        requires_grad: bool = False,
+        dtype: "DType" = np.float64,
         engine: Optional[Engine] = None,
-        node: Optional[
-            Node
-        ] = None,  # TODO: should this be here? as the engine manages all nodes
         role: Optional[str] = None,
-    ) -> None:
-        self.engine = engine.get_current() if engine else Engine()
-        if data is not None and not isinstance(data, np.ndarray):
-            data = np.array(data, dtype=dtype)
+        _node: Optional[Node] = None,
+    ):
+        arr = np.array(data, dtype=dtype)
+        rows, cols = arr.shape if arr.ndim == 2 else (1, arr.size)
+        super().__init__(rows, cols)
 
-        # If no node is provided, build a leaf GraphNode.
-        if node is None:
-            node = self.engine.build_leaf_node(data, requires_grad, role=role)
-        self._node = node
+        flat = arr.ravel().tolist()
+        self.set_values(flat)
+
+        self.engine = engine.get_current() if engine else Engine()
+        if _node is None:
+            self._node = self.engine.build_leaf_node(
+                self.data, requires_grad, role=role
+            )
+        else:
+            self._node = _node
 
     @property
     def data(self) -> np.ndarray:
@@ -55,7 +60,7 @@ class Tensor:
         Returns:
             np.ndarray: The underlying data of the tensor.
         """
-        return self._node.value
+        return self.to_numpy()
 
     @property
     def grad(self) -> np.ndarray:
@@ -113,32 +118,52 @@ class Tensor:
         Args:
             other (Union[Tensor, np.ndarray, float, int]): The other tensor or scalar to apply the operation to.
             operation (Operation): The operation to apply.
+            operation (Operation): The operation to apply.
 
         Returns:
             Tensor: The result of the operation (a third Tensor).
         """
-        other = other if isinstance(other, Tensor) else Tensor(other)
-        out_value = operation.forward_func(self, other)
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+
+        cpp_self = get_cpp(self)
+        cpp_other = get_cpp(other)
+        cpp_out = getattr(_C.Tensor, operation.name)(cpp_self, cpp_other)
+        out_val = cpp_out.to_numpy()
 
         out_node = self.engine.build_node(
-            data=out_value,
+            data=out_val,
             operation=operation,
             parents=(self._node, other._node),
             requires_grad=self._node.requires_grad or other._node.requires_grad,
             role=role,
         )
-        return Tensor(data=None, node=out_node)
+        out = Tensor.__new__(Tensor)
+        object.__setattr__(out, "_node", out_node)
+        object.__setattr__(out, "engine", self.engine)
+        out_rows, out_cols = cpp_out.shape()
+        super(Tensor, out).__init__(out_rows, out_cols)
+        out.set_values(cpp_out.to_numpy().ravel().tolist())
+
+        return out
 
     def _apply_unary_op(self, operation: "Operation") -> "Tensor":
-        """Like _apply_op, but for single-input (unary) operations."""
-        out_value = operation.forward_func(self)  # forward pass
+        cpp_self = get_cpp(self)
+        cpp_out = getattr(_C.Tensor, operation.name)(cpp_self)
+        out_val = cpp_out.to_numpy()
         out_node = self.engine.build_node(
-            data=out_value,
+            data=out_val,
             operation=operation,
             parents=(self._node,),
-            requires_grad=self._node.requires_grad,
+            requires_grad=self.requires_grad,
         )
-        return Tensor(data=None, node=out_node)
+        out = Tensor.__new__(Tensor)
+        object.__setattr__(out, "_node", out_node)
+        object.__setattr__(out, "engine", self.engine)
+        out_rows, out_cols = cpp_out.shape()
+        super(Tensor, out).__init__(out_rows, out_cols)
+        out.set_values(cpp_out.to_numpy().ravel().tolist())
+        return out
 
     def __add__(self, other: Union["Tensor", np.ndarray, float, int]) -> "Tensor":
         """Addition operator overload.
@@ -343,3 +368,7 @@ class Tensor:
             f", role={self._node.role}" if getattr(self._node, "role", None) else ""
         )
         return f"Tensor(data={self.data}, requires_grad={self.requires_grad}{role_str})"
+
+
+def get_cpp(t: Tensor) -> _C.Tensor:
+    return t
