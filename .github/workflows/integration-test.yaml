@@ -31,8 +31,11 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-root
 
-      - name: Build Fusion extension
-        run: bash fusion/compile.sh
+      - name: Build fusion backend
+        run: |
+          cd fusion
+          bash compile.sh
+
 
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
