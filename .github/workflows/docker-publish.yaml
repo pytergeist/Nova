@@ -2,7 +2,12 @@ name: Build & Publish CI Image
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 
 jobs:
   build-and-push:
