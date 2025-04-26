@@ -1,11 +1,9 @@
 name: Nova CI
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build & Publish CI Image"]
+    types: [completed]
 
 jobs:
   test-suites:
