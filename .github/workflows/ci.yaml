@@ -1,0 +1,35 @@
+name: Nova CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-suites:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - suite: unit
+            path: tests/unit
+          - suite: finite-difference
+            path: tests/integration/gradient/finite_difference
+          - suite: pytorch
+            path: tests/integration/gradient/pytorch
+
+    # run each job in your prebuilt Docker image
+    container:
+      image: ghcr.io/your-org/nova-ci:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run ${{ matrix.suite }} tests
+        run: |
+          echo "=== ${{ matrix.suite }} ==="
+          pytest -v ${{ matrix.path }}
