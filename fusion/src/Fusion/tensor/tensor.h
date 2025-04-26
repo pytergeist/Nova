@@ -8,6 +8,7 @@
 #include <initializer_list>
 #include <iostream>
 #include <stdexcept>
+#include <memory>
 
 template <typename T> class Tensor;
 

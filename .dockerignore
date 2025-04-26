@@ -1,0 +1,6 @@
+.git
+__pycache__/
+*.pyc
+build/
+fusion/build/
+cmake-build-debug/

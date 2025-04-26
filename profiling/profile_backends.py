@@ -1,52 +1,48 @@
+# profile_np_vs_tensor.py
 import time
 
 import numpy as np
 
-from nova.src._backends._fusion import FusionBackend
-from nova.src._backends._numpy import NumpyBackend
+from nova.src.backend.core._tensor import Tensor  # adjust import path if needed
 
 
-def profile_operation(backend, op_func, repeat=10):
-    op_func(backend)
-    start = time.perf_counter()
+def profile(fn, repeat=10):
+    fn()
+    t0 = time.perf_counter()
     for _ in range(repeat):
-        op_func(backend)
-    end = time.perf_counter()
-    return (end - start) / repeat
+        fn()
+    return (time.perf_counter() - t0) / repeat
 
 
 def main():
     shape = (1000, 1000)
-    a = np.random.rand(*shape).astype(np.float64)
-    b = np.random.rand(*shape).astype(np.float64)
-    scalar = np.float32(0.5)
+    a_np = np.random.rand(*shape)
+    b_np = np.random.rand(*shape)
+    scalar = 0.5
 
-    matmul_a = np.random.rand(*shape).astype(np.float64)
-    matmul_b = np.random.rand(*shape).astype(np.float64)
+    a_t = Tensor(a_np, requires_grad=False)
+    b_t = Tensor(b_np, requires_grad=False)
 
-    fusion_backend = FusionBackend()
-    numpy_backend = NumpyBackend()
-
-    operations = {
-        "addition": lambda be: be.add(a, b),
-        "subtraction": lambda be: be.subtract(a, b),
-        "multiplication": lambda be: be.multiply(a, b),
-        "division": lambda be: be.divide(a, b),
-        "matmul": lambda be: be.matmul(matmul_a, matmul_b),
-        "sum": lambda be: be.sum(a),
-        "maximum": lambda be: be.maximum(a, scalar),
-        "exp": lambda be: be.exp(a),
-        "log": lambda be: be.log(a),
-        "sqrt": lambda be: be.sqrt(a),
+    ops = {
+        "addition": (lambda: a_np + b_np, lambda: a_t + b_t),
+        "subtraction": (lambda: a_np - b_np, lambda: a_t - b_t),
+        "multiplication": (lambda: a_np * b_np, lambda: a_t * b_t),
+        "division": (lambda: a_np / b_np, lambda: a_t / b_t),
+        "matmul": (lambda: a_np @ b_np, lambda: a_t @ b_t),
+        "sum": (lambda: a_np.sum(), lambda: a_t.sum()),
+        "maximum": (lambda: np.maximum(a_np, scalar), lambda: a_t.maximum(scalar)),
+        "exp": (lambda: np.exp(a_np), lambda: a_t.exp()),
+        "log": (lambda: np.log(a_np), lambda: a_t.log()),
+        "sqrt": (lambda: np.sqrt(a_np), lambda: a_t.sqrt()),
     }
 
-    print(f"Profiling {len(operations)} operations with input shape {shape}:\n")
-    for op_name, op_func in operations.items():
-        fusion_time = profile_operation(fusion_backend, op_func, repeat=10)
-        numpy_time = profile_operation(numpy_backend, op_func, repeat=10)
-        print(f"{op_name}:")
-        print(f"  Fusion backend: {fusion_time:.6f} sec per run")
-        print(f"  NumPy backend:  {numpy_time:.6f} sec per run\n")
+    print(f"Profiling NumPy vs Tensor on {shape} arrays:\n")
+    for name, (fn_np, fn_t) in ops.items():
+        t_np = profile(fn_np, repeat=5)
+        t_t = profile(fn_t, repeat=5)
+        print(
+            f"{name:14s} —  NumPy: {t_np * 1e3:8.3f} ms  |  Tensor: {t_t * 1e3:8.3f} ms"
+        )
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@
 #include <pybind11/stl.h>
 #include <sstream>
 #include <stdexcept>
+#include <memory>
 
 namespace py = pybind11;
 
