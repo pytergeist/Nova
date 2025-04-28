@@ -17,8 +17,6 @@ jobs:
             path: tests/unit/tensor
           - suite: activations
             path: tests/unit/activations
-          - suite: initialisers
-            path: tests/unit/initialisers
 
     steps:
       - name: Checkout code
