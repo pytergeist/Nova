@@ -1,6 +1,7 @@
 #ifndef TENSOR_CONSTRUCTORS_IPP
 #define TENSOR_CONSTRUCTORS_IPP
 #include <vector>
+#include <memory>
 
 
 template<typename T>

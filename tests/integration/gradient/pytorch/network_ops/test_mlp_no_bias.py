@@ -108,7 +108,7 @@ def test_network_grad(initializer, config):
     for key in autodiff_grads:
         np.testing.assert_allclose(
             autodiff_grads[key],
-            pytorch_grads[key],
+            pytorch_grads[key].squeeze(),
             rtol=1e-5,
             atol=1e-7,
             err_msg=f"Gradient for {key} does not match PyTorch gradient using"
