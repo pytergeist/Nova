@@ -2,92 +2,57 @@ name: Nova Unit Tests
 
 on:
   push:
-    branches:
-      - main
-
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
-      - dev
+    branches: [ main, dev ]
   workflow_dispatch:
 
-
 jobs:
-  tensor_module:
+  unit:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - suite: tensor
+            path: tests/unit/tensor
+          - suite: activations
+            path: tests/unit/activations
+          - suite: initialisers
+            path: tests/unit/initialisers
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
 
-      - name: Set up Python
+      - name: Set up Python 3.13
         uses: actions/setup-python@v4
         with:
           python-version: '3.13'
 
-      - name: Install Poetry
+      - name: Install system build deps
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "${{ runner.tool_cache }}/python/bin" >> $GITHUB_PATH
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake curl \
+            python3-dev pybind11-dev \
+            libopenblas-dev liblapack-dev \
+            libeigen3-dev libgtest-dev
 
-      - name: Install dependencies
-        run: poetry install --no-root
+      - name: Install Poetry & deps
+        run: |
+          curl -sSL https://install.python-poetry.org | python3.13 -
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry config virtualenvs.create false
+          poetry install --no-root --no-interaction --no-ansi
+
+      - name: Build Fusion extension
+        working-directory: fusion
+        run: bash compile.sh
 
       - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
-      - name: Run unit tests for tensor module
-        run: poetry run pytest -v tests/unit/tensor
-
-
-  activations_module:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "${{ runner.tool_cache }}/python/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: poetry install --no-root
-
-      - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
-
-      - name: Run unit tests for activations module
-        run: poetry run pytest -v tests/unit/activations
-
-  initialisers_module:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "${{ runner.tool_cache }}/python/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: poetry install --no-root
-
-      - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
-
-      - name: Run unit tests for initialisers module
-        run: poetry run pytest -v tests/unit/initialisers
+      - name: Run ${{ matrix.suite }} unit tests
+        run: poetry run pytest -v ${{ matrix.path }}

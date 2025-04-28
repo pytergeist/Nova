@@ -2,68 +2,55 @@ name: Nova Integration Tests
 
 on:
   push:
-    branches:
-      - main
-
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
-      - dev
+    branches: [ main, dev ]
   workflow_dispatch:
 
-
 jobs:
-  finite_difference_gradients:
+  integration:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+    strategy:
+      matrix:
+        include:
+          - suite: finite-difference
+            path: tests/integration/gradient/finite_difference
+          - suite: pytorch
+            path: tests/integration/gradient/pytorch
 
-      - name: Set up Python
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.13
         uses: actions/setup-python@v4
         with:
           python-version: '3.13'
 
-      - name: Install Poetry
+      - name: Install system build deps
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "${{ runner.tool_cache }}/python/bin" >> $GITHUB_PATH
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake curl \
+            python3-dev pybind11-dev \
+            libopenblas-dev liblapack-dev \
+            libeigen3-dev libgtest-dev
 
-      - name: Install dependencies
-        run: poetry install --no-root
+      - name: Install Poetry & deps
+        run: |
+          curl -sSL https://install.python-poetry.org | python3.13 -
+          export PATH="$HOME/.local/bin:$PATH"
+          poetry config virtualenvs.create false
+          poetry install --no-root --no-interaction --no-ansi
 
       - name: Build Fusion extension
-        run: bash fusion/compile.sh
-
-      - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
-
-      - name: Run integration tests for finite difference gradients
-        run: poetry run pytest -v tests/integration/gradient/finite_difference
-
-  pytorch_gradients:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: Install Poetry
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          echo "${{ runner.tool_cache }}/python/bin" >> $GITHUB_PATH
-
-      - name: Install dependencies
-        run: poetry install --no-root
-
-      - name: Build fusion backend
         working-directory: fusion
         run: bash compile.sh
 
       - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
-      - name: Run unit tests for PyTorch gradients
-        run: poetry run pytest -v tests/integration/gradient/pytorch/
+      - name: Run ${{ matrix.suite }} integration tests
+        run: poetry run pytest -v ${{ matrix.path }}
