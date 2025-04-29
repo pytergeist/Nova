@@ -6,8 +6,8 @@ from nova.src.backend.autodiff import Node
 def print_graph(node: Node, level: int = 0) -> None:
     indent = "  " * level
     # Determine a label for this node:
-    if node.operation and node.operation.op_name:
-        label = node.operation.op_name
+    if node.operation and node.operation.name:
+        label = node.operation.name
     elif node.role:
         label = node.role
     else:
@@ -40,9 +40,9 @@ def print_graph_with_grad(
         return
     visited.add(node_id)
 
-    op_name = node.operation.__class__.__name__ if node.operation else "Leaf"
+    name = node.operation.__class__.__name__ if node.operation else "Leaf"
     grad_str = f", grad={node.grad}" if node.grad is not None else ""
-    print(f"{indent}{op_name} (value={node.value}{grad_str})")
+    print(f"{indent}{name} (value={node.value}{grad_str})")
 
     for parent in node.parents:
         print_graph_with_grad(parent, level + 1, visited)
