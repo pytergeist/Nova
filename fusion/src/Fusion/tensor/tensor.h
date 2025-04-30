@@ -1,8 +1,8 @@
 #ifndef TENSOR_H
 #define TENSOR_H
 
-#include "eigen_tensor.h"
-#include "storage_tensor.h"
+#include "../eigen/eigen_tensor.h"
+#include "../storage/storage_interface.h"
 #include <Eigen/Dense>
 #include <cblas.h>
 #include <initializer_list>

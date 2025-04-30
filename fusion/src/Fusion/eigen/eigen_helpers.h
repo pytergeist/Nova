@@ -1,7 +1,7 @@
 #ifndef EIGEN_HELPERS_H
 #define EIGEN_HELPERS_H
 
-#include "tensor.h"
+#include "../tensor/tensor.h"
 #include <functional>
 
 template <typename T> bool is_scalar(const Tensor<T> &x) {

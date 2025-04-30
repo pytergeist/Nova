@@ -1,7 +1,7 @@
 #ifndef EIGEN_TENSOR_H
 #define EIGEN_TENSOR_H
 
-#include "storage_tensor.h"
+#include "../storage/storage_interface.h"
 #include <Eigen/Dense>
 
 template <typename T> class EigenTensorStorage : public ITensorStorage<T> {
