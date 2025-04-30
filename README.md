@@ -22,14 +22,13 @@ Below is an overview of the nova project’s directory structure, those marked w
 ```plaintext
 nova
 └── src
-    ├── _backends
     ├── backend # dev
     │   ├── autodiff
     │   ├── core
-    │   │   ├── _C # dev
+    │   │   ├── _C # dev - currently the home of .so files for the python bound Fusion Tensor class 
     │   │   └── dtypes # dev
-    │   ├── graph 
-    │   ├── operations
+    │   ├── graph - currently stores simple utilities for showing/visualising comp graph
+    │   ├── operations - contains registry for operations
     │   └── trainers # dev
     ├── blocks
     │   └── activations # dev
