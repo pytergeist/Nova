@@ -2,6 +2,7 @@
 #define TENSOR_STORAGE_H
 
 #include <cstddef>
+#include <vector>
 
 enum class Device {
   CPU,
@@ -17,10 +18,8 @@ public:
   virtual T *data() = 0;
   virtual const T *data() const = 0;
 
-  // row/col info -- TODO: examine this how 3D Tensor (e.g. with batch size)
-  // may need to create a batched tensor subclass?
-  virtual size_t rows() const = 0;
-  virtual size_t cols() const = 0;
+  virtual std::vector<size_t> shape() const = 0;
+  virtual std::vector<size_t> strides() const = 0;
 
   virtual Device device() const = 0;
 };
