@@ -1,16 +1,5 @@
 #include "xsimd/xsimd.hpp"
 #include <cstddef>
-#include <vector>
-
-// namespace binary_ops {
-//     template<typename T>
-//     void add(std::vector<T> &x, std::vector<T> &y, std::vector<T> &z) {
-//         const std::size_t size = z.size();
-//         for (size_t i = 0; i < size; i++) {
-//             z[i] = x[i] + y[i];
-//         }
-//     }
-// }
 
 namespace binary_ops {
 struct add {

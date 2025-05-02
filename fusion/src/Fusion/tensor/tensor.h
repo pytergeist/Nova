@@ -2,6 +2,7 @@
 #define TENSOR_H
 
 #include "../kernels/binary_ops.cpp"
+#include "../kernels/unary_ops.cpp"
 #include "../storage/dense_storage.h"
 #include "../storage/storage_interface.h"
 #include "xsimd/xsimd.hpp"
@@ -116,15 +117,48 @@ public:
     binary_ops::multiply{}(arch{}, v1, v2, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   };
+
+  //
+  Tensor<T> sqrt() {
+    std::vector<size_t> shape = this->shape_;
+    size_t size = this->flat_size();
+    std::vector<T> data;
+    data.resize(size);
+    std::vector<T> v1 = this->raw_data();
+    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+    using tag = xsimd::unaligned_mode;
+    unary_ops::sqrt{}(arch{}, v1, data, tag{});
+    return Tensor<T>(shape, data, Device::CPU);
+  };
+  //
+  Tensor<T> exp() {
+    std::vector<size_t> shape = this->shape_;
+    size_t size = this->flat_size();
+    std::vector<T> data;
+    data.resize(size);
+    std::vector<T> v1 = this->raw_data();
+    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+    using tag = xsimd::unaligned_mode;
+    unary_ops::exp{}(arch{}, v1, data, tag{});
+    return Tensor<T>(shape, data, Device::CPU);
+  };
+
+  //
+  Tensor<T> log() {
+    std::vector<size_t> shape = this->shape_;
+    size_t size = this->flat_size();
+    std::vector<T> data;
+    data.resize(size);
+    std::vector<T> v1 = this->raw_data();
+    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+    using tag = xsimd::unaligned_mode;
+    unary_ops::log{}(arch{}, v1, data, tag{});
+    return Tensor<T>(shape, data, Device::CPU);
+  };
+
+  //
+  // Tensor<T> pow(T exponent) const;
 };
-//
-//     Tensor<T> sqrt() const;
-//
-//     Tensor<T> exp() const;
-//
-//     Tensor<T> log() const;
-//
-//     Tensor<T> pow(T exponent) const;
 //
 //     Tensor<T> pow(const Tensor<T> &exponent) const;
 //
