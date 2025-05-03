@@ -5,7 +5,7 @@ int main() {
   Tensor<double> t2({1}, {1});
 
   // Tensor<double> t3 = t1 * t1;
-  Tensor<double> t3 = t1.log();
+  Tensor<double> t3 = t1.sum();
   std::cout << t3 << std::endl;
   std::cout << t3.rank_ << std::endl;
 

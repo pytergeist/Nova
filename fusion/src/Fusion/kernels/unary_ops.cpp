@@ -56,5 +56,4 @@ struct log {
     }
   }
 };
-
 } // namespace unary_ops

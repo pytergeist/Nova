@@ -2,6 +2,7 @@
 #define TENSOR_H
 
 #include "../kernels/binary_ops.cpp"
+#include "../kernels/reduction_ops.cpp"
 #include "../kernels/unary_ops.cpp"
 #include "../storage/dense_storage.h"
 #include "../storage/storage_interface.h"
@@ -158,11 +159,33 @@ public:
 
   //
   // Tensor<T> pow(T exponent) const;
+
+  //
+  Tensor<T> pow(Tensor<T> &other) {
+    std::vector<size_t> shape = other.shape_;
+    size_t size = other.flat_size();
+    std::vector<T> data;
+    data.resize(size);
+    std::vector<T> v1 = this->raw_data();
+    std::vector<T> v2 = other.raw_data();
+    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+    using tag = xsimd::unaligned_mode;
+    binary_ops::pow{}(arch{}, v1, v2, data, tag{});
+    return Tensor<T>(shape, data, Device::CPU);
+  };
+  //
+  Tensor<T> sum() {
+    std::size_t size = flat_size();
+    std::vector<T> data(1);          // reserve one slot
+    std::vector<T> &in = raw_data(); // reference to your own storage
+
+    using arch = xsimd::default_arch;
+    reduction_ops::sum{}(arch{}, in, data);
+
+    // now `data[0]` holds the total
+    return Tensor<T>({1}, std::move(data), Device::CPU);
+  }
 };
-//
-//     Tensor<T> pow(const Tensor<T> &exponent) const;
-//
-//     Tensor<T> sum() const;
 //
 //     Tensor<T> maximum(const Tensor<T> &other) const;
 //
