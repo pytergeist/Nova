@@ -18,20 +18,20 @@ parts of the framework will be implemented in C++ for performance (the fusion pa
 
 ## Directory Structure
 
-Below is an overview of the nova project’s directory structure, those marked with `# dev` are under development and may not be fully functional yet:
+Below is an overview of the nova project’s directory structure, the repo is under heavy development:
 ```plaintext
 nova
 └── src
     ├── backend # dev
     │   ├── autodiff
     │   ├── core
-    │   │   ├── _C # dev - currently the home of .so files for the python bound Fusion Tensor class 
-    │   │   └── dtypes # dev
+    │   │   ├── _C - currently the home of .so files for the python bound Fusion Tensor class 
+    │   │   └── dtypes 
     │   ├── graph - currently stores simple utilities for showing/visualising comp graph
     │   ├── operations - contains registry for operations
-    │   └── trainers # dev
+    │   └── trainers 
     ├── blocks
-    │   └── activations # dev
+    │   └── activations
     ├── initialisers 
     └── models # dev
 ```
