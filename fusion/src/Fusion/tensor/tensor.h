@@ -2,6 +2,7 @@
 #define TENSOR_H
 
 #include "../kernels/binary_ops.cpp"
+#include "../kernels/cblas.cpp"
 #include "../kernels/reduction_ops.cpp"
 #include "../kernels/unary_ops.cpp"
 #include "../storage/dense_storage.h"
@@ -185,11 +186,33 @@ public:
     // now `data[0]` holds the total
     return Tensor<T>({1}, std::move(data), Device::CPU);
   }
+
+  //
+  Tensor<T> maximum(Tensor<T> &other) {
+    std::vector<size_t> shape = other.shape_;
+    size_t size = other.flat_size();
+    std::vector<T> data;
+    data.resize(size);
+    std::vector<T> v1 = this->raw_data();
+    std::vector<T> v2 = other.raw_data();
+    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+    using tag = xsimd::unaligned_mode;
+    reduction_ops::maximum{}(arch{}, v1, v2, data, tag{});
+    return Tensor<T>(shape, data, Device::CPU);
+  }
+
+  //
+  Tensor<T> matmul(Tensor<T> &other) {
+    std::vector<size_t> shape = other.shape_;
+    std::vector<T> v1 = this->raw_data();
+    std::vector<T> v2 = other.raw_data();
+    std::vector<T> data;
+    size_t size = other.flat_size();
+    data.resize(size);
+    cblas_ops::matmul(v1, v2, shape, data);
+    return Tensor<T>(shape, data, Device::CPU);
+  };
 };
-//
-//     Tensor<T> maximum(const Tensor<T> &other) const;
-//
-//     Tensor<T> matmul(const Tensor<T> &other) const;
 //
 //     Tensor<T> transpose() const;
 //
