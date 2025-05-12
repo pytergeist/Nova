@@ -1,10 +1,8 @@
 #ifndef TENSOR_H
 #define TENSOR_H
-
-#include "../kernels/binary_ops.cpp"
-#include "../kernels/cblas.cpp"
-#include "../kernels/reduction_ops.cpp"
-#include "../kernels/unary_ops.cpp"
+#include "../kernels/cblas_api.cpp"
+#include "../kernels/serial_api.cpp"
+#include "../kernels/xsimd_api.cpp"
 #include "../storage/dense_storage.h"
 #include "../storage/storage_interface.h"
 #include "xsimd/xsimd.hpp"
@@ -70,7 +68,7 @@ public:
     std::vector<T> v2 = other.raw_data();
     using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
     using tag = xsimd::unaligned_mode;
-    binary_ops::add{}(arch{}, v1, v2, data, tag{});
+    xsimd_ops::add{}(arch{}, v1, v2, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   }
 
@@ -84,7 +82,7 @@ public:
     std::vector<T> v2 = other.raw_data();
     using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
     using tag = xsimd::unaligned_mode;
-    binary_ops::subtract{}(arch{}, v1, v2, data, tag{});
+    xsimd_ops::subtract{}(arch{}, v1, v2, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   };
   //
@@ -101,7 +99,7 @@ public:
     std::vector<T> v2 = other.raw_data();
     using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
     using tag = xsimd::unaligned_mode;
-    binary_ops::divide{}(arch{}, v1, v2, data, tag{});
+    xsimd_ops::divide{}(arch{}, v1, v2, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   }
 
@@ -116,7 +114,7 @@ public:
     std::vector<T> v2 = other.raw_data();
     using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
     using tag = xsimd::unaligned_mode;
-    binary_ops::multiply{}(arch{}, v1, v2, data, tag{});
+    xsimd_ops::multiply{}(arch{}, v1, v2, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   };
 
@@ -129,7 +127,7 @@ public:
     std::vector<T> v1 = this->raw_data();
     using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
     using tag = xsimd::unaligned_mode;
-    unary_ops::sqrt{}(arch{}, v1, data, tag{});
+    xsimd_ops::sqrt{}(arch{}, v1, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   };
   //
@@ -141,7 +139,7 @@ public:
     std::vector<T> v1 = this->raw_data();
     using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
     using tag = xsimd::unaligned_mode;
-    unary_ops::exp{}(arch{}, v1, data, tag{});
+    xsimd_ops::exp{}(arch{}, v1, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   };
 
@@ -154,7 +152,7 @@ public:
     std::vector<T> v1 = this->raw_data();
     using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
     using tag = xsimd::unaligned_mode;
-    unary_ops::log{}(arch{}, v1, data, tag{});
+    xsimd_ops::log{}(arch{}, v1, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   };
 
@@ -171,7 +169,7 @@ public:
     std::vector<T> v2 = other.raw_data();
     using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
     using tag = xsimd::unaligned_mode;
-    binary_ops::pow{}(arch{}, v1, v2, data, tag{});
+    xsimd_ops::pow{}(arch{}, v1, v2, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   };
   //
@@ -181,7 +179,7 @@ public:
     std::vector<T> &in = raw_data(); // reference to your own storage
 
     using arch = xsimd::default_arch;
-    reduction_ops::sum{}(arch{}, in, data);
+    xsimd_ops::sum{}(arch{}, in, data);
 
     // now `data[0]` holds the total
     return Tensor<T>({1}, std::move(data), Device::CPU);
@@ -197,7 +195,7 @@ public:
     std::vector<T> v2 = other.raw_data();
     using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
     using tag = xsimd::unaligned_mode;
-    reduction_ops::maximum{}(arch{}, v1, v2, data, tag{});
+    xsimd_ops::maximum{}(arch{}, v1, v2, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   }
 
@@ -212,9 +210,17 @@ public:
     cblas_ops::matmul(v1, v2, shape, data);
     return Tensor<T>(shape, data, Device::CPU);
   };
+  //
+  Tensor<T> transpose() {
+    std::vector<size_t> shape = this->shape_;
+    std::vector<T> v1 = this->raw_data();
+    std::vector<T> data;
+    size_t size = this->flat_size();
+    data.resize(size);
+    serial_ops::transpose(v1, shape, data);
+    return Tensor<T>(shape, data, Device::CPU);
+  };
 };
-//
-//     Tensor<T> transpose() const;
 //
 //     Tensor<T> diagonal() const;
 // };
