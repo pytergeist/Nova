@@ -6,7 +6,6 @@
 #include "../storage/dense_storage.h"
 #include "../storage/storage_interface.h"
 #include "xsimd/xsimd.hpp"
-#include <Eigen/Dense>
 #include <cblas.h>
 #include <initializer_list>
 #include <iostream>
@@ -55,7 +54,8 @@ public:
     return os;
   }
 
-  std::vector<T> &raw_data() { return storage->data(); }
+  std::vector<T> &raw_data()       { return storage->data(); }
+  const std::vector<T> &raw_data() const { return storage->data(); }
   [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
   // overload the + operator
@@ -186,30 +186,45 @@ public:
   }
 
   //
-  Tensor<T> maximum(Tensor<T> &other) {
-    std::vector<size_t> shape = other.shape_;
-    size_t size = other.flat_size();
-    std::vector<T> data;
-    data.resize(size);
-    std::vector<T> v1 = this->raw_data();
-    std::vector<T> v2 = other.raw_data();
-    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
-    using tag = xsimd::unaligned_mode;
-    xsimd_ops::maximum{}(arch{}, v1, v2, data, tag{});
-    return Tensor<T>(shape, data, Device::CPU);
+  Tensor<T> maximum(const Tensor<T> &other) const {
+    std::vector<size_t> shape = this->shape_;
+    size_t               size  = this->flat_size();
+
+    const auto &a = this->raw_data();
+    std::vector<T> b;
+    if (other.flat_size() == 1) {
+      b.assign(size, other.raw_data()[0]);
+    } else if (other.flat_size() == size) {
+      b = other.raw_data();
+    } else {
+      throw std::invalid_argument("Shapes not compatible for maximum");
+    }
+
+    std::vector<T> data(size);
+    using arch = xsimd::default_arch;
+    using tag  = xsimd::unaligned_mode;
+    xsimd_ops::maximum{}(arch{}, a, b, data, tag{});
+
+    return Tensor<T>(shape, std::move(data), Device::CPU);
   }
+
 
   //
   Tensor<T> matmul(Tensor<T> &other) {
-    std::vector<size_t> shape = other.shape_;
-    std::vector<T> v1 = this->raw_data();
-    std::vector<T> v2 = other.raw_data();
-    std::vector<T> data;
-    size_t size = other.flat_size();
-    data.resize(size);
-    cblas_ops::matmul(v1, v2, shape, data);
-    return Tensor<T>(shape, data, Device::CPU);
-  };
+    auto const &shapeA = this->shape_;
+    auto const &shapeB = other.shape_;
+
+    size_t m = shapeA[0], n = shapeB[1];
+    std::vector<T> data(m * n);
+
+    cblas_ops::matmul(
+      this->raw_data(), shapeA,
+      other.raw_data(), shapeB,
+      data
+    );
+
+    return Tensor<T>({m, n}, std::move(data), Device::CPU);
+  }
   //
   Tensor<T> transpose() {
     std::vector<size_t> shape = this->shape_;

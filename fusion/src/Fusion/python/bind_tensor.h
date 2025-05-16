@@ -1,82 +1,91 @@
+// bind_tensor.h
 #pragma once
 
 #include "../tensor/tensor.h"
 #include "helpers.h"
 
-#include <algorithm>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <sstream>
 #include <stdexcept>
+#include <numeric>
 
 namespace py = pybind11;
 
-template <typename T> void bind_tensor(py::module_ &m, const char *name) {
-  using PyT = Tensor<T>;
+template <typename T>
+void bind_tensor(py::module_ &m, const char *name) {
+    using PyT = Tensor<T>;
 
-  py::class_<PyT>(m, name)
-      // --- constructor from (rows, cols) ---
-      .def(py::init<size_t, size_t>(), py::arg("rows"), py::arg("cols"),
-           "Construct a Tensor with given shape (rows, cols). Contents "
-           "uninitialized.")
+    py::class_<PyT>(m, name)
+        // --- constructor(shape: List[int]) → zero‐initialized tensor ---
+        .def(py::init([](const std::vector<size_t> &shape){
+            size_t total = std::accumulate(shape.begin(), shape.end(), (size_t)1, std::multiplies<size_t>());
+            return new PyT(shape, std::vector<T>(total));
+        }), py::arg("shape"),
+           "Construct a Tensor of given shape, zero‐initialized.")
 
-      // --- set raw values from a flat Python list ---
-      .def(
-          "set_values",
-          [](PyT &t, const std::vector<T> &vals) {
-            size_t expected = t.storage->rows() * t.storage->cols();
-            if (vals.size() != expected) {
-              throw std::invalid_argument(
-                  "set_values: expected " + std::to_string(expected) +
-                  " elements, got " + std::to_string(vals.size()));
+        // --- constructor(shape, flat_data) ---
+        .def(py::init([](const std::vector<size_t> &shape, const std::vector<T> &data){
+            size_t total = std::accumulate(shape.begin(), shape.end(), (size_t)1, std::multiplies<size_t>());
+            if (data.size() != total) {
+                throw std::invalid_argument("shape* must equal data.size()");
             }
-            std::copy(vals.begin(), vals.end(), t.storage->data());
-          },
-          py::arg("values"),
-          "Fill the Tensor from a flat list of length rows*cols.")
+            return new PyT(shape, data);
+        }), py::arg("shape"), py::arg("data"),
+           "Construct a Tensor from a shape list and a flat data list.")
 
-      // --- expose as NumPy array ---
-      .def("to_numpy", &tensor_py_helpers::tensor_to_numpy,
-           "Return a NumPy array view of the Tensor’s contents "
-           "(1-D vectors squeezed).")
+        // --- fill from Python list ---
+        .def("set_values",
+             [](PyT &t, const std::vector<T> &vals){
+               size_t expected = t.flat_size();
+               if (vals.size() != expected) {
+                 throw std::invalid_argument(
+                   "set_values: expected " + std::to_string(expected) +
+                   " elements, got " + std::to_string(vals.size()));
+               }
+               auto &out = t.raw_data();
+               std::copy(vals.begin(), vals.end(), out.begin());
+             },
+             py::arg("values"),
+             "Fill the Tensor with a flat list of length prod(shape).")
 
-      // --- shape getter ---
-      .def("shape", &PyT::shape,
-           "Return [rows, cols] as a Python list of two ints.")
+        // --- shape & size accessors ---
+        .def_property_readonly("shape", [](const PyT &t){
+            return t.shape_;
+        }, "Returns the shape as a list of ints.")
+        .def_property_readonly("size", &PyT::flat_size,
+            "Returns total number of elements (product of shape).")
 
-      // --- repr for debugging ---
-      .def("__repr__",
-           [](const PyT &t) {
-             std::ostringstream oss;
-             oss << t;
-             return oss.str();
-           })
+        // --- convert to NumPy array ---
+        .def("to_numpy", &tensor_py_helpers::tensor_to_numpy,
+             "Return a NumPy array view of the Tensor’s contents.")
 
-      // --- elementwise binary operators ---
-      .def("__add__", &PyT::operator+)
-      .def("__sub__",
-           py::overload_cast<const PyT &>(&PyT::operator-, py::const_))
-      .def("__mul__", &PyT::operator*)
-      .def("__truediv__", &PyT::operator/)
+        // --- repr for debugging ---
+        .def("__repr__", [](const PyT &t){
+            std::ostringstream oss;
+            oss << t;
+            return oss.str();
+        })
 
-      // --- matrix multiply ---
-      .def("__matmul__", &PyT::matmul,
-           "Matrix multiplication (like @ in NumPy)")
-      .def("__pow__", py::overload_cast<T>(&PyT::pow, py::const_),
-           py::arg("exponent"), "Raise each element to a scalar power.")
+        // --- elementwise binary ops ---
+        .def("__add__", &PyT::operator+)
+        .def("__sub__", &PyT::operator-)
+        .def("__mul__", &PyT::operator*)
+        .def("__truediv__", &PyT::operator/)
 
-      // ** operator: tensor version
-      .def("__pow__", py::overload_cast<const PyT &>(&PyT::pow, py::const_),
-           py::arg("exponent"), "Elementwise tensor power.")
-      // --- unary ops ---
-      .def("__neg__", py::overload_cast<>(&PyT::operator-, py::const_))
-      .def("sqrt", &PyT::sqrt)
-      .def("exp", &PyT::exp)
-      .def("log", &PyT::log)
+        // --- matrix multiply ( @ ) ---
+        .def("__matmul__", &PyT::matmul, "Matrix multiplication (A @ B)")
 
-      // --- reductions & others ---
-      .def("sum", &PyT::sum)
-      .def("maximum", &PyT::maximum, py::arg("other"))
-      .def("transpose", &PyT::transpose)
-      .def("diagonal", &PyT::diagonal);
+        // --- elementwise tensor‐power ---
+        .def("__pow__", &PyT::pow, py::arg("other"),
+             "Elementwise power: each element raised to corresponding element of other tensor.")
+
+        // --- unary & other ops ---
+        .def("sqrt", &PyT::sqrt)
+        .def("exp",   &PyT::exp)
+        .def("log",   &PyT::log)
+        .def("sum",   &PyT::sum)
+        .def("maximum", &PyT::maximum, py::arg("other"))
+        .def("transpose", &PyT::transpose,
+             "Return a new Tensor that is the transpose of this one.");
 }

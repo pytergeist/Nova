@@ -1,4 +1,5 @@
 # registry.py
+
 import numpy as np
 
 from .operation import Operation
@@ -66,12 +67,10 @@ def matmul_backward(result, a, b, grad_output):
     A = a.value
     B = b.value
     dZ = grad_output
-
     if dZ.ndim == 1:
         dZ = dZ[:, None]
     if B.ndim == 1:
         B = B[:, None]
-
     grad_a = dZ @ B.T
     grad_b = A.T @ dZ
 
@@ -98,8 +97,8 @@ def sum_backward(result, a, grad_output):
     If 'result' is a scalar, 'grad_output' is also scalar (or shape () in NumPy).
     The gradient wrt 'a' is just grad_output * ones_like(a.value).
     """
-    grad_a = grad_output * np.ones_like(a.value)
-    return (grad_a,)
+    g = grad_output if grad_output is not None else np.array([1.0])
+    return np.ones_like(a.value) * float(np.array(g).ravel()[0])
 
 
 sum_op = Operation(

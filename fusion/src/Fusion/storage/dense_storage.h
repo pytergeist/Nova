@@ -2,7 +2,6 @@
 #define DENSE_STORAGE_H
 
 #include "../storage/storage_interface.h"
-#include <Eigen/Dense>
 #include <utility>
 
 template <typename T> class NDTensorStorage : public ITensorStorage<T> {
