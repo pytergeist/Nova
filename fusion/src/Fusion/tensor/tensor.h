@@ -174,7 +174,6 @@ public:
   };
   //
   Tensor<T> sum() {
-    std::size_t size = flat_size();
     std::vector<T> data(1);          // reserve one slot
     std::vector<T> &in = raw_data(); // reference to your own storage
 
