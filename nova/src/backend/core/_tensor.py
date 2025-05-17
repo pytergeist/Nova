@@ -38,11 +38,13 @@ class Tensor(_C.Tensor):
         _node: Optional[Node] = None,
     ):
         arr = np.array(data, dtype=dtype)
-        rows, cols = arr.shape if arr.ndim == 2 else (1, arr.size)
-        super().__init__(rows, cols)
-
+        shape = list(arr.shape)
+        if not shape:
+            shape = [1]
         flat = arr.ravel().tolist()
-        self.set_values(flat)
+        if not isinstance(flat, list):
+            flat = [flat]
+        super().__init__(shape, flat)
 
         self.engine = engine.get_current() if engine else Engine()
         if _node is None:
@@ -158,9 +160,12 @@ class Tensor(_C.Tensor):
         out = Tensor.__new__(Tensor)
         object.__setattr__(out, "_node", node)
         object.__setattr__(out, "engine", self.engine)
-        out_rows, out_cols = fusion_tensor.shape()
-        super(Tensor, out).__init__(out_rows, out_cols)
-        out.set_values(fusion_tensor.to_numpy().ravel().tolist())
+        shape = fusion_tensor.shape
+        arr = fusion_tensor.to_numpy()
+        flat = arr.ravel().tolist()
+        if not isinstance(flat, list):
+            flat = [flat]
+        super(Tensor, out).__init__(shape, flat)
         return out
 
     def __add__(self, other: Union["Tensor", np.ndarray, float, int]) -> "Tensor":

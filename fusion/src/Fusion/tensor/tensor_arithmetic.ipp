@@ -1,7 +1,7 @@
 #ifndef TENSOR_ARITHMETIC_IPP
 #define TENSOR_ARITHMETIC_IPP
 
-#include "eigen_helpers.h"
+#include "../eigen/eigen_helpers.h"
 
 // +, -, *, /:
 template<typename T>
