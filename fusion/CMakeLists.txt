@@ -89,27 +89,27 @@ target_link_libraries(FusionExecutable PRIVATE
         ${OPENBLAS_LIB}
 )
 
-##------------------------- Tests (GoogleTest) -------------------------#
-#enable_testing()
-#
-#set(GTest_DIR "/opt/homebrew/Cellar/googletest/1.11.0/lib/cmake/GTest")
-#find_package(GTest REQUIRED)
-#
-#add_executable(FusionTests
-#        src/Fusion/tests/tensor_ops_tests.cpp
-#)
-#
-#target_include_directories(FusionTests PRIVATE
-#        src/Fusion/tensor
-#        ${OPENBLAS_INCLUDE_DIR}
-#        ${Eigen3_INCLUDE_DIR}
-#        ${XSIMD_INCLUDE_DIR}
-#)
-#
-#target_link_libraries(FusionTests PRIVATE
-#        GTest::gtest_main
-#        pthread
-#        ${OPENBLAS_LIB}
-#)
-#
-#add_test(NAME FusionTests COMMAND FusionTests)
+#------------------------- Tests (GoogleTest) -------------------------#
+enable_testing()
+
+set(GTest_DIR "/opt/homebrew/Cellar/googletest/1.11.0/lib/cmake/GTest")
+find_package(GTest REQUIRED)
+
+add_executable(FusionTests
+        src/Fusion/tests/tensor_cpu_tests.cpp
+)
+
+target_include_directories(FusionTests PRIVATE
+        src/Fusion/tensor
+        ${OPENBLAS_INCLUDE_DIR}
+        ${Eigen3_INCLUDE_DIR}
+        ${XSIMD_INCLUDE_DIR}
+)
+
+target_link_libraries(FusionTests PRIVATE
+        GTest::gtest_main
+        pthread
+        ${OPENBLAS_LIB}
+)
+
+add_test(NAME FusionTests COMMAND FusionTests)

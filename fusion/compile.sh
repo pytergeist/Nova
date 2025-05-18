@@ -7,7 +7,9 @@ cd build
 
 cmake \
   -DPython_EXECUTABLE:FILEPATH="$(which python)" \
-  -DCMAKE_PREFIX_PATH="/opt/homebrew/Cellar/spack/0.23.1/opt/spack/darwin-sequoia-m1/apple-clang-17.0.0/xsimd-8.1.0-s3yjkaw2c7iwa6wpqkcofp5fgzk6xhsw" \
+  -DPython_EXECUTABLE:FILEPATH="$(which python)" \
+  -DCMAKE_PREFIX_PATH="/opt/homebrew;/opt/homebrew/Cellar/spack/0.23.1/.../xsimd-8.1.0-.../include" \
+  -DGTest_DIR="/opt/homebrew/Cellar/googletest/1.11.0/lib/cmake/GTest" \
   ..
 
 make

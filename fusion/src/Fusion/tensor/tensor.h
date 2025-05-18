@@ -54,14 +54,16 @@ public:
     return os;
   }
 
-  std::vector<T> &raw_data()       { return storage->data(); }
+  std::vector<T> &raw_data() { return storage->data(); }
   const std::vector<T> &raw_data() const { return storage->data(); }
   [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
   // overload the + operator
   Tensor<T> operator+(Tensor<T> &other) {
-    std::vector<size_t> shape = other.shape_;
-    size_t size = other.flat_size();
+    std::vector<size_t> shape =
+        (other.flat_size() == 1) ? this->shape_ : other.shape_;
+    size_t size =
+        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
     std::vector<T> data;
     data.resize(size);
     std::vector<T> v1 = this->raw_data();
@@ -74,8 +76,10 @@ public:
 
   //     // overload the - operator for tensor - tensor
   Tensor<T> operator-(Tensor<T> &other) {
-    std::vector<size_t> shape = other.shape_;
-    size_t size = other.flat_size();
+    std::vector<size_t> shape =
+        (other.flat_size() == 1) ? this->shape_ : other.shape_;
+    size_t size =
+        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
     std::vector<T> data;
     data.resize(size);
     std::vector<T> v1 = this->raw_data();
@@ -91,8 +95,10 @@ public:
   //
   //     // overload the / operator
   Tensor<T> operator/(Tensor<T> &other) {
-    std::vector<size_t> shape = other.shape_;
-    size_t size = other.flat_size();
+    std::vector<size_t> shape =
+        (other.flat_size() == 1) ? this->shape_ : other.shape_;
+    size_t size =
+        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
     std::vector<T> data;
     data.resize(size);
     std::vector<T> v1 = this->raw_data();
@@ -106,8 +112,10 @@ public:
   //
   //     // overload the + operator
   Tensor<T> operator*(Tensor<T> &other) {
-    std::vector<size_t> shape = other.shape_;
-    size_t size = other.flat_size();
+    std::vector<size_t> shape =
+        (other.flat_size() == 1) ? this->shape_ : other.shape_;
+    size_t size =
+        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
     std::vector<T> data;
     data.resize(size);
     std::vector<T> v1 = this->raw_data();
@@ -161,8 +169,10 @@ public:
 
   //
   Tensor<T> pow(Tensor<T> &other) {
-    std::vector<size_t> shape = other.shape_;
-    size_t size = other.flat_size();
+    std::vector<size_t> shape =
+        (other.flat_size() == 1) ? this->shape_ : other.shape_;
+    size_t size =
+        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
     std::vector<T> data;
     data.resize(size);
     std::vector<T> v1 = this->raw_data();
@@ -187,7 +197,7 @@ public:
   //
   Tensor<T> maximum(const Tensor<T> &other) const {
     std::vector<size_t> shape = this->shape_;
-    size_t               size  = this->flat_size();
+    size_t size = this->flat_size();
 
     const auto &a = this->raw_data();
     std::vector<T> b;
@@ -201,12 +211,11 @@ public:
 
     std::vector<T> data(size);
     using arch = xsimd::default_arch;
-    using tag  = xsimd::unaligned_mode;
+    using tag = xsimd::unaligned_mode;
     xsimd_ops::maximum{}(arch{}, a, b, data, tag{});
 
     return Tensor<T>(shape, std::move(data), Device::CPU);
   }
-
 
   //
   Tensor<T> matmul(Tensor<T> &other) {
@@ -216,11 +225,7 @@ public:
     size_t m = shapeA[0], n = shapeB[1];
     std::vector<T> data(m * n);
 
-    cblas_ops::matmul(
-      this->raw_data(), shapeA,
-      other.raw_data(), shapeB,
-      data
-    );
+    cblas_ops::matmul(this->raw_data(), shapeA, other.raw_data(), shapeB, data);
 
     return Tensor<T>({m, n}, std::move(data), Device::CPU);
   }
