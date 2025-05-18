@@ -3,10 +3,23 @@
 #include <cstddef>
 
 namespace xsimd_ops {
+void apply_scalar_broadcast(std::vector<double> &a, std::vector<double> &b) {
+  size_t na = a.size();
+  size_t nb = b.size();
+  if (na == nb) {
+    return;
+  }
+  const size_t max = std::max(na, nb);
+  for (std::size_t i = 0; i < max - 1; i++) {
+    na > nb ? b.push_back(b[0]) : a.push_back(a[0]);
+  }
+}
+
 // Binary Operations
 struct add {
   template <class C, class Tag, class Arch>
-  void operator()(Arch, const C &a, const C &b, C &res, Tag) {
+  void operator()(Arch, C &a, C &b, C &res, Tag) {
+    apply_scalar_broadcast(a, b);
     using b_type = xsimd::batch<double, Arch>;
     std::size_t inc = b_type::size;
     std::size_t size = res.size();
@@ -27,7 +40,8 @@ struct add {
 
 struct divide {
   template <class C, class Tag, class Arch>
-  void operator()(Arch, const C &a, const C &b, C &res, Tag) {
+  void operator()(Arch, C &a, C &b, C &res, Tag) {
+    apply_scalar_broadcast(a, b);
     using b_type = xsimd::batch<double, Arch>;
     std::size_t inc = b_type::size;
     std::size_t size = res.size();
@@ -46,7 +60,8 @@ struct divide {
 
 struct subtract {
   template <class C, class Tag, class Arch>
-  void operator()(Arch, const C &a, const C &b, C &res, Tag) {
+  void operator()(Arch, C &a, C &b, C &res, Tag) {
+    apply_scalar_broadcast(a, b);
     using b_type = xsimd::batch<double, Arch>;
     std::size_t inc = b_type::size;
     std::size_t size = res.size();
@@ -65,7 +80,8 @@ struct subtract {
 
 struct multiply {
   template <class C, class Tag, class Arch>
-  void operator()(Arch, const C &a, const C &b, C &res, Tag) {
+  void operator()(Arch, C &a, C &b, C &res, Tag) {
+    apply_scalar_broadcast(a, b);
     using b_type = xsimd::batch<double, Arch>;
     std::size_t inc = b_type::size;
     std::size_t size = res.size();
@@ -84,7 +100,8 @@ struct multiply {
 
 struct pow {
   template <class C, class Tag, class Arch>
-  void operator()(Arch, const C &a, const C &b, C &res, Tag) {
+  void operator()(Arch, C &a, C &b, C &res, Tag) {
+    apply_scalar_broadcast(a, b);
     using b_type = xsimd::batch<double, Arch>;
     std::size_t inc = b_type::size;
     std::size_t size = res.size();
