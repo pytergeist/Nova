@@ -110,7 +110,7 @@ class Node:
 
         expected_shape = (
             self.value.shape
-        )  # TODO: why tf has changing to an eigen backend caused jacobian to be an identity matrix*grad_vector
+        )  # TODO: This jacobian is hacky - implament proper n-D handling
         if grad_output.shape != expected_shape:
             if grad_output.ndim == 2:
                 grad_output = np.diag(grad_output)

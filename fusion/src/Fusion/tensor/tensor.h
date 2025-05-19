@@ -230,15 +230,17 @@ public:
     return Tensor<T>({m, n}, std::move(data), Device::CPU);
   }
   //
+
   Tensor<T> transpose() {
-    std::vector<size_t> shape = this->shape_;
-    std::vector<T> v1 = this->raw_data();
-    std::vector<T> data;
-    size_t size = this->flat_size();
-    data.resize(size);
-    serial_ops::transpose(v1, shape, data);
-    return Tensor<T>(shape, data, Device::CPU);
-  };
+    std::vector<size_t> new_shape(shape_.rbegin(), shape_.rend());
+
+    size_t size = flat_size();
+    std::vector<T> new_data(size);
+
+    serial_ops::transpose(this->raw_data(), this->shape_, new_data);
+
+    return Tensor<T>(std::move(new_shape), std::move(new_data), Device::CPU);
+  }
 };
 //
 //     Tensor<T> diagonal() const;

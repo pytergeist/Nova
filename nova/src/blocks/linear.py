@@ -1,5 +1,6 @@
 from typing import Any, Dict
 
+from nova.logging.log_config import logger
 from nova.src.backend.core import Tensor
 from nova.src.blocks._block import Block
 
@@ -20,6 +21,9 @@ class Linear(Block):
         self.kernel_initialiser = kernel_initialiser
         self.bias = bias
         self.bias_initialiser = bias_initialiser
+        logger.debug(
+            f"Initialising linear layer with units: {self.units}, bias: {self.bias}"
+        )
 
     def build(self, input_shape):
         self.kernel = self.add_weight(
@@ -46,12 +50,17 @@ class Linear(Block):
         }
 
     def forward(self, inputs):
+        logger.debug(
+            f"Forward pass through linear layer with inputs: {inputs.data.shape}"
+        )
         return self.call(inputs)
 
     def call(self, inputs):
         # For an input of shape (batch, in_features) and a kernel of shape (units, in_features),
         # we compute the output as: output = inputs @ kernel.T + bias.
+        logger.debug(f"Calling linear layer with inputs: {inputs.data.shape}")
         output = inputs @ self.kernel.T
+        logger.debug(f"Output after kernel multiplication: {output.data.shape}")
         if self.bias:
             output += self.bias
         return output

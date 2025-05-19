@@ -18,8 +18,8 @@ clean:
 	ECHO "Successfully cleaned caches, checkpoints, and trash"
 
 clean-logs:
-	@if [ -f nova/logging/logs/error.log ] || [ -f nova/logging/logs/std.log ]; then \
-		rm -f nova/logging/logs/error.log nova/logging/logs/std.log; \
+	@if [ -f nova/logging/logs/error.log ] || [ -f nova/logging/logs/std.log ] || [ -f nova/logging/logs/debug.log ]; then \
+		rm -f nova/logging/logs/error.log nova/logging/logs/std.log nova/logging/logs/debug.log; \
 		echo "Successfully removed system log files"; \
 	else \
 		echo "No log files found"; \

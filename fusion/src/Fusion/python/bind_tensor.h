@@ -79,6 +79,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       // --- elementwise binary ops ---
       .def("__add__", &PyT::operator+)
       .def("__sub__", &PyT::operator-)
+      .def("__rsub__", &PyT::operator-)
       .def("__mul__", &PyT::operator*)
       .def("__truediv__", &PyT::operator/)
 
