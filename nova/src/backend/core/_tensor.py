@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Literal, Optional, Sequence, Union
 import numpy as np
 
 import nova.src.backend.operations as ops
-from nova.logging import logger
 from nova.src.backend.autodiff import Engine, Node
 from nova.src.backend.core import _C
 
@@ -129,16 +128,10 @@ class Tensor(_C.Tensor):
         if not isinstance(other, Tensor):
             other = Tensor(other)
 
-        logger.debug(
-            f"Applying operation {operation.name} to tensor: {self.data.shape} and other {other.data.shape}"
-        )
-
         cpp_self = get_cpp(self)
         cpp_other = get_cpp(other)
         cpp_out = getattr(_C.Tensor, operation.name)(cpp_self, cpp_other)
         out_val = cpp_out.to_numpy()
-
-        logger.debug(f"Result of operation {operation.name}: {out_val.shape}")
 
         out_node = self.engine.build_node(
             data=out_val,
@@ -150,13 +143,9 @@ class Tensor(_C.Tensor):
         return self._create_new_fusion_wrapped_tensor(out_node, cpp_out)
 
     def _apply_unary_op(self, operation: "Operation") -> "Tensor":
-        logger.debug(
-            f"Applying operation {operation.name} to tensor: {self.data.shape}"
-        )
         cpp_self = get_cpp(self)
         cpp_out = getattr(_C.Tensor, operation.name)(cpp_self)
         out_val = cpp_out.to_numpy()
-        logger.debug(f"Result of operation {operation.name}: {out_val.shape}")
         out_node = self.engine.build_node(
             data=out_val,
             operation=operation,
