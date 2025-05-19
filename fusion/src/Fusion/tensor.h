@@ -1,10 +1,10 @@
 #ifndef TENSOR_H
 #define TENSOR_H
-#include "../kernels/cblas_api.cpp"
-#include "../kernels/serial_api.cpp"
-#include "../kernels/xsimd_api.cpp"
-#include "../storage/dense_storage.h"
-#include "../storage/storage_interface.h"
+#include "kernels/cblas_api.cpp"
+#include "kernels/serial_api.cpp"
+#include "kernels/xsimd_api.cpp"
+#include "storage/dense_storage.h"
+#include "storage/storage_interface.h"
 #include "xsimd/xsimd.hpp"
 #include <cblas.h>
 #include <initializer_list>

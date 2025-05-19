@@ -1,6 +1,6 @@
 // tensor_ops_test.cpp
 
-#include "../tensor/tensor.h"
+#include "../tensor.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <stdexcept>

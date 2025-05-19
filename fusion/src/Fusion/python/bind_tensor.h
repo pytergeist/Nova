@@ -1,7 +1,7 @@
 // bind_tensor.h
 #pragma once
 
-#include "../tensor/tensor.h"
+#include "../tensor.h"
 #include "helpers.h"
 
 #include <numeric>
