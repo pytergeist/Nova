@@ -38,6 +38,9 @@ void simd_broadcast_binary(const T *a, size_t na, const T *b, size_t nb, T *r,
   }
 }
 
+
+
+
 struct add {
   template <class T, class Arch, class Tag>
   void operator()(Arch arch, const T *a, size_t na, const T *b, size_t nb, T *r,
@@ -101,6 +104,9 @@ struct maximum {
 };
 
 // Unary Operations
+
+
+
 
 struct exp {
   template <class C, class Tag, class Arch>
