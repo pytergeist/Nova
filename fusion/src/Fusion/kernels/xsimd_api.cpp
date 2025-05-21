@@ -3,118 +3,100 @@
 #include <cstddef>
 
 namespace xsimd_ops {
-void apply_scalar_broadcast(std::vector<double> &a, std::vector<double> &b) {
-  size_t na = a.size();
-  size_t nb = b.size();
-  if (na == nb) {
-    return;
+
+std::pair<bool, bool> is_scalar(size_t na, size_t nb) {
+  return {na == 1, nb == 1};
+}
+
+template <class T, class Arch, class Tag,
+          class VecOp,   // batch_t -> batch_t -> batch_t
+          class ScalarOp // T -> T -> T
+          >
+void simd_broadcast_binary(const T *a, size_t na, const T *b, size_t nb, T *r,
+                           size_t nr, Arch arch, Tag tag, VecOp vec_op,
+                           ScalarOp scalar_op) {
+  using batch_t = xsimd::batch<T, Arch>;
+  constexpr size_t N = batch_t::size;
+  bool a_is_scalar = (na == 1), b_is_scalar = (nb == 1);
+  size_t vec_end = nr - (nr % N);
+  batch_t a0{}, b0{};
+  if (a_is_scalar)
+    a0 = batch_t::broadcast(a[0]);
+  if (b_is_scalar)
+    b0 = batch_t::broadcast(b[0]);
+
+  for (size_t i = 0; i < vec_end; i += N) {
+    auto va = a_is_scalar ? a0 : batch_t::load_unaligned(a + i);
+    auto vb = b_is_scalar ? b0 : batch_t::load_unaligned(b + i);
+    auto vr = vec_op(va, vb);
+    xsimd::store_unaligned(r + i, vr);
   }
-  const size_t max = std::max(na, nb);
-  for (std::size_t i = 0; i < max - 1; i++) {
-    na > nb ? b.push_back(b[0]) : a.push_back(a[0]);
+  for (size_t i = vec_end; i < nr; ++i) {
+    T aval = a_is_scalar ? a[0] : a[i];
+    T bval = b_is_scalar ? b[0] : b[i];
+    r[i] = scalar_op(aval, bval);
   }
 }
 
-// Binary Operations
 struct add {
-  template <class C, class Tag, class Arch>
-  void operator()(Arch, C &a, C &b, C &res, Tag) {
-    apply_scalar_broadcast(a, b);
-    using b_type = xsimd::batch<double, Arch>;
-    std::size_t inc = b_type::size;
-    std::size_t size = res.size();
-    // size for which the vectorization is possible
-    std::size_t vec_size = size - size % inc;
-    for (std::size_t i = 0; i < vec_size; i += inc) {
-      b_type avec = b_type::load(&a[i], Tag());
-      b_type bvec = b_type::load(&b[i], Tag());
-      b_type rvec = avec + bvec;
-      xsimd::store(&res[i], rvec, Tag());
-    }
-    // Remaining part that cannot be vectorize
-    for (std::size_t i = vec_size; i < size; ++i) {
-      res[i] = a[i] + b[i];
-    }
+  template <class T, class Arch, class Tag>
+  void operator()(Arch arch, const T *a, size_t na, const T *b, size_t nb, T *r,
+                  size_t nr, Tag tag) const {
+    simd_broadcast_binary<T, Arch, Tag>(
+        a, na, b, nb, r, nr, arch, tag, [](auto x, auto y) { return x + y; },
+        [](T x, T y) { return x + y; });
   }
 };
 
 struct divide {
-  template <class C, class Tag, class Arch>
-  void operator()(Arch, C &a, C &b, C &res, Tag) {
-    apply_scalar_broadcast(a, b);
-    using b_type = xsimd::batch<double, Arch>;
-    std::size_t inc = b_type::size;
-    std::size_t size = res.size();
-    std::size_t vec_size = size - size % inc;
-    for (std::size_t i = 0; i < vec_size; i += inc) {
-      b_type avec = b_type::load(&a[i], Tag());
-      b_type bvec = b_type::load(&b[i], Tag());
-      b_type rvec = avec / bvec;
-      xsimd::store(&res[i], rvec, Tag());
-    }
-    for (std::size_t i = vec_size; i < size; ++i) {
-      res[i] = a[i] / b[i];
-    }
+  template <class T, class Arch, class Tag>
+  void operator()(Arch arch, const T *a, size_t na, const T *b, size_t nb, T *r,
+                  size_t nr, Tag tag) const {
+    simd_broadcast_binary<T, Arch, Tag>(
+        a, na, b, nb, r, nr, arch, tag, [](auto x, auto y) { return x / y; },
+        [](T x, T y) { return x / y; });
   }
 };
 
 struct subtract {
-  template <class C, class Tag, class Arch>
-  void operator()(Arch, C &a, C &b, C &res, Tag) {
-    apply_scalar_broadcast(a, b);
-    using b_type = xsimd::batch<double, Arch>;
-    std::size_t inc = b_type::size;
-    std::size_t size = res.size();
-    std::size_t vec_size = size - size % inc;
-    for (std::size_t i = 0; i < vec_size; i += inc) {
-      b_type avec = b_type::load(&a[i], Tag());
-      b_type bvec = b_type::load(&b[i], Tag());
-      b_type rvec = avec - bvec;
-      xsimd::store(&res[i], rvec, Tag());
-    }
-    for (std::size_t i = vec_size; i < size; ++i) {
-      res[i] = a[i] - b[i];
-    }
+  template <class T, class Arch, class Tag>
+  void operator()(Arch arch, const T *a, size_t na, const T *b, size_t nb, T *r,
+                  size_t nr, Tag tag) const {
+    simd_broadcast_binary<T, Arch, Tag>(
+        a, na, b, nb, r, nr, arch, tag, [](auto x, auto y) { return x - y; },
+        [](T x, T y) { return x - y; });
   }
 };
 
 struct multiply {
-  template <class C, class Tag, class Arch>
-  void operator()(Arch, C &a, C &b, C &res, Tag) {
-    apply_scalar_broadcast(a, b);
-    using b_type = xsimd::batch<double, Arch>;
-    std::size_t inc = b_type::size;
-    std::size_t size = res.size();
-    std::size_t vec_size = size - size % inc;
-    for (std::size_t i = 0; i < vec_size; i += inc) {
-      b_type avec = b_type::load(&a[i], Tag());
-      b_type bvec = b_type::load(&b[i], Tag());
-      b_type rvec = avec * bvec;
-      xsimd::store(&res[i], rvec, Tag());
-    }
-    for (std::size_t i = vec_size; i < size; ++i) {
-      res[i] = a[i] * b[i];
-    }
+  template <class T, class Arch, class Tag>
+  void operator()(Arch arch, const T *a, size_t na, const T *b, size_t nb, T *r,
+                  size_t nr, Tag tag) const {
+    simd_broadcast_binary<T, Arch, Tag>(
+        a, na, b, nb, r, nr, arch, tag, [](auto x, auto y) { return x * y; },
+        [](T x, T y) { return x * y; });
   }
 };
 
 struct pow {
-  template <class C, class Tag, class Arch>
-  void operator()(Arch, C &a, C &b, C &res, Tag) {
-    apply_scalar_broadcast(a, b);
-    using b_type = xsimd::batch<double, Arch>;
-    std::size_t inc = b_type::size;
-    std::size_t size = res.size();
-    std::size_t vec_size = size - size % inc;
-    for (std::size_t i = 0; i < vec_size; i += inc) {
-      b_type avec = b_type::load(&a[i], Tag());
-      b_type bvec = b_type::load(&b[i], Tag());
-      b_type rvec = xsimd::pow(avec, bvec);
-      xsimd::store(&res[i], rvec, Tag());
-    }
-    for (std::size_t i = vec_size; i < size; ++i) {
-      res[i] = std::pow(a[i], b[i]);
-    }
+  template <class T, class Arch, class Tag>
+  void operator()(Arch arch, const T *a, size_t na, const T *b, size_t nb, T *r,
+                  size_t nr, Tag tag) const {
+    simd_broadcast_binary<T, Arch, Tag>(
+        a, na, b, nb, r, nr, arch, tag,
+        [](auto x, auto y) { return xsimd::pow(x, y); },
+        [](T x, T y) { return std::pow(x, y); });
+  }
+};
+
+struct maximum {
+  template <class T, class Arch, class Tag>
+  void operator()(Arch arch, const T *a, size_t na, const T *b, size_t nb, T *r,
+                  size_t nr, Tag tag) const {
+    simd_broadcast_binary<T, Arch, Tag>(
+        a, na, b, nb, r, nr, arch, tag,
+        [](auto x, auto y) { return xsimd::max(x, y); },
+        [](T x, T y) { return std::max(x, y); });
   }
 };
 
@@ -201,22 +183,4 @@ struct sum {
   }
 };
 
-struct maximum {
-  template <class C, class Tag, class Arch>
-  void operator()(Arch, const C &a, const C &b, C &res, Tag) {
-    using b_type = xsimd::batch<double, Arch>;
-    std::size_t inc = b_type::size;
-    std::size_t size = res.size();
-    std::size_t vec_size = size - size % inc;
-    for (std::size_t i = 0; i < vec_size; i += inc) {
-      b_type avec = b_type::load(&a[i], Tag());
-      b_type bvec = b_type::load(&b[i], Tag());
-      b_type rvec = xsimd::max(avec, bvec);
-      xsimd::store(&res[i], rvec, Tag());
-    }
-    for (std::size_t i = vec_size; i < size; ++i) {
-      res[i] = std::max(a[i], b[i]);
-    }
-  }
-};
 } // namespace xsimd_ops

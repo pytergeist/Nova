@@ -6,16 +6,8 @@
 #include "storage/dense_storage.h"
 #include "storage/storage_interface.h"
 #include "xsimd/xsimd.hpp"
-#include <cblas.h>
-#include <initializer_list>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
-
-template <typename T> class Tensor;
-
-// template<typename T>
-// std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor);
 
 template <typename T> class Tensor {
 public:
@@ -58,73 +50,121 @@ public:
   const std::vector<T> &raw_data() const { return storage->data(); }
   [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
-  // overload the + operator
-  Tensor<T> operator+(Tensor<T> &other) {
-    std::vector<size_t> shape =
-        (other.flat_size() == 1) ? this->shape_ : other.shape_;
-    size_t size =
-        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
-    std::vector<T> data;
-    data.resize(size);
-    std::vector<T> v1 = this->raw_data();
-    std::vector<T> v2 = other.raw_data();
-    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+  Tensor<T> operator+(const Tensor<T> &other) const {
+    // 1) decide on broadcast shape & length
+    std::vector<size_t> out_shape =
+        (other.flat_size() == 1 ? this->shape_ : other.shape_);
+    std::size_t out_size =
+        (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
+
+    const T *a_ptr = this->storage->data_ptr();
+    const T *b_ptr = other.storage->data_ptr();
+    std::size_t na = this->flat_size();
+    std::size_t nb = other.flat_size();
+
+    std::vector<T> result(out_size);
+    T *r_ptr = result.data();
+
+    using arch = xsimd::default_arch;
     using tag = xsimd::unaligned_mode;
-    xsimd_ops::add{}(arch{}, v1, v2, data, tag{});
-    return Tensor<T>(shape, data, Device::CPU);
+    xsimd_ops::add{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+
+    return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
 
-  //     // overload the - operator for tensor - tensor
-  Tensor<T> operator-(Tensor<T> &other) {
-    std::vector<size_t> shape =
-        (other.flat_size() == 1) ? this->shape_ : other.shape_;
-    size_t size =
-        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
-    std::vector<T> data;
-    data.resize(size);
-    std::vector<T> v1 = this->raw_data();
-    std::vector<T> v2 = other.raw_data();
-    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+  Tensor<T> operator-(const Tensor<T> &other) const {
+    // 1) decide on broadcast shape & length
+    std::vector<size_t> out_shape =
+        (other.flat_size() == 1 ? this->shape_ : other.shape_);
+    std::size_t out_size =
+        (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
+
+    const T *a_ptr = this->storage->data_ptr();
+    const T *b_ptr = other.storage->data_ptr();
+    std::size_t na = this->flat_size();
+    std::size_t nb = other.flat_size();
+
+    std::vector<T> result(out_size);
+    T *r_ptr = result.data();
+
+    using arch = xsimd::default_arch;
     using tag = xsimd::unaligned_mode;
-    xsimd_ops::subtract{}(arch{}, v1, v2, data, tag{});
-    return Tensor<T>(shape, data, Device::CPU);
-  };
+    xsimd_ops::subtract{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+
+    return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
+  }
   //
   //     // overload the - operator for -tensor
   //     Tensor<T> operator-() const;
   //
   //     // overload the / operator
-  Tensor<T> operator/(Tensor<T> &other) {
-    std::vector<size_t> shape =
-        (other.flat_size() == 1) ? this->shape_ : other.shape_;
-    size_t size =
-        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
-    std::vector<T> data;
-    data.resize(size);
-    std::vector<T> v1 = this->raw_data();
-    std::vector<T> v2 = other.raw_data();
-    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+  Tensor<T> operator/(const Tensor<T> &other) const {
+    // 1) decide on broadcast shape & length
+    std::vector<size_t> out_shape =
+        (other.flat_size() == 1 ? this->shape_ : other.shape_);
+    std::size_t out_size =
+        (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
+
+    const T *a_ptr = this->storage->data_ptr();
+    const T *b_ptr = other.storage->data_ptr();
+    std::size_t na = this->flat_size();
+    std::size_t nb = other.flat_size();
+
+    std::vector<T> result(out_size);
+    T *r_ptr = result.data();
+
+    using arch = xsimd::default_arch;
     using tag = xsimd::unaligned_mode;
-    xsimd_ops::divide{}(arch{}, v1, v2, data, tag{});
-    return Tensor<T>(shape, data, Device::CPU);
+    xsimd_ops::divide{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+
+    return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
 
   //
   //     // overload the + operator
-  Tensor<T> operator*(Tensor<T> &other) {
-    std::vector<size_t> shape =
-        (other.flat_size() == 1) ? this->shape_ : other.shape_;
-    size_t size =
-        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
-    std::vector<T> data;
-    data.resize(size);
-    std::vector<T> v1 = this->raw_data();
-    std::vector<T> v2 = other.raw_data();
-    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+  Tensor<T> operator*(const Tensor<T> &other) const {
+    // 1) decide on broadcast shape & length
+    std::vector<size_t> out_shape =
+        (other.flat_size() == 1 ? this->shape_ : other.shape_);
+    std::size_t out_size =
+        (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
+
+    const T *a_ptr = this->storage->data_ptr();
+    const T *b_ptr = other.storage->data_ptr();
+    std::size_t na = this->flat_size();
+    std::size_t nb = other.flat_size();
+
+    std::vector<T> result(out_size);
+    T *r_ptr = result.data();
+
+    using arch = xsimd::default_arch;
     using tag = xsimd::unaligned_mode;
-    xsimd_ops::multiply{}(arch{}, v1, v2, data, tag{});
-    return Tensor<T>(shape, data, Device::CPU);
-  };
+    xsimd_ops::multiply{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+
+    return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
+  }
+
+  Tensor<T> maximum(const Tensor<T> &other) const {
+    // 1) decide on broadcast shape & length
+    std::vector<size_t> out_shape =
+        (other.flat_size() == 1 ? this->shape_ : other.shape_);
+    std::size_t out_size =
+        (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
+
+    const T *a_ptr = this->storage->data_ptr();
+    const T *b_ptr = other.storage->data_ptr();
+    std::size_t na = this->flat_size();
+    std::size_t nb = other.flat_size();
+
+    std::vector<T> result(out_size);
+    T *r_ptr = result.data();
+
+    using arch = xsimd::default_arch;
+    using tag = xsimd::unaligned_mode;
+    xsimd_ops::maximum{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+
+    return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
+  }
 
   //
   Tensor<T> sqrt() {
@@ -168,20 +208,27 @@ public:
   // Tensor<T> pow(T exponent) const;
 
   //
-  Tensor<T> pow(Tensor<T> &other) {
-    std::vector<size_t> shape =
-        (other.flat_size() == 1) ? this->shape_ : other.shape_;
-    size_t size =
-        (other.flat_size() == 1) ? this->flat_size() : other.flat_size();
-    std::vector<T> data;
-    data.resize(size);
-    std::vector<T> v1 = this->raw_data();
-    std::vector<T> v2 = other.raw_data();
-    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+  Tensor<T> pow(Tensor<T> &other) const {
+    // 1) decide on broadcast shape & length
+    std::vector<size_t> out_shape =
+        (other.flat_size() == 1 ? this->shape_ : other.shape_);
+    std::size_t out_size =
+        (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
+
+    const T *a_ptr = this->storage->data_ptr();
+    const T *b_ptr = other.storage->data_ptr();
+    std::size_t na = this->flat_size();
+    std::size_t nb = other.flat_size();
+
+    std::vector<T> result(out_size);
+    T *r_ptr = result.data();
+
+    using arch = xsimd::default_arch;
     using tag = xsimd::unaligned_mode;
-    xsimd_ops::pow{}(arch{}, v1, v2, data, tag{});
-    return Tensor<T>(shape, data, Device::CPU);
-  };
+    xsimd_ops::pow{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+
+    return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
+  }
   //
   Tensor<T> sum() {
     std::vector<T> data(1);          // reserve one slot
@@ -192,29 +239,6 @@ public:
 
     // now `data[0]` holds the total
     return Tensor<T>({1}, std::move(data), Device::CPU);
-  }
-
-  //
-  Tensor<T> maximum(const Tensor<T> &other) const {
-    std::vector<size_t> shape = this->shape_;
-    size_t size = this->flat_size();
-
-    const auto &a = this->raw_data();
-    std::vector<T> b;
-    if (other.flat_size() == 1) {
-      b.assign(size, other.raw_data()[0]);
-    } else if (other.flat_size() == size) {
-      b = other.raw_data();
-    } else {
-      throw std::invalid_argument("Shapes not compatible for maximum");
-    }
-
-    std::vector<T> data(size);
-    using arch = xsimd::default_arch;
-    using tag = xsimd::unaligned_mode;
-    xsimd_ops::maximum{}(arch{}, a, b, data, tag{});
-
-    return Tensor<T>(shape, std::move(data), Device::CPU);
   }
 
   //
@@ -245,10 +269,4 @@ public:
 //
 //     Tensor<T> diagonal() const;
 // };
-//
-// #include "tensor_algorithms.ipp"
-// #include "tensor_arithmetic.ipp"
-// #include "tensor_constructors.ipp"
-// #include "tensor_io.ipp"
-// #include "tensor_reductions.ipp"
 #endif // TENSOR_H

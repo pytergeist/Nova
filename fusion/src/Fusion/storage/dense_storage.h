@@ -8,7 +8,7 @@ private:
   std::vector<size_t> shape_, strides_;
   std::vector<T> data_;
 
-public:
+public: // TODO: Be careful here - do we want this ptr to be mutable?
   explicit NDTensorStorage(std::vector<size_t> shape, std::vector<T> data)
       : shape_(std::move(shape)), data_(std::move(data)) {
     size_t sz = 1;
@@ -21,6 +21,8 @@ public:
 
   std::vector<T> &data() override { return data_; }
   const std::vector<T> &data() const override { return data_; }
+  T *data_ptr() override { return data_.data(); }
+  const T *data_ptr() const override { return data_.data(); }
 
   [[nodiscard]] std::vector<size_t> shape() const override { return shape_; }
   [[nodiscard]] std::vector<size_t> strides() const override {
