@@ -118,7 +118,39 @@ def test_sum(input_data, expected_data, requires_grad):
         ([[1.0, 2.0, 3.0]], [[10.0], [20.0], [30.0]], [[140.0]], False),
     ],
 )
-def test_matmul(data_a, data_b, expected_data, requires_grad):
+def test_2d_matmul(data_a, data_b, expected_data, requires_grad):
+    """Tests matmul_op's forward_func for matrix multiplication."""
+    a = Tensor(data_a)
+    b = Tensor(data_b)
+
+    result_data = matmul_op.forward_func(a, b)
+    requires_grad_result = a.requires_grad or b.requires_grad
+
+    np.testing.assert_array_almost_equal(result_data, expected_data, decimal=5)
+    assert requires_grad_result == requires_grad
+
+
+@pytest.mark.parametrize(
+    "data_a, data_b, expected_data, requires_grad",
+    [
+        (
+            [
+                [[3, 1], [4, 4]],
+                [[3, 1], [4, 4]],
+            ],
+            [
+                [[2, 4], [1, 3]],
+                [[4, 2], [4, 3]],
+            ],
+            [
+                [[7, 15], [12, 28]],
+                [[16, 9], [32, 20]],
+            ],
+            False,
+        )
+    ],
+)
+def test_3d_matmul(data_a, data_b, expected_data, requires_grad):
     """Tests matmul_op's forward_func for matrix multiplication."""
     a = Tensor(data_a)
     b = Tensor(data_b)

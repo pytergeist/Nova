@@ -1,6 +1,6 @@
 #ifndef TENSOR_H
 #define TENSOR_H
-#include "kernels/cblas_api.cpp"
+#include "kernels/blas_api.cpp"
 #include "kernels/serial_api.cpp"
 #include "kernels/xsimd_api.cpp"
 #include "storage/dense_storage.h"
@@ -73,7 +73,6 @@ public:
   }
 
   Tensor<T> operator-(const Tensor<T> &other) const {
-    // 1) decide on broadcast shape & length
     std::vector<size_t> out_shape =
         (other.flat_size() == 1 ? this->shape_ : other.shape_);
     std::size_t out_size =
@@ -93,13 +92,8 @@ public:
 
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
-  //
-  //     // overload the - operator for -tensor
-  //     Tensor<T> operator-() const;
-  //
-  //     // overload the / operator
+
   Tensor<T> operator/(const Tensor<T> &other) const {
-    // 1) decide on broadcast shape & length
     std::vector<size_t> out_shape =
         (other.flat_size() == 1 ? this->shape_ : other.shape_);
     std::size_t out_size =
@@ -120,10 +114,8 @@ public:
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
 
-  //
   //     // overload the + operator
   Tensor<T> operator*(const Tensor<T> &other) const {
-    // 1) decide on broadcast shape & length
     std::vector<size_t> out_shape =
         (other.flat_size() == 1 ? this->shape_ : other.shape_);
     std::size_t out_size =
@@ -145,7 +137,6 @@ public:
   }
 
   Tensor<T> maximum(const Tensor<T> &other) const {
-    // 1) decide on broadcast shape & length
     std::vector<size_t> out_shape =
         (other.flat_size() == 1 ? this->shape_ : other.shape_);
     std::size_t out_size =
@@ -166,26 +157,25 @@ public:
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
 
-  //
   Tensor<T> sqrt() {
     std::vector<size_t> shape = this->shape_;
     size_t size = this->flat_size();
     std::vector<T> data;
     data.resize(size);
     std::vector<T> v1 = this->raw_data();
-    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+    using arch = xsimd::default_arch;
     using tag = xsimd::unaligned_mode;
     xsimd_ops::sqrt{}(arch{}, v1, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   };
-  //
+
   Tensor<T> exp() {
     std::vector<size_t> shape = this->shape_;
     size_t size = this->flat_size();
     std::vector<T> data;
     data.resize(size);
     std::vector<T> v1 = this->raw_data();
-    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+    using arch = xsimd::default_arch;
     using tag = xsimd::unaligned_mode;
     xsimd_ops::exp{}(arch{}, v1, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
@@ -198,18 +188,13 @@ public:
     std::vector<T> data;
     data.resize(size);
     std::vector<T> v1 = this->raw_data();
-    using arch = xsimd::default_arch; // dispatch to SSE/AVX/NEON as appropriate
+    using arch = xsimd::default_arch;
     using tag = xsimd::unaligned_mode;
     xsimd_ops::log{}(arch{}, v1, data, tag{});
     return Tensor<T>(shape, data, Device::CPU);
   };
 
-  //
-  // Tensor<T> pow(T exponent) const;
-
-  //
   Tensor<T> pow(Tensor<T> &other) const {
-    // 1) decide on broadcast shape & length
     std::vector<size_t> out_shape =
         (other.flat_size() == 1 ? this->shape_ : other.shape_);
     std::size_t out_size =
@@ -231,13 +216,12 @@ public:
   }
   //
   Tensor<T> sum() {
-    std::vector<T> data(1);          // reserve one slot
-    std::vector<T> &in = raw_data(); // reference to your own storage
+    std::vector<T> data(1);
+    std::vector<T> &in = raw_data();
 
     using arch = xsimd::default_arch;
     xsimd_ops::sum{}(arch{}, in, data);
 
-    // now `data[0]` holds the total
     return Tensor<T>({1}, std::move(data), Device::CPU);
   }
 
@@ -245,14 +229,25 @@ public:
   Tensor<T> matmul(Tensor<T> &other) {
     auto const &shapeA = this->shape_;
     auto const &shapeB = other.shape_;
+    size_t rank = shapeA.size();
+    size_t m = shapeA[rank - 2];
+    size_t n = shapeB[rank - 1];
 
-    size_t m = shapeA[0], n = shapeB[1];
-    std::vector<T> data(m * n);
+    std::vector<size_t> out_shape = shapeA;
+    out_shape[rank - 1] = n;
 
-    cblas_ops::matmul(this->raw_data(), shapeA, other.raw_data(), shapeB, data);
+    size_t batch = 1;
+    for (size_t i = 0; i < rank - 2; ++i) {
+      batch *= shapeA[i];
+    }
 
-    return Tensor<T>({m, n}, std::move(data), Device::CPU);
+    std::vector<T> data(batch * m * n);
+
+    blas_ops::matmul(this->raw_data(), shapeA, other.raw_data(), shapeB, data);
+
+    return Tensor<T>(std::move(out_shape), std::move(data), Device::CPU);
   }
+
   //
 
   Tensor<T> transpose() {
