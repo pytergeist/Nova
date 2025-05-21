@@ -1,4 +1,5 @@
 # registry.py
+
 import numpy as np
 
 from .operation import Operation
@@ -12,7 +13,7 @@ def add_backward(result, a, b, grad_output):
     return (grad_output, grad_output)
 
 
-add_op = Operation("__add__", lambda a, b: a.data + b.data, add_backward)
+add_op = Operation("__add__", lambda a, b: a + b, add_backward)
 
 
 ########################
@@ -27,7 +28,7 @@ def subtract_backward(result, a, b, grad_output):
     return grad_output, -grad_output
 
 
-subtract_op = Operation("__sub__", lambda a, b: a.data - b.data, subtract_backward)
+subtract_op = Operation("__sub__", lambda a, b: a - b, subtract_backward)
 
 
 ########################
@@ -45,7 +46,7 @@ def right_subtract_backward(result, a, b, grad_output):
 
 right_subtract_op = Operation(
     "__rsub__",
-    lambda a, b: b.data - a.data,
+    lambda a, b: b - a,
     right_subtract_backward,
 )
 
@@ -59,19 +60,17 @@ def divide_backward(result, a, b, grad_output):
     return (grad_a, grad_b)
 
 
-divide_op = Operation("__truediv__", lambda a, b: a.data / b.data, divide_backward)
+divide_op = Operation("__truediv__", lambda a, b: a / b, divide_backward)
 
 
 def matmul_backward(result, a, b, grad_output):
     A = a.value
     B = b.value
     dZ = grad_output
-
     if dZ.ndim == 1:
         dZ = dZ[:, None]
     if B.ndim == 1:
         B = B[:, None]
-
     grad_a = dZ @ B.T
     grad_b = A.T @ dZ
 
@@ -85,7 +84,7 @@ def matmul_backward(result, a, b, grad_output):
 
 matmul_op = Operation(
     "__matmul__",
-    lambda a, b: a.data @ b.data,  # forward pass
+    lambda a, b: a @ b,  # forward pass
     matmul_backward,  # backward pass
 )
 
@@ -98,13 +97,13 @@ def sum_backward(result, a, grad_output):
     If 'result' is a scalar, 'grad_output' is also scalar (or shape () in NumPy).
     The gradient wrt 'a' is just grad_output * ones_like(a.value).
     """
-    grad_a = grad_output * np.ones_like(a.value)
-    return (grad_a,)
+    g = grad_output if grad_output is not None else np.array([1.0])
+    return np.ones_like(a.value) * float(np.array(g).ravel()[0])
 
 
 sum_op = Operation(
     name="sum",
-    forward_func=lambda a: np.sum(a.data),
+    forward_func=lambda a: a.sum(),
     backward_func=sum_backward,
 )
 
@@ -135,12 +134,12 @@ def transpose_backward(result, a, grad_output):
     Since the forward pass is: result = transpose(a.data),
     the derivative wrt 'a' is simply: transpose(grad_output).
     """
-    return (np.transpose(grad_output),)
+    return (grad_output.T,)
 
 
 transpose_op = Operation(
     name="transpose",
-    forward_func=lambda a: np.transpose(a.data),
+    forward_func=lambda a: a.T,
     backward_func=transpose_backward,
 )
 
@@ -156,7 +155,7 @@ def multiply_backward(result, a, b, grad_output):
 
 multiply_op = Operation(
     name="__mul__",
-    forward_func=lambda a, b: a.data * b.data,
+    forward_func=lambda a, b: a * b,
     backward_func=multiply_backward,
 )
 
@@ -174,7 +173,7 @@ def power_backward(result, a, b, grad_output):
 
 power_op = Operation(
     name="__pow__",
-    forward_func=lambda a, b: a.data**b.data,
+    forward_func=lambda a, b: a**b,
     backward_func=power_backward,
 )
 
@@ -189,7 +188,7 @@ def exponential_backward(result, a, grad_output):
 
 exponential_op = Operation(
     name="exp",
-    forward_func=lambda a: np.exp(a.data),
+    forward_func=lambda a: a.exp(),
     backward_func=exponential_backward,
 )
 
@@ -204,7 +203,7 @@ def log_backward(result, a, grad_output):
 
 log_op = Operation(
     name="log",
-    forward_func=lambda a: np.log(a.data),
+    forward_func=lambda a: a.log(),
     backward_func=log_backward,
 )
 
@@ -219,6 +218,6 @@ def sqrt_backward(result, a, grad_output):
 
 sqrt_op = Operation(
     name="sqrt",
-    forward_func=lambda a: np.sqrt(a.data),
+    forward_func=lambda a: a.sqrt(),
     backward_func=sqrt_backward,
 )
