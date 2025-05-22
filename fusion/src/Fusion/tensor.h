@@ -85,10 +85,8 @@ public:
 
     std::vector<T> result(out_size);
     T *r_ptr = result.data();
-
-    using arch = xsimd::default_arch;
-    using tag = xsimd::unaligned_mode;
-    xsimd_ops::subtract{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+    xsimd_ops::subtract{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
+                          out_size, xsimd::aligned_mode{});
 
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
@@ -107,9 +105,8 @@ public:
     std::vector<T> result(out_size);
     T *r_ptr = result.data();
 
-    using arch = xsimd::default_arch;
-    using tag = xsimd::unaligned_mode;
-    xsimd_ops::divide{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+    xsimd_ops::divide{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
+                        out_size, xsimd::aligned_mode{});
 
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
@@ -129,9 +126,8 @@ public:
     std::vector<T> result(out_size);
     T *r_ptr = result.data();
 
-    using arch = xsimd::default_arch;
-    using tag = xsimd::unaligned_mode;
-    xsimd_ops::multiply{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+    xsimd_ops::multiply{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
+                          out_size, xsimd::aligned_mode{});
 
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
@@ -150,9 +146,8 @@ public:
     std::vector<T> result(out_size);
     T *r_ptr = result.data();
 
-    using arch = xsimd::default_arch;
-    using tag = xsimd::unaligned_mode;
-    xsimd_ops::maximum{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+    xsimd_ops::maximum{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
+                         out_size, xsimd::aligned_mode{});
 
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
@@ -208,12 +203,12 @@ public:
     std::vector<T> result(out_size);
     T *r_ptr = result.data();
 
-    using arch = xsimd::default_arch;
-    using tag = xsimd::unaligned_mode;
-    xsimd_ops::pow{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size, tag{});
+    xsimd_ops::pow{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
+                     out_size, xsimd::aligned_mode{});
 
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
+
   //
   Tensor<T> sum() {
     std::vector<T> data(1);
@@ -261,6 +256,7 @@ public:
     return Tensor<T>(std::move(new_shape), std::move(new_data), Device::CPU);
   }
 };
+
 //
 //     Tensor<T> diagonal() const;
 // };

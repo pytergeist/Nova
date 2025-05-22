@@ -3,9 +3,9 @@
 
 namespace blas_ops {
 
-void matmul(std::vector<double> const &v1, std::vector<size_t> const &shapeA,
-            std::vector<double> const &v2, std::vector<size_t> const &shapeB,
-            std::vector<double> &res) {
+void matmul(std::vector<float> const &v1, std::vector<size_t> const &shapeA,
+            std::vector<float> const &v2, std::vector<size_t> const &shapeB,
+            std::vector<float> &res) {
   const size_t rankA = shapeA.size();
   const size_t rankB = shapeB.size();
   int m = int(shapeA[rankA - 2]);
@@ -17,15 +17,15 @@ void matmul(std::vector<double> const &v1, std::vector<size_t> const &shapeA,
     batch *= shapeA[i];
   }
 
-  const double alpha = 1.0;
-  const double beta = 0.0;
+  const float alpha = 1.0;
+  const float beta = 0.0;
 
   for (size_t b = 0; b < batch; ++b) {
-    const double *A = v1.data() + b * (size_t(m) * k);
-    const double *B = v2.data() + b * (size_t(k) * n);
-    double *C = res.data() + b * (size_t(m) * n);
+    const float *A = v1.data() + b * (size_t(m) * k);
+    const float *B = v2.data() + b * (size_t(k) * n);
+    float *C = res.data() + b * (size_t(m) * n);
 
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A, k,
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A, k,
                 B, n, beta, C, n);
   }
 }
