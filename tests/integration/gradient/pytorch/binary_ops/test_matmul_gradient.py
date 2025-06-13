@@ -2,7 +2,10 @@ import numpy as np
 import pytest
 import torch
 
-from tests.integration.gradient.finite_difference import finite_difference_jacobian
+from tests.integration.gradient.finite_difference import (
+    Tolerance,
+    finite_difference_jacobian,
+)
 
 # TODO: Examine this test to ensure it functions as expected.
 
@@ -35,8 +38,8 @@ def test_matmul_grad():  # TODO: Should there be a test for matmul or 1D arrays?
     np.testing.assert_allclose(
         analytical_grad,
         numerical_vector_grad,
-        rtol=1e-5,
-        atol=1e-7,
+        rtol=Tolerance.RTOL.value,
+        atol=Tolerance.ATOL.value,
         err_msg="Autodiff gradient does not match numerical gradient for matrix multiplication.",
     )
 

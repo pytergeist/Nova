@@ -3,7 +3,10 @@ import pytest
 
 from nova.src.backend.core import Tensor
 from nova.src.blocks.activations import ReLU
-from tests.integration.gradient.finite_difference import finite_difference_jacobian
+from tests.integration.gradient.finite_difference import (
+    Tolerance,
+    finite_difference_jacobian,
+)
 
 # TODO: Add parameterisation for multiple test cases
 # TODO: Implement integration tests for larger computation graphs
@@ -29,15 +32,17 @@ def compute_autodiff_gradient(x):
 def test_addition_grad():
     x_test = np.random.uniform(-1, 1, 5)
 
-    numerical_jacobian = finite_difference_jacobian(fn_numpy, x_test, epsilon=1.5e-8)
+    numerical_jacobian = finite_difference_jacobian(
+        fn_numpy, x_test, epsilon=Tolerance.EPSILON.value
+    )
     numerical_vector_grad = np.dot(np.ones(x_test.shape), numerical_jacobian)
     analytical_grad = compute_autodiff_gradient(x_test)
 
     np.testing.assert_allclose(
         analytical_grad,
         numerical_vector_grad,
-        rtol=1e-5,
-        atol=1e-7,
+        rtol=Tolerance.RTOL.value,
+        atol=Tolerance.ATOL.value,
         err_msg="Autodiff gradient does not match numerical gradient for addition.",
     )
 

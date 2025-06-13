@@ -3,6 +3,7 @@ import pytest
 import torch
 
 from nova.src.backend.core import Tensor
+from tests.integration.gradient.finite_difference import Tolerance
 
 
 def compute_autodiff_gradient(x):
@@ -30,8 +31,8 @@ def test_addition_grad():
     np.testing.assert_allclose(
         analytical_grad,
         pytorch_grad,
-        rtol=1e-4,
-        atol=1e-6,
+        rtol=Tolerance.RTOL.value,
+        atol=Tolerance.ATOL.value,
         err_msg="Autodiff gradient does not match PyTorch gradient for division.",
     )
 

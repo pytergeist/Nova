@@ -6,6 +6,7 @@ from nova.src.backend.core import Tensor
 from nova.src.blocks.activations.activations import ReLU
 from nova.src.blocks.linear import Linear
 from nova.src.initialisers import Constant, Ones, RandomNormal, RandomUniform, Zeros
+from tests.integration.gradient.finite_difference import Tolerance
 
 network_configs = [
     # 2-layer network: input 5 -> hidden 10 -> output 1, activation after first layer only.
@@ -109,8 +110,8 @@ def test_network_grad(initializer, config):
         np.testing.assert_allclose(
             autodiff_grads[key],
             pytorch_grads[key],
-            rtol=1e-5,
-            atol=1e-7,
+            rtol=Tolerance.RTOL.value,
+            atol=Tolerance.ATOL.value,
             err_msg=f"Gradient for {key} does not match PyTorch gradient using"
             f" {initializer.__class__.__name__} and config {config}.",
         )
