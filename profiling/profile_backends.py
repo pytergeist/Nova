@@ -2,7 +2,6 @@ import time
 
 import numpy as np
 
-# import your Tensor class
 from nova.src.backend.core._tensor import Tensor
 
 
@@ -23,12 +22,12 @@ def main():
     shape = (1000, 1000)
 
     # 1) create raw NumPy inputs
-    a_np = np.random.rand(*shape).astype(np.float64)
-    b_np = np.random.rand(*shape).astype(np.float64)
-    scalar_np = np.float64(0.5)
+    a_np = np.random.rand(*shape).astype(np.float32)
+    b_np = np.random.rand(*shape).astype(np.float32)
+    scalar_np = np.float32(0.5)
     m_a_np, m_b_np = (
-        np.random.rand(*shape).astype(np.float64),
-        np.random.rand(*shape).astype(np.float64),
+        np.random.rand(*shape).astype(np.float32),
+        np.random.rand(*shape).astype(np.float32),
     )
 
     # 2) wrap them in your Tensor

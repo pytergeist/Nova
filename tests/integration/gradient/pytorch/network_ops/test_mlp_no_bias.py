@@ -60,16 +60,16 @@ def compute_pytorch_network_grad(x, initializer, config):
         W.append(initializer((layer_sizes[i], layer_sizes[i - 1]), dtype=np.float32))
 
     layers = []
-    x_tensor = torch.tensor(x, dtype=torch.float64, requires_grad=True)
+    x_tensor = torch.tensor(x, dtype=torch.float32, requires_grad=True)
     for i in range(1, len(layer_sizes)):
         in_features = layer_sizes[i - 1]
         out_features = layer_sizes[i]
-        layer = torch.nn.Linear(in_features, out_features, bias=False).double()
+        layer = torch.nn.Linear(in_features, out_features, bias=False)
         layers.append(layer)
 
     with torch.no_grad():
         for layer, weight in zip(layers, W):
-            layer.weight.copy_(torch.tensor(weight, dtype=torch.float64))
+            layer.weight.copy_(torch.tensor(weight, dtype=torch.float32))
 
     out = x_tensor
     for layer, act_flag in zip(layers, activations):

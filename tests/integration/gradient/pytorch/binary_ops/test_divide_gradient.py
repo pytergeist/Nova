@@ -13,7 +13,7 @@ def compute_autodiff_gradient(x):
 
 
 def compute_pytorch_addition_gradient(x):
-    x_tensor = torch.tensor(x, dtype=torch.float64, requires_grad=True)
+    x_tensor = torch.tensor(x, dtype=torch.float32, requires_grad=True)
     output = x_tensor / x_tensor
     output.backward(torch.ones_like(x_tensor))
     return x_tensor.grad.detach().numpy()
@@ -30,8 +30,8 @@ def test_addition_grad():
     np.testing.assert_allclose(
         analytical_grad,
         pytorch_grad,
-        rtol=1e-5,
-        atol=1e-7,
+        rtol=1e-4,
+        atol=1e-6,
         err_msg="Autodiff gradient does not match PyTorch gradient for division.",
     )
 

@@ -13,7 +13,7 @@ def compute_autodiff_gradient(x):
 
 
 def compute_pytorch_addition_gradient(x):
-    x_tensor = torch.tensor(x, dtype=torch.float64, requires_grad=True)
+    x_tensor = torch.tensor(x, dtype=torch.float32, requires_grad=True)
     output = x_tensor - x_tensor
     output.backward(torch.ones_like(x_tensor))
     return x_tensor.grad.detach().numpy()

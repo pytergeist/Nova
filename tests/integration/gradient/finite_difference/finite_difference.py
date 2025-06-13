@@ -15,16 +15,16 @@ def finite_difference_jacobian(f, x, epsilon=1.5e-8):
     Returns:
         numpy.ndarray: The approximate Jacobian with shape (f(x).size, x.size)
     """
-    x = np.asarray(x, dtype=np.float64)
-    f0 = np.atleast_1d(np.asarray(f(x), dtype=np.float64)).ravel()
-    jacobian = np.zeros((f0.size, x.size), dtype=np.float64)
+    x = np.asarray(x, dtype=np.float32)
+    f0 = np.atleast_1d(np.asarray(f(x), dtype=np.float32)).ravel()
+    jacobian = np.zeros((f0.size, x.size), dtype=np.float32)
 
     for flat_idx, multi_idx in enumerate(np.ndindex(x.shape)):
-        dx = np.zeros_like(x, dtype=np.float64)
+        dx = np.zeros_like(x, dtype=np.float32)
         dx[multi_idx] = epsilon
 
-        f_pos = np.atleast_1d(np.asarray(f(x + dx), dtype=np.float64)).ravel()
-        f_neg = np.atleast_1d(np.asarray(f(x - dx), dtype=np.float64)).ravel()
+        f_pos = np.atleast_1d(np.asarray(f(x + dx), dtype=np.float32)).ravel()
+        f_neg = np.atleast_1d(np.asarray(f(x - dx), dtype=np.float32)).ravel()
 
         jacobian[:, flat_idx] = (f_pos - f_neg) / (2 * epsilon)
 

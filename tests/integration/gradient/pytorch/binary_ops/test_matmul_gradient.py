@@ -12,7 +12,7 @@ def fn_numpy(x):
 
 
 def compute_pytorch_gradient(x):
-    x_tensor = torch.tensor(x, dtype=torch.float64, requires_grad=True)
+    x_tensor = torch.tensor(x, dtype=torch.float32, requires_grad=True)
 
     output = x_tensor @ x_tensor
 
