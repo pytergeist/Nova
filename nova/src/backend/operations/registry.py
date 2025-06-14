@@ -1,5 +1,4 @@
 # registry.py
-
 import numpy as np
 
 from .operation import Operation
@@ -63,7 +62,13 @@ def divide_backward(result, a, b, grad_output):
 divide_op = Operation("__truediv__", lambda a, b: a / b, divide_backward)
 
 
-def matmul_backward(result, a, b, grad_output):
+def generic_transpose(x):
+    return x if x.ndim < 2 else x.swapaxes(-1, -2)
+
+
+def matmul_backward(
+    result, a, b, grad_output
+):  # TODO: This function needs to be made generic
     A = a.value
     B = b.value
     dZ = grad_output
@@ -71,8 +76,9 @@ def matmul_backward(result, a, b, grad_output):
         dZ = dZ[:, None]
     if B.ndim == 1:
         B = B[:, None]
-    grad_a = dZ @ B.T
-    grad_b = A.T @ dZ
+
+    grad_a = dZ @ generic_transpose(B)
+    grad_b = generic_transpose(A) @ dZ
 
     if a.value.ndim == 1:
         grad_a = grad_a.ravel()
