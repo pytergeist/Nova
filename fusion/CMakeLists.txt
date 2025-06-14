@@ -1,46 +1,69 @@
 cmake_minimum_required(VERSION 3.16)
 project(Fusion LANGUAGES CXX)
 
-#------------------------- Platform & Compiler -------------------------#
+#--------------------------------------------------------------------------------
+# Optional policy tweak to suppress install() normalization warnings
+cmake_policy(SET CMP0177 NEW)
+
+#--------------------------------------------------------------------------------
+# ———— FetchContent support for missing dependencies ————
+include(FetchContent)
+
+# —— xsimd (header-only) —— try system first, then pull from GitHub if needed
+find_path(XSIMD_INCLUDE_DIR
+        NAMES xsimd/xsimd.hpp
+        HINTS /usr/include /usr/local/include
+)
+if (NOT XSIMD_INCLUDE_DIR)
+    message(STATUS "xsimd not found on system; fetching via FetchContent")
+    FetchContent_Declare(
+            xsimd
+            GIT_REPOSITORY https://github.com/xtensor-stack/xsimd.git
+            GIT_TAG        13.2.0
+    )
+    FetchContent_MakeAvailable(xsimd)
+    set(XSIMD_INCLUDE_DIR ${xsimd_SOURCE_DIR}/include)
+endif()
+
+#--------------------------------------------------------------------------------
+# Platform & Compiler settings
 # Target Apple Silicon on macOS
 set(CMAKE_OSX_ARCHITECTURES "arm64")
 
 # C++20, no GNU extensions
-set(CMAKE_CXX_STANDARD           20)
-set(CMAKE_CXX_STANDARD_REQUIRED  ON)
-set(CMAKE_CXX_EXTENSIONS        OFF)
+set(CMAKE_CXX_STANDARD          20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS       OFF)
 
 # Enable all warnings
 add_compile_options(-Wall)
 
-# Allow Homebrew dependencies
+# Allow Homebrew dependencies (macOS); no-op on Linux
 set(CMAKE_PREFIX_PATH "/opt/homebrew" CACHE STRING "Prefix path for dependencies")
 
-#------------------------- xsimd (header-only) -------------------------#
-# Point at your Spack‐installed xsimd headers
-set(XSIMD_INCLUDE_DIR
-        "/opt/homebrew/Cellar/spack/0.23.1/opt/spack/darwin-sequoia-m1/apple-clang-17.0.0/xsimd-8.1.0-s3yjkaw2c7iwa6wpqkcofp5fgzk6xhsw/include"
-)
-
-#------------------------- pybind11 Setup -------------------------#
+#--------------------------------------------------------------------------------
+# pybind11
 set(PYBIND11_FINDPYTHON ON CACHE BOOL "Force pybind11 to use FindPython")
 find_package(pybind11 REQUIRED)
 
-#------------------------- OpenBLAS -------------------------#
+#--------------------------------------------------------------------------------
+# OpenBLAS
 find_library(OPENBLAS_LIB
         NAMES openblas
-        PATHS /opt/homebrew/opt/openblas/lib
+        PATHS /opt/homebrew/opt/openblas/lib /usr/lib /usr/local/lib
 )
 if(NOT OPENBLAS_LIB)
-    message(FATAL_ERROR "OpenBLAS library not found in /opt/homebrew/opt/openblas/lib")
+    message(FATAL_ERROR "OpenBLAS library not found")
 endif()
-set(OPENBLAS_INCLUDE_DIR "/opt/homebrew/opt/openblas/include")
+set(OPENBLAS_INCLUDE_DIR "/opt/homebrew/opt/openblas/include" CACHE PATH "OpenBLAS include dir")
 
-#------------------------- Eigen3 -------------------------#
+#--------------------------------------------------------------------------------
+# Eigen3
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-# Eigen3_INCLUDE_DIRS is provided by the config
+# Eigen3_INCLUDE_DIRS provided by the package
 
-#------------------------- Python Extension (_C) -------------------------#
+#--------------------------------------------------------------------------------
+# Python extension module (_C)
 pybind11_add_module(fusion
         src/Fusion/python/bindings.cpp
 )
@@ -48,7 +71,7 @@ pybind11_add_module(fusion
 target_include_directories(fusion PRIVATE
         src/Fusion/templates
         ${OPENBLAS_INCLUDE_DIR}
-        ${Eigen3_INCLUDE_DIR}
+        ${Eigen3_INCLUDE_DIRS}
         ${XSIMD_INCLUDE_DIR}
 )
 
@@ -56,7 +79,7 @@ target_link_libraries(fusion PRIVATE
         ${OPENBLAS_LIB}
 )
 
-# Place the .so into your python package
+# Install the .so into your Python package directory
 set(PY_EXT_INSTALL_DIR
         ${PROJECT_SOURCE_DIR}/../nova/src/backend/core/_C
 )
@@ -73,7 +96,8 @@ install(TARGETS fusion
         LIBRARY DESTINATION ${PY_EXT_INSTALL_DIR}
 )
 
-#------------------------- Native Executable -------------------------#
+#--------------------------------------------------------------------------------
+# Native executable
 add_executable(FusionExecutable
         src/Fusion/main.cpp
 )
@@ -81,7 +105,7 @@ add_executable(FusionExecutable
 target_include_directories(FusionExecutable PRIVATE
         src/Fusion/tensor
         ${OPENBLAS_INCLUDE_DIR}
-        ${Eigen3_INCLUDE_DIR}
+        ${Eigen3_INCLUDE_DIRS}
         ${XSIMD_INCLUDE_DIR}
 )
 
@@ -89,10 +113,11 @@ target_link_libraries(FusionExecutable PRIVATE
         ${OPENBLAS_LIB}
 )
 
-#------------------------- Tests (GoogleTest) -------------------------#
+#--------------------------------------------------------------------------------
+# Tests (GoogleTest)
 enable_testing()
 
-set(GTest_DIR "/opt/homebrew/Cellar/googletest/1.11.0/lib/cmake/GTest")
+set(GTest_DIR "/opt/homebrew/Cellar/googletest/1.11.0/lib/cmake/GTest" CACHE PATH "GTest CMake dir")
 find_package(GTest REQUIRED)
 
 add_executable(FusionTests
@@ -102,7 +127,7 @@ add_executable(FusionTests
 target_include_directories(FusionTests PRIVATE
         src/Fusion/tensor
         ${OPENBLAS_INCLUDE_DIR}
-        ${Eigen3_INCLUDE_DIR}
+        ${Eigen3_INCLUDE_DIRS}
         ${XSIMD_INCLUDE_DIR}
 )
 

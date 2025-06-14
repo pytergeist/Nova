@@ -173,7 +173,7 @@ struct sum {
       acc += batch_t::load_unaligned(ptr + i);
     }
 
-    T result = xsimd::hadd(acc);
+    T result = xsimd::reduce_add(acc);
 
     for (std::size_t i = n; i < size; ++i) {
       result += ptr[i];
