@@ -27,7 +27,9 @@ def compute_pytorch_gradient(x):
 def test_matmul_grad():  # TODO: Should there be a test for matmul or 1D arrays?
     x_test = np.random.rand(10, 10)
 
-    numerical_jacobian = finite_difference_jacobian(fn_numpy, x_test, epsilon=1.5e-8)
+    numerical_jacobian = finite_difference_jacobian(
+        fn_numpy, x_test, epsilon=Tolerance.EPSILON.value
+    )
     numerical_jacobian = numerical_jacobian.squeeze()
     numerical_vector_grad = np.dot(
         np.ones(numerical_jacobian.shape[0]), numerical_jacobian

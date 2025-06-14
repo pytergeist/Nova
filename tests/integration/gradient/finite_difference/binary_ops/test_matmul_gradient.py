@@ -27,7 +27,9 @@ def test_matmul_2d_grad(
     def partial_fn(x):
         return fn(x, fn_str="matmul")
 
-    numerical_jacobian = finite_difference_jacobian(partial_fn, x_test, epsilon=1.5e-8)
+    numerical_jacobian = finite_difference_jacobian(
+        partial_fn, x_test, epsilon=Tolerance.EPSILON.value
+    )
     numerical_jacobian = numerical_jacobian.squeeze()
     numerical_vector_grad = np.dot(
         np.ones(numerical_jacobian.shape[0]), numerical_jacobian
