@@ -1,5 +1,5 @@
 from nova.src.backend.core import Tensor
-from nova.src.blocks._block import Block
+from nova.src.blocks.block import Block
 
 
 class ReLU(Block):

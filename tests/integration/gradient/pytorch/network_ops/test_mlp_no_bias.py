@@ -4,7 +4,7 @@ import torch
 
 from nova.src.backend.core import Tensor
 from nova.src.blocks.activations.activations import ReLU
-from nova.src.blocks.linear import Linear
+from nova.src.blocks.core.linear import Linear
 from nova.src.initialisers import Constant, Ones, RandomNormal, RandomUniform, Zeros
 from tests.integration.gradient.finite_difference import Tolerance
 
