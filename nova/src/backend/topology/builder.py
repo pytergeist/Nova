@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 from .node import ModelNode
 
 
-class Builder:
+class Builder:  # TODO: Need to add parents to node creation for sorting algorithm
 
     def __init__(self):
         self.created_model_nodes = []
