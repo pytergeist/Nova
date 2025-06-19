@@ -22,7 +22,7 @@ def compute_autodiff_gradient(x):
 
     tensor_output = x_tensor + x_tensor
 
-    output = ReLU()(tensor_output)
+    output = ReLU().call(tensor_output)
 
     output.backward()
 

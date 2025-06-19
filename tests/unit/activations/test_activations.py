@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Tuple
 
 import pytest
 
@@ -8,14 +8,12 @@ from nova.src.blocks.activations.activations import ReLU
 
 
 class MockActivation(Block):
+
     def get_config(self) -> Dict[str, Any]:
         return {}
 
-
-def test_call_method_raises_not_implamented_error():
-    activation = MockActivation()
-    with pytest.raises(NotImplementedError):
-        activation()
+    def build(self, input_shape: Optional[Tuple[int, ...]] = None) -> None:
+        pass
 
 
 @pytest.mark.parametrize(
@@ -60,7 +58,7 @@ def test_from_config_method_returns_instance_of_activation():
 )
 def test_relu_call_method(activation_fn, data, expected):
     activation = activations.get(activation_fn)
-    assert all(activation(data).data == expected)
+    assert all(activation.call(data).data == expected)
 
 
 if __name__ == "__main__":

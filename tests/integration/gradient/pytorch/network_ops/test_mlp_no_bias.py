@@ -37,9 +37,9 @@ def compute_autodiff_network_grad(x, initializer, config):
     input_tensor = Tensor(data=x, requires_grad=True)
     out = input_tensor
     for layer, act in zip(layers, activations_list):
-        out = layer(out)
+        out = layer.call(out)
         if act is not None:
-            out = act(out)
+            out = act.call(out)
     if len(layers) > len(activations_list):
         out = layers[-1](out)
 
