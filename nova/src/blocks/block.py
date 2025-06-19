@@ -1,16 +1,25 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+
+import numpy as np
 
 from nova.src import initialisers
 from nova.src.backend import io
+from nova.src.backend.core import Tensor
+from nova.src.backend.topology import Builder
 
 if TYPE_CHECKING:
     from nova.src.initialisers import Initialiser
+
+builder = Builder()
 
 
 class Block(ABC):
     def __init__(self):
         self._inheritance_lock = True
+        self._built = False
+        self.parents = []
+        self.children = []
 
     def _check_super_called(self):  # TODO add inheritance_lock attr in child classes
         if getattr(self, "_inheritance_lock", True):
@@ -37,6 +46,11 @@ class Block(ABC):
     def get_config(self) -> Dict[str, Any]:
         pass
 
+    # @abstractmethod
+    # def build(self, input_shape: Optional[Tuple[int, ...]] = None) -> None:
+    #     """Build the block with the given input shape."""
+    #     pass
+
     @classmethod
     def from_config(cls, config: Dict[str, Any]) -> "Block":
         return cls(**config)
@@ -62,5 +76,63 @@ class Block(ABC):
     def forward(self, *inputs):
         raise NotImplementedError
 
-    def __call__(self, *inputs):
+    def call(self, *inputs):
         return self.forward(*inputs)
+
+    def build(self):
+        pass
+
+    def _flatten_blocks(self) -> List["Block"]:
+        blocks: list = []
+        visited_blocks = set()
+        stack = [self]
+        while stack:
+            current_block = stack.pop()
+            if id(current_block) in visited_blocks:
+                continue
+            visited_blocks.add(id(current_block))
+
+            if isinstance(current_block, Block):
+                blocks.append(current_block)
+
+            if hasattr(current_block, "parents"):
+                for parent in current_block.parents:
+                    stack.append(parent)
+
+        return blocks
+
+    def __call__(
+        self, *inputs: Union[Tensor, np.ndarray]
+    ) -> Union[Tensor, Tuple[Tensor, ...]]:
+        self._check_super_called()
+
+        # TODO: migrate this method to builder class
+        tensor_inputs = []
+        for x in inputs:
+            if isinstance(x, Tensor):
+                tensor_inputs.append(x)
+            else:
+                tensor_inputs.append(Tensor(x))
+
+        # TODO: migrate built functionality to the Builder class
+        if not getattr(self, "built", False):
+            input_shape = tensor_inputs[0].shape
+            self.build(input_shape)
+            self.built = True
+
+        # TODO: implement lazy call execution
+        raw_output = self.call(*tensor_inputs)
+
+        if isinstance(raw_output, Tensor):
+            outputs = (raw_output,)
+        else:
+            outputs = tuple(raw_output)
+
+        builder.build_model_node(
+            self, inbound_tensors=tensor_inputs, outbound_tensors=outputs
+        )
+
+        builder_outputs = builder.created_model_nodes[-1].outbound_tensors
+        return (
+            builder_outputs[0] if len(builder_outputs) == 1 else tuple(builder_outputs)
+        )

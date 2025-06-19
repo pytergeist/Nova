@@ -1,6 +1,5 @@
 from typing import Any, Dict
 
-from nova.src.backend.core import Tensor
 from nova.src.blocks.block import Block
 
 
@@ -32,7 +31,10 @@ class Linear(Block):
         )
         if self.bias:
             self.bias = self.add_weight(
-                shape=(self.units,),
+                shape=(
+                    1,
+                    self.units,
+                ),
                 initialiser=self.bias_initialiser,
                 role="bias",
             )
@@ -58,16 +60,15 @@ class Linear(Block):
 
 
 if __name__ == "__main__":
-    from nova.src.backend.graph import print_graph
-    from nova.src.blocks.activations.activations import ReLU
+    from nova.src.blocks.core import InputBlock
 
-    layer = Linear(units=10, kernel_initialiser="random_normal", bias=True)
-    layer.build(input_shape=(None, 5))
-    ll = layer(Tensor(data=[[1, 2, 3, 4, 5]]))
-    relu = ReLU()
-    ll = relu(ll)
-    # print(ll.data)
-    # print(relu(ll))
+    inp = InputBlock((None, 5))  # a “symbolic” input
+    x = inp()
+    dense1 = Linear(10, "random_normal")
+    dense2 = Linear(10, "random_normal")
+    dense3 = Linear(1, "random_normal")
+    y = dense1(x)
+    z = dense2(y)
+    out = dense3(z)
 
-    # print([node for node in ll.engine.created_nodes])
-    print_graph(ll._node)
+    print(out)

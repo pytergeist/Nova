@@ -335,8 +335,9 @@ class Tensor(_C.Tensor):
     def prod(self):
         raise NotImplementedError("Product not yet implemented")
 
+    @property
     def shape(self):
-        raise NotImplementedError("Shape not yet implemented")
+        return super().shape
 
     def reshape(self):
         raise NotImplementedError("Reshape not yet implemented")
