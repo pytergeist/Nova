@@ -15,13 +15,13 @@ class ModelNode:
         outbound_tensors: Optional[List[Tensor] | Tensor] = None,
     ) -> None:
         self.operator = operator
-        self.inbound_tensors = inbound_tensors
-        self.outbound_tensors = outbound_tensors
+        self.parents = inbound_tensors
+        self.children = outbound_tensors
 
     def set_inbound_tensor(self, tensor: "Tensor") -> None:
         """Set an inbound tensor for this node."""
-        self.inbound_tensors.append(tensor)
+        self.parents.append(tensor)
 
     def set_outbound_tensor(self, tensor: "Tensor") -> None:
         """Set an outbound tensor for this node."""
-        self.outbound_tensors.append(tensor)
+        self.children.append(tensor)

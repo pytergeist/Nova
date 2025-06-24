@@ -132,7 +132,7 @@ class Block(ABC):
             self, inbound_tensors=tensor_inputs, outbound_tensors=outputs
         )
 
-        builder_outputs = builder.created_model_nodes[-1].outbound_tensors
+        builder_outputs = builder.created_model_nodes[-1].children
         return (
             builder_outputs[0] if len(builder_outputs) == 1 else tuple(builder_outputs)
         )
