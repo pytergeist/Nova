@@ -9,6 +9,8 @@ from nova.src.backend.core import Tensor
 from nova.src.backend.topology import Builder
 
 if TYPE_CHECKING:
+    from nova.src.backend.topology import ModelNode
+    from nova.src.blocks.core.input_block import InputBlock
     from nova.src.initialisers import Initialiser
 
 builder = Builder()
@@ -18,8 +20,9 @@ class Block(ABC):
     def __init__(self):
         self._inheritance_lock = True
         self._built = False
-        self.parents = []
-        self.children = []
+        self.node = builder.build_model_node(
+            self, inbound_tensors=[], outbound_tensors=[]
+        )
 
     def _check_super_called(self):  # TODO add inheritance_lock attr in child classes
         if getattr(self, "_inheritance_lock", True):
@@ -101,38 +104,19 @@ class Block(ABC):
 
         return blocks
 
-    def __call__(
+    def _set_parents(
+        self, parents: Tuple[Union["ModelNode", "InputBlock"], ...]
+    ) -> None:
+        """Set the parents of the model node."""
+        self.node.parents = tuple(
+            p.node if hasattr(p, "input_block") else p for p in parents
+        )
+
+    def __call__(  # TODO: this currently only works for the first input, need to fix for multi input models
         self, *inputs: Union[Tensor, np.ndarray]
-    ) -> Union[Tensor, Tuple[Tensor, ...]]:
+    ) -> "ModelNode":
         self._check_super_called()
-
-        # TODO: migrate this method to builder class
-        tensor_inputs = []
-        for x in inputs:
-            if isinstance(x, Tensor):
-                tensor_inputs.append(x)
-            else:
-                tensor_inputs.append(Tensor(x))
-
-        # TODO: migrate built functionality to the Builder class
-        if not getattr(self, "built", False):
-            input_shape = tensor_inputs[0].shape
-            self.build(input_shape)
-            self.built = True
-
-        # TODO: implement lazy call execution
-        raw_output = self.call(*tensor_inputs)
-
-        if isinstance(raw_output, Tensor):
-            outputs = (raw_output,)
-        else:
-            outputs = tuple(raw_output)
-
-        builder.build_model_node(
-            self, inbound_tensors=tensor_inputs, outbound_tensors=outputs
-        )
-
-        builder_outputs = builder.created_model_nodes[-1].children
-        return (
-            builder_outputs[0] if len(builder_outputs) == 1 else tuple(builder_outputs)
-        )
+        self._set_parents(inputs)
+        builder_outputs = builder.created_model_nodes[-1].outbound_tensors
+        self.outbound_tensors = builder_outputs
+        return self.node

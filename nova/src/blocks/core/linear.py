@@ -63,12 +63,15 @@ if __name__ == "__main__":
     from nova.src.blocks.core import InputBlock
 
     inp = InputBlock((None, 5))  # a “symbolic” input
-    x = inp()
+    x = inp
     dense1 = Linear(10, "random_normal")
     dense2 = Linear(10, "random_normal")
     dense3 = Linear(1, "random_normal")
     y = dense1(x)
     z = dense2(y)
     out = dense3(z)
+    print(f"out node parents: {out.parents}")
+    from nova.src.blocks.block import builder
 
-    print(out)
+    model_graph = builder.sort_model_graph()
+    print([node.operator for node in model_graph])

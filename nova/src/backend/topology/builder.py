@@ -1,16 +1,26 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
+
+from nova.src.backend.graph import TopologicalSort
 
 if TYPE_CHECKING:
     from nova.src.blocks.block import Block
+    from nova.src.blocks.core.input_block import InputBlock
 
 from .node import ModelNode
 
 
-class Builder:  # TODO: Need to add parents to node creation for sorting algorithm
+class Builder:
+    _instance = None
 
-    def __init__(self):
+    def __init__(self, sorter_cls: Type[TopologicalSort] = TopologicalSort):
         self.created_model_nodes = []
         self.node_idx_counter = 0
+        self.sorter_cls = sorter_cls
+
+    def __new__(cls, *args, **kwargs):  # TODO: Change to context manager pattern
+        if cls._instance is None:
+            cls._instance = super(Builder, cls).__new__(cls)
+        return cls._instance
 
     def _update_model_node_idx(self) -> None:
         """Updates the node index counter."""
@@ -30,14 +40,35 @@ class Builder:  # TODO: Need to add parents to node creation for sorting algorit
         self.created_model_nodes.append(model_node)
 
     def build_model_node(
-        self, operator: "Block", inbound_tensors=None, outbound_tensors=None
+        self, operator: "Block", parents=(), inbound_tensors=None, outbound_tensors=None
     ) -> ModelNode:
         self._update_model_node_idx()
         node = ModelNode(
             operator=operator,
+            parents=parents,
             inbound_tensors=inbound_tensors,
             outbound_tensors=outbound_tensors,
         )
         self._set_model_node_idx(node)
         self._add_created_model_node(node)
         return node
+
+    def build_leaf_model_node(
+        self,
+        operator: "InputBlock",
+        parents=(),
+        inbound_tensors=None,
+        outbound_tensors=None,
+    ) -> ModelNode:
+        return ModelNode(
+            operator=operator,
+            parents=parents,
+            inbound_tensors=inbound_tensors,
+            outbound_tensors=outbound_tensors,
+        )
+
+    def sort_model_graph(self):
+        sorter = self.sorter_cls()
+        start_node = self.created_model_nodes[-1]
+        sorted_nodes = sorter.sort(start_node, mode="iterative", reverse=True)
+        return sorted_nodes
