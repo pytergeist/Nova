@@ -75,7 +75,7 @@ class Engine:
         self._add_created_node(node)
         return node
 
-    def build_leaf_node(
+    def build_leaf_node(  # TODO: why does this not index the node??
         self, data, requires_grad, role: Optional[Literal["kernel", "bias"]] = None
     ) -> Node:
         """Builds a leaf node in the computational graph.
