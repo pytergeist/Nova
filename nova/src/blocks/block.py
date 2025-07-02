@@ -24,6 +24,18 @@ class Block(ABC):
             self, inbound_tensors=[], outbound_tensors=[]
         )
 
+    @property
+    def built(self) -> bool:
+        """Built propert for block has been built."""
+        return self._built
+
+    @built.setter
+    def built(self, value: bool) -> None:
+        """Set the built property for the block."""
+        if not isinstance(value, bool):
+            raise ValueError("Built property must be a boolean value.")
+        self._built = value
+
     def _check_super_called(self):  # TODO add inheritance_lock attr in child classes
         if getattr(self, "_inheritance_lock", True):
             raise RuntimeError(
