@@ -18,8 +18,14 @@ class ModelNode:
     ) -> None:
         self.operator = operator
         self.parents = parents
+        self.children: List["ModelNode"] = []
         self.inbound_tensors = inbound_tensors
         self.outbound_tensors = outbound_tensors
+
+    def set_children(self) -> None:
+        """Set the children of this node."""
+        for parent in self.parents:
+            parent.children.append(self)
 
     def set_inbound_tensor(self, tensor: "Tensor") -> None:
         """Set an inbound tensor for this node."""
