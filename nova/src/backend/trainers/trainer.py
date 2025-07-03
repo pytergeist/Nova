@@ -15,9 +15,6 @@ class Trainer:
         self._compiled = value
 
     def build(self):
-        # 1) set the shape on your input-block(s)
-        #    e.g. self.input_block.input_shape = input_shape
-        # 2) sort the graph topologically
         from nova.src.blocks.block import (  # TODO: placeholder until builder has been switched to context manager
             builder,
         )
