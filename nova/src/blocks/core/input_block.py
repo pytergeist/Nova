@@ -7,9 +7,9 @@ from nova.src.backend.topology import Builder
 class InputBlock:
     def __init__(self, input_shape, dtype=np.float32):
         self._inheritance_lock = False
-        self.shape = input_shape
+        self.input_shape = input_shape
         self.dtype = dtype
-        self.built = True
+        self.built = False
         self.builder = Builder()
         self._node = self.builder.build_leaf_model_node(
             self, parents=(), inbound_tensors=None, outbound_tensors=None
@@ -19,6 +19,9 @@ class InputBlock:
     @property
     def node(self):
         return self._node
+
+    def build(self, input_shape):
+        pass
 
     def __call__(self):  # TODO: remove this once lazy execution is implamented
         shape = [dim or 1 for dim in self.shape]

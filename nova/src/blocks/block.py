@@ -20,6 +20,8 @@ class Block(ABC):
     def __init__(self):
         self._inheritance_lock = True
         self._built = False
+        self.input_shape = None
+        self.output_shape = None
         self.node = builder.build_model_node(
             self, inbound_tensors=[], outbound_tensors=[]
         )
@@ -61,11 +63,6 @@ class Block(ABC):
     def get_config(self) -> Dict[str, Any]:
         pass
 
-    # @abstractmethod
-    # def build(self, input_shape: Optional[Tuple[int, ...]] = None) -> None:
-    #     """Build the block with the given input shape."""
-    #     pass
-
     @classmethod
     def from_config(cls, config: Dict[str, Any]) -> "Block":
         return cls(**config)
@@ -94,8 +91,29 @@ class Block(ABC):
     def call(self, *inputs):
         return self.forward(*inputs)
 
-    def build(self):
-        pass
+    def _build(self, input_shape):
+        """
+        Sets input_shape, calls subclass’s _build(),
+        checks that output_shape was set, and flips the built flag.
+        """
+        self.input_shape = input_shape
+
+        self.build(input_shape)
+
+        if self.output_shape is None:
+            raise RuntimeError(
+                f"{self.__class__.__name__}.build() must set self.output_shape"
+            )
+        self.built = True
+
+    # TODO: Make abstract method once relevant tests are refactored
+    def build(self, input_shape):
+        """
+        Subclasses override this to:
+          • create self.kernel / self.bias
+          • set self.output_shape
+        """
+        ...
 
     def _flatten_blocks(self) -> List["Block"]:
         blocks: list = []
@@ -129,6 +147,7 @@ class Block(ABC):
     ) -> "ModelNode":
         self._check_super_called()
         self._set_parents(inputs)
+        self.node.set_children()
         builder_outputs = builder.created_model_nodes[-1].outbound_tensors
         self.outbound_tensors = builder_outputs
         return self.node

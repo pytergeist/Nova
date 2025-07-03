@@ -21,23 +21,21 @@ class Linear(Block):
         self.bias_initialiser = bias_initialiser
 
     def build(self, input_shape):
+        in_dim = input_shape[-1]
+
         self.kernel = self.add_weight(
-            shape=(
-                self.units,
-                input_shape[-1],
-            ),
+            shape=(self.units, in_dim),
             initialiser=self.kernel_initialiser,
             role="kernel",
         )
+
         if self.bias:
-            self.bias = self.add_weight(
-                shape=(
-                    1,
-                    self.units,
-                ),
-                initialiser=self.bias_initialiser,
-                role="bias",
+            self.bias_param = self.add_weight(
+                shape=(self.units,), initialiser=self.bias_initialiser, role="bias"
             )
+
+        # TODO: find way to remove setting output shape here
+        self.output_shape = (self.units,)
 
     def get_config(self) -> Dict[str, Any]:
         return {
@@ -70,8 +68,15 @@ if __name__ == "__main__":
     y = dense1(x)
     z = dense2(y)
     out = dense3(z)
-    print(f"out node parents: {out.parents}")
     from nova.src.blocks.block import builder
 
     model_graph = builder.sort_model_graph()
-    print([node.operator for node in model_graph])
+    # print([node.operator for node in model_graph])
+    from nova.src.models import Model
+
+    model = Model(inputs=[inp], outputs=[out])
+    model.build()
+    for layer in model.graph:
+        print(
+            f"{layer.operator} built: {layer.operator.built} with input shape {layer.operator.input_shape} and output shape {layer.operator.output_shape}"
+        )
