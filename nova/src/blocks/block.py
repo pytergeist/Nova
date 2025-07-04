@@ -13,16 +13,15 @@ if TYPE_CHECKING:
     from nova.src.blocks.core.input_block import InputBlock
     from nova.src.initialisers import Initialiser
 
-builder = Builder()
-
 
 class Block(ABC):
-    def __init__(self):
+    def __init__(self, builder: Optional[Builder] = None):
         self._inheritance_lock = True
         self._built = False
         self.input_shape = None
         self.output_shape = None
-        self.node = builder.build_model_node(
+        self.builder = builder or Builder.get_current()
+        self.node = self.builder.build_model_node(
             self, inbound_tensors=[], outbound_tensors=[]
         )
 
@@ -148,6 +147,6 @@ class Block(ABC):
         self._check_super_called()
         self._set_parents(inputs)
         self.node.set_children()
-        builder_outputs = builder.created_model_nodes[-1].outbound_tensors
+        builder_outputs = self.builder.created_model_nodes[-1].outbound_tensors
         self.outbound_tensors = builder_outputs
         return self.node

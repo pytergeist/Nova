@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Optional, Type
 
 from nova.src.backend.graph import TopologicalSort
 
@@ -10,17 +10,17 @@ from .node import ModelNode
 
 
 class Builder:
-    _instance = None
+    _current: Optional["Builder"] = None
 
     def __init__(self, sorter_cls: Type[TopologicalSort] = TopologicalSort):
         self.created_model_nodes = []
         self.node_idx_counter = 0
         self.sorter_cls = sorter_cls
 
-    def __new__(cls, *args, **kwargs):  # TODO: Change to context manager pattern
-        if cls._instance is None:
-            cls._instance = super(Builder, cls).__new__(cls)
-        return cls._instance
+    # def __new__(cls, *args, **kwargs):  # TODO: Change to context manager pattern
+    #     if cls._instance is None:
+    #         cls._instance = super(Builder, cls).__new__(cls)
+    #     return cls._instance
 
     def _update_model_node_idx(self) -> None:
         """Updates the node index counter."""
@@ -72,3 +72,33 @@ class Builder:
         start_node = self.created_model_nodes[-1]
         sorted_nodes = sorter.sort(start_node, mode="iterative", reverse=True)
         return sorted_nodes
+
+    def __enter__(self) -> "Builder":
+        """Enter method for context manager pattern."""
+        type(self)._current = self
+        return self
+
+    def __del__(self) -> None:
+        """Destructor method for the Engine."""
+        # This is a placeholder for any cleanup logic if needed.
+        # Currently, it does nothing but will be extended in the future.
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback) -> bool:
+        """Exit method for context manager pattern."""
+        type(self)._current = None
+        return False
+
+    @classmethod
+    def get_current(cls) -> "Builder":
+        """Returns the current engine instance.
+
+        Designed to be used with the context manager pattern, e.g. with Engine.current()
+        as engine: similar to with Gradient.tape() as tape: in TensorFlow.
+        """
+        if cls._current is None:
+
+            raise RuntimeError(
+                "No active Builder context; must be inside `with Builder():`"
+            )
+        return cls._current

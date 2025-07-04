@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 
 from nova.src.backend.core import Tensor
@@ -5,12 +7,14 @@ from nova.src.backend.topology import Builder
 
 
 class InputBlock:
-    def __init__(self, input_shape, dtype=np.float32):
+    def __init__(
+        self, input_shape, dtype=np.float32, builder: Optional[Builder] = None
+    ):
         self._inheritance_lock = False
         self.input_shape = input_shape
         self.dtype = dtype
         self.built = False
-        self.builder = Builder()
+        self.builder = builder or Builder.get_current()
         self._node = self.builder.build_leaf_model_node(
             self, parents=(), inbound_tensors=None, outbound_tensors=None
         )

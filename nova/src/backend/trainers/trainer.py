@@ -1,5 +1,11 @@
+from typing import Optional
+
+from nova.src.backend.topology import Builder
+
+
 class Trainer:
-    def __init__(self):
+    def __init__(self, builder: Optional[Builder] = None):
+        self.builder = builder or Builder.get_current()
         self._compiled = False
 
     @property
@@ -15,11 +21,8 @@ class Trainer:
         self._compiled = value
 
     def build(self):
-        from nova.src.blocks.block import (  # TODO: placeholder until builder has been switched to context manager
-            builder,
-        )
 
-        graph = builder.sort_model_graph()
+        graph = self.builder.sort_model_graph()
         self.graph = graph
 
         for node in graph:

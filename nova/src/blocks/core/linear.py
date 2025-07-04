@@ -58,25 +58,24 @@ class Linear(Block):
 
 
 if __name__ == "__main__":
+    from nova.src.backend.topology import Builder
     from nova.src.blocks.core import InputBlock
 
-    inp = InputBlock((None, 5))  # a “symbolic” input
-    x = inp
-    dense1 = Linear(10, "random_normal")
-    dense2 = Linear(10, "random_normal")
-    dense3 = Linear(1, "random_normal")
-    y = dense1(x)
-    z = dense2(y)
-    out = dense3(z)
-    from nova.src.blocks.block import builder
+    with Builder() as builder:
+        inp = InputBlock((None, 5))  # a “symbolic” input
+        x = inp
+        dense1 = Linear(10, "random_normal")
+        dense2 = Linear(10, "random_normal")
+        dense3 = Linear(1, "random_normal")
+        y = dense1(x)
+        z = dense2(y)
+        out = dense3(z)
 
-    model_graph = builder.sort_model_graph()
-    # print([node.operator for node in model_graph])
-    from nova.src.models import Model
+        from nova.src.models import Model
 
-    model = Model(inputs=[inp], outputs=[out])
-    model.build()
-    for layer in model.graph:
-        print(
-            f"{layer.operator} built: {layer.operator.built} with input shape {layer.operator.input_shape} and output shape {layer.operator.output_shape}"
-        )
+        model = Model(inputs=[inp], outputs=[out])
+        model.build()
+        for layer in model.graph:
+            print(
+                f"{layer.operator} built: {layer.operator.built} with input shape {layer.operator.input_shape} and output shape {layer.operator.output_shape}"
+            )
