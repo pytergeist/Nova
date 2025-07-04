@@ -91,7 +91,7 @@ class Block(ABC):
     def call(self, *inputs):
         return self.forward(*inputs)
 
-    def _build(self, input_shape):
+    def build_block(self, input_shape):
         """
         Sets input_shape, calls subclass’s _build(),
         checks that output_shape was set, and flips the built flag.
