@@ -12,8 +12,9 @@ class InputBlock:
     ):
         self._inheritance_lock = False
         self.input_shape = input_shape
+        self.output_shape = None
         self.dtype = dtype
-        self.built = False
+        self._built = False
         self.builder = builder or Builder.get_current()
         self._node = self.builder.build_leaf_model_node(
             self, parents=(), inbound_tensors=None, outbound_tensors=None
@@ -24,8 +25,21 @@ class InputBlock:
     def node(self):
         return self._node
 
-    def build(self, input_shape):
-        pass
+    @property
+    def built(self) -> bool:
+        """Check if the block has been built."""
+        return self._built
+
+    @built.setter
+    def built(self, value: bool) -> None:
+        """Set the built property for the block."""
+        if not isinstance(value, bool):
+            raise ValueError("Built property must be a boolean value.")
+        self._built = value
+
+    def build_block(self, input_shape):
+        self.output_shape = input_shape
+        self.built = True
 
     def __call__(self):  # TODO: remove this once lazy execution is implamented
         shape = [dim or 1 for dim in self.shape]

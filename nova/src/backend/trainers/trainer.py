@@ -27,13 +27,7 @@ class Trainer:
 
         for node in graph:
             if not node.operator.built:
-                if not hasattr(node.operator, "input_block"):
-                    node.operator.build_block(
-                        node.operator.input_shape
-                    )  # TODO: change method to non-protected
-                else:
-                    node.operator.output_shape = node.operator.input_shape
-
+                node.operator.build_block(node.operator.input_shape)
             for child in node.children:
                 child.operator.input_shape = node.operator.output_shape
 
