@@ -49,4 +49,4 @@ class InputBlock:
         return t
 
     def get_config(self):
-        return {"input_shape": self.shape, "dtype": str(self.dtype)}
+        return {"input_shape": self.input_shape, "dtype": str(self.dtype)}
