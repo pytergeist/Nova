@@ -13,6 +13,6 @@ class Model(Trainer):
         self.outputs = outputs
         super().__init__()
 
-    def get_blocks(self):
+    def blocks(self):
         """Get the model blocks."""
         return [node.operator for node in self.topology]

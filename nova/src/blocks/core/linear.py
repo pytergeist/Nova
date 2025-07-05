@@ -80,4 +80,4 @@ if __name__ == "__main__":
                 f"{layer.operator} built: {layer.operator.built} with input shape {layer.operator.input_shape} and output shape {layer.operator.output_shape}"
             )
 
-        print(model.get_blocks())
+        print(model.blocks())
