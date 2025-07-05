@@ -97,7 +97,6 @@ class Builder:
         as engine: similar to with Gradient.tape() as tape: in TensorFlow.
         """
         if cls._current is None:
-
             raise RuntimeError(
                 "No active Builder context; must be inside `with Builder():`"
             )

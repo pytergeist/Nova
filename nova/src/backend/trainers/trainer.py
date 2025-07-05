@@ -6,7 +6,23 @@ from nova.src.backend.topology import Builder
 class Trainer:
     def __init__(self, builder: Optional[Builder] = None):
         self.builder = builder or Builder.get_current()
+        self._topology = None
         self._compiled = False
+
+    @property
+    def topology(self):
+        if self._topology:
+            return self._topology
+        raise ValueError(
+            "Model topology has not yet been built, please call the .build() method"
+        )
+
+    @topology.setter
+    def topology(self, value):
+        """Set the model graph for the trainer."""
+        if not isinstance(value, list):
+            raise ValueError("Model graph must be a list of nodes.")
+        self._topology = value
 
     @property
     def compiled(self):
@@ -22,10 +38,9 @@ class Trainer:
 
     def build(self):
 
-        graph = self.builder.sort_model_graph()
-        self.graph = graph
+        self.topology = self.builder.sort_model_graph()
 
-        for node in graph:
+        for node in self.topology:
             if not node.operator.built:
                 node.operator.build_block(node.operator.input_shape)
             for child in node.children:
