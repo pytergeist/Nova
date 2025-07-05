@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, Tuple
 import pytest
 
 from nova.src.backend.core import Tensor
+from nova.src.backend.topology.builder import Builder
 from nova.src.blocks import Block, activations
 from nova.src.blocks.activations.activations import ReLU
 
@@ -37,13 +38,15 @@ def test_name_method_returns_snake_case_class_name():
     ],
 )
 def test_activations_module_str_get_method(name, expected):
-    assert type(activations.get(name)) is type(expected())
+    with Builder():  # TODO: change | temporary test fix for builder context
+        assert type(activations.get(name)) is type(expected())
 
 
 def test_from_config_method_returns_instance_of_activation():
-    config = {}
-    activation = MockActivation.from_config(config)
-    assert isinstance(activation, MockActivation)
+    with Builder():
+        config = {}
+        activation = MockActivation.from_config(config)
+        assert isinstance(activation, MockActivation)
 
 
 # TODO: Need to add super lock test for activations?
@@ -57,8 +60,9 @@ def test_from_config_method_returns_instance_of_activation():
     ],
 )
 def test_relu_call_method(activation_fn, data, expected):
-    activation = activations.get(activation_fn)
-    assert all(activation.call(data).data == expected)
+    with Builder():
+        activation = activations.get(activation_fn)
+        assert all(activation.call(data).data == expected)
 
 
 if __name__ == "__main__":

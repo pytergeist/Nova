@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from nova.src.backend.core import Tensor
+from nova.src.backend.topology.builder import Builder
 from nova.src.blocks.activations import ReLU
 from tests.integration.gradient.finite_difference import (
     Tolerance,
@@ -22,7 +23,9 @@ def compute_autodiff_gradient(x):
 
     tensor_output = x_tensor + x_tensor
 
-    output = ReLU().call(tensor_output)
+    with Builder():  # TODO: change | temporary fix for builder context
+
+        output = ReLU().call(tensor_output)
 
     output.backward()
 

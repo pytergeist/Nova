@@ -3,6 +3,7 @@ import pytest
 import torch
 
 from nova.src.backend.core import Tensor
+from nova.src.backend.topology.builder import Builder
 from nova.src.blocks.activations.activations import ReLU
 from nova.src.blocks.core.linear import Linear
 from nova.src.initialisers import Constant, Ones, RandomNormal, RandomUniform, Zeros
@@ -20,36 +21,39 @@ network_configs = [
 
 
 def compute_autodiff_network_grad(x, initializer, config):
-    layer_sizes = config["layers"]
-    activations = config["activations"]
+    with Builder():  # TODO: change | temporary test fix for builder context
+        layer_sizes = config["layers"]
+        activations = config["activations"]
 
-    layers = []
-    for i in range(1, len(layer_sizes)):
-        layer = Linear(units=layer_sizes[i], kernel_initialiser=initializer, bias=False)
-        if i == 1:
-            layer.build(input_shape=x.shape)
-        else:
-            layer.build(input_shape=(None, layer_sizes[i - 1]))
-        layers.append(layer)
+        layers = []
+        for i in range(1, len(layer_sizes)):
+            layer = Linear(
+                units=layer_sizes[i], kernel_initialiser=initializer, bias=False
+            )
+            if i == 1:
+                layer.build(input_shape=x.shape)
+            else:
+                layer.build(input_shape=(None, layer_sizes[i - 1]))
+            layers.append(layer)
 
-    activations_list = [ReLU() if act else None for act in activations]
+        activations_list = [ReLU() if act else None for act in activations]
 
-    input_tensor = Tensor(data=x, requires_grad=True)
-    out = input_tensor
-    for layer, act in zip(layers, activations_list):
-        out = layer.call(out)
-        if act is not None:
-            out = act.call(out)
-    if len(layers) > len(activations_list):
-        out = layers[-1](out)
+        input_tensor = Tensor(data=x, requires_grad=True)
+        out = input_tensor
+        for layer, act in zip(layers, activations_list):
+            out = layer.call(out)
+            if act is not None:
+                out = act.call(out)
+        if len(layers) > len(activations_list):
+            out = layers[-1](out)
 
-    output_sum = out.sum()
-    output_sum.backward()
+        output_sum = out.sum()
+        output_sum.backward()
 
-    grads = {}
-    for i, layer in enumerate(layers, start=1):
-        grads[f"layer{i}_kernel"] = layer.kernel.grad
-    return grads
+        grads = {}
+        for i, layer in enumerate(layers, start=1):
+            grads[f"layer{i}_kernel"] = layer.kernel.grad
+        return grads
 
 
 def compute_pytorch_network_grad(x, initializer, config):
