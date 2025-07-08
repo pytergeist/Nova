@@ -1,3 +1,4 @@
+import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
@@ -15,15 +16,23 @@ if TYPE_CHECKING:
 
 
 class Block(ABC):
-    def __init__(self, builder: Optional[Builder] = None):
+    def __init__(
+        self, builder: Optional[Builder] = None, trainable=True, *args, **kwargs
+    ):
+        self.builder = builder or Builder.get_current()
+        self.trainable = trainable
         self._inheritance_lock = True
         self._built = False
         self.input_shape = None
         self.output_shape = None
-        self.builder = builder or Builder.get_current()
         self.node = self.builder.build_model_node(
             self, inbound_tensors=[], outbound_tensors=[]
         )
+        self._uuid = uuid.uuid4()
+
+    @property
+    def uuid(self) -> uuid.UUID:
+        return self._uuid
 
     @property
     def built(self) -> bool:
@@ -67,7 +76,7 @@ class Block(ABC):
         return cls(**config)
 
     @staticmethod
-    def _check_valid_kernel_initialiser(kernel_initialiser: "Initialiser") -> None:
+    def _check_valid_kernel_initialiser(kernel_initialiser: str) -> None:
         if initialisers.get(kernel_initialiser) is None:
             raise ValueError(f"Unknown initialiser: {kernel_initialiser}")
 
@@ -82,7 +91,9 @@ class Block(ABC):
         if isinstance(initialiser, str):
             self._check_valid_kernel_initialiser(initialiser)
             initialiser = initialisers.get(initialiser)
-        return io.as_variable(data=initialiser(shape, dtype), role=role)
+        return io.as_variable(
+            data=initialiser(shape, dtype), role=role
+        )  # TODO: asses whether bias should be variable or possibly untrainable tensor
 
     def forward(self, *inputs):
         raise NotImplementedError
