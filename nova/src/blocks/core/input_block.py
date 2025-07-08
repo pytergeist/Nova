@@ -1,3 +1,4 @@
+import uuid
 from typing import Optional
 
 import numpy as np
@@ -10,6 +11,7 @@ class InputBlock:
     def __init__(
         self, input_shape, dtype=np.float32, builder: Optional[Builder] = None
     ):
+        self.trainable = False
         self._inheritance_lock = False
         self.input_shape = input_shape
         self.output_shape = None
@@ -20,6 +22,11 @@ class InputBlock:
             self, parents=(), inbound_tensors=None, outbound_tensors=None
         )
         self.input_block = True
+        self._uuid = uuid.uuid4()
+
+    @property
+    def uuid(self) -> uuid.UUID:
+        return self._uuid
 
     @property
     def node(self):
@@ -42,7 +49,7 @@ class InputBlock:
         self.built = True
 
     def __call__(self):  # TODO: remove this once lazy execution is implamented
-        shape = [dim or 1 for dim in self.shape]
+        shape = [dim or 1 for dim in self.input_shape]
         dummy = np.zeros(shape, dtype=self.dtype)
         t = Tensor(dummy, requires_grad=False)
         self.children = [t]
