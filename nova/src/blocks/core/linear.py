@@ -1,6 +1,9 @@
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from nova.src.blocks.block import Block
+
+if TYPE_CHECKING:
+    from nova.src.backend.core import Variable
 
 
 class Linear(Block):
@@ -19,6 +22,8 @@ class Linear(Block):
         self.kernel_initialiser = kernel_initialiser
         self.bias = bias
         self.bias_initialiser = bias_initialiser
+        self.kernel: Optional["Variable"] = None
+        self.bias_value: Optional["Variable"] = None
 
     def build(self, input_shape):
         in_dim = input_shape[-1]
@@ -30,7 +35,7 @@ class Linear(Block):
         )
 
         if self.bias:
-            self.bias_param = self.add_weight(
+            self.bias_value = self.add_weight(
                 shape=(self.units,), initialiser=self.bias_initialiser, role="bias"
             )
 
@@ -80,4 +85,6 @@ if __name__ == "__main__":
                 f"{layer.operator} built: {layer.operator.built} with input shape {layer.operator.input_shape} and output shape {layer.operator.output_shape}"
             )
 
-        print(model.blocks())
+        topology = model.topology
+        print([topology.operator for topology in model.topology])
+        print(topology[1].operator.bias_value.requires_grad)
