@@ -6,7 +6,7 @@ import numpy as np
 
 from nova.src import initialisers
 from nova.src.backend import io
-from nova.src.backend.core import Tensor
+from nova.src.backend.core import Tensor, Variable
 from nova.src.backend.topology import Builder
 
 if TYPE_CHECKING:
@@ -29,6 +29,36 @@ class Block(ABC):
             self, inbound_tensors=[], outbound_tensors=[]
         )
         self._uuid = uuid.uuid4()
+        self._kernel: Optional[Variable] = None
+        self._bias_value: Optional[Variable] = None
+
+    @property
+    def kernel(self) -> Optional[Variable]:
+        return self._kernel
+
+    @kernel.setter
+    def kernel(self, value: Optional[Variable]) -> None:
+        if value is not None and not isinstance(
+            value, Tensor
+        ):  # TODO: this value migrates from Variable to Tensor during training
+            raise ValueError(
+                "Kernel must be a Variable (Tensor subclass where requires_grad = True)."
+            )
+        self._kernel = value
+
+    @property
+    def bias_value(self) -> Optional[Variable]:
+        return self._bias_value
+
+    @bias_value.setter
+    def bias_value(self, value: Optional[Variable]) -> None:
+        if value is not None and not isinstance(
+            value, Tensor
+        ):  # TODO: this value migrates from Variable to Tensor during training
+            raise ValueError(
+                "Bias must be a Variable (Tensor subclass where requires_grad = True)."
+            )
+        self._bias_value = value
 
     @property
     def uuid(self) -> uuid.UUID:
@@ -86,7 +116,7 @@ class Block(ABC):
         initialiser: Optional[Union[str, "Initialiser"]] = None,
         dtype=None,
         role=None,
-    ):
+    ) -> "Variable":
         self._check_super_called()
         if isinstance(initialiser, str):
             self._check_valid_kernel_initialiser(initialiser)
@@ -122,8 +152,12 @@ class Block(ABC):
         Subclasses override this to:
           • create self.kernel / self.bias
           • set self.output_shape
+
+        Currently, this is needed for activation functions and input blocks, the output shape
+        is set in the override build method for layers, but not for activation functions.
+        TODO: find a better way of handling output shape setting
         """
-        ...
+        self.output_shape = input_shape
 
     def _flatten_blocks(self) -> List["Block"]:
         blocks: list = []
