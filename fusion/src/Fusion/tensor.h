@@ -91,6 +91,26 @@ public:
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
 
+   Tensor<T>& operator-=(const Tensor<T>& other) {
+    const size_t out_size   = (other.flat_size() == 1 ? flat_size()   : other.flat_size());
+    const size_t na         = flat_size();
+    const size_t nb         = other.flat_size();
+    T*           self_ptr   = storage->data_ptr();
+    const T*     other_ptr  = other.storage->data_ptr();
+
+    xsimd_ops::subtract{}(
+      xsimd::default_arch{},
+      self_ptr, na,
+      other_ptr, nb,
+      self_ptr,
+      out_size,
+      xsimd::unaligned_mode{}
+    );
+
+    return *this;
+  }
+
+
   Tensor<T> operator/(const Tensor<T> &other) const {
     std::vector<size_t> out_shape =
         (other.flat_size() == 1 ? this->shape_ : other.shape_);
