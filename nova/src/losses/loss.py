@@ -1,19 +1,27 @@
+from abc import ABC, abstractmethod
+
 import numpy as np
 
 
-class Loss:
+class Loss(ABC):
     """
     Base class for loss functions.
     """
+
+    @abstractmethod
+    def call(self, *args, **kwargs):
+        pass
 
     def __call__(self, *args, **kwargs):
         """
         Call the loss function with the provided arguments.
         """
-        raise NotImplementedError("Subclasses must implement this method.")
+        return self.call(*args, **kwargs)
 
     @staticmethod
-    def reduce_loss(values: np.ndarray, reduction_method="mean"):
+    def reduce_loss(
+        values: np.ndarray, reduction_method="mean"
+    ):  # TODO: make this method more generic
         """
         Reduce the loss values based on the specified reduction method.
 
@@ -25,7 +33,9 @@ class Loss:
             Reduced loss value.
         """
         if reduction_method == "mean":
-            return values.mean()
+            return (
+                values / values.size if values.size > 0 else 0.0
+            )  # TODO: implement mean in Fusion backend
         elif reduction_method == "sum":
             return values.sum()
         else:

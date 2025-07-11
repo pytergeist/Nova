@@ -1,6 +1,9 @@
-import numpy as np
+from typing import TYPE_CHECKING
 
 from nova.src.losses import Loss
+
+if TYPE_CHECKING:
+    from nova.src.backend.core import Tensor
 
 
 class MeanSquaredError(Loss):
@@ -8,16 +11,5 @@ class MeanSquaredError(Loss):
         self.reduction_method = reduction_method
         super().__init__()
 
-    def call(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+    def call(self, y_true: "Tensor", y_pred: "Tensor") -> "Tensor":
         return self.reduce_loss((y_true - y_pred) ** 2)
-
-
-if __name__ == "__main__":
-    import numpy as np
-
-    mse = MeanSquaredError()
-    print(str(mse))
-    y_true = np.asarray([1.0, 2.0, 3.0])
-    y_pred = np.asarray([1.5, 2.5, 3.5])
-    loss_value = mse.call(y_true, y_pred)
-    print(f"Mean Squared Error: {loss_value}")
