@@ -8,9 +8,8 @@ if TYPE_CHECKING:
 
 class SGD(Optimiser):  # TODO: finish SGD implementation
     def __init__(self, parameters: List["Parameter"], lr):
-        self.parameters = parameters
         self.lr = lr
-        super().__init__(parameters=self.parameters)
+        super().__init__(parameters=parameters)
 
     def step(self):
         for p in self._parameters:

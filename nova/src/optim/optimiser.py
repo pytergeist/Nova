@@ -9,6 +9,10 @@ class Optimiser(ABC):
     def __init__(self, parameters: List["Parameter"]) -> None:
         self._parameters = parameters
 
+    @property
+    def parameters(self) -> List["Parameter"]:
+        return self._parameters
+
     @abstractmethod
     def step(self):
         pass
