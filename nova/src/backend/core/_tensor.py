@@ -190,6 +190,12 @@ class Tensor(_C.Tensor):
         """
         return self._apply_op(other, ops.subtract_op)
 
+    def __isub__(self, other: Union["Tensor", float, np.ndarray]) -> "Tensor":
+        if not isinstance(other, Tensor):
+            other = Tensor(other)
+        super().__isub__(get_cpp(other))
+        return self
+
     def __rsub__(self, other: Union["Tensor", np.ndarray, float, int]) -> "Tensor":
         """Right subtraction operator overload.
 

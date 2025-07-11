@@ -103,7 +103,9 @@ class Engine:
         return grad_output
 
     @staticmethod
-    def _zero_grad(sorted_nodes: List[Node]) -> List[Node]:
+    def _zero_grad(
+        sorted_nodes: List[Node],
+    ) -> List[Node]:  # TODO: why are we using settattr here?
         """Recursively zero out finite_difference for parents.
 
         Args:
