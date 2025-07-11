@@ -121,7 +121,9 @@ class Engine:
         """
         sorter = self.sorter_cls()
         sorted_nodes = sorter.sort(start_node, mode="iterative", reverse=False)
-        sorted_nodes = self._zero_grad(sorted_nodes)
+        sorted_nodes = self._zero_grad(
+            sorted_nodes
+        )  # TODO: should this be done in the backward step or live seperately?
         start_grad = self.set_node_gradient_if_none(start_node, start_grad)
         start_node.update_node_gradient(start_grad)
         for node in sorted_nodes:

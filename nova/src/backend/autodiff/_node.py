@@ -32,8 +32,8 @@ class Node:
         self._operation = operation
         self._parents = parents
         self._requires_grad = requires_grad
-        self._grad = None
         self._role = role
+        self._grad: float = 0.0
 
     @property
     def value(self) -> np.ndarray:
