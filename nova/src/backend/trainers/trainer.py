@@ -52,7 +52,6 @@ class Trainer:
                 self._parameters.append(
                     Parameter(
                         uuid=op.uuid,
-                        operator=op,
                         name=name,
                         trainable=op.trainable,
                         tensor=tensor,

@@ -5,13 +5,11 @@ from uuid import UUID
 import numpy as np
 
 from nova.src.backend.core import Tensor
-from nova.src.blocks import Block
 
 
 @dataclass
 class Parameter:
     uuid: UUID
-    operator: Block
     name: str
     trainable: bool
     tensor: Tensor
