@@ -1,9 +1,6 @@
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import Any, Dict
 
 from nova.src.blocks.block import Block
-
-if TYPE_CHECKING:
-    from nova.src.backend.core import Variable
 
 
 class Linear(Block):
@@ -22,8 +19,6 @@ class Linear(Block):
         self.kernel_initialiser = kernel_initialiser
         self.bias = bias
         self.bias_initialiser = bias_initialiser
-        self.kernel: Optional["Variable"] = None
-        self.bias_value: Optional["Variable"] = None
 
     def build(self, input_shape):
         in_dim = input_shape[-1]
