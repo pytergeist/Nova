@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 class SGD(Optimiser):  # TODO: finish SGD implementation
-    def __init__(self, parameters: List["Parameter"], lr):
+    def __init__(self, parameters: List["Parameter"], lr, momentum: float = 0.0):
         self.lr = lr
         super().__init__(parameters=parameters)
 
