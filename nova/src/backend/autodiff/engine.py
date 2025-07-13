@@ -8,7 +8,8 @@ from nova.src.backend.operations import Operation
 
 
 class Engine:
-    """The autodiff engine used to build the computational graph.
+    """
+    The engine used to manage the nodes in, and build, the computational autodiff graph.
 
     This class represents the autodiff engine used to build the computational graph.
     It is used to create nodes in the graph, update the node index, set the node index,
@@ -17,6 +18,7 @@ class Engine:
     Attributes:
         node_idx_counter (int): The counter used to keep track of the node index.
         created_nodes (List[Node]): A list of created nodes for debugging purposes.
+        sorter_cls (TopologicalSort): A graph sorting class that implements recursive and iterative dfs
     """
 
     def __init__(
@@ -27,12 +29,12 @@ class Engine:
         self.sorter_cls = sorter_cls
 
     def _update_node_idx(self) -> None:
-        """Updates the node index counter."""
         self.node_idx_counter += 1
 
     def _set_node_idx(self, node: Node) -> None:
-        """Sets the node index attribute on the node. Used in the build_node method to
-        set the node index on the node instance.
+        """
+        Sets the node index attribute on the node. Used in the build_node method to
+        set the node index on the node instance at run time.
 
         Args:
             node (Node): The node to set the index on.
@@ -40,7 +42,6 @@ class Engine:
         setattr(node, "idx", self.node_idx_counter)
 
     def _add_created_node(self, node: Node) -> None:
-        """Adds the created node to the list of created nodes."""
         self.created_nodes.append(node)
 
     def build_node(
@@ -51,7 +52,33 @@ class Engine:
         requires_grad: bool = False,
         role: Optional[Literal["kernel", "bias"]] = None,
     ) -> Node:
-        """Builds a node in the computational graph.
+        """
+        Builds a node in the computational graph. This method is used in the Tensor class,
+        inside the _apply_op and _apply_unary_op method to build a node in the autodiff
+        graph with an operation registered to it. The build_node operation is called in
+        the _apply(_unary)_op fn's, which sets the value of the new node as the result
+        from the unary/binary operation and sets the new nodes parents as the Tensor._node
+        value(s) that created that resultant data. This is followed by
+        '_create_new_fusion_wrapped_tensor', which creates a new Fusion (C++) Tensor and
+        sets the _node attr of that Tensor to the newly created node. Code examples below:
+
+        ```python
+        data = ...
+        t1 = Tensor(v1) # This Tensor will be a root node, (see build_leaf_node doc str)
+        t2 = Tensor(v1) # This Tensor will be a root node, (see build_leaf_node doc str)
+        t3 = t1 + t2 # This Tensor will node the newly created node
+
+        # The value of t3's node will be the direct result of the operation applied to t1-/t2.node.value
+        t3.node.value  = t1.node.value + t2.node.value
+        t3.node.parents = (t1.node, t2.node)
+
+        # Autodiff graph will then look like below:
+        t1 (root node)    t2(root node)
+        |                 |
+        ->   (Add op)   <-
+                |
+                t3
+        ```
 
         Args:
             data (np.ndarray): The data for the node.
@@ -78,7 +105,29 @@ class Engine:
     def build_leaf_node(  # TODO: why does this not index the node??
         self, data, requires_grad, role: Optional[Literal["kernel", "bias"]] = None
     ) -> Node:
-        """Builds a leaf node in the computational graph.
+        """
+        Builds a leaf node in the computational graph. This method is used in the Tensor class
+        on initialisation when the _node parameter passed to the Tensor is None. The reason for
+        this is that this method sets the parents (e.g. Tensors that created the "current" Tensor)
+        to an empty tuple. This is done as when a user manually initialises a new Tensor in code, this
+        Tensor is likely to be the root for further operation, e.g. below:
+
+        ```python
+        data = ...
+        t1 = Tensor(v1) # This Tensor will be a root node, invoking build_leaf_node
+        t2 = Tensor(v1) # This Tensor will be a root node, invoking build_leaf_node
+        t3 = t1 + t2 # This Tensor will not be a root node,
+                     # instead the build_node method is invoked at run time
+                     # see build_node for worked examples
+
+        # Autodiff graph will then look like below:
+        t1 (root node)    t2(root node)
+        |                 |
+        ->   (Add op)   <-
+                |
+                t3
+
+        ```
 
         Args:
             data (np.ndarray): The data for the node.
@@ -103,19 +152,13 @@ class Engine:
         return grad_output
 
     @staticmethod
-    def _zero_grad(
-        sorted_nodes: List[Node],
-    ) -> List[Node]:  # TODO: why are we using settattr here?
-        """Recursively zero out finite_difference for parents.
-
-        Args:
-            visited (Optional[Set[int]]): A set of visited node ids to prevent infinite loops.
-        """
+    def _zero_grad(sorted_nodes: List[Node]) -> List[Node]:
         [setattr(node, "grad", np.zeros_like(node.value)) for node in sorted_nodes]
         return sorted_nodes
 
     def backward(self, start_node: Node, start_grad: np.ndarray):
-        """Performs the backward pass through the computational graph.
+        """
+        Performs the backward pass through the computational graph.
 
         Args:
             start_node (Node): The node to start the backward pass from.
@@ -138,23 +181,27 @@ class Engine:
                     parent.update_node_gradient(pgrad)
 
     def __enter__(self) -> "Engine":
-        """Enter method for context manager pattern."""
+        """Enter method for context manager pattern.
+        Invoked with the with statement.
+        """
         return self
 
     def __del__(self) -> None:
-        """Destructor method for the Engine."""
         # This is a placeholder for any cleanup logic if needed.
-        # Currently, it does nothing but will be extended in the future.
+        # Currently, it does nothing but delete when out of scope
+        # will be extended in the future.
         pass
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
-        """Exit method for context manager pattern."""
+        # Current logic just exits when out of scope
+        # will be extended in the future
         return False
 
     def get_current(self) -> "Engine":
-        """Returns the current engine instance.
+        """
+        Returns the current engine instance.
 
-        Designed to be used with the context manager pattern, e.g. with Engine.current()
-        as engine: similar to with Gradient.tape() as tape: in TensorFlow.
+        Designed to be used with the context manager pattern, e.g. with Engine.get_current()
+        as engine: similar to with Gradient.tape() as tape: in TensorFlow etc.
         """
         return self
