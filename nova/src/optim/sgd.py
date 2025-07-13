@@ -12,7 +12,7 @@ class SGD(Optimiser):  # TODO: finish SGD implementation
         super().__init__(parameters=parameters)
 
     def step(self):
-        for p in self._parameters:
+        for p in self.parameters:
             grad = p.tensor.grad
             if grad is None:
                 continue
