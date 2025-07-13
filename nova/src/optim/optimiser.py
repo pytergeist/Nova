@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from nova.src.backend.parameter import Parameter
@@ -8,11 +8,6 @@ if TYPE_CHECKING:
 class Optimiser(ABC):
     def __init__(self, parameters: List["Parameter"]) -> None:
         self._parameters = parameters
-
-    def add_parameter(
-        self, parameter_dict: Dict[str, Any]
-    ):  # TODO: create better type hints for param dict
-        self._parameters.append(Parameter(**parameter_dict))
 
     @property
     def parameters(self) -> List["Parameter"]:

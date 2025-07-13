@@ -259,7 +259,7 @@ class Tensor(_C.Tensor):
         return self._apply_op(other, ops.multiply_op)
 
     def __rmul__(self, other):
-        raise NotImplementedError("Multiplication not yet implemented")
+        return self._apply_op(other, ops.right_multiply_op)
 
     def __pow__(self, other):
         """Poweroperator overload.
