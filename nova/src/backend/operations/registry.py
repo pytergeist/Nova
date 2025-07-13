@@ -165,6 +165,12 @@ multiply_op = Operation(
     backward_func=multiply_backward,
 )
 
+right_multiply_op = Operation(
+    name="__mul__",
+    forward_func=lambda a, b: b * a,
+    backward_func=multiply_backward,
+)
+
 
 def power_backward(result, a, b, grad_output):
     """

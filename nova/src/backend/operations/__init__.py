@@ -9,6 +9,7 @@ from .registry import (
     maximum_op,
     multiply_op,
     power_op,
+    right_multiply_op,
     right_subtract_op,
     sqrt_op,
     subtract_op,
@@ -32,4 +33,5 @@ __all__ = [
     "exponential_op",
     "log_op",
     "sqrt_op",
+    "right_multiply_op",
 ]
