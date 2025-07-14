@@ -1,5 +1,4 @@
-import pdb
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 import numpy as np
 
@@ -17,25 +16,26 @@ class SGD(
         self.lr = lr
         self.momentum = momentum
         super().__init__(parameters=parameters)
-        self.velocities = self._build_velocity_buffer() if momentum > 0.0 else None
+        self.velocities: Optional = None
 
-    def _build_velocity_buffer(self):
-        return [Tensor(np.zeros_like(p.tensor.data)) for p in self.parameters]
+    def build(self):
+        self.velocities = [
+            Tensor(np.zeros_like(p.tensor.data)) for p in self.parameters
+        ]
 
     def step(self):
         for idx, p in enumerate(self.parameters):
-            grad = p.tensor.grad
-            if grad is None:
+            g_t = p.tensor.grad
+            if g_t is None:
                 continue
 
             if self.momentum > 0.0:
-                momentum_term = self.momentum * self.velocities[idx]
-                grad_term = (1 - self.momentum) * grad
+                v_t = self.momentum * self.velocities[idx]
+                g_t = (1 - self.momentum) * g_t
 
-                p.tensor -= self.lr * (momentum_term + grad_term)
+                p.tensor -= self.lr * (v_t + g_t)
 
             else:
-                pdb.set_trace()
-                p.tensor -= self.lr * grad
+                p.tensor -= self.lr * g_t
 
             p.zero_grad()
