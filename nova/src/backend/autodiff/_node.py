@@ -110,7 +110,8 @@ class Node:
 
         expected_shape = (
             self.value.shape
-        )  # TODO: This jacobian is hacky - implament proper n-D handling
+        )  # TODO: This jacobian is hacky - implament proper n-D handling.
+        # TODO: should the shape be handled during the backward pass? by the operations module?
         if grad_output.shape != expected_shape:
             if grad_output.ndim == 2:
                 grad_output = np.diag(grad_output)
