@@ -167,7 +167,7 @@ def test_tensor_sum_backward(data):
 
     s.backward()
 
-    expected_grad = np.ones_like(a.data)
+    expected_grad = a.ones_like().to_numpy()
     np.testing.assert_array_almost_equal(a.grad, expected_grad, decimal=5)
 
 
@@ -188,10 +188,10 @@ def test_tensor_matmul_backward():
     s = c.sum()
     s.backward()
 
-    expected_grad_a = np.ones_like(c.data) @ B.T
+    expected_grad_a = c.ones_like().to_numpy() @ B.T
     np.testing.assert_array_almost_equal(a.grad, expected_grad_a, decimal=5)
 
-    expected_grad_b = A.T @ np.ones_like(c.data)
+    expected_grad_b = A.T @ c.ones_like().to_numpy()
     np.testing.assert_array_almost_equal(b.grad, expected_grad_b, decimal=5)
 
 

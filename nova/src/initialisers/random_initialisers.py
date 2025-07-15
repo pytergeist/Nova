@@ -1,4 +1,4 @@
-﻿# TODO: Replace numpy functionality with backend operations - written in c++?
+﻿# TODO: Replace numpy functionality with backend operations - written in Fusion module
 
 import os
 from typing import Any, Dict, Tuple

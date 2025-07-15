@@ -6,7 +6,7 @@ from nova.src.initialisers import Constant, Ones, Zeros
 
 def test_constant_initialiser_init_value():
     constant = Constant(1.0)
-    assert constant(1, "float32") == 1.0
+    assert constant((1,), "float32") == 1.0
 
 
 def test_constant_initialiser_get_config():

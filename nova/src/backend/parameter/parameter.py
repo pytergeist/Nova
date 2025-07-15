@@ -18,7 +18,7 @@ class Parameter:
 
     def __post_init__(self):
         if self.grad is None:
-            self.grad = Tensor(np.zeros_like(self.tensor.data))
+            self.grad = Tensor(self.tensor.zeros_like())  # TODO: evaluate this impl
 
     def zero_grad(self):
         if self.grad is not None:
