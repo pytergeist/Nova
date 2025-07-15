@@ -7,7 +7,9 @@
 #include "storage/storage_interface.h"
 #include "xsimd/xsimd.hpp"
 #include <iostream>
+#include <numeric>
 #include <stdexcept>
+#include <vector>
 
 template <typename T> class Tensor {
 public:
@@ -91,25 +93,19 @@ public:
     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
   }
 
-   Tensor<T>& operator-=(const Tensor<T>& other) {
-    const size_t out_size   = (other.flat_size() == 1 ? flat_size()   : other.flat_size());
-    const size_t na         = flat_size();
-    const size_t nb         = other.flat_size();
-    T*           self_ptr   = storage->data_ptr();
-    const T*     other_ptr  = other.storage->data_ptr();
+  Tensor<T> &operator-=(const Tensor<T> &other) {
+    const size_t out_size =
+        (other.flat_size() == 1 ? flat_size() : other.flat_size());
+    const size_t na = flat_size();
+    const size_t nb = other.flat_size();
+    T *self_ptr = storage->data_ptr();
+    const T *other_ptr = other.storage->data_ptr();
 
-    xsimd_ops::subtract{}(
-      xsimd::default_arch{},
-      self_ptr, na,
-      other_ptr, nb,
-      self_ptr,
-      out_size,
-      xsimd::unaligned_mode{}
-    );
+    xsimd_ops::subtract{}(xsimd::default_arch{}, self_ptr, na, other_ptr, nb,
+                          self_ptr, out_size, xsimd::unaligned_mode{});
 
     return *this;
   }
-
 
   Tensor<T> operator/(const Tensor<T> &other) const {
     std::vector<size_t> out_shape =
@@ -277,7 +273,4 @@ public:
   }
 };
 
-//
-//     Tensor<T> diagonal() const;
-// };
 #endif // TENSOR_H

@@ -1,7 +1,9 @@
 // bind_tensor.h
 #pragma once
 
-#include "../tensor.h"
+#include "../../random.h"
+#include "../../tensor.h"
+#include "../../tensor_factory.h"
 #include "helpers.h"
 
 #include <numeric>
@@ -99,5 +101,26 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def("sum", &PyT::sum)
       .def("maximum", &PyT::maximum, py::arg("other"))
       .def("transpose", &PyT::transpose,
-           "Return a new Tensor that is the transpose of this one.");
+           "Return a new Tensor that is the transpose of this one.")
+
+      // -- factory methods --
+      // NB: Currently these factory functions are bound to the Tensor class not
+      // free fn's
+      // TODO: Create free function bindings for factory methods
+      .def(
+          "zeros_like", [](const PyT &self) { return zeros_like<T>(self); },
+          "Return a Tensor of zeros with the same shape as this one.")
+      .def(
+          "ones_like", [](const PyT &self) { return ones_like<T>(self); },
+          "Return a Tensor of zeros with the same shape as this one.")
+
+      .def_static(
+          "uniform",
+          [](const std::vector<size_t> &shape, T min, T max) {
+            static thread_local std::mt19937 gen(std::random_device{}());
+            return fusion_random::uniform<T>(shape, min, max, gen);
+          },
+          py::arg("shape"), py::arg("min"), py::arg("max"),
+          "Return a Tensor of given shape with uniform factory values in [min, "
+          "max).");
 }
