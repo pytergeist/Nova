@@ -75,6 +75,7 @@ target_include_directories(fusion PRIVATE
         ${XSIMD_INCLUDE_DIR}
 )
 
+
 target_link_libraries(fusion PRIVATE
         ${OPENBLAS_LIB}
 )
