@@ -3,15 +3,15 @@
 
 #include "./tensor.h"
 #include <algorithm>
-#include <functional>
 #include <numeric>
 #include <random>
 #include <vector>
 
-namespace fusion_random {
+inline std::mt19937 engine{ std::random_device{}() };
+ // std::mt19937 &engine
+
 template <typename T>
-Tensor<T> uniform(const std::vector<size_t> &shape, T min, T max,
-                  std::mt19937 &engine) {
+Tensor<T> uniform(const std::vector<size_t> &shape, T min, T max) {
   size_t total = std::accumulate(shape.begin(), shape.end(), size_t(1),
                                  std::multiplies<>());
 
@@ -26,5 +26,4 @@ Tensor<T> uniform(const std::vector<size_t> &shape, T min, T max,
 
   return Tensor<T>(shape, std::move(data), Device::CPU);
 }
-} // namespace fusion_random
 #endif

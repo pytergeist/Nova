@@ -85,6 +85,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def("__rsub__", &PyT::operator-)
       .def("__mul__", &PyT::operator*)
       .def("__truediv__", &PyT::operator/)
+      .def("__ge__", &PyT::operator>=)
 
       // --- matrix multiply ( @ ) ---
       .def("__matmul__", &PyT::matmul, "Matrix multiplication (A @ B)")
@@ -112,15 +113,5 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
           "Return a Tensor of zeros with the same shape as this one.")
       .def(
           "ones_like", [](const PyT &self) { return ones_like<T>(self); },
-          "Return a Tensor of zeros with the same shape as this one.")
-
-      .def_static(
-          "uniform",
-          [](const std::vector<size_t> &shape, T min, T max) {
-            static thread_local std::mt19937 gen(std::random_device{}());
-            return fusion_random::uniform<T>(shape, min, max, gen);
-          },
-          py::arg("shape"), py::arg("min"), py::arg("max"),
-          "Return a Tensor of given shape with uniform factory values in [min, "
-          "max).");
+          "Return a Tensor of zeros with the same shape as this one.");
 }

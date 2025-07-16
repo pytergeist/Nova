@@ -16,14 +16,11 @@ namespace py = pybind11;
 // and adds functions fill, zeros, ones, etc. under fusion.random
 
 template <typename T> void bind_factory(py::module_ &m, const char *name) {
-  // Build docstring for the submodule
   std::string doc =
       std::string("factory functions for Tensor<") + typeid(T).name() + ">";
 
-  // Create the submodule (e.g., fusion.random)
   auto submod = m.def_submodule(name, doc.c_str());
 
-  // Bind free-function factories into this submodule
   submod.def("fill", &fill<T>, "Create a tensor filled with a given value",
              py::arg("shape"), py::arg("value"));
   submod.def("zeros", &zeros<T>, "Create a tensor of zeros", py::arg("shape"));
