@@ -89,7 +89,7 @@ namespace xsimd_ops {
     };
 
 
-    struct greater_than_equal_to_bool {
+    struct greater_than_equal_to_numeric {
         template<class T, class Arch, class Tag>
         void operator()(Arch arch,
                         const T *a, size_t na,

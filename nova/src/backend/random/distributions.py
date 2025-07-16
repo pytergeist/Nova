@@ -11,7 +11,6 @@ def uniform(
     shape: tuple[int, ...],
     min: float = 0.0,
     max: float = 1.0,
-    dtype: str = "float32",
 ) -> "Tensor":
     """
     Generates a C++ tensor with values uniformly distributed between `min` and `max`.

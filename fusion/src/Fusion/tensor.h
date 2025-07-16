@@ -163,7 +163,7 @@ public:
         std::vector<T> result(out_size);
         T *r_ptr = result.data();
 
-        xsimd_ops::greater_than_equal_to_bool{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
+        xsimd_ops::greater_than_equal_to_numeric{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
                                                 out_size, xsimd::aligned_mode{});
 
         return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
