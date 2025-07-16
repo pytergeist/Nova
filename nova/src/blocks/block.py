@@ -125,8 +125,8 @@ class Block(ABC):
             data=initialiser(shape, dtype), role=role
         )  # TODO: asses whether bias should be variable or possibly untrainable tensor
 
-    def forward(self, *inputs):
-        raise NotImplementedError
+    def forward(self, inputs):
+        return self.call(inputs)
 
     def call(self, *inputs):
         return self.forward(*inputs)

@@ -45,9 +45,6 @@ class Linear(Block):
             "bias_initialiser": self.bias_initialiser,
         }
 
-    def forward(self, inputs):
-        return self.call(inputs)
-
     def call(self, inputs):
         # For an input of shape (batch, in_features) and a kernel of shape (units, in_features),
         # we compute the output as: output = inputs @ kernel.T + bias.

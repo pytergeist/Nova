@@ -1,6 +1,6 @@
 import numpy as np
 
-from nova.src.factory import factory
+from nova.src.backend.factory import factory
 from nova.src.initialisers.initialiser import Initialiser
 
 

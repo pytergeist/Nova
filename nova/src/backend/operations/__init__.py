@@ -1,6 +1,5 @@
 from .activation_registry import relu_op
-from .operation import Operation
-from .registry import (
+from .grad_registry import (
     add_op,
     divide_op,
     exponential_op,
@@ -16,6 +15,8 @@ from .registry import (
     sum_op,
     transpose_op,
 )
+from .no_grad_registry import greater_than_equal_to_op
+from .operation import Operation
 
 __all__ = [
     "Operation",
@@ -34,4 +35,5 @@ __all__ = [
     "log_op",
     "sqrt_op",
     "right_multiply_op",
+    "greater_than_equal_to_op",
 ]

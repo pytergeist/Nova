@@ -272,6 +272,9 @@ class Tensor(_C.Tensor):
         """
         return self._apply_op(other, ops.power_op)
 
+    def __ge__(self, other):
+        return self._apply_op(other, ops.greater_than_equal_to_op)
+
     def __rpow__(self, other):
         raise NotImplementedError("Power not yet implemented")
 

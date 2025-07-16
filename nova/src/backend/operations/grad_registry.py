@@ -1,4 +1,4 @@
-# registry.py
+# grad_registry.py
 import numpy as np
 
 from .operation import Operation

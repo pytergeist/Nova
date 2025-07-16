@@ -48,7 +48,7 @@ def as_tensor(
     """
     dtype = as_dtype(dtype)
     array = np.array(data, dtype=dtype)
-    return Tensor(data=array, requires_grad=requires_grad, dtype=dtype, role=role)
+    return Tensor(data=array, requires_grad=requires_grad, role=role)
 
 
 def as_variable(data: np.ndarray, dtype: "DType" = "float32", role=None) -> Variable:
