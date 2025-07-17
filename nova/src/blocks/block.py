@@ -21,7 +21,7 @@ class Block(ABC):
     ):
         self.builder = builder or Builder.get_current()
         self.trainable = trainable
-        self._inheritance_lock = True
+        self._super_init_ran = True
         self._built = False
         self.input_shape = None
         self.output_shape = None
@@ -77,7 +77,7 @@ class Block(ABC):
         self._built = value
 
     def _check_super_called(self):  # TODO add inheritance_lock attr in child classes
-        if getattr(self, "_inheritance_lock", True):
+        if not getattr(self, "_super_init_ran", False):
             raise RuntimeError(
                 f"In layer {self.__class__.__name__},"
                 "you forgot to call super.__init__()"

@@ -5,9 +5,6 @@ from nova.src.blocks.block import Block
 class ReLU(Block):
     def __init__(self):
         super().__init__()
-        self._inheritance_lock = (
-            False  # TODO: override super in parent to set inheritance lock
-        )
         self.trainable = (
             False  # TODO: find a way to automatically set this to False for activations
         )

@@ -12,9 +12,6 @@ class Linear(Block):
         bias_initialiser: str = "zeros",
     ) -> None:
         super().__init__()
-        self._inheritance_lock = (
-            False  # TODO: override super in parent to set inheritance lock
-        )
         self.units = units
         self.kernel_initialiser = kernel_initialiser
         self.bias = bias
@@ -52,31 +49,3 @@ class Linear(Block):
         if self.bias:
             output += self.bias
         return output
-
-
-if __name__ == "__main__":
-    from nova.src.backend.topology import Builder
-    from nova.src.blocks.core import InputBlock
-
-    with Builder() as builder:
-        inp = InputBlock((None, 5))  # a “symbolic” input
-        x = inp
-        dense1 = Linear(10, "random_normal")
-        dense2 = Linear(10, "random_normal")
-        dense3 = Linear(1, "random_normal")
-        y = dense1(x)
-        z = dense2(y)
-        out = dense3(z)
-
-        from nova.src.models import Model
-
-        model = Model(inputs=[inp], outputs=[out])
-        model.build()
-        for layer in model.topology:
-            print(
-                f"{layer.operator} built: {layer.operator.built} with input shape {layer.operator.input_shape} and output shape {layer.operator.output_shape}"
-            )
-
-        topology = model.topology
-        print([topology.operator for topology in model.topology])
-        print(topology[1].operator.bias_value.requires_grad)
