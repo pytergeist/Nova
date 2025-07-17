@@ -5,9 +5,6 @@ from nova.src.blocks.block import Block
 class ReLU(Block):
     def __init__(self):
         super().__init__()
-        self.trainable = (
-            False  # TODO: find a way to automatically set this to False for activations
-        )
 
     def call(self, inputs: Tensor, **kwargs):
         return inputs.maximum(0)
