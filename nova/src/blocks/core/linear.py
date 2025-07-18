@@ -31,9 +31,6 @@ class Linear(Block):
                 shape=(self.units,), initialiser=self.bias_initialiser, role="bias"
             )
 
-        # TODO: find way to remove setting output shape here
-        self.output_shape = (self.units,)
-
     def get_config(self) -> Dict[str, Any]:
         return {
             "units": self.units,

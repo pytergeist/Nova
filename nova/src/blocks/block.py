@@ -140,10 +140,15 @@ class Block(ABC):
 
         self.build(input_shape)
 
-        if self.output_shape is None:
+        if self.kernel is not None:
+            *batch_dims, _ = input_shape
+            self.output_shape = (self.kernel.shape[0],)
+
+        elif self.output_shape is None:
             raise RuntimeError(
                 f"{self.__class__.__name__}.build() must set self.output_shape"
             )
+
         self.built = True
 
     # TODO: Make abstract method once relevant tests are refactored
