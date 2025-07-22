@@ -7,8 +7,8 @@
 #include <random>
 #include <vector>
 
-inline std::mt19937 engine{ std::random_device{}() };
- // std::mt19937 &engine
+inline std::mt19937 engine{std::random_device{}()};
+// std::mt19937 &engine
 
 template <typename T>
 Tensor<T> uniform(const std::vector<size_t> &shape, T min, T max) {

@@ -139,3 +139,11 @@ target_link_libraries(FusionTests PRIVATE
 )
 
 add_test(NAME FusionTests COMMAND FusionTests)
+
+#--------------------------------------------------------------------------------
+# Benchmarks (optional)
+option(BUILD_BENCHMARKS "Build Fusion benchmarks" ON)
+
+if (BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif()
