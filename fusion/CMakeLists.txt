@@ -117,6 +117,13 @@ add_executable(FusionExecutable
         src/Fusion/core/broadcast.cpp
 )
 
+# ensure neon flag in binary
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    if(FUSION_ENABLE_NEON)
+        target_compile_definitions(FusionExecutable PRIVATE FUSION_ENABLE_NEON=1)
+    endif()
+endif()
+
 target_include_directories(FusionExecutable PRIVATE
         ${PROJECT_SOURCE_DIR}/src/Fusion/tensor
         ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
