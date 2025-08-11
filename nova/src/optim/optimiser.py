@@ -14,9 +14,7 @@ class Optimiser(ABC):
         return self._parameters
 
     @abstractmethod
-    def build(self):
-        pass
+    def build(self): ...
 
     @abstractmethod
-    def step(self):
-        pass
+    def step(self): ...

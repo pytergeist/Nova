@@ -9,8 +9,7 @@ class Loss(ABC):
     """
 
     @abstractmethod
-    def call(self, *args, **kwargs):
-        pass
+    def call(self, *args, **kwargs): ...
 
     def __call__(self, *args, **kwargs):
         """

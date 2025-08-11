@@ -45,49 +45,49 @@ int main() {
           ankerl::nanobench::doNotOptimizeAway(t3);
         });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("Sub", [&] { Tensor<float> t3 = t1 - t2; });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("Sub", [&] { Tensor<float> t3 = t1 - t2; });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(200))
-        .run("SubNoOpti", [&] {
-          Tensor<float> t3 = t1 - t2;
-          ankerl::nanobench::doNotOptimizeAway(t3);
-        });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(200))
+            .run("SubNoOpti", [&] {
+              Tensor<float> t3 = t1 - t2;
+              ankerl::nanobench::doNotOptimizeAway(t3);
+            });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("Div", [&] { Tensor<float> t3 = t1 / t2; });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("Div", [&] { Tensor<float> t3 = t1 / t2; });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("DivNoOpti", [&] {
-          Tensor<float> t3 = t1 / t2;
-          ankerl::nanobench::doNotOptimizeAway(t3);
-        });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("DivNoOpti", [&] {
+              Tensor<float> t3 = t1 / t2;
+              ankerl::nanobench::doNotOptimizeAway(t3);
+            });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("Mul", [&] { Tensor<float> t3 = t1 * t2; });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("Mul", [&] { Tensor<float> t3 = t1 * t2; });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("MulNoOpti", [&] {
-          Tensor<float> t3 = t1 * t2;
-          ankerl::nanobench::doNotOptimizeAway(t3);
-        });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("MulNoOpti", [&] {
+              Tensor<float> t3 = t1 * t2;
+              ankerl::nanobench::doNotOptimizeAway(t3);
+            });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("MatMul", [&] { Tensor<float> t3 = t1.matmul(t2); });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("MatMul", [&] { Tensor<float> t3 = t1.matmul(t2); });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("MatMulNoOpti", [&] {
-          Tensor<float> t3 = t1.matmul(t2);
-          ankerl::nanobench::doNotOptimizeAway(t3);
-        });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("MatMulNoOpti", [&] {
+              Tensor<float> t3 = t1.matmul(t2);
+              ankerl::nanobench::doNotOptimizeAway(t3);
+            });
   }
 
   return 0;

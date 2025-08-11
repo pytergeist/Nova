@@ -1,9 +1,9 @@
 # .flake8
 [flake8]
 max-line-length = 88
+extend-ignore = E501, E704
 exclude =
     .git,
     __pycache__,
     build,
     dist
-ignore = E501

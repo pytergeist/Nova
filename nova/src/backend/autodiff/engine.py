@@ -190,7 +190,7 @@ class Engine:
         # This is a placeholder for any cleanup logic if needed.
         # Currently, it does nothing but delete when out of scope
         # will be extended in the future.
-        pass
+        ...
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
         # Current logic just exits when out of scope

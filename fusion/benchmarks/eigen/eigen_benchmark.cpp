@@ -56,50 +56,50 @@ int main() {
           ankerl::nanobench::doNotOptimizeAway(c);
         });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("Sub", [&] { MatrixXf c = a.array() - b.array(); });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("Sub", [&] { MatrixXf c = a.array() - b.array(); });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(200))
-        .run("SubNoOpti", [&] {
-          MatrixXf c = a.array() - b.array();
-          ;
-          ankerl::nanobench::doNotOptimizeAway(c);
-        });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(200))
+            .run("SubNoOpti", [&] {
+              MatrixXf c = a.array() - b.array();
+              ;
+              ankerl::nanobench::doNotOptimizeAway(c);
+            });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("Div", [&] { MatrixXf c = a.array() / b.array(); });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("Div", [&] { MatrixXf c = a.array() / b.array(); });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("DivNoOpti", [&] {
-          MatrixXf c = a.array() / b.array();
-          ankerl::nanobench::doNotOptimizeAway(c);
-        });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("DivNoOpti", [&] {
+              MatrixXf c = a.array() / b.array();
+              ankerl::nanobench::doNotOptimizeAway(c);
+            });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("Mul", [&] { MatrixXf c = a.array() * b.array(); });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("Mul", [&] { MatrixXf c = a.array() * b.array(); });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("MulNoOpti", [&] {
-          MatrixXf c = a.array() * b.array();
-          ankerl::nanobench::doNotOptimizeAway(c);
-        });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("MulNoOpti", [&] {
+              MatrixXf c = a.array() * b.array();
+              ankerl::nanobench::doNotOptimizeAway(c);
+            });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("MatMul", [&] { MatrixXf c = a * b; });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("MatMul", [&] { MatrixXf c = a * b; });
 
-    bench.minEpochIterations(epoch_iterations)
-        .minEpochTime(std::chrono::milliseconds(milisecs))
-        .run("MatMulNoOpti", [&] {
-          MatrixXf c = a * b;
-          ankerl::nanobench::doNotOptimizeAway(c);
-        });
+        bench.minEpochIterations(epoch_iterations)
+            .minEpochTime(std::chrono::milliseconds(milisecs))
+            .run("MatMulNoOpti", [&] {
+              MatrixXf c = a * b;
+              ankerl::nanobench::doNotOptimizeAway(c);
+            });
   }
 
   return 0;

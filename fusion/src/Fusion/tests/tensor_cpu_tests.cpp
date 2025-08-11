@@ -1,5 +1,6 @@
 // tensor_ops_test.cpp
 
+#include "../cpu/simd/vec128_neon.h"
 #include "../tensor.h"
 #include <cmath>
 #include <gtest/gtest.h>
@@ -66,53 +67,53 @@ Tensor<T> create_tensor(const std::vector<T> &data,
 // Binary Operations Tests
 
 TEST(TensorOpsTest, BinaryOperationsTest) {
-  std::vector<double> data1 = {1.0, 2.0, 3.0};
-  std::vector<double> data2 = {4.0, 5.0, 6.0};
+  std::vector<float> data1 = {1.0, 2.0, 3.0};
+  std::vector<float> data2 = {4.0, 5.0, 6.0};
   std::vector<size_t> shape = {3}; // 3×1 tensors.
-  Tensor<double> t1 = create_tensor(data1, shape);
-  Tensor<double> t2 = create_tensor(data2, shape);
+  Tensor<float> t1 = create_tensor(data1, shape);
+  Tensor<float> t2 = create_tensor(data2, shape);
 
   // Addition
-  Tensor<double> addResult = t1 + t2;
-  std::vector<double> expectedAdd = {5.0, 7.0, 9.0};
-  std::vector<double> addVec = addResult.raw_data();
+  Tensor<float> addResult = t1 + t2;
+  std::vector<float> expectedAdd = {5.0, 7.0, 9.0};
+  std::vector<float> addVec = addResult.raw_data();
   for (size_t i = 0; i < expectedAdd.size(); ++i) {
     EXPECT_NEAR(addVec[i], expectedAdd[i], 1e-6);
   }
 
   // Subtraction
-  Tensor<double> subResult = t2 - t1;
-  std::vector<double> expectedSub = {3.0, 3.0, 3.0};
-  std::vector<double> subVec = subResult.raw_data();
+  Tensor<float> subResult = t2 - t1;
+  std::vector<float> expectedSub = {3.0, 3.0, 3.0};
+  std::vector<float> subVec = subResult.raw_data();
   for (size_t i = 0; i < expectedSub.size(); ++i) {
     EXPECT_NEAR(subVec[i], expectedSub[i], 1e-6);
   }
 
   // Elementwise Multiplication
-  Tensor<double> mulResult = t1 * t2;
-  std::vector<double> expectedMul = {4.0, 10.0, 18.0};
-  std::vector<double> mulVec = mulResult.raw_data();
+  Tensor<float> mulResult = t1 * t2;
+  std::vector<float> expectedMul = {4.0, 10.0, 18.0};
+  std::vector<float> mulVec = mulResult.raw_data();
   for (size_t i = 0; i < expectedMul.size(); ++i) {
     EXPECT_NEAR(mulVec[i], expectedMul[i], 1e-6);
   }
 
   // Elementwise Division
-  Tensor<double> divResult = t2 / t1;
-  std::vector<double> expectedDiv = {4.0, 2.5, 2.0};
-  std::vector<double> divVec = divResult.raw_data();
+  Tensor<float> divResult = t2 / t1;
+  std::vector<float> expectedDiv = {4.0, 2.5, 2.0};
+  std::vector<float> divVec = divResult.raw_data();
   for (size_t i = 0; i < expectedDiv.size(); ++i) {
     EXPECT_NEAR(divVec[i], expectedDiv[i], 1e-6);
   }
 
   // Pow: Note that Tensor::pow takes a scalar exponent.
   // Here, we raise each element of t1 to the 4th power.
-  Tensor<double> tensor_to_pow = create_tensor(std::vector{4.0}, {1});
-  Tensor<double> powResult = t1.pow(tensor_to_pow);
-  std::vector<double> expectedPow;
-  for (double d : data1) {
+  Tensor<float> tensor_to_pow = create_tensor(std::vector<float>{4.0}, {1});
+  Tensor<float> powResult = t1.pow(tensor_to_pow);
+  std::vector<float> expectedPow;
+  for (float d : data1) {
     expectedPow.push_back(std::pow(d, 4.0));
   }
-  std::vector<double> powVec = powResult.raw_data();
+  std::vector<float> powVec = powResult.raw_data();
   for (size_t i = 0; i < expectedPow.size(); ++i) {
     EXPECT_NEAR(powVec[i], expectedPow[i], 1e-6);
   }
