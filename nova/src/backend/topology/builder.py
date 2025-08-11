@@ -82,7 +82,7 @@ class Builder:
         """Destructor method for the Engine."""
         # This is a placeholder for any cleanup logic if needed.
         # Currently, it does nothing but will be extended in the future.
-        pass
+        ...
 
     def __exit__(self, exc_type, exc_value, traceback) -> bool:
         """Exit method for context manager pattern."""

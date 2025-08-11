@@ -30,8 +30,7 @@ class Initialiser(ABC):  # TODO: create dtype class/types
         return cls.camel_to_snake_case(cls.__name__)
 
     @abstractmethod
-    def get_config(self) -> Dict[str, Any]:
-        pass
+    def get_config(self) -> Dict[str, Any]: ...
 
     @classmethod
     def from_config(cls, config: Dict[str, Any]) -> "Initialiser":

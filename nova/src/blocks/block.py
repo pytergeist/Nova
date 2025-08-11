@@ -98,8 +98,7 @@ class Block(ABC):
         return cls.lower_case(cls.__name__)
 
     @abstractmethod
-    def get_config(self) -> Dict[str, Any]:
-        pass
+    def get_config(self) -> Dict[str, Any]: ...
 
     @classmethod
     def from_config(cls, config: Dict[str, Any]) -> "Block":
