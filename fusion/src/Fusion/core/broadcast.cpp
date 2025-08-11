@@ -20,12 +20,13 @@ BroadcastPlan make_broadcast_pan(const std::vector<TensorDescription>& descs) {
   // between existing and padded axis) with size 1 (e.g. axis=1) and
   // stride = 0, meaning the same element will get used as the broadcast element for this
   // axis.
-  // *************************
+  //**************************
   // If we begin with operand size vectors s1 = (1, 1, 7) and s2 = (4, 7). max_ndims = 7 and
   // the resultant size vector post the below operation will be s1 =  (1, 1, 7), s2 = (1, 4, 7)
   // NB: This broadcasting is based on right alignment, the below code will asses
   // whether two operand axis are broadcastable starting with the right most axes and
   // incramenting left.
+  //***************************
 
   std::vector<std::vector<int64_t>> sizes(descs.size());
   std::vector<std::vector<int64_t>> strides(descs.size());
@@ -66,8 +67,13 @@ BroadcastPlan make_broadcast_pan(const std::vector<TensorDescription>& descs) {
   plan.out_sizes[dim] = out_dim;
   }
 
-  // What?
-  plan.loop.resize(max_ndims);
+  // The below routine loops through the calculated maximum ndim from
+  // the tensor descriptions. On each iteration an instance of the LoopDim
+  // struct is initialised, the size of the loop (e.g. the out_size dim) is set
+  // and the stride_bytes is resized to the number of operands.
+  // The operands are then looped over and stride_bytes are set per operand
+  // with 0 stride for broadcastin if size == 0 and strides * itemsize if not.
+  plan.loop.resize(max_ndims); // TODO: is this correct? shouldn't this be looping over the output axes?
   for (int dim = 0; dim < max_ndims; ++dim) {
     LoopDim loop_dim;
     loop_dim.size = plan.out_sizes[dim];
