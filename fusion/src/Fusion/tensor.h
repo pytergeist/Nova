@@ -13,9 +13,9 @@
 #include <vector>
 
 #include "core/ffunc.h"
-#include "core/traits.h"
 #include "cpu/simd_traits.h"
 #include "cpu/simd_tags.h"
+#include "core/element_wise.h"
 
 template<typename T>
 class Tensor {
@@ -86,81 +86,13 @@ public:
     const std::vector<T> &raw_data() const { return storage->data(); }
     [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
-    // Tensor<T> operator+(const Tensor<T> &other) const {
-    //   std::vector<size_t> out_shape =
-    //       (other.flat_size() == 1 ? this->shape_ : other.shape_);
-    //   std::size_t out_size =
-    //       (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
-    //
-    //   const T *a_ptr = this->storage->data_ptr();
-    //   const T *b_ptr = other.storage->data_ptr();
-    //   std::size_t na = this->flat_size();
-    //   std::size_t nb = other.flat_size();
-    //
-    //   std::vector<T> result(out_size); // TODO: figure out why this is a double
-    //   T *r_ptr = result.data();
-    //
-    //   // using arch = xsimd::default_arch;
-    //   // using tag = xsimd::unaligned_mode;
-    //   // xsimd_ops::add{}(arch{}, a_ptr, na, b_ptr, nb, r_ptr, out_size,
-    //   tag{}); simd::vec128_addition_neon(r_ptr, a_ptr, b_ptr, na, nb);
 
-    //   return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
-    // }
-
-    //   template<typename U>
-    //   auto operator+(U const& other) const {
-    //     // 1) Result shape always starts as this->shape_
-    //     std::vector<size_t> result_shape = shape_;
-    //
-    //     // 2) If `other` is a non-scalar tensor, enforce same-shape
-    //     if constexpr(is_tensor_t<U>) {
-    //         size_t osz = other.flat_size();
-    //         if (osz != 1 && other.shape_ != shape_) {
-    //             throw std::invalid_argument("shape mismatch in Tensor+Tensor");
-    //         }
-    //         // if osz==1: broadcast, so no shape check
-    //     }
-    //
-    //     // 3) Build the lazy FFunc node
-    //     return FFunc{
-    //         // element-wise adder
-    //         [](auto const& a, auto const& b) { return a + b; },
-    //         std::move(result_shape),
-    //         *this,   // Tensor<T>
-    //         other    // either Tensor<U> or a literal U
-    //     };
-    // }
-
-
-    auto operator+(const Tensor &o) const {
-        std::vector<size_t> out_shape =
-            (o.flat_size() == 1 ? shape_ : o.shape_);
-        return FFunc<AddSIMD, Tensor, Tensor>{
-            AddSIMD{},                 // our callable‐tag
-            std::move(out_shape),
-            *this, o
-        };
+    auto operator+(const Tensor &other) const {
+        return ewise::binary_ewise_tag<T, AddSIMD>(*this, other);
     }
 
-
-    Tensor<T> operator-(const Tensor<T> &other) const {
-        std::vector<size_t> out_shape =
-                (other.flat_size() == 1 ? this->shape_ : other.shape_);
-        std::size_t out_size =
-                (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
-
-        const T *a_ptr = this->storage->data_ptr();
-        const T *b_ptr = other.storage->data_ptr();
-        std::size_t na = this->flat_size();
-        std::size_t nb = other.flat_size();
-
-        std::vector<T> result(out_size);
-        T *r_ptr = result.data();
-        xsimd_ops::subtract{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
-                              out_size, xsimd::aligned_mode{});
-
-        return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
+    auto operator-(const Tensor &other) const {
+        return ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other);
     }
 
     Tensor<T> &operator-=(const Tensor<T> &other) {
@@ -177,24 +109,8 @@ public:
         return *this;
     }
 
-    Tensor<T> operator/(const Tensor<T> &other) const {
-        std::vector<size_t> out_shape =
-                (other.flat_size() == 1 ? this->shape_ : other.shape_);
-        std::size_t out_size =
-                (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
-
-        const T *a_ptr = this->storage->data_ptr();
-        const T *b_ptr = other.storage->data_ptr();
-        std::size_t na = this->flat_size();
-        std::size_t nb = other.flat_size();
-
-        std::vector<T> result(out_size);
-        T *r_ptr = result.data();
-
-        xsimd_ops::divide{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
-                            out_size, xsimd::aligned_mode{});
-
-        return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
+    auto operator/(const Tensor &other) const {
+        return ewise::binary_ewise_tag<T, DivideSIMD>(*this, other);
     }
 
     //     // overload the + operator

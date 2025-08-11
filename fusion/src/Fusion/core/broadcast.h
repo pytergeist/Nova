@@ -1,7 +1,9 @@
 #ifndef BROADCAST_ITERATOR_H
 #define BROADCAST_ITERATOR_H
 
-// broadcast.h
+#include <cstddef>
+#include <cstdint>
+#include <vector>
 
 struct TensorDescription {
   int ndims;
@@ -18,7 +20,7 @@ struct LoopDim {
 
 struct BroadcastPlan {
   int num_operands;
-  int out_dnim;
+  int out_ndim;
   std::vector<int64_t> out_sizes;
   std::vector<LoopDim> loop;
 
@@ -29,5 +31,6 @@ struct BroadcastPlan {
   std::size_t itemsize;
 };
 
+BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription>& descs);
 
 #endif // BROADCAST_ITERATOR_H

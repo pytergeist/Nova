@@ -1,52 +1,246 @@
-#ifndef VEC128_NEON_H
-#define VEC128_NEON_H
 #pragma once
+#ifndef FUSION_VEC128_NEON_H
+#define FUSION_VEC128_NEON_H
 
-#include <arm_neon.h>
 #include <cstddef>
+#include <cstdint>
+
+#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+  #include <arm_neon.h>
+#endif
 
 namespace simd {
 
-    // Primary template (no definition)
-    template <typename T>
-    void vec128_addition_neon(T* dst,
-                              T const* a,
-                              T const* b,
-                              std::size_t na,
-                              std::size_t nb);
+static constexpr std::size_t kNeonVectorBytes = 16;
 
-    // Inline float‐specialization
-    template <>
-    inline void vec128_addition_neon<float>(float*       dst,
-                                            float const* a,
-                                            float const* b,
-                                            std::size_t  na,
-                                            std::size_t  nb) {
-        const bool a_is_scalar = (na == 1);
-        const bool b_is_scalar = (nb == 1);
-        const std::size_t N   = a_is_scalar ? nb : na;
+#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+// =========================
+// Core contiguous kernels
+// =========================
+// All assume: a, b, dst are contiguous float buffers of length n.
+// No broadcasting and no shape logic here—keep it dumb and fast.
 
-        float32x4_t a_dup, b_dup;
-        if (a_is_scalar) a_dup = vdupq_n_f32(a[0]);
-        if (b_is_scalar) b_dup = vdupq_n_f32(b[0]);
+inline void add_f32_neon(float* dst, const float* a, const float* b, std::size_t n) {
+    std::size_t i = 0;
+    for (; i + 16 <= n; i += 16) {
+        float32x4_t a0 = vld1q_f32(a + i +  0);
+        float32x4_t a1 = vld1q_f32(a + i +  4);
+        float32x4_t a2 = vld1q_f32(a + i +  8);
+        float32x4_t a3 = vld1q_f32(a + i + 12);
 
-        std::size_t i = 0;
-        const std::size_t vec_end = (N / 4) * 4;
+        float32x4_t b0 = vld1q_f32(b + i +  0);
+        float32x4_t b1 = vld1q_f32(b + i +  4);
+        float32x4_t b2 = vld1q_f32(b + i +  8);
+        float32x4_t b3 = vld1q_f32(b + i + 12);
 
-        // Vectorized loop
-        for (; i < vec_end; i += 4) {
-            float32x4_t va = a_is_scalar ? a_dup : vld1q_f32(a + i);
-            float32x4_t vb = b_is_scalar ? b_dup : vld1q_f32(b + i);
-            vst1q_f32(dst + i, vaddq_f32(va, vb));
-        }
-        // Remainder
-        for (; i < N; ++i) {
-            float fa = a_is_scalar ? a[0] : a[i];
-            float fb = b_is_scalar ? b[0] : b[i];
-            dst[i]  = fa + fb;
-        }
+        vst1q_f32(dst + i +  0, vaddq_f32(a0, b0));
+        vst1q_f32(dst + i +  4, vaddq_f32(a1, b1));
+        vst1q_f32(dst + i +  8, vaddq_f32(a2, b2));
+        vst1q_f32(dst + i + 12, vaddq_f32(a3, b3));
     }
+    for (; i + 4 <= n; i += 4) {
+        float32x4_t va = vld1q_f32(a + i);
+        float32x4_t vb = vld1q_f32(b + i);
+        vst1q_f32(dst + i, vaddq_f32(va, vb));
+    }
+    for (; i < n; ++i) dst[i] = a[i] + b[i];
+}
+
+inline void sub_f32_neon(float* dst, const float* a, const float* b, std::size_t n) {
+    std::size_t i = 0;
+    for (; i + 16 <= n; i += 16) {
+        float32x4_t a0 = vld1q_f32(a + i +  0);
+        float32x4_t a1 = vld1q_f32(a + i +  4);
+        float32x4_t a2 = vld1q_f32(a + i +  8);
+        float32x4_t a3 = vld1q_f32(a + i + 12);
+
+        float32x4_t b0 = vld1q_f32(b + i +  0);
+        float32x4_t b1 = vld1q_f32(b + i +  4);
+        float32x4_t b2 = vld1q_f32(b + i +  8);
+        float32x4_t b3 = vld1q_f32(b + i + 12);
+
+        vst1q_f32(dst + i +  0, vsubq_f32(a0, b0));
+        vst1q_f32(dst + i +  4, vsubq_f32(a1, b1));
+        vst1q_f32(dst + i +  8, vsubq_f32(a2, b2));
+        vst1q_f32(dst + i + 12, vsubq_f32(a3, b3));
+    }
+    for (; i + 4 <= n; i += 4) {
+        float32x4_t va = vld1q_f32(a + i);
+        float32x4_t vb = vld1q_f32(b + i);
+        vst1q_f32(dst + i, vsubq_f32(va, vb));
+    }
+    for (; i < n; ++i) dst[i] = a[i] - b[i];
+}
+
+inline void mul_f32_neon(float* dst, const float* a, const float* b, std::size_t n) {
+    std::size_t i = 0;
+    for (; i + 16 <= n; i += 16) {
+        float32x4_t a0 = vld1q_f32(a + i +  0);
+        float32x4_t a1 = vld1q_f32(a + i +  4);
+        float32x4_t a2 = vld1q_f32(a + i +  8);
+        float32x4_t a3 = vld1q_f32(a + i + 12);
+
+        float32x4_t b0 = vld1q_f32(b + i +  0);
+        float32x4_t b1 = vld1q_f32(b + i +  4);
+        float32x4_t b2 = vld1q_f32(b + i +  8);
+        float32x4_t b3 = vld1q_f32(b + i + 12);
+
+        vst1q_f32(dst + i +  0, vmulq_f32(a0, b0));
+        vst1q_f32(dst + i +  4, vmulq_f32(a1, b1));
+        vst1q_f32(dst + i +  8, vmulq_f32(a2, b2));
+        vst1q_f32(dst + i + 12, vmulq_f32(a3, b3));
+    }
+    for (; i + 4 <= n; i += 4) {
+        float32x4_t va = vld1q_f32(a + i);
+        float32x4_t vb = vld1q_f32(b + i);
+        vst1q_f32(dst + i, vmulq_f32(va, vb));
+    }
+    for (; i < n; ++i) dst[i] = a[i] * b[i];
+}
+
+
+inline void div_f32_neon(float* dst, const float* a, const float* b, std::size_t n) {
+    std::size_t i = 0;
+    for (; i + 16 <= n; i += 16) {
+        float32x4_t a0 = vld1q_f32(a + i +  0);
+        float32x4_t a1 = vld1q_f32(a + i +  4);
+        float32x4_t a2 = vld1q_f32(a + i +  8);
+        float32x4_t a3 = vld1q_f32(a + i + 12);
+
+        float32x4_t b0 = vld1q_f32(b + i +  0);
+        float32x4_t b1 = vld1q_f32(b + i +  4);
+        float32x4_t b2 = vld1q_f32(b + i +  8);
+        float32x4_t b3 = vld1q_f32(b + i + 12);
+
+        vst1q_f32(dst + i +  0, vdivq_f32(a0, b0));
+        vst1q_f32(dst + i +  4, vdivq_f32(a1, b1));
+        vst1q_f32(dst + i +  8, vdivq_f32(a2, b2));
+        vst1q_f32(dst + i + 12, vdivq_f32(a3, b3));
+    }
+    for (; i + 4 <= n; i += 4) {
+        float32x4_t va = vld1q_f32(a + i);
+        float32x4_t vb = vld1q_f32(b + i);
+        vst1q_f32(dst + i, vdivq_f32(va, vb));
+    }
+    for (; i < n; ++i) dst[i] = a[i] / b[i];
+}
+
+// =========================
+// Scalar-RHS wrappers
+// =========================
+// Useful when your inner dim sees stride==0 for RHS (broadcasted scalar).
+// If LHS is the scalar instead, you can either add "scalar_lhs" variants
+// or just swap operands in the caller for commutative ops.
+
+inline void add_f32_neon_scalar_rhs(float* dst, const float* a, float b, std::size_t n) {
+    float32x4_t vb = vdupq_n_f32(b);
+    std::size_t i = 0;
+    for (; i + 16 <= n; i += 16) {
+        float32x4_t a0 = vld1q_f32(a + i +  0);
+        float32x4_t a1 = vld1q_f32(a + i +  4);
+        float32x4_t a2 = vld1q_f32(a + i +  8);
+        float32x4_t a3 = vld1q_f32(a + i + 12);
+        vst1q_f32(dst + i +  0, vaddq_f32(a0, vb));
+        vst1q_f32(dst + i +  4, vaddq_f32(a1, vb));
+        vst1q_f32(dst + i +  8, vaddq_f32(a2, vb));
+        vst1q_f32(dst + i + 12, vaddq_f32(a3, vb));
+    }
+    for (; i + 4 <= n; i += 4) {
+        float32x4_t va = vld1q_f32(a + i);
+        vst1q_f32(dst + i, vaddq_f32(va, vb));
+    }
+    for (; i < n; ++i) dst[i] = a[i] + b;
+}
+
+inline void sub_f32_neon_scalar_rhs(float* dst, const float* a, float b, std::size_t n) {
+    float32x4_t vb = vdupq_n_f32(b);
+    std::size_t i = 0;
+    for (; i + 16 <= n; i += 16) {
+        float32x4_t a0 = vld1q_f32(a + i +  0);
+        float32x4_t a1 = vld1q_f32(a + i +  4);
+        float32x4_t a2 = vld1q_f32(a + i +  8);
+        float32x4_t a3 = vld1q_f32(a + i + 12);
+        vst1q_f32(dst + i +  0, vsubq_f32(a0, vb));
+        vst1q_f32(dst + i +  4, vsubq_f32(a1, vb));
+        vst1q_f32(dst + i +  8, vsubq_f32(a2, vb));
+        vst1q_f32(dst + i + 12, vsubq_f32(a3, vb));
+    }
+    for (; i + 4 <= n; i += 4) {
+        float32x4_t va = vld1q_f32(a + i);
+        vst1q_f32(dst + i, vsubq_f32(va, vb));
+    }
+    for (; i < n; ++i) dst[i] = a[i] - b;
+}
+
+inline void mul_f32_neon_scalar_rhs(float* dst, const float* a, float b, std::size_t n) {
+    float32x4_t vb = vdupq_n_f32(b);
+    std::size_t i = 0;
+    for (; i + 16 <= n; i += 16) {
+        float32x4_t a0 = vld1q_f32(a + i +  0);
+        float32x4_t a1 = vld1q_f32(a + i +  4);
+        float32x4_t a2 = vld1q_f32(a + i +  8);
+        float32x4_t a3 = vld1q_f32(a + i + 12);
+        vst1q_f32(dst + i +  0, vmulq_f32(a0, vb));
+        vst1q_f32(dst + i +  4, vmulq_f32(a1, vb));
+        vst1q_f32(dst + i +  8, vmulq_f32(a2, vb));
+        vst1q_f32(dst + i + 12, vmulq_f32(a3, vb));
+    }
+    for (; i + 4 <= n; i += 4) {
+        float32x4_t va = vld1q_f32(a + i);
+        vst1q_f32(dst + i, vmulq_f32(va, vb));
+    }
+    for (; i < n; ++i) dst[i] = a[i] * b;
+}
+
+inline void div_f32_neon_scalar_rhs(float* dst, const float* a, float b, std::size_t n) {
+    float32x4_t vb = vdupq_n_f32(b);
+    std::size_t i = 0;
+    for (; i + 16 <= n; i += 16) {
+        float32x4_t a0 = vld1q_f32(a + i +  0);
+        float32x4_t a1 = vld1q_f32(a + i +  4);
+        float32x4_t a2 = vld1q_f32(a + i +  8);
+        float32x4_t a3 = vld1q_f32(a + i + 12);
+        vst1q_f32(dst + i +  0, vdivq_f32(a0, vb));
+        vst1q_f32(dst + i +  4, vdivq_f32(a1, vb));
+        vst1q_f32(dst + i +  8, vdivq_f32(a2, vb));
+        vst1q_f32(dst + i + 12, vdivq_f32(a3, vb));
+    }
+    for (; i + 4 <= n; i += 4) {
+        float32x4_t va = vld1q_f32(a + i);
+        vst1q_f32(dst + i, vdivq_f32(va, vb));
+    }
+    for (; i < n; ++i) dst[i] = a[i] / b;
+}
+
+#else // --------- Fallback (non-NEON builds) ---------
+
+inline void add_f32_neon(float* dst, const float* a, const float* b, std::size_t n) {
+    for (std::size_t i = 0; i < n; ++i) dst[i] = a[i] + b[i];
+}
+inline void sub_f32_neon(float* dst, const float* a, const float* b, std::size_t n) {
+    for (std::size_t i = 0; i < n; ++i) dst[i] = a[i] - b[i];
+}
+inline void mul_f32_neon(float* dst, const float* a, const float* b, std::size_t n) {
+    for (std::size_t i = 0; i < n; ++i) dst[i] = a[i] * b[i];
+}
+inline void div_f32_neon(float* dst, const float* a, const float* b, std::size_t n) {
+    for (std::size_t i = 0; i < n; ++i) dst[i] = a[i] / b[i];
+}
+
+inline void add_f32_neon_scalar_rhs(float* dst, const float* a, float b, std::size_t n) {
+    for (std::size_t i = 0; i < n; ++i) dst[i] = a[i] + b;
+}
+inline void sub_f32_neon_scalar_rhs(float* dst, const float* a, float b, std::size_t n) {
+    for (std::size_t i = 0; i < n; ++i) dst[i] = a[i] - b;
+}
+inline void mul_f32_neon_scalar_rhs(float* dst, const float* a, float b, std::size_t n) {
+    for (std::size_t i = 0; i < n; ++i) dst[i] = a[i] * b;
+}
+inline void div_f32_neon_scalar_rhs(float* dst, const float* a, float b, std::size_t n) {
+    for (std::size_t i = 0; i < n; ++i) dst[i] = a[i] / b;
+}
+#endif
 
 } // namespace simd
 
-#endif // VEC128_NEON_H
+#endif // FUSION_VEC128_NEON_H

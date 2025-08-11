@@ -1,7 +1,7 @@
 #include <vector>
 #include "broadcast.h"
 
-BroadcastPlan make_broadcast_pan(const std::vector<TensorDescription>& descs) {
+BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription>& descs) {
   // Set Broadcast plan struct info (from broadcast.h)
   BroadcastPlan plan;
   plan.num_operands = descs.size();
@@ -13,6 +13,7 @@ BroadcastPlan make_broadcast_pan(const std::vector<TensorDescription>& descs) {
   for (auto& desc : descs) {
     max_ndims = std::max(desc.ndims, max_ndims);
   }
+  plan.out_ndim = max_ndims;
 
   // The below code is expanding the nested vector of sizes/strides
   // such that nested vector has ndim = max_ndims. Subsequently it
@@ -52,7 +53,7 @@ BroadcastPlan make_broadcast_pan(const std::vector<TensorDescription>& descs) {
   // if new_dim == 1, broadcasting is allowed. If new_dim != 1 then either
   // the out_dim == 1 or out_dim == new_dim and the routine continues. Otherwise
   // a runtime error is raised as broadcasting is unachievable.
-  plan.out_sizes.resize(descs.size());
+  plan.out_sizes.resize(max_ndims);
   for (int dim = 0; dim < max_ndims; ++dim) {
     int64_t out_dim = 1;
     for (int op = 0; op < plan.num_operands; ++op) {

@@ -19,4 +19,13 @@ struct SubtractSIMD {
 };
 
 
+
+struct DivideSIMD {
+    template<typename U>
+    constexpr U operator()(U a, U b) const noexcept {
+        return a / b;
+    }
+};
+
+
 #endif // SIMD_TAGS_H

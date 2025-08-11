@@ -1,7 +1,7 @@
 #ifndef SIMD_TRAITS_H
 #define SIMD_TRAITS_H
 
-#include <type_traits>
+#include <cstddef>
 #include "simd/vec128_neon.h"
 #include "simd_tags.h"
 
@@ -10,45 +10,61 @@ struct simd_traits {
   static constexpr bool available = false;
 };
 
-
+// ---------- Addition ----------
 template <>
 struct simd_traits<AddSIMD, float> {
   static constexpr bool available = true;
 
-  template <class FFuncT>
-  static void execute(FFuncT const &f, float *out) {
-    auto const &lhs_t = f.template operand<0>();
-    auto const &rhs_t = f.template operand<1>();
-
-    const float *lhs = lhs_t.raw_data().data();
-    const float *rhs = rhs_t.raw_data().data();
-    size_t na = lhs_t.flat_size();
-    size_t nb = rhs_t.flat_size();
-
-    simd::vec128_addition_neon(out, lhs, rhs, na, nb);
+  // a, b, out are contiguous spans of length n.
+  // a_scalar/b_scalar indicate broadcasted scalars.
+  static void execute_contiguous(const float* a, const float* b, float* out,
+                                 std::size_t n, bool a_scalar, bool b_scalar) {
+    if (b_scalar) {
+      simd::add_f32_neon_scalar_rhs(out, a, *b, n);
+    } else if (a_scalar) {
+      simd::add_f32_neon_scalar_rhs(out, b, *a, n);
+    } else {
+      simd::add_f32_neon(out, a, b, n);
+    }
   }
 };
 
-
+// ---------- Subtraction ----------
 template <>
 struct simd_traits<SubtractSIMD, float> {
   static constexpr bool available = true;
 
-  template <class FFuncT>
-  static void execute(FFuncT const &f, float *out) {
-    auto const &lhs_t = f.template operand<0>();
-    auto const &rhs_t = f.template operand<1>();
-
-    const float *lhs = lhs_t.raw_data().data();
-    const float *rhs = rhs_t.raw_data().data();
-    size_t na = lhs_t.flat_size();
-    size_t nb = rhs_t.flat_size();
-
-    simd::vec128_addition_neon(out, lhs, rhs, na, nb);
+  static void execute_contiguous(const float* a, const float* b, float* out,
+                                 std::size_t n, bool a_scalar, bool b_scalar) {
+    if (b_scalar) {
+      simd::sub_f32_neon_scalar_rhs(out, a, *b, n);
+    } else if (a_scalar) {
+      const float a0 = *a;
+      for (std::size_t i = 0; i < n; ++i) out[i] = a0 - b[i];
+    } else {
+      simd::sub_f32_neon(out, a, b, n);
+    }
   }
 };
 
 
+// ---------- Division ----------
+template <>
+struct simd_traits<DivideSIMD, float> {
+  static constexpr bool available = true;
+
+  static void execute_contiguous(const float* a, const float* b, float* out,
+                                 std::size_t n, bool a_scalar, bool b_scalar) {
+    if (b_scalar) {
+      simd::div_f32_neon_scalar_rhs(out, a, *b, n);
+    } else if (a_scalar) {
+      const float a0 = *a;
+      for (std::size_t i = 0; i < n; ++i) out[i] = a0 - b[i];
+    } else {
+      simd::div_f32_neon(out, a, b, n);
+    }
+  }
+};
 
 
 #endif // SIMD_TRAITS_H
