@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+#if defined(FUSION_ENABLE_NEON) && (defined(__ARM_NEON) || defined(__ARM_NEON__))
   #include <arm_neon.h>
 #endif
 
@@ -13,7 +13,7 @@ namespace simd {
 
 static constexpr std::size_t kNeonVectorBytes = 16;
 
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+#if defined(FUSION_ENABLE_NEON) && (defined(__ARM_NEON) || defined(__ARM_NEON__))
 // =========================
 // Core contiguous kernels
 // =========================

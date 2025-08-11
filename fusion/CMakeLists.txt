@@ -72,6 +72,14 @@ target_sources(fusion PRIVATE
         src/Fusion/core/broadcast.cpp
 )
 
+# ---- Add NEON macro definition ----
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    option(FUSION_ENABLE_NEON "Enable NEON SIMD optimizations" ON)
+    if(FUSION_ENABLE_NEON)
+        target_compile_definitions(fusion PRIVATE FUSION_ENABLE_NEON=1)
+    endif()
+endif()
+
 
 target_include_directories(fusion PRIVATE
         ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
