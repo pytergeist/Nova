@@ -67,4 +67,23 @@ struct simd_traits<DivideSIMD, float> {
 };
 
 
+// ---------- Multiply ----------
+template <>
+struct simd_traits<MultiplySIMD, float> {
+  static constexpr bool available = true;
+
+  static void execute_contiguous(const float* a, const float* b, float* out,
+                                 std::size_t n, bool a_scalar, bool b_scalar) {
+    if (b_scalar) {
+      simd::mul_f32_neon_scalar_rhs(out, a, *b, n);
+    } else if (a_scalar) {
+      const float a0 = *a;
+      for (std::size_t i = 0; i < n; ++i) out[i] = a0 - b[i];
+    } else {
+      simd::mul_f32_neon(out, a, b, n);
+    }
+  }
+};
+
+
 #endif // SIMD_TRAITS_H
