@@ -1,4 +1,5 @@
 #include <vector>
+#include <stdexcept>
 #include "broadcast.h"
 
 BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription>& descs) {
