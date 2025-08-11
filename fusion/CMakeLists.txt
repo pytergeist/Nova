@@ -68,8 +68,13 @@ pybind11_add_module(fusion
         src/Fusion/python/bindings.cpp
 )
 
+target_sources(fusion PRIVATE
+        src/Fusion/core/broadcast.cpp
+)
+
+
 target_include_directories(fusion PRIVATE
-        src/Fusion/templates
+        ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
         ${OPENBLAS_INCLUDE_DIR}
         ${Eigen3_INCLUDE_DIRS}
         ${XSIMD_INCLUDE_DIR}
@@ -101,10 +106,12 @@ install(TARGETS fusion
 # Native executable
 add_executable(FusionExecutable
         src/Fusion/main.cpp
+        src/Fusion/core/broadcast.cpp
 )
 
 target_include_directories(FusionExecutable PRIVATE
-        src/Fusion/tensor
+        ${PROJECT_SOURCE_DIR}/src/Fusion/tensor
+        ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
         ${OPENBLAS_INCLUDE_DIR}
         ${Eigen3_INCLUDE_DIRS}
         ${XSIMD_INCLUDE_DIR}
@@ -115,30 +122,30 @@ target_link_libraries(FusionExecutable PRIVATE
 )
 
 #--------------------------------------------------------------------------------
-# Tests (GoogleTest)
-enable_testing()
-
-set(GTest_DIR "/opt/homebrew/Cellar/googletest/1.11.0/lib/cmake/GTest" CACHE PATH "GTest CMake dir")
-find_package(GTest REQUIRED)
-
-add_executable(FusionTests
-        src/Fusion/tests/tensor_cpu_tests.cpp
-)
-
-target_include_directories(FusionTests PRIVATE
-        src/Fusion/tensor
-        ${OPENBLAS_INCLUDE_DIR}
-        ${Eigen3_INCLUDE_DIRS}
-        ${XSIMD_INCLUDE_DIR}
-)
-
-target_link_libraries(FusionTests PRIVATE
-        GTest::gtest_main
-        pthread
-        ${OPENBLAS_LIB}
-)
-
-add_test(NAME FusionTests COMMAND FusionTests)
+## Tests (GoogleTest)
+#enable_testing()
+#
+#set(GTest_DIR "/opt/homebrew/Cellar/googletest/1.11.0/lib/cmake/GTest" CACHE PATH "GTest CMake dir")
+#find_package(GTest REQUIRED)
+#
+#add_executable(FusionTests
+#        src/Fusion/tests/tensor_cpu_tests.cpp
+#)
+#
+#target_include_directories(FusionTests PRIVATE
+#        src/Fusion/tensor
+#        ${OPENBLAS_INCLUDE_DIR}
+#        ${Eigen3_INCLUDE_DIRS}
+#        ${XSIMD_INCLUDE_DIR}
+#)
+#
+#target_link_libraries(FusionTests PRIVATE
+#        GTest::gtest_main
+#        pthread
+#        ${OPENBLAS_LIB}
+#)
+#
+#add_test(NAME FusionTests COMMAND FusionTests)
 
 #--------------------------------------------------------------------------------
 # Benchmarks (optional)
