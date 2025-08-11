@@ -18,7 +18,6 @@ static constexpr std::size_t kNeonVectorBytes = 16;
 // Core contiguous kernels
 // =========================
 // All assume: a, b, dst are contiguous float buffers of length n.
-// No broadcasting and no shape logic here—keep it dumb and fast.
 
 inline void add_f32_neon(float* dst, const float* a, const float* b, std::size_t n) {
     std::size_t i = 0;
