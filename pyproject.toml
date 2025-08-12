@@ -40,3 +40,12 @@ exclude = [".git", "__pycache__", "build", "dist"]
 
 [tool.isort]
 profile = "black"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = """
+  --ignore=fusion/cmake-build-debug
+  --ignore=fusion/cmake-build-release
+  --ignore=build
+"""
