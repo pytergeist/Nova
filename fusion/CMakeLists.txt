@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.16)
 project(Fusion LANGUAGES CXX)
 
 #--------------------------------------------------------------------------------
-# Optional policy tweak to suppress install() normalization warnings
-cmake_policy(SET CMP0177 NEW)
-
-#--------------------------------------------------------------------------------
 # ———— FetchContent support for missing dependencies ————
 include(FetchContent)
 

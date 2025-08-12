@@ -138,25 +138,29 @@ public:
         return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
     }
 
-    Tensor<T> maximum(const Tensor<T> &other) const {
-        std::vector<size_t> out_shape =
-                (other.flat_size() == 1 ? this->shape_ : other.shape_);
-        std::size_t out_size =
-                (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
-
-        const T *a_ptr = this->storage->data_ptr();
-        const T *b_ptr = other.storage->data_ptr();
-        std::size_t na = this->flat_size();
-        std::size_t nb = other.flat_size();
-
-        std::vector<T> result(out_size);
-        T *r_ptr = result.data();
-
-        xsimd_ops::maximum{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
-                             out_size, xsimd::aligned_mode{});
-
-        return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
+    auto maximum(const Tensor &other) const {
+        return ewise::binary_ewise_tag<T, MaximumSIMD>(*this, other);
     }
+
+    // Tensor<T> maximum(const Tensor<T> &other) const {
+    //     std::vector<size_t> out_shape =
+    //             (other.flat_size() == 1 ? this->shape_ : other.shape_);
+    //     std::size_t out_size =
+    //             (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
+    //
+    //     const T *a_ptr = this->storage->data_ptr();
+    //     const T *b_ptr = other.storage->data_ptr();
+    //     std::size_t na = this->flat_size();
+    //     std::size_t nb = other.flat_size();
+    //
+    //     std::vector<T> result(out_size);
+    //     T *r_ptr = result.data();
+    //
+    //     xsimd_ops::maximum{}(xsimd::default_arch{}, a_ptr, na, b_ptr, nb, r_ptr,
+    //                          out_size, xsimd::aligned_mode{});
+    //
+    //     return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
+    // }
 
     Tensor<T> sqrt() {
         std::vector<size_t> shape = this->shape_;
@@ -215,7 +219,7 @@ public:
         return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
     }
 
-    //
+
     Tensor<T> sum() {
         std::vector<T> data(1);
         std::vector<T> &in = raw_data();
@@ -225,6 +229,7 @@ public:
 
         return Tensor<T>({1}, std::move(data), Device::CPU);
     }
+
 
     //
     Tensor<T> matmul(Tensor<T> &other) {
