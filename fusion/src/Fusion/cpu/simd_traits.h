@@ -39,8 +39,7 @@ struct simd_traits<SubtractSIMD, float> {
         if (b_scalar) {
             simd::sub_f32_neon_scalar_rhs(out, a, *b, n);
         } else if (a_scalar) {
-            const float a0 = *a;
-            for (std::size_t i = 0; i < n; ++i) out[i] = a0 - b[i];
+            simd::sub_f32_neon_scalar_rhs(out, b, *a, n);
         } else {
             simd::sub_f32_neon(out, a, b, n);
         }
@@ -58,8 +57,7 @@ struct simd_traits<DivideSIMD, float> {
         if (b_scalar) {
             simd::div_f32_neon_scalar_rhs(out, a, *b, n);
         } else if (a_scalar) {
-            const float a0 = *a;
-            for (std::size_t i = 0; i < n; ++i) out[i] = a0 - b[i];
+            simd::div_f32_neon_scalar_rhs(out, b, *a, n);
         } else {
             simd::div_f32_neon(out, a, b, n);
         }
@@ -77,8 +75,7 @@ struct simd_traits<MultiplySIMD, float> {
         if (b_scalar) {
             simd::mul_f32_neon_scalar_rhs(out, a, *b, n);
         } else if (a_scalar) {
-            const float a0 = *a;
-            for (std::size_t i = 0; i < n; ++i) out[i] = a0 - b[i]; // TODO: why is this not a lhs impl???
+            simd::mul_f32_neon_scalar_rhs(out, b, *a, n);
         } else {
             simd::mul_f32_neon(out, a, b, n);
         }
@@ -95,8 +92,7 @@ struct simd_traits<MaximumSIMD, float> {
         if (b_scalar) {
             simd::maximum_f32_neon_scalar_rhs(out, a, *b, n);
         } else if (a_scalar) {
-            const float a0 = *a;
-            for (std::size_t i = 0; i < n; ++i) out[i] = a0 - b[i];
+            simd::maximum_f32_neon_scalar_rhs(out, b, *a, n);
         } else {
             simd::maximum_f32_neon(out, a, b, n);
         }

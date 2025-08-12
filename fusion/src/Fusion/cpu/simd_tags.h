@@ -39,7 +39,7 @@ struct MultiplySIMD {
 struct MaximumSIMD {
     template<typename U>
     constexpr U operator()(U a, U b) const noexcept {
-        return a > b;
+        return a > b ? a : b;
     }
 };
 
