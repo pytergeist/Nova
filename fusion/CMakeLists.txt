@@ -2,10 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 project(Fusion LANGUAGES CXX)
 
 #--------------------------------------------------------------------------------
-# ———— FetchContent support for missing dependencies ————
 include(FetchContent)
 
-# —— xsimd (header-only) —— try system first, then pull from GitHub if needed
 find_path(XSIMD_INCLUDE_DIR
         NAMES xsimd/xsimd.hpp
         HINTS /usr/include /usr/local/include
@@ -22,19 +20,14 @@ if (NOT XSIMD_INCLUDE_DIR)
 endif()
 
 #--------------------------------------------------------------------------------
-# Platform & Compiler settings
-# Target Apple Silicon on macOS
 set(CMAKE_OSX_ARCHITECTURES "arm64")
 
-# C++20, no GNU extensions
 set(CMAKE_CXX_STANDARD          20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS       OFF)
 
-# Enable all warnings
 add_compile_options(-Wall)
 
-# Allow Homebrew dependencies (macOS); no-op on Linux
 set(CMAKE_PREFIX_PATH "/opt/homebrew" CACHE STRING "Prefix path for dependencies")
 
 #--------------------------------------------------------------------------------
@@ -56,7 +49,10 @@ set(OPENBLAS_INCLUDE_DIR "/opt/homebrew/opt/openblas/include" CACHE PATH "OpenBL
 #--------------------------------------------------------------------------------
 # Eigen3
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-# Eigen3_INCLUDE_DIRS provided by the package
+
+#--------------------------------------------------------------------------------
+# SLEEF (
+find_package(sleef CONFIG REQUIRED)
 
 #--------------------------------------------------------------------------------
 # Python extension module (_C)
@@ -68,14 +64,12 @@ target_sources(fusion PRIVATE
         src/Fusion/core/broadcast.cpp
 )
 
-# ---- Add NEON macro definition ----
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     option(FUSION_ENABLE_NEON "Enable NEON SIMD optimizations" ON)
     if(FUSION_ENABLE_NEON)
         target_compile_definitions(fusion PRIVATE FUSION_ENABLE_NEON=1)
     endif()
 endif()
-
 
 target_include_directories(fusion PRIVATE
         ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
@@ -84,12 +78,11 @@ target_include_directories(fusion PRIVATE
         ${XSIMD_INCLUDE_DIR}
 )
 
-
 target_link_libraries(fusion PRIVATE
+        sleef::sleef
         ${OPENBLAS_LIB}
 )
 
-# Install the .so into your Python package directory
 set(PY_EXT_INSTALL_DIR
         ${PROJECT_SOURCE_DIR}/../nova/src/backend/core/_C
 )
@@ -107,13 +100,11 @@ install(TARGETS fusion
 )
 
 #--------------------------------------------------------------------------------
-# Native executable
 add_executable(FusionExecutable
         src/Fusion/main.cpp
         src/Fusion/core/broadcast.cpp
 )
 
-# ensure neon flag in binary
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     if(FUSION_ENABLE_NEON)
         target_compile_definitions(FusionExecutable PRIVATE FUSION_ENABLE_NEON=1)
@@ -129,6 +120,7 @@ target_include_directories(FusionExecutable PRIVATE
 )
 
 target_link_libraries(FusionExecutable PRIVATE
+        sleef::sleef
         ${OPENBLAS_LIB}
 )
 

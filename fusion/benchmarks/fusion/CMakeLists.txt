@@ -12,5 +12,6 @@ target_include_directories(FusionBenchMark PRIVATE
 
 target_link_libraries(FusionBenchMark PRIVATE
         nanobench
+        sleef::sleef
         ${OPENBLAS_LIB}
 )

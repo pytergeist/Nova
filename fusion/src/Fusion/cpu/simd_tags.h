@@ -43,5 +43,11 @@ struct MaximumSIMD {
     }
 };
 
+struct PowerSIMD {
+    template<typename U>
+    constexpr U operator()(U a, U b) const noexcept {
+        return std::pow(a, b);
+    }
+};
 
 #endif // SIMD_TAGS_H
