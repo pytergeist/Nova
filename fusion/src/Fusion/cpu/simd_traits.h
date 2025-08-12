@@ -92,7 +92,7 @@ struct simd_traits<MaximumSIMD, float> {
         if (b_scalar) {
             simd::maximum_f32_neon_scalar_rhs(out, a, *b, n);
         } else if (a_scalar) {
-            simd::maximum_f32_neon_scalar_rhs(out, b, *a, n);
+            simd::maximum_f32_neon_scalar_rhs(out, b, *a, n); // TODO: rename from rhs
         } else {
             simd::maximum_f32_neon(out, a, b, n);
         }
