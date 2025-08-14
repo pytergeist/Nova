@@ -1,8 +1,8 @@
 #ifndef SIMD_TRAITS_H
 #define SIMD_TRAITS_H
 
-#include "simd/vec128_neon.h"
-#include "simd_tags.h"
+#include "simd/Vec128Neon.h"
+#include "SimdTags.h"
 #include <cstddef>
 
 template <class Tag, typename T> struct simd_traits {
