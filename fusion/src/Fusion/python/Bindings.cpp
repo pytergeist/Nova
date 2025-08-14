@@ -1,6 +1,6 @@
-#include "factory/bind_factory.h"
-#include "random/bind_random.h"
-#include "tensor/bind_tensor.h"
+#include "factory/BindFactory.h"
+#include "random/BindRandom.h"
+#include "tensor/BindTensor.h"
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;

@@ -1,7 +1,7 @@
 #ifndef DENSE_STORAGE_H
 #define DENSE_STORAGE_H
 
-#include "storage_interface.h"
+#include "StorageInterface.h"
 
 template <typename T> class NDTensorStorage : public ITensorStorage<T> {
 private:

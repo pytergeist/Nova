@@ -1,10 +1,8 @@
 #ifndef BIND_RANDOM_H
 #define BIND_RANDOM_H
 
-#include "../../random.h"
-#include "../../tensor.h"
+#include "../../Random.h"
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 #include <string>
 #include <typeinfo>
 

@@ -1,10 +1,8 @@
-// helpers.h
+// Helpers.h
 #pragma once
 
-#include "../../tensor.h"
-#include <numeric>
+#include "../../Tensor.h"
 #include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
 #include <stdexcept>
 #include <vector>
 

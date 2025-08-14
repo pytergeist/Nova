@@ -7,21 +7,19 @@
 #include <vector>
 
 template <typename Fn>
-void for_each(const BroadcastPlan& plan,
-              const std::vector<uint8_t*>& base_ptrs,
-              Fn&& fn)
-{
-  const auto& loop = plan.loop;
-  const int ndim  = (int)loop.size();
+void for_each(const BroadcastPlan &plan,
+              const std::vector<uint8_t *> &base_ptrs, Fn &&fn) {
+  const auto &loop = plan.loop;
+  const int ndim = (int)loop.size();
 
-  std::vector<uint8_t*> ptr = base_ptrs;
+  std::vector<uint8_t *> ptr = base_ptrs;
 
   std::function<void(int)> walk = [&](int dim) {
     if (dim == ndim) {
       fn(ptr);
       return;
     }
-    const auto& ld = loop[dim];
+    const auto &ld = loop[dim];
     for (int64_t i = 0; i < ld.size; ++i) {
       walk(dim + 1);
       for (int op = 0; op < plan.num_operands; ++op) {

@@ -1,8 +1,7 @@
 #ifndef BIND_FACTORY_H
 #define BIND_FACTORY_H
 
-#include "../../tensor.h"
-#include "../../tensor_factory.h"
+#include "../../TensorFactory.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <string>

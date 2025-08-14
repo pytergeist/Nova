@@ -17,7 +17,6 @@ struct LoopDim {
   std::vector<int64_t> stride_bytes;
 };
 
-
 struct BroadcastPlan {
   int num_operands;
   int out_ndim;
@@ -31,6 +30,6 @@ struct BroadcastPlan {
   std::size_t itemsize;
 };
 
-BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription>& descs);
+BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs);
 
 #endif // BROADCAST_ITERATOR_H

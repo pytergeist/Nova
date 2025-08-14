@@ -1,6 +1,6 @@
 #ifndef TENSOR_FACTORY_H
 #define TENSOR_FACTORY_H
-#include "./tensor.h"
+#include "./Tensor.h"
 #include <numeric>
 #include <vector>
 // -- factory methods --
