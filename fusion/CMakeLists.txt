@@ -59,7 +59,9 @@ if(NOT SLEEF_FOUND)
     FetchContent_Declare(
             sleef
             GIT_REPOSITORY https://github.com/shibatch/sleef.git
-            GIT_TAG        3.7.1
+            GIT_TAG        3.9.0
+            GIT_SHALLOW    TRUE
+            GIT_PROGRESS   TRUE
     )
     set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
     set(SLEEF_BUILD_DFT OFF CACHE BOOL "" FORCE)
@@ -72,7 +74,6 @@ if(NOT SLEEF_FOUND)
         add_library(sleef::sleef ALIAS sleef)
     endif()
 endif()
-
 #--------------------------------------------------------------------------------
 # Python extension module (_C)
 pybind11_add_module(fusion
