@@ -1,6 +1,6 @@
 find_package(BLAS REQUIRED)
 
-add_executable(FusionBenchMark fusion_benchmark.cpp ${PROJECT_SOURCE_DIR}/src/Fusion/core/broadcast.cpp)
+add_executable(FusionBenchMark FusionBenchmark.cpp ${PROJECT_SOURCE_DIR}/src/Fusion/core/Broadcast.cpp)
 
 target_include_directories(FusionBenchMark PRIVATE
         ${PROJECT_SOURCE_DIR}

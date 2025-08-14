@@ -1,6 +1,6 @@
 find_package(BLAS REQUIRED)
 
-add_executable(EigenBenchMark eigen_benchmark.cpp)
+add_executable(EigenBenchMark EigenBenchmark.cpp)
 
 target_include_directories(EigenBenchMark PRIVATE
         ${PROJECT_SOURCE_DIR}
