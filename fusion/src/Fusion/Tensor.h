@@ -2,10 +2,9 @@
 #define TENSOR_H
 #include "kernels/Blas.cpp"
 #include "kernels/Serial.cpp"
-#include "kernels/xsimd_api.cpp"
+#include "kernels/Xsimd.cpp"
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
-#include "xsimd/xsimd.hpp"
 #include <stdexcept>
 #include <vector>
 
