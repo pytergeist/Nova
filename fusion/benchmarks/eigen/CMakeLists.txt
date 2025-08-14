@@ -13,5 +13,6 @@ target_include_directories(EigenBenchMark PRIVATE
 target_link_libraries(EigenBenchMark PRIVATE
         nanobench
         Eigen3::Eigen
+        Eigen3::Eigen
         ${OPENBLAS_LIB}
 )

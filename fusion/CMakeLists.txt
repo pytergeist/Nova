@@ -81,7 +81,7 @@ pybind11_add_module(fusion
 )
 
 target_sources(fusion PRIVATE
-        src/Fusion/core/broadcast.cpp
+        src/Fusion/core/Broadcast.cpp
 )
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
@@ -122,7 +122,7 @@ install(TARGETS fusion
 #--------------------------------------------------------------------------------
 add_executable(FusionExecutable
         src/Fusion/main.cpp
-        src/Fusion/core/broadcast.cpp
+        src/Fusion/core/Broadcast.cpp
 )
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
