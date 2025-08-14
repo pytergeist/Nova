@@ -26,7 +26,7 @@ set(CMAKE_CXX_STANDARD          20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS       OFF)
 
-add_compile_options(-Wall)
+add_compile_options(-Wall -g)
 
 set(CMAKE_PREFIX_PATH "/opt/homebrew" CACHE STRING "Prefix path for dependencies")
 
@@ -52,7 +52,26 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 #--------------------------------------------------------------------------------
 # SLEEF (
-find_package(sleef CONFIG REQUIRED)
+find_package(SLEEF CONFIG QUIET)
+if(NOT SLEEF_FOUND)
+    message(STATUS "SLEEF not found; fetching via FetchContent")
+    include(FetchContent)
+    FetchContent_Declare(
+            sleef
+            GIT_REPOSITORY https://github.com/shibatch/sleef.git
+            GIT_TAG        3.7.1
+    )
+    set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
+    set(SLEEF_BUILD_DFT OFF CACHE BOOL "" FORCE)
+    set(SLEEF_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(SLEEF_BUILD_QUAD OFF CACHE BOOL "" FORCE)
+    set(SLEEF_DISABLE_GFNI ON CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(sleef)
+
+    if(NOT TARGET sleef::sleef)
+        add_library(sleef::sleef ALIAS sleef)
+    endif()
+endif()
 
 #--------------------------------------------------------------------------------
 # Python extension module (_C)
