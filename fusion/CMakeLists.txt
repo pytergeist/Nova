@@ -20,7 +20,10 @@ if (NOT XSIMD_INCLUDE_DIR)
 endif()
 
 #--------------------------------------------------------------------------------
-set(CMAKE_OSX_ARCHITECTURES "arm64")
+# NOTE: This is macOS-specific. Keep it, but guard so Linux runners don't choke.
+if(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES "arm64")
+endif()
 
 set(CMAKE_CXX_STANDARD          20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,6 +31,7 @@ set(CMAKE_CXX_EXTENSIONS       OFF)
 
 add_compile_options(-Wall -g)
 
+# Keep your prefix path knob
 set(CMAKE_PREFIX_PATH "/opt/homebrew" CACHE STRING "Prefix path for dependencies")
 
 #--------------------------------------------------------------------------------
@@ -37,6 +41,7 @@ find_package(pybind11 REQUIRED)
 
 #--------------------------------------------------------------------------------
 # OpenBLAS
+# Keep your library search as-is; include dir path kept and gated for macOS
 find_library(OPENBLAS_LIB
         NAMES openblas
         PATHS /opt/homebrew/opt/openblas/lib /usr/lib /usr/local/lib
@@ -44,17 +49,27 @@ find_library(OPENBLAS_LIB
 if(NOT OPENBLAS_LIB)
     message(FATAL_ERROR "OpenBLAS library not found")
 endif()
-set(OPENBLAS_INCLUDE_DIR "/opt/homebrew/opt/openblas/include" CACHE PATH "OpenBLAS include dir")
+if(APPLE)
+    set(OPENBLAS_INCLUDE_DIR "/opt/homebrew/opt/openblas/include" CACHE PATH "OpenBLAS include dir")
+else()
+    # Try to locate an include dir on non-macOS systems if not already set
+    find_path(OPENBLAS_INCLUDE_DIR
+            NAMES cblas.h
+            PATHS /usr/include /usr/local/include
+    )
+endif()
 
 #--------------------------------------------------------------------------------
 # Eigen3
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 # --- SLEEF ---
+# Try to find an installed SLEEF providing an imported target; otherwise FetchContent.
 find_package(SLEEF CONFIG QUIET)
 if(SLEEF_FOUND)
     message(STATUS "Using system SLEEF")
-    set(SLEEF_TARGET SLEEF::SLEEF)
+    set(SLEEF_LIB_TARGET SLEEF::SLEEF)
+    set(SLEEF_FETCHED OFF)
 else()
     message(STATUS "SLEEF not found; fetching via FetchContent")
     include(FetchContent)
@@ -71,16 +86,15 @@ else()
     set(SLEEF_BUILD_QUAD OFF CACHE BOOL "" FORCE)
     set(SLEEF_DISABLE_GFNI ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(sleef)
-    set(SLEEF_TARGET sleef)
 
-    # Add include dirs for the fetched build
+    # The fetched build exposes the target alias 'sleef::sleef'
+    set(SLEEF_LIB_TARGET sleef::sleef)
+    set(SLEEF_FETCHED ON)
+
+    # Add include dirs for the fetched build (keep your variables)
     set(SLEEF_INC "${sleef_SOURCE_DIR}/src/libm;${sleef_BINARY_DIR}/include")
-    set_property(TARGET fusion          APPEND PROPERTY INCLUDE_DIRECTORIES "${SLEEF_INC}")
-    set_property(TARGET FusionExecutable APPEND PROPERTY INCLUDE_DIRECTORIES "${SLEEF_INC}")
 endif()
 
-target_link_libraries(fusion          PRIVATE ${SLEEF_TARGET} ${OPENBLAS_LIB})
-target_link_libraries(FusionExecutable PRIVATE ${SLEEF_TARGET} ${OPENBLAS_LIB})
 #--------------------------------------------------------------------------------
 # Python extension module (_C)
 pybind11_add_module(fusion
@@ -105,8 +119,16 @@ target_include_directories(fusion PRIVATE
         ${XSIMD_INCLUDE_DIR}
 )
 
+# If SLEEF was fetched, append its include paths (keeping your original intent)
+if(SLEEF_FETCHED)
+    foreach(_inc ${SLEEF_INC})
+        target_include_directories(fusion PRIVATE "${_inc}")
+    endforeach()
+endif()
+
+# Link libraries (use unified SLEEF target)
 target_link_libraries(fusion PRIVATE
-        sleef::sleef
+        ${SLEEF_LIB_TARGET}
         ${OPENBLAS_LIB}
 )
 
@@ -146,8 +168,15 @@ target_include_directories(FusionExecutable PRIVATE
         ${XSIMD_INCLUDE_DIR}
 )
 
+# If SLEEF was fetched, append its include paths (keeping your original intent)
+if(SLEEF_FETCHED)
+    foreach(_inc ${SLEEF_INC})
+        target_include_directories(FusionExecutable PRIVATE "${_inc}")
+    endforeach()
+endif()
+
 target_link_libraries(FusionExecutable PRIVATE
-        sleef::sleef
+        ${SLEEF_LIB_TARGET}
         ${OPENBLAS_LIB}
 )
 
