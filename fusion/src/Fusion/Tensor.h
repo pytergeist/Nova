@@ -8,9 +8,9 @@
 #include <stdexcept>
 #include <vector>
 
-#include "core/Reduce.h"
 #include "core/ElementWise.h"
 #include "core/Ffunc.h"
+#include "core/Reduce.h"
 #include "cpu/SimdTags.h"
 #include "cpu/SimdTraits.h"
 
@@ -79,70 +79,81 @@ public:
   [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
   auto operator+(const Tensor &other) const {
-    return ewise::binary_ewise_tag<T, AddSIMD>(*this, other);
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::binary_ewise_tag<T, AddSIMD>(*this, other, out_shape, out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
   auto operator-(const Tensor &other) const {
-    return ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other);
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
-  Tensor<T> &operator-=(const Tensor<T> &other) {
-    const size_t out_size =
-        (other.flat_size() == 1 ? flat_size() : other.flat_size());
-    const size_t na = flat_size();
-    const size_t nb = other.flat_size();
-    T *self_ptr = storage->data_ptr();
-    const T *other_ptr = other.storage->data_ptr();
-
-    xsimd_ops::subtract{}(xsimd::default_arch{}, self_ptr, na, other_ptr, nb,
-                          self_ptr, out_size, xsimd::unaligned_mode{});
-
+  auto &operator-=(const Tensor &other) {
+    auto &out_shape = this->shape_;
+    auto &out_data = this->storage->data();
+    ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, out_data);
     return *this;
   }
 
   auto operator/(const Tensor &other) const {
-    return ewise::binary_ewise_tag<T, DivideSIMD>(*this, other);
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::binary_ewise_tag<T, DivideSIMD>(*this, other, out_shape, out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
   auto operator*(const Tensor &other) const {
-    return ewise::binary_ewise_tag<T, MultiplySIMD>(*this, other);
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::binary_ewise_tag<T, MultiplySIMD>(*this, other, out_shape, out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
-  Tensor<T> operator>=(const Tensor<T> &other) const {
-    std::vector<size_t> out_shape =
-        (other.flat_size() == 1 ? this->shape_ : other.shape_);
-    std::size_t out_size =
-        (other.flat_size() == 1 ? this->flat_size() : other.flat_size());
-
-    const T *a_ptr = this->storage->data_ptr();
-    const T *b_ptr = other.storage->data_ptr();
-    std::size_t na = this->flat_size();
-    std::size_t nb = other.flat_size();
-
-    std::vector<T> result(out_size);
-    T *r_ptr = result.data();
-
-    xsimd_ops::greater_than_equal_to_numeric{}(xsimd::default_arch{}, a_ptr, na,
-                                               b_ptr, nb, r_ptr, out_size,
-                                               xsimd::aligned_mode{});
-
-    return Tensor<T>(std::move(out_shape), std::move(result), Device::CPU);
+  auto &operator>=(const Tensor &other) {
+    auto &out_shape = this->shape_;
+    auto &out_data = this->storage->data();
+    ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(*this, other, out_shape,
+                                                     out_data);
+    return *this;
   }
 
   auto maximum(const Tensor &other) const {
-    return ewise::binary_ewise_tag<T, MaximumSIMD>(*this, other);
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::binary_ewise_tag<T, MaximumSIMD>(*this, other, out_shape, out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
-  auto sqrt() const { return ewise::unary_ewise_tag<T, SqrtSIMD>(*this); }
+  auto sqrt() const {
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::unary_ewise_tag<T, SqrtSIMD>(*this, out_shape, out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
+  }
 
-  auto log() const { return ewise::unary_ewise_tag<T, NaturalLogSIMD>(*this); };
+  auto log() const {
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::unary_ewise_tag<T, NaturalLogSIMD>(*this, out_shape, out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
+  };
 
   auto exp() const {
-    return ewise::unary_ewise_tag<T, ExponentialSIMD>(*this);
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::unary_ewise_tag<T, ExponentialSIMD>(*this, out_shape, out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   };
 
   auto pow(const Tensor &other) const {
-    return ewise::binary_ewise_tag<T, PowerSIMD>(*this, other);
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::binary_ewise_tag<T, PowerSIMD>(*this, other, out_shape, out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
   auto sum() const {

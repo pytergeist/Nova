@@ -39,6 +39,12 @@ struct PowerSIMD {
   }
 };
 
+struct GreaterThanEqualSIMD {
+  template <typename U> constexpr U operator()(U a, U b) const noexcept {
+    return a >= b;
+  }
+};
+
 struct ExponentialSIMD {
   template <typename U> constexpr U operator()(U a) const noexcept {
     return std::exp(a);
