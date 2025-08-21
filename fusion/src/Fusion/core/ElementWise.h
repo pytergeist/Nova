@@ -79,17 +79,18 @@ inline void for_each_outer_then_inner(const BroadcastPlan &plan,
 
 // Tag = AddSIMD / SubtractSIMD / ...
 template <typename T, class Tag, class TensorT>
-TensorT binary_ewise_tag(const TensorT &A, const TensorT &B) {
+void binary_ewise_tag(const TensorT &A, const TensorT &B,
+                      std::vector<size_t> &out_shape,
+                      std::vector<T> &out_data) {
   // Initialise tensor descriptions with shape and stride
   auto dA = make_desc<T>(A.shape_, nullptr);
   auto dB = make_desc<T>(B.shape_, nullptr);
   auto plan_in = make_broadcast_plan({dA, dB});
 
-  std::vector<size_t> out_shape(plan_in.out_sizes.begin(),
-                                plan_in.out_sizes.end());
+  out_shape.assign(plan_in.out_sizes.begin(), plan_in.out_sizes.end());
   size_t n_out = std::accumulate(out_shape.begin(), out_shape.end(),
                                  static_cast<size_t>(1), std::multiplies<>());
-  std::vector<T> out_data(n_out);
+  out_data.resize(n_out); // TODO: why resize here?
 
   auto dOut = make_desc<T>(out_shape, nullptr);
   auto plan = make_broadcast_plan({dOut, dA, dB});
@@ -146,22 +147,21 @@ TensorT binary_ewise_tag(const TensorT &A, const TensorT &B) {
         for (int64_t i = 0; i < len; ++i)
           o[i * so] = tag(a[i * sa], b[i * sb]);
       });
-
-  return TensorT(std::move(out_shape), std::move(out_data), Device::CPU);
+  // return TensorT(std::move(out_shape), std::move(out_data), Device::CPU);
 }
 
 // Tag = ExponentialSIMD / NaturalLogSIMD / ...
 template <typename T, class Tag, class TensorT>
-TensorT unary_ewise_tag(const TensorT &A) {
+void unary_ewise_tag(const TensorT &A, std::vector<size_t> &out_shape,
+                     std::vector<T> &out_data) {
   // Initialise tensor descriptions with shape and stride
   auto dA = make_desc<T>(A.shape_, nullptr);
   auto plan_in = make_broadcast_plan({dA});
 
-  std::vector<size_t> out_shape(plan_in.out_sizes.begin(),
-                                plan_in.out_sizes.end());
+  out_shape.assign(plan_in.out_sizes.begin(), plan_in.out_sizes.end());
   size_t n_out = std::accumulate(out_shape.begin(), out_shape.end(),
                                  static_cast<size_t>(1), std::multiplies<>());
-  std::vector<T> out_data(n_out);
+  out_data.resize(n_out);
 
   auto dOut = make_desc<T>(out_shape, nullptr);
   auto plan = make_broadcast_plan({dOut, dA});
@@ -210,10 +210,7 @@ TensorT unary_ewise_tag(const TensorT &A) {
         for (int64_t i = 0; i < len; ++i)
           o[i * so] = tag(a[i * sa]);
       });
-
-  return TensorT(std::move(out_shape), std::move(out_data), Device::CPU);
 }
-
 } // namespace ewise
 
 #endif // ELEMENT_WISE_H

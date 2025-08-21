@@ -6,21 +6,6 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 #--------------------------------------------------------------------------------
 include(FetchContent)
 
-# xsimd: use system if available, else FetchContent
-find_path(XSIMD_INCLUDE_DIR
-        NAMES xsimd/xsimd.hpp
-        HINTS /usr/include /usr/local/include
-)
-if (NOT XSIMD_INCLUDE_DIR)
-    message(STATUS "xsimd not found on system; fetching via FetchContent")
-    FetchContent_Declare(
-            xsimd
-            GIT_REPOSITORY https://github.com/xtensor-stack/xsimd.git
-            GIT_TAG        13.2.0
-    )
-    FetchContent_MakeAvailable(xsimd)
-    set(XSIMD_INCLUDE_DIR ${xsimd_SOURCE_DIR}/include)
-endif()
 
 #--------------------------------------------------------------------------------
 # macOS-only architecture setting
@@ -129,7 +114,6 @@ target_include_directories(fusion PRIVATE
         ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
         ${OPENBLAS_INCLUDE_DIR}
         ${Eigen3_INCLUDE_DIRS}
-        ${XSIMD_INCLUDE_DIR}
         ${SLEEF_INCLUDE_DIRS}  # needed when SLEEF is fetched
 )
 
@@ -183,7 +167,6 @@ target_include_directories(FusionExecutable PRIVATE
         ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
         ${OPENBLAS_INCLUDE_DIR}
         ${Eigen3_INCLUDE_DIRS}
-        ${XSIMD_INCLUDE_DIR}
         ${SLEEF_INCLUDE_DIRS}  # needed when SLEEF is fetched
 )
 
@@ -215,7 +198,7 @@ endif()
 #    src/Fusion/tensor
 #    ${OPENBLAS_INCLUDE_DIR}
 #    ${Eigen3_INCLUDE_DIRS}
-#    ${XSIMD_INCLUDE_DIR}
+
 #)
 #
 #target_link_libraries(FusionTests PRIVATE
