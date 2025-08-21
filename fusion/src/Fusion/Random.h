@@ -1,7 +1,7 @@
 #ifndef TENSOR_RANDOM_H
 #define TENSOR_RANDOM_H
 
-#include "./Tensor.h"
+#include "./tensor.h"
 #include <algorithm>
 #include <numeric>
 #include <random>
