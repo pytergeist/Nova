@@ -1,6 +1,9 @@
 #ifndef SIMD_TAGS_H
 #define SIMD_TAGS_H
 
+#include <cmath>
+#include <type_traits>
+
 #pragma once
 
 struct AddSIMD {

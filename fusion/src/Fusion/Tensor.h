@@ -13,6 +13,9 @@
 #include "core/Reduce.h"
 #include "cpu/SimdTags.h"
 #include "cpu/SimdTraits.h"
+#include <memory>
+#include <utility>
+#include <vector>
 
 template <typename T> class Tensor {
 public:
