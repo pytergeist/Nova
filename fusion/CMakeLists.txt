@@ -77,7 +77,7 @@ endif()
 #--------------------------------------------------------------------------------
 # Python extension module (_C)
 pybind11_add_module(fusion
-        src/Fusion/python/bindings.cpp
+        src/Fusion/python/Bindings.cpp
 )
 
 target_sources(fusion PRIVATE
