@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(Fusion LANGUAGES CXX)
 
-# Make build commands verbose to verify -I flags in CI
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 #--------------------------------------------------------------------------------
 include(FetchContent)
