@@ -50,10 +50,12 @@ set(OPENBLAS_INCLUDE_DIR "/opt/homebrew/opt/openblas/include" CACHE PATH "OpenBL
 # Eigen3
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-#--------------------------------------------------------------------------------
-# SLEEF (
+# --- SLEEF ---
 find_package(SLEEF CONFIG QUIET)
-if(NOT SLEEF_FOUND)
+if(SLEEF_FOUND)
+    message(STATUS "Using system SLEEF")
+    set(SLEEF_TARGET SLEEF::SLEEF)
+else()
     message(STATUS "SLEEF not found; fetching via FetchContent")
     include(FetchContent)
     FetchContent_Declare(
@@ -69,11 +71,16 @@ if(NOT SLEEF_FOUND)
     set(SLEEF_BUILD_QUAD OFF CACHE BOOL "" FORCE)
     set(SLEEF_DISABLE_GFNI ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(sleef)
+    set(SLEEF_TARGET sleef)
 
-    if(NOT TARGET sleef::sleef)
-        add_library(sleef::sleef ALIAS sleef)
-    endif()
+    # Add include dirs for the fetched build
+    set(SLEEF_INC "${sleef_SOURCE_DIR}/src/libm;${sleef_BINARY_DIR}/include")
+    set_property(TARGET fusion          APPEND PROPERTY INCLUDE_DIRECTORIES "${SLEEF_INC}")
+    set_property(TARGET FusionExecutable APPEND PROPERTY INCLUDE_DIRECTORIES "${SLEEF_INC}")
 endif()
+
+target_link_libraries(fusion          PRIVATE ${SLEEF_TARGET} ${OPENBLAS_LIB})
+target_link_libraries(FusionExecutable PRIVATE ${SLEEF_TARGET} ${OPENBLAS_LIB})
 #--------------------------------------------------------------------------------
 # Python extension module (_C)
 pybind11_add_module(fusion
