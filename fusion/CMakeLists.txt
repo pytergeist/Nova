@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 project(Fusion LANGUAGES CXX)
 
+set(CMAKE_VERBOSE_MAKEFILE OFF)
+
 #--------------------------------------------------------------------------------
 include(FetchContent)
 
+# xsimd: use system if available, else FetchContent
 find_path(XSIMD_INCLUDE_DIR
         NAMES xsimd/xsimd.hpp
         HINTS /usr/include /usr/local/include
@@ -20,11 +23,14 @@ if (NOT XSIMD_INCLUDE_DIR)
 endif()
 
 #--------------------------------------------------------------------------------
-set(CMAKE_OSX_ARCHITECTURES "arm64")
+# macOS-only architecture setting
+if(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES "arm64")
+endif()
 
 set(CMAKE_CXX_STANDARD          20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS       OFF)
+set(CMAKE_CXX_EXTENSIONS        OFF)
 
 add_compile_options(-Wall -g)
 
@@ -36,26 +42,33 @@ set(PYBIND11_FINDPYTHON ON CACHE BOOL "Force pybind11 to use FindPython")
 find_package(pybind11 REQUIRED)
 
 #--------------------------------------------------------------------------------
-# OpenBLAS
+# OpenBLAS (find both lib and includes on Linux/macOS)
 find_library(OPENBLAS_LIB
         NAMES openblas
         PATHS /opt/homebrew/opt/openblas/lib /usr/lib /usr/local/lib
 )
-if(NOT OPENBLAS_LIB)
-    message(FATAL_ERROR "OpenBLAS library not found")
+find_path(OPENBLAS_INCLUDE_DIR
+        NAMES cblas.h openblas_config.h
+        PATHS /usr/include /usr/local/include /opt/homebrew/opt/openblas/include
+)
+if(NOT OPENBLAS_LIB OR NOT OPENBLAS_INCLUDE_DIR)
+    message(FATAL_ERROR "OpenBLAS not found (lib: ${OPENBLAS_LIB}, include: ${OPENBLAS_INCLUDE_DIR})")
 endif()
-set(OPENBLAS_INCLUDE_DIR "/opt/homebrew/opt/openblas/include" CACHE PATH "OpenBLAS include dir")
 
 #--------------------------------------------------------------------------------
 # Eigen3
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 #--------------------------------------------------------------------------------
-# SLEEF (
+# SLEEF
+# Prefer installed package; otherwise fetch + build and wire up generated headers.
 find_package(SLEEF CONFIG QUIET)
+
+set(SLEEF_INCLUDE_DIRS "")
+set(SLEEF_TARGET sleef::sleef)  # intended default when using installed package
+
 if(NOT SLEEF_FOUND)
     message(STATUS "SLEEF not found; fetching via FetchContent")
-    include(FetchContent)
     FetchContent_Declare(
             sleef
             GIT_REPOSITORY https://github.com/shibatch/sleef.git
@@ -63,17 +76,36 @@ if(NOT SLEEF_FOUND)
             GIT_SHALLOW    TRUE
             GIT_PROGRESS   TRUE
     )
-    set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
-    set(SLEEF_BUILD_DFT OFF CACHE BOOL "" FORCE)
-    set(SLEEF_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(SLEEF_BUILD_QUAD OFF CACHE BOOL "" FORCE)
-    set(SLEEF_DISABLE_GFNI ON CACHE BOOL "" FORCE)
+
+    # Build options for the embedded SLEEF
+    set(BUILD_SHARED_LIBS  ON  CACHE BOOL "" FORCE)
+    set(SLEEF_BUILD_DFT    OFF CACHE BOOL "" FORCE)
+    set(SLEEF_BUILD_TESTS  OFF CACHE BOOL "" FORCE)
+    set(SLEEF_BUILD_QUAD   OFF CACHE BOOL "" FORCE)
+    set(SLEEF_DISABLE_GFNI ON  CACHE BOOL "" FORCE)
+
     FetchContent_MakeAvailable(sleef)
 
+    # Provide include paths for generated and static headers
+    set(SLEEF_INCLUDE_DIRS
+            ${sleef_SOURCE_DIR}/include
+            ${sleef_BINARY_DIR}/include   # <-- sleef.h is generated here
+    )
+
+    # Export a consistent alias and remember the real target for dependencies
     if(NOT TARGET sleef::sleef)
         add_library(sleef::sleef ALIAS sleef)
     endif()
+    set(SLEEF_TARGET sleef)
+
+    # Make the SLEEF includes globally visible (belt & braces, BEFORE the rest)
+    include_directories(BEFORE SYSTEM ${SLEEF_INCLUDE_DIRS})
+
+    message(STATUS "SLEEF include dirs (fetched): ${SLEEF_INCLUDE_DIRS}")
+else()
+    message(STATUS "Using installed SLEEF package (headers provided by imported target).")
 endif()
+
 #--------------------------------------------------------------------------------
 # Python extension module (_C)
 pybind11_add_module(fusion
@@ -84,6 +116,7 @@ target_sources(fusion PRIVATE
         src/Fusion/core/Broadcast.cpp
 )
 
+# Optional NEON toggles on ARM
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     option(FUSION_ENABLE_NEON "Enable NEON SIMD optimizations" ON)
     if(FUSION_ENABLE_NEON)
@@ -91,18 +124,31 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch
     endif()
 endif()
 
+# Ensure our target sees all needed headers
 target_include_directories(fusion PRIVATE
         ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
         ${OPENBLAS_INCLUDE_DIR}
         ${Eigen3_INCLUDE_DIRS}
         ${XSIMD_INCLUDE_DIR}
+        ${SLEEF_INCLUDE_DIRS}  # needed when SLEEF is fetched
 )
 
+# Link libraries
 target_link_libraries(fusion PRIVATE
         sleef::sleef
         ${OPENBLAS_LIB}
 )
 
+# Ensure SLEEF (and its header generation) completes before compiling 'fusion'
+# The SLEEF build defines a 'headers' target that generates sleef.h; depend on it if present.
+if(TARGET ${SLEEF_TARGET})
+    add_dependencies(fusion ${SLEEF_TARGET})
+endif()
+if(TARGET headers)
+    add_dependencies(fusion headers)
+endif()
+
+# Install location for the Python extension
 set(PY_EXT_INSTALL_DIR
         ${PROJECT_SOURCE_DIR}/../nova/src/backend/core/_C
 )
@@ -110,9 +156,9 @@ file(MAKE_DIRECTORY ${PY_EXT_INSTALL_DIR})
 
 set_target_properties(fusion PROPERTIES
         PREFIX ""
-        LIBRARY_OUTPUT_DIRECTORY ${PY_EXT_INSTALL_DIR}
-        RUNTIME_OUTPUT_DIRECTORY ${PY_EXT_INSTALL_DIR}
-        ARCHIVE_OUTPUT_DIRECTORY ${PY_EXT_INSTALL_DIR}
+        LIBRARY_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
+        RUNTIME_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
 )
 
 install(TARGETS fusion
@@ -120,6 +166,7 @@ install(TARGETS fusion
 )
 
 #--------------------------------------------------------------------------------
+# Native executable (optional)
 add_executable(FusionExecutable
         src/Fusion/main.cpp
         src/Fusion/core/Broadcast.cpp
@@ -137,12 +184,21 @@ target_include_directories(FusionExecutable PRIVATE
         ${OPENBLAS_INCLUDE_DIR}
         ${Eigen3_INCLUDE_DIRS}
         ${XSIMD_INCLUDE_DIR}
+        ${SLEEF_INCLUDE_DIRS}  # needed when SLEEF is fetched
 )
 
 target_link_libraries(FusionExecutable PRIVATE
         sleef::sleef
         ${OPENBLAS_LIB}
 )
+
+# Same ordering guarantees for the executable
+if(TARGET ${SLEEF_TARGET})
+    add_dependencies(FusionExecutable ${SLEEF_TARGET})
+endif()
+if(TARGET headers)
+    add_dependencies(FusionExecutable headers)
+endif()
 
 #--------------------------------------------------------------------------------
 ## Tests (GoogleTest)
@@ -152,20 +208,20 @@ target_link_libraries(FusionExecutable PRIVATE
 #find_package(GTest REQUIRED)
 #
 #add_executable(FusionTests
-#        src/Fusion/tests/tensor_cpu_tests.cpp
+#    src/Fusion/tests/tensor_cpu_tests.cpp
 #)
 #
 #target_include_directories(FusionTests PRIVATE
-#        src/Fusion/tensor
-#        ${OPENBLAS_INCLUDE_DIR}
-#        ${Eigen3_INCLUDE_DIRS}
-#        ${XSIMD_INCLUDE_DIR}
+#    src/Fusion/tensor
+#    ${OPENBLAS_INCLUDE_DIR}
+#    ${Eigen3_INCLUDE_DIRS}
+#    ${XSIMD_INCLUDE_DIR}
 #)
 #
 #target_link_libraries(FusionTests PRIVATE
-#        GTest::gtest_main
-#        pthread
-#        ${OPENBLAS_LIB}
+#    GTest::gtest_main
+#    pthread
+#    ${OPENBLAS_LIB}
 #)
 #
 #add_test(NAME FusionTests COMMAND FusionTests)
@@ -173,7 +229,6 @@ target_link_libraries(FusionExecutable PRIVATE
 #--------------------------------------------------------------------------------
 # Benchmarks (optional)
 option(BUILD_BENCHMARKS "Build Fusion benchmarks" ON)
-
 if (BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
