@@ -59,9 +59,14 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 #--------------------------------------------------------------------------------
 # SLEEF
-# Try to use an installed config; otherwise fetch and build from source.
+# Try installed package first; otherwise fetch + build. When fetched, ensure we:
+# 1) add include dirs, and
+# 2) depend on the sleef target so headers are generated before compiling us.
 find_package(SLEEF CONFIG QUIET)
+
 set(SLEEF_INCLUDE_DIRS "")
+set(SLEEF_TARGET sleef::sleef)  # default name when using installed package
+
 if(NOT SLEEF_FOUND)
     message(STATUS "SLEEF not found; fetching via FetchContent")
     FetchContent_Declare(
@@ -81,15 +86,19 @@ if(NOT SLEEF_FOUND)
     FetchContent_MakeAvailable(sleef)
 
     # When using the build-tree target, we must provide SLEEF headers explicitly.
+    # sleef.h is generated into ${sleef_BINARY_DIR}/include during the sleef build.
     set(SLEEF_INCLUDE_DIRS
             ${sleef_SOURCE_DIR}/include
             ${sleef_BINARY_DIR}/include
     )
 
-    # Provide a consistent target name
+    # Provide a consistent alias so target_link_libraries works uniformly
     if(NOT TARGET sleef::sleef)
         add_library(sleef::sleef ALIAS sleef)
     endif()
+
+    # Record the actual target to depend on
+    set(SLEEF_TARGET sleef)
 endif()
 
 #--------------------------------------------------------------------------------
@@ -122,6 +131,11 @@ target_link_libraries(fusion PRIVATE
         sleef::sleef
         ${OPENBLAS_LIB}
 )
+
+# Ensure SLEEF has generated headers before compiling 'fusion'
+if(TARGET ${SLEEF_TARGET})
+    add_dependencies(fusion ${SLEEF_TARGET})
+endif()
 
 set(PY_EXT_INSTALL_DIR
         ${PROJECT_SOURCE_DIR}/../nova/src/backend/core/_C
@@ -165,6 +179,11 @@ target_link_libraries(FusionExecutable PRIVATE
         sleef::sleef
         ${OPENBLAS_LIB}
 )
+
+# Ensure SLEEF is built before this executable (safer for generated headers)
+if(TARGET ${SLEEF_TARGET})
+    add_dependencies(FusionExecutable ${SLEEF_TARGET})
+endif()
 
 #--------------------------------------------------------------------------------
 ## Tests (GoogleTest)
