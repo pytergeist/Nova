@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 project(Fusion LANGUAGES CXX)
 
+# Make build commands verbose to verify -I flags in CI
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 #--------------------------------------------------------------------------------
 include(FetchContent)
 
@@ -59,13 +62,11 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 #--------------------------------------------------------------------------------
 # SLEEF
-# Try installed package first; otherwise fetch + build. When fetched, ensure we:
-# 1) add include dirs, and
-# 2) depend on the sleef target so headers are generated before compiling us.
+# Prefer installed package; otherwise fetch + build and wire up generated headers.
 find_package(SLEEF CONFIG QUIET)
 
 set(SLEEF_INCLUDE_DIRS "")
-set(SLEEF_TARGET sleef::sleef)  # default name when using installed package
+set(SLEEF_TARGET sleef::sleef)  # intended default when using installed package
 
 if(NOT SLEEF_FOUND)
     message(STATUS "SLEEF not found; fetching via FetchContent")
@@ -76,6 +77,7 @@ if(NOT SLEEF_FOUND)
             GIT_SHALLOW    TRUE
             GIT_PROGRESS   TRUE
     )
+
     # Build options for the embedded SLEEF
     set(BUILD_SHARED_LIBS  ON  CACHE BOOL "" FORCE)
     set(SLEEF_BUILD_DFT    OFF CACHE BOOL "" FORCE)
@@ -85,20 +87,24 @@ if(NOT SLEEF_FOUND)
 
     FetchContent_MakeAvailable(sleef)
 
-    # When using the build-tree target, we must provide SLEEF headers explicitly.
-    # sleef.h is generated into ${sleef_BINARY_DIR}/include during the sleef build.
+    # Provide include paths for generated and static headers
     set(SLEEF_INCLUDE_DIRS
             ${sleef_SOURCE_DIR}/include
-            ${sleef_BINARY_DIR}/include
+            ${sleef_BINARY_DIR}/include   # <-- sleef.h is generated here
     )
 
-    # Provide a consistent alias so target_link_libraries works uniformly
+    # Export a consistent alias and remember the real target for dependencies
     if(NOT TARGET sleef::sleef)
         add_library(sleef::sleef ALIAS sleef)
     endif()
-
-    # Record the actual target to depend on
     set(SLEEF_TARGET sleef)
+
+    # Make the SLEEF includes globally visible (belt & braces, BEFORE the rest)
+    include_directories(BEFORE SYSTEM ${SLEEF_INCLUDE_DIRS})
+
+    message(STATUS "SLEEF include dirs (fetched): ${SLEEF_INCLUDE_DIRS}")
+else()
+    message(STATUS "Using installed SLEEF package (headers provided by imported target).")
 endif()
 
 #--------------------------------------------------------------------------------
@@ -119,6 +125,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch
     endif()
 endif()
 
+# Ensure our target sees all needed headers
 target_include_directories(fusion PRIVATE
         ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
         ${OPENBLAS_INCLUDE_DIR}
@@ -127,16 +134,22 @@ target_include_directories(fusion PRIVATE
         ${SLEEF_INCLUDE_DIRS}  # needed when SLEEF is fetched
 )
 
+# Link libraries
 target_link_libraries(fusion PRIVATE
         sleef::sleef
         ${OPENBLAS_LIB}
 )
 
-# Ensure SLEEF has generated headers before compiling 'fusion'
+# Ensure SLEEF (and its header generation) completes before compiling 'fusion'
+# The SLEEF build defines a 'headers' target that generates sleef.h; depend on it if present.
 if(TARGET ${SLEEF_TARGET})
     add_dependencies(fusion ${SLEEF_TARGET})
 endif()
+if(TARGET headers)
+    add_dependencies(fusion headers)
+endif()
 
+# Install location for the Python extension
 set(PY_EXT_INSTALL_DIR
         ${PROJECT_SOURCE_DIR}/../nova/src/backend/core/_C
 )
@@ -180,9 +193,12 @@ target_link_libraries(FusionExecutable PRIVATE
         ${OPENBLAS_LIB}
 )
 
-# Ensure SLEEF is built before this executable (safer for generated headers)
+# Same ordering guarantees for the executable
 if(TARGET ${SLEEF_TARGET})
     add_dependencies(FusionExecutable ${SLEEF_TARGET})
+endif()
+if(TARGET headers)
+    add_dependencies(FusionExecutable headers)
 endif()
 
 #--------------------------------------------------------------------------------
@@ -214,7 +230,6 @@ endif()
 #--------------------------------------------------------------------------------
 # Benchmarks (optional)
 option(BUILD_BENCHMARKS "Build Fusion benchmarks" ON)
-
 if (BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
