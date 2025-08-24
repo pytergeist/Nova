@@ -17,10 +17,8 @@ class InputBlock:
         self.output_shape = None
         self.dtype = dtype
         self._built = False
-        self.builder = builder or Builder.get_current()
-        self._node = self.builder.build_leaf_model_node(
-            self, parents=(), inbound_tensors=None, outbound_tensors=None
-        )
+        self.builder = None
+        self._node = None
         self.input_block = True
         self._uuid = uuid.uuid4()
 
@@ -30,6 +28,7 @@ class InputBlock:
 
     @property
     def node(self):
+        self._ensure_attached()
         return self._node
 
     @property
@@ -48,7 +47,16 @@ class InputBlock:
         self.output_shape = input_shape
         self.built = True
 
+    def _ensure_attached(self):
+        if self.builder is None:
+            self.builder = Builder.ensure_current()
+        if self._node is None:
+            self.builder.build_leaf_model_node(
+                self, parents=(), inbound_tensors=None, outbound_tensors=None
+            )
+
     def __call__(self):  # TODO: remove this once lazy execution is implamented
+        self._ensure_attached()
         shape = [dim or 1 for dim in self.input_shape]
         dummy = np.zeros(shape, dtype=self.dtype)
         t = Tensor(dummy, requires_grad=False)

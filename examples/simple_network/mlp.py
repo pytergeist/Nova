@@ -10,21 +10,20 @@ from nova.src.models import Model
 from nova.src.optim.sgd import SGD
 from nova.src.blocks.regularisation import Dropout
 
-with Builder() as builder:
-    inp = InputBlock((None, 10))
-    x = inp
-    dense1 = Linear(100, "random_normal")
-    relu1 = ReLU()
-    drop1 = Dropout(0.5)
-    dense2 = Linear(10, "random_normal")
-    relu2 = ReLU()
-    y = dense1(x)
-    z = relu1(y)
-    z = drop1(z)
-    x1 = dense2(z)
-    out = relu2(x1)
-    model = Model(inputs=[inp], outputs=[out])
-    model.build()
+inp = InputBlock((None, 10))
+x = inp
+dense1 = Linear(100, "random_normal")
+relu1 = ReLU()
+drop1 = Dropout(0.5)
+dense2 = Linear(10, "random_normal")
+relu2 = ReLU()
+y = dense1(x)
+z = relu1(y)
+z = drop1(z)
+x1 = dense2(z)
+out = relu2(x1)
+model = Model(inputs=[inp], outputs=[out])
+model.build()
 
 
 params = model.parameters()
