@@ -22,7 +22,6 @@ z = drop1(z)
 x1 = dense2(z)
 out = relu2(x1)
 model = Model(inputs=[inp], outputs=[out])
-model.build()
 
 
 params = model.parameters()

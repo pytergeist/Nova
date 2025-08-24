@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, List
 
+from nova.src.backend.topology import Builder
 from nova.src.backend.trainers import Trainer
 
 if TYPE_CHECKING:
@@ -10,9 +11,11 @@ if TYPE_CHECKING:
 class Model(Trainer):
     def __init__(self, inputs: List["InputBlock"], outputs: List["ModelNode"]) -> None:
         super().__init__()
+        Builder.ensure_current()
         self.inputs = inputs
         self.outputs = outputs
         self.build()
+        Builder.finalise_current()
 
     def blocks(self):
         """Get the model blocks."""
