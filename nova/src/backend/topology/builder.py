@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Optional, Type
+import threading
+from typing import TYPE_CHECKING, Type
 
 from nova.src.backend.graph import TopologicalSort
 
@@ -10,17 +11,12 @@ from .node import ModelNode
 
 
 class Builder:
-    _current: Optional["Builder"] = None
+    _tls = threading.local()
 
     def __init__(self, sorter_cls: Type[TopologicalSort] = TopologicalSort):
         self.created_model_nodes = []
         self.node_idx_counter = 0
         self.sorter_cls = sorter_cls
-
-    # def __new__(cls, *args, **kwargs):  # TODO: Change to context manager pattern
-    #     if cls._instance is None:
-    #         cls._instance = super(Builder, cls).__new__(cls)
-    #     return cls._instance
 
     def _update_model_node_idx(self) -> None:
         """Updates the node index counter."""
@@ -73,31 +69,32 @@ class Builder:
         sorted_nodes = sorter.sort(start_node, mode="iterative", reverse=True)
         return sorted_nodes
 
-    def __enter__(self) -> "Builder":
-        """Enter method for context manager pattern."""
-        type(self)._current = self
-        return self
+    def __enter__(self) -> None: ...
 
-    def __del__(self) -> None:
-        """Destructor method for the Engine."""
-        # This is a placeholder for any cleanup logic if needed.
-        # Currently, it does nothing but will be extended in the future.
-        ...
+    def __del__(self) -> None: ...
 
-    def __exit__(self, exc_type, exc_value, traceback) -> bool:
-        """Exit method for context manager pattern."""
-        type(self)._current = None
-        return False
+    def __exit__(self, exc_type, exc_value, traceback) -> bool: ...
 
     @classmethod
-    def get_current(cls) -> "Builder":
-        """Returns the current engine instance.
+    def get_current(cls):
+        curr = getattr(cls._tls, "current", None)
+        if curr is None:
+            raise RuntimeError("No Builder context is currently active.")
+        return curr
 
-        Designed to be used with the context manager pattern, e.g. with Engine.current()
-        as engine: similar to with Gradient.tape() as tape: in TensorFlow.
-        """
-        if cls._current is None:
-            raise RuntimeError(
-                "No active Builder context; must be inside `with Builder():`"
-            )
-        return cls._current
+    @classmethod
+    def ensure_current(cls):
+        curr = getattr(cls._tls, "current", None)
+        if curr is None:
+            curr = cls()
+            cls._tls.current = curr
+            curr.__enter__()
+            curr._implicit = True
+        return curr
+
+    @classmethod
+    def finalise_current(cls):
+        curr = getattr(cls._tls, "current", None)
+        if curr is not None and getattr(curr, "_implicit", False):
+            curr.__exit__(None, None, None)
+            cls._tls.current = True
