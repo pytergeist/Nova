@@ -192,7 +192,9 @@ class Block(ABC):
         if self.builder is None:
             self.builder = Builder.ensure_current()
         if self.node is None:
-            self.builder.build_model_node(self, inbound_tensors=[], outbound_tensors=[])
+            self.node = self.builder.build_model_node(
+                self, inbound_tensors=[], outbound_tensors=[]
+            )
 
     def __call__(  # TODO: this currently only works for the first input, need to fix for multi input models
         self, *inputs: Union[Tensor, np.ndarray]
