@@ -2,8 +2,6 @@ import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
-import numpy as np
-
 from nova.src import initialisers
 from nova.src.backend import io
 from nova.src.backend.core import Tensor, Variable
@@ -109,7 +107,7 @@ class Block(ABC):
 
     def add_weight(
         self,
-        shape: Optional[Tuple[int, ...]] = None,
+        shape: Optional[Tuple[int]] = None,
         initialiser: Optional[Union[str, "Initialiser"]] = None,
         dtype=None,
         role=None,
@@ -180,9 +178,7 @@ class Block(ABC):
 
         return blocks
 
-    def _set_parents(
-        self, parents: Tuple[Union["ModelNode", "InputBlock"], ...]
-    ) -> None:
+    def _set_parents(self, parents: Tuple[Union["ModelNode", "InputBlock"]]) -> None:
         self._ensure_attached()
         self.node.parents = tuple(
             p.node if hasattr(p, "input_block") else p for p in parents
@@ -197,7 +193,7 @@ class Block(ABC):
             )
 
     def __call__(  # TODO: this currently only works for the first input, need to fix for multi input models
-        self, *inputs: Union[Tensor, np.ndarray]
+        self, *inputs: "ModelNode"
     ) -> "ModelNode":
         self._check_super_called()
         self._ensure_attached()

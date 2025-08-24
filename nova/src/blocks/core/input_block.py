@@ -1,16 +1,12 @@
 import uuid
-from typing import Optional
 
 import numpy as np
 
-from nova.src.backend.core import Tensor
 from nova.src.backend.topology import Builder
 
 
 class InputBlock:
-    def __init__(
-        self, input_shape, dtype=np.float32, builder: Optional[Builder] = None
-    ):
+    def __init__(self, input_shape, dtype=np.float32):
         self.trainable = False
         self._inheritance_lock = False
         self.input_shape = input_shape
@@ -21,6 +17,7 @@ class InputBlock:
         self._node = None
         self.input_block = True
         self._uuid = uuid.uuid4()
+        self._ensure_attached()
 
     @property
     def uuid(self) -> uuid.UUID:
@@ -51,17 +48,9 @@ class InputBlock:
         if self.builder is None:
             self.builder = Builder.ensure_current()
         if self._node is None:
-            self.builder.build_leaf_model_node(
+            self._node = self.builder.build_leaf_model_node(
                 self, parents=(), inbound_tensors=None, outbound_tensors=None
             )
-
-    def __call__(self):  # TODO: remove this once lazy execution is implamented
-        self._ensure_attached()
-        shape = [dim or 1 for dim in self.input_shape]
-        dummy = np.zeros(shape, dtype=self.dtype)
-        t = Tensor(dummy, requires_grad=False)
-        self.children = [t]
-        return t
 
     def get_config(self):
         return {"input_shape": self.input_shape, "dtype": str(self.dtype)}

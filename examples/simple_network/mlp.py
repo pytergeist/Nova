@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from nova.src.backend.core._tensor import Tensor
-from nova.src.backend.topology import Builder
 from nova.src.blocks.activations import ReLU
 from nova.src.blocks.core import InputBlock
 from nova.src.blocks.core.linear import Linear
