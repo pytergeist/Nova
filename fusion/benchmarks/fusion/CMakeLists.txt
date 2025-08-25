@@ -1,17 +1,12 @@
-find_package(BLAS REQUIRED)
+cmake_minimum_required(VERSION 3.22)
 
-add_executable(FusionBenchMark FusionBenchmark.cpp ${PROJECT_SOURCE_DIR}/src/Fusion/core/Broadcast.cpp)
-
-target_include_directories(FusionBenchMark PRIVATE
-        ${PROJECT_SOURCE_DIR}
-        ${PROJECT_SOURCE_DIR}/src/Fusion/cpu/simd
-        ${OPENBLAS_INCLUDE_DIR}
-        ${XSIMD_INCLUDE_DIR}
+add_executable(FusionBenchMark
+        ${CMAKE_CURRENT_SOURCE_DIR}/FusionBenchmark.cpp
 )
 
-
+# Link core + nanobench + BLAS explicitly (ensures Accelerate appears)
 target_link_libraries(FusionBenchMark PRIVATE
+        fusion_core
         nanobench
-        sleef::sleef
-        ${OPENBLAS_LIB}
+        ${BLAS_LIBRARIES}
 )
