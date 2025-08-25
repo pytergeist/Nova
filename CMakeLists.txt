@@ -20,7 +20,7 @@ if(NOT DEFINED Python_EXECUTABLE)
   endif()
 endif()
 
-find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)`
+find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 message(STATUS "Using Python: ${Python_EXECUTABLE} (version ${Python_VERSION})")
 
 find_package(pybind11 REQUIRED)
