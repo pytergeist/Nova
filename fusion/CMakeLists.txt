@@ -134,7 +134,7 @@ endif()
 
 # Install location for the Python extension
 set(PY_EXT_INSTALL_DIR
-        ${PROJECT_SOURCE_DIR}/../nova/src/backend/core/_C
+        ${PROJECT_SOURCE_DIR}/../nova/src/backend/core/clib
 )
 file(MAKE_DIRECTORY ${PY_EXT_INSTALL_DIR})
 

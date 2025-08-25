@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 
-from nova.src.backend.core import _C, io
+from nova.src.backend.core import clib, io
 
 if TYPE_CHECKING:
     from nova.src.backend.core import Tensor
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 class Random:
 
     def __init__(self, seed: Optional[int] = None):
-        self._rng = _C.Random() if not seed else _C.Random(seed)
+        self._rng = clib.Random() if not seed else clib.Random(seed)
         self.seed = seed
 
     def uniform(
