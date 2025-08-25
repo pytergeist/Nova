@@ -60,7 +60,7 @@ jobs:
           cmake --version
           ninja --version
 
-      - name: CMake configure (preset: dev) with Poetry's Python
+      - name: "CMake configure (preset: dev) with Poetry's Python"
         env:
           PY: ${{ github.workspace }}/.venv/bin/python
         run: |
@@ -68,7 +68,7 @@ jobs:
             -DPython3_EXECUTABLE="$PY" \
             -DPython_EXECUTABLE="$PY"
 
-      - name: CMake build (preset: dev)
+      - name: "CMake build (preset: dev)"
         run: cmake --build --preset dev -j"$(nproc)"
 
       - name: Export PYTHONPATH for tests
