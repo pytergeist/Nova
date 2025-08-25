@@ -10,8 +10,8 @@ on:
 jobs:
   integration:
     runs-on: ubuntu-latest
-
     strategy:
+      fail-fast: false
       matrix:
         include:
           - suite: finite-difference
@@ -20,53 +20,60 @@ jobs:
             path: tests/integration/gradient/pytorch
 
     steps:
-      - name: "Checkout code"
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: "Set up Python 3.13"
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.12'
 
-      - name: "Install system build deps"
+      - name: Install system build deps
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential cmake ninja-build curl \
             python3-dev pybind11-dev \
             libopenblas-dev liblapack-dev \
-            libeigen3-dev libgtest-dev
+            libeigen3-dev libgtest-dev \
+            libsleef-dev
 
-      - name: "Install Poetry & Python deps"
-        env:
-          POETRY_HOME: ${{ runner.temp }}/poetry
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Install Python deps with Poetry
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Show tool versions
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH="$POETRY_HOME/bin:$HOME/.local/bin:$PATH"
+          python -V
           poetry --version
-          poetry config virtualenvs.create false
-          poetry install --no-root --no-interaction --no-ansi
+          poetry run python -V
+          cmake --version
+          ninja --version
 
-      - name: "CMake configure (preset: dev)"
+      - name:" CMake configure (preset: dev)"
+        env:
+          PY: ${{ github.workspace }}/.venv/bin/python
         run: |
-          poetry shell
-          cmake --preset dev
+          cmake --preset dev \
+            -DPython3_EXECUTABLE="$PY" \
+            -DPython_EXECUTABLE="$PY"
 
       - name: "CMake build (preset: dev)"
-        run: |
-          poetry shell
-          cmake --build --preset dev -j
+        run: cmake --build --preset dev -j"$(nproc)"
 
-      - name: "Export PYTHONPATH"
+      - name: Export PYTHONPATH for tests
         run: |
-          echo "PYTHONPATH=$PWD/nova/src/backend/core/clib:$PWD" >> $GITHUB_ENV
+          echo "PYTHONPATH=${{ github.workspace }}/nova/src/backend/core/clib:${{ github.workspace }}" >> $GITHUB_ENV
 
-      - name: "Run ${{ matrix.suite }} integration tests"
-        env:
-          POETRY_HOME: ${{ runner.temp }}/poetry
-          PATH: ${{ runner.temp }}/poetry/bin:${{ env.PATH }}
+      - name: Run ${{ matrix.suite }} integration tests
         run: |
-          poetry run python -V
           poetry run pytest -v ${{ matrix.path }}
