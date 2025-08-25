@@ -1,4 +1,3 @@
-# macOS universal? You were arm64-only, keep it explicit:
 if(APPLE)
   set(CMAKE_OSX_ARCHITECTURES "arm64")
 endif()
@@ -7,7 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# You can add toggles here if you like
 option(BUILD_BENCHMARKS "Build Fusion benchmarks" ON)
 
 # Default to Debug if nothing set

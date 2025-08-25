@@ -1,6 +1,6 @@
 include(FetchContent)
 
-# macOS/Homebrew path (tweak via presets if needed)
+# macOS/Homebrew path
 set(CMAKE_PREFIX_PATH "/opt/homebrew" CACHE STRING "Prefix path for dependencies")
 
 # ---------- Python / pybind11 ----------
@@ -46,14 +46,13 @@ if(NOT SLEEF_FOUND)
 
   set(SLEEF_INCLUDE_DIRS
     ${sleef_SOURCE_DIR}/include
-    ${sleef_BINARY_DIR}/include   # generated sleef.h
+    ${sleef_BINARY_DIR}/include
   )
   if(NOT TARGET sleef::sleef)
     add_library(sleef::sleef ALIAS sleef)
   endif()
   set(SLEEF_TARGET sleef)
 
-  # Make generated headers visible early
   include_directories(BEFORE SYSTEM ${SLEEF_INCLUDE_DIRS})
 else()
   message(STATUS "Using installed SLEEF package.")

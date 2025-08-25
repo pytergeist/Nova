@@ -10,6 +10,7 @@ on:
 jobs:
   integration:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         include:
@@ -19,38 +20,49 @@ jobs:
             path: tests/integration/gradient/pytorch
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: "Checkout code"
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v4
+      - name: "Set up Python 3.13"
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
-      - name: Install system build deps
+      - name: "Install system build deps"
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential cmake curl \
+            build-essential cmake ninja-build curl \
             python3-dev pybind11-dev \
             libopenblas-dev liblapack-dev \
             libeigen3-dev libgtest-dev
 
-      - name: Install Poetry & deps
+      - name: "Install Poetry & Python deps"
+        env:
+          POETRY_HOME: ${{ runner.temp }}/poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python3.13 -
-          export PATH="$HOME/.local/bin:$PATH"
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$POETRY_HOME/bin:$HOME/.local/bin:$PATH"
+          poetry --version
           poetry config virtualenvs.create false
           poetry install --no-root --no-interaction --no-ansi
 
-      - name: Build Fusion extension
-        working-directory: fusion
-        run: bash compile.sh
+      - name: "CMake configure (preset: dev)"
+        run: cmake --preset dev
 
-      - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+      - name: "CMake build (preset: dev)"
+        run: cmake --build --preset dev -j
 
-      - name: Run ${{ matrix.suite }} integration tests
-        run: poetry run pytest -v ${{ matrix.path }}
+      - name: "Export PYTHONPATH"
+        run: |
+          echo "PYTHONPATH=$PWD/nova/src/backend/core/clib:$PWD" >> $GITHUB_ENV
+
+      - name: "Run ${{ matrix.suite }} integration tests"
+        env:
+          POETRY_HOME: ${{ runner.temp }}/poetry
+          PATH: ${{ runner.temp }}/poetry/bin:${{ env.PATH }}
+        run: |
+          poetry run python -V
+          poetry run pytest -v ${{ matrix.path }}
