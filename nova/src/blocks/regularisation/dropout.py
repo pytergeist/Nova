@@ -1,7 +1,9 @@
 # dropout.py
 
-from nova.src.backend import random
+from nova.src.backend.random import Random
 from nova.src.blocks.block import Block
+
+random = Random()
 
 
 class Dropout(Block):

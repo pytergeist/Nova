@@ -1,3 +1,3 @@
-from .distributions import uniform
+from .random import Random
 
-__all__ = ["uniform"]
+__all__ = ["Random"]

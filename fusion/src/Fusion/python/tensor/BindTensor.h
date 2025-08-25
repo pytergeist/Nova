@@ -21,7 +21,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       // --- constructor(shape: List[int]) → zero‐initialized tensor ---
       .def(py::init([](const std::vector<size_t> &shape) {
              size_t total =
-                 std::accumulate(shape.begin(), shape.end(), (size_t)1,
+                 std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
                                  std::multiplies<size_t>());
              return new PyT(shape, std::vector<T>(total));
            }),
@@ -32,7 +32,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def(py::init([](const std::vector<size_t> &shape,
                        const std::vector<T> &data) {
              size_t total =
-                 std::accumulate(shape.begin(), shape.end(), (size_t)1,
+                 std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
                                  std::multiplies<size_t>());
              if (data.size() != total) {
                throw std::invalid_argument("shape* must equal data.size()");

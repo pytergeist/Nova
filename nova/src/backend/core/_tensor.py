@@ -4,14 +4,14 @@ import numpy as np
 
 import nova.src.backend.operations as ops
 from nova.src.backend.autodiff import Engine, Node
-from nova.src.backend.core import _C
+from nova.src.backend.core import clib
 
 if TYPE_CHECKING:
     from nova.src.backend.core.dtypes import DType
     from nova.src.backend.operations import Operation
 
 
-class Tensor(_C.Tensor):
+class Tensor(clib.Tensor):
     """A Tensor data-structure that uses operator overloading to perform element-wise
     operations.
 
@@ -130,7 +130,7 @@ class Tensor(_C.Tensor):
 
         cpp_self = get_cpp(self)
         cpp_other = get_cpp(other)
-        cpp_out = getattr(_C.Tensor, operation.name)(cpp_self, cpp_other)
+        cpp_out = getattr(clib.Tensor, operation.name)(cpp_self, cpp_other)
         out_val = cpp_out.to_numpy()
 
         out_node = self.engine.build_node(
@@ -144,7 +144,7 @@ class Tensor(_C.Tensor):
 
     def _apply_unary_op(self, operation: "Operation") -> "Tensor":
         cpp_self = get_cpp(self)
-        cpp_out = getattr(_C.Tensor, operation.name)(cpp_self)
+        cpp_out = getattr(clib.Tensor, operation.name)(cpp_self)
         out_val = cpp_out.to_numpy()
         out_node = self.engine.build_node(
             data=out_val,
@@ -155,7 +155,7 @@ class Tensor(_C.Tensor):
         return self._create_new_fusion_wrapped_tensor(out_node, cpp_out)
 
     def _create_new_fusion_wrapped_tensor(
-        self, node: "Node", fusion_tensor: _C.Tensor
+        self, node: "Node", fusion_tensor: clib.Tensor
     ) -> "Tensor":
         out = Tensor.__new__(Tensor)
         object.__setattr__(out, "_node", node)
@@ -383,5 +383,5 @@ class Tensor(_C.Tensor):
         return f"Tensor(data={self.data}, requires_grad={self.requires_grad}{role_str})"
 
 
-def get_cpp(t: Tensor) -> _C.Tensor:
+def get_cpp(t: Tensor) -> clib.Tensor:
     return t

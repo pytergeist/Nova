@@ -10,6 +10,7 @@ on:
 jobs:
   unit:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         include:
@@ -20,12 +21,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
@@ -33,24 +34,47 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential cmake curl \
+            build-essential cmake ninja-build curl \
             python3-dev pybind11-dev \
             libopenblas-dev liblapack-dev \
-            libeigen3-dev libgtest-dev
+            libeigen3-dev libgtest-dev \
+            libsleef-dev
 
-      - name: Install Poetry & deps
+      # This action installs Poetry and exports it on PATH for later steps
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Install Python deps with Poetry
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Show tool versions
         run: |
-          curl -sSL https://install.python-poetry.org | python3.13 -
-          export PATH="$HOME/.local/bin:$PATH"
-          poetry config virtualenvs.create false
-          poetry install --no-root --no-interaction --no-ansi
+          python -V
+          poetry --version
+          poetry run python -V
+          cmake --version
+          ninja --version
 
-      - name: Build Fusion extension
-        working-directory: fusion
-        run: bash compile.sh
+      - name: "CMake configure (preset: dev) with Poetry's Python"
+        env:
+          PY: ${{ github.workspace }}/.venv/bin/python
+        run: |
+          cmake --preset dev \
+            -DPython3_EXECUTABLE="$PY" \
+            -DPython_EXECUTABLE="$PY"
 
-      - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+      - name: "CMake build (preset: dev)"
+        run: cmake --build --preset dev -j"$(nproc)"
+
+      - name: Export PYTHONPATH for tests
+        run: |
+          echo "PYTHONPATH=${{ github.workspace }}/nova/src/backend/core/clib:${{ github.workspace }}" >> $GITHUB_ENV
 
       - name: Run ${{ matrix.suite }} unit tests
-        run: poetry run pytest -v ${{ matrix.path }}
+        run: |
+          poetry run pytest -v ${{ matrix.path }}

@@ -5,6 +5,10 @@ description = "A deep learning framework built with python3.13 and c++20"
 authors = ["pytergeist <tompopeworks@gmail.com>"]
 license = "GPL-3.0 license"
 readme = "README.md"
+include = [
+  "nova/py.typed",
+  "nova/**/*.pyi",
+]
 
 [tool.poetry.dependencies]
 python = "^3.13"

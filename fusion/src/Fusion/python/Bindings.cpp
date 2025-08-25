@@ -9,5 +9,5 @@ PYBIND11_MODULE(fusion, m) {
   m.doc() = "Fusion Tensor module exposing Tensor<float> (for composition)";
   bind_tensor<float>(m, "Tensor");
   bind_factory<float>(m, "factory");
-  bind_random<float>(m, "random");
+  bind_random<float>(m, "Random");
 }
