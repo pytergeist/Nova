@@ -2,7 +2,7 @@ name: Nova Integration Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
   workflow_dispatch:
@@ -59,7 +59,7 @@ jobs:
           cmake --version
           ninja --version
 
-      - name:" CMake configure (preset: dev)"
+      - name: "CMake configure (preset: dev)"
         env:
           PY: ${{ github.workspace }}/.venv/bin/python
         run: |
