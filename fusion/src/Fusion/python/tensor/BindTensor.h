@@ -20,9 +20,9 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
   py::class_<PyT>(m, name)
       // --- constructor(shape: List[int]) → zero‐initialized tensor ---
       .def(py::init([](const std::vector<size_t> &shape) {
-             size_t total =
-                 std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
-                                 std::multiplies<size_t>());
+             size_t total = std::accumulate(shape.begin(), shape.end(),
+                                            static_cast<size_t>(1),
+                                            std::multiplies<size_t>());
              return new PyT(shape, std::vector<T>(total));
            }),
            py::arg("shape"),
@@ -31,9 +31,9 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       // --- constructor(shape, flat_data) ---
       .def(py::init([](const std::vector<size_t> &shape,
                        const std::vector<T> &data) {
-             size_t total =
-                 std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
-                                 std::multiplies<size_t>());
+             size_t total = std::accumulate(shape.begin(), shape.end(),
+                                            static_cast<size_t>(1),
+                                            std::multiplies<size_t>());
              if (data.size() != total) {
                throw std::invalid_argument("shape* must equal data.size()");
              }
@@ -68,11 +68,8 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
           "Returns the shape as a list of ints.")
 
       .def_property_readonly(
-      "dtype",
-      [](const PyT&) {return py::dtype::of<T>();
-      },
-      "Returns the NumPy dtype of the tensor."
-    )
+          "dtype", [](const PyT &) { return py::dtype::of<T>(); },
+          "Returns the NumPy dtype of the tensor.")
 
       .def_property_readonly(
           "size", &PyT::flat_size,
@@ -106,14 +103,13 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def("__truediv__", &PyT::operator/)
       .def("__ge__", &PyT::operator>=)
       .def("__gt__", &PyT::operator>)
-        .def(
+      .def(
           "__neg__",
-          [](const PyT& t) {
+          [](const PyT &t) {
             auto z = zeros_like<T>(t);
             return z - t;
           },
-          py::is_operator()
-        )
+          py::is_operator())
 
       // --- matrix multiply ( @ ) ---
       .def("__matmul__", &PyT::matmul, "Matrix multiplication (A @ B)")

@@ -200,8 +200,8 @@ inline void maximum_f32_neon(float *dst, const float *a, const float *b,
     dst[i] = a[i] > b[i] ? a[i] : b[i];
 }
 
-inline void greater_than_f32_neon(float *dst, const float *a,
-                                        const float *b, std::size_t n) {
+inline void greater_than_f32_neon(float *dst, const float *a, const float *b,
+                                  std::size_t n) {
   std::size_t i = 0;
 
   for (; i + 16 <= n; i += 16) {
@@ -238,7 +238,6 @@ inline void greater_than_f32_neon(float *dst, const float *a,
   for (; i < n; ++i)
     dst[i] = a[i] >= b[i];
 }
-
 
 inline void greater_than_equal_f32_neon(float *dst, const float *a,
                                         const float *b, std::size_t n) {
@@ -401,7 +400,7 @@ inline void div_f32_neon(float *dst, const float *a, const float *b,
 // or just swap operands in the caller for commutative ops.
 
 inline void greater_than_f32_neon_scalar(float *dst, const float *a,
-                                               const float b, std::size_t n) {
+                                         const float b, std::size_t n) {
   std::size_t i = 0;
 
   for (; i + 16 <= n; i += 16) {
@@ -434,7 +433,6 @@ inline void greater_than_f32_neon_scalar(float *dst, const float *a,
   for (; i < n; ++i)
     dst[i] = a[i] >= b;
 }
-
 
 inline void greater_than_equal_f32_neon_scalar(float *dst, const float *a,
                                                const float b, std::size_t n) {
@@ -617,8 +615,8 @@ inline void greater_than_equal_f32_neon(float *dst, const float *a,
     dst[i] = a[i] >= b[i];
 }
 
-inline void greater_than_f32_neon(float *dst, const float *a,
-                                        const float *b, std::size_t n) {
+inline void greater_than_f32_neon(float *dst, const float *a, const float *b,
+                                  std::size_t n) {
   for (std::size_t i = 0; i < n; ++i)
     dst[i] = a[i] > b[i];
 }

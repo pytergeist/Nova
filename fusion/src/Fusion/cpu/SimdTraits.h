@@ -123,7 +123,6 @@ template <> struct simd_traits<GreaterThanEqualSIMD, float> {
   }
 };
 
-
 // ---------- Greater Than ----------
 template <> struct simd_traits<GreaterThanSIMD, float> {
   static constexpr bool available = true;

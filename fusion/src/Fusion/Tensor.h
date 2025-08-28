@@ -4,9 +4,9 @@
 #include "kernels/Serial.cpp"
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
+#include <ostream>
 #include <stdexcept>
 #include <vector>
-#include <ostream>
 
 #include "core/ElementWise.h"
 #include "core/Ffunc.h"
@@ -16,8 +16,6 @@
 #include <memory>
 #include <utility>
 #include <vector>
-
-
 
 template <typename T> class Tensor {
 public:
@@ -118,10 +116,11 @@ public:
     return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
-    auto operator>(const Tensor &other) const {
+  auto operator>(const Tensor &other) const {
     std::vector<size_t> out_shape;
     std::vector<T> out_data;
-    ewise::binary_ewise_tag<T, GreaterThanSIMD>(*this, other, out_shape, out_data);
+    ewise::binary_ewise_tag<T, GreaterThanSIMD>(*this, other, out_shape,
+                                                out_data);
     return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
@@ -175,8 +174,6 @@ public:
     return Tensor<T>({1}, std::vector<T>{acc});
   };
 
-
-
   Tensor<T> matmul(Tensor<T> &other) {
     auto const &shapeA = this->shape_;
     auto const &shapeB = other.shape_;
@@ -204,12 +201,15 @@ public:
     axis1 = serial_ops::normalise_axis(axis1, this->rank_);
     axis2 = serial_ops::normalise_axis(axis2, this->rank_);
     std::swap(out_shape[axis1], out_shape[axis2]);
-    std::vector<T> out = serial_ops::swapaxes(this->raw_data(), this->shape_, axis1, axis2);
+    std::vector<T> out =
+        serial_ops::swapaxes(this->raw_data(), this->shape_, axis1, axis2);
     return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
   }
 
   Tensor<T> diagonal() {
-    size_t arr_size = std::sqrt(std::accumulate(this->shape_.begin(), this->shape_.end(), int64_t{1}, std::multiplies<int>()));
+    size_t arr_size =
+        std::sqrt(std::accumulate(this->shape_.begin(), this->shape_.end(),
+                                  int64_t{1}, std::multiplies<int>()));
     size_t out_dim = std::floor(arr_size);
     std::vector<size_t> out_shape{out_dim, 1};
     std::vector<T> out = serial_ops::diagonal2D(this->raw_data(), this->shape_);
