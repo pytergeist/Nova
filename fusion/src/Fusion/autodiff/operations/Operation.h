@@ -3,15 +3,12 @@
 
 #include <string>
 
-template <typename T, class Fn> class Operation {
-public:
-  std::string name_;
-  Fn forward_func_;
-  Fn backward_func_;
 
-  explicit Operation(std::string name, Fn forward_func, Fn backward_func)
-      : name_(name), forward_func_(forward_func) {};
-  ~Operation() {};
-};
+
+struct Op {
+ static constexpr std::string_view name;
+
+
+}
 
 #endif // OPERATION_H
