@@ -2,19 +2,16 @@ cmake_minimum_required(VERSION 3.22)
 project(Nova LANGUAGES CXX)
 
 # ------------------------------------------------------------
-# Optional local modules (don't fail if missing)
 # ------------------------------------------------------------
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(ProjectOptions OPTIONAL RESULT_VARIABLE _po_included)
 include(Dependencies  OPTIONAL RESULT_VARIABLE _dep_included)
 
 # ------------------------------------------------------------
-# Python (use the active venv if present)
+# Python (use the active venv if present) # ENSURE you're in  poetry env during dev at this stage
 # ------------------------------------------------------------
-# Make pybind11 rely on CMake's FindPython, not its legacy finder.
 set(PYBIND11_FINDPYTHON ON)
 
-# If a venv/conda env is active, point CMake to that interpreter.
 if(NOT DEFINED Python_EXECUTABLE)
   if(DEFINED ENV{VIRTUAL_ENV})
     set(Python_EXECUTABLE "$ENV{VIRTUAL_ENV}/bin/python")
@@ -45,8 +42,6 @@ endif()
 set(FUSION_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fusion/src/Fusion")
 
 # ------------------------------------------------------------
-# Core C++ library (only non-kernel .cpps!)
-# kernels/*.cpp are #included by headers; don't compile them twice.
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
         ${FUSION_SRC_DIR}/core/Broadcast.cpp
@@ -60,12 +55,10 @@ target_include_directories(fusion_core
         ${FUSION_SRC_DIR}/cpu/simd
 )
 
-# If sleef was provided by Dependencies.cmake, link it.
 if(TARGET sleef::sleef)
   target_link_libraries(fusion_core PUBLIC sleef::sleef)
 endif()
 
-# Make sure <cblas.h> is visible on macOS SDKs (robust include path).
 if(APPLE)
   if(NOT CMAKE_OSX_SYSROOT)
     execute_process(
@@ -87,7 +80,7 @@ endif()
 # Link BLAS to core (and force Accelerate if needed).
 target_link_libraries(fusion_core PUBLIC ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK})
 
-# Optional NEON toggles on ARM
+#
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
   option(FUSION_ENABLE_NEON "Enable NEON SIMD optimizations" ON)
   if(FUSION_ENABLE_NEON)
@@ -107,11 +100,10 @@ target_link_libraries(fusion PRIVATE
         ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK}
 )
 
-# Drop the built module into nova/src/backend/core/clib/
 set(PY_EXT_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/nova/src/backend/core/clib)
 file(MAKE_DIRECTORY ${PY_EXT_INSTALL_DIR})
 set_target_properties(fusion PROPERTIES
-        PREFIX ""  # produce fusion.cpython-*.so
+        PREFIX ""
         LIBRARY_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
         RUNTIME_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
         ARCHIVE_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
@@ -119,7 +111,6 @@ set_target_properties(fusion PROPERTIES
 install(TARGETS fusion LIBRARY DESTINATION ${PY_EXT_INSTALL_DIR})
 
 # ------------------------------------------------------------
-# Optional native example
 # ------------------------------------------------------------
 add_executable(FusionExecutable
         ${FUSION_SRC_DIR}/main.cpp
