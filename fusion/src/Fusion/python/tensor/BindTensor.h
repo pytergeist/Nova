@@ -20,9 +20,9 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
   py::class_<PyT>(m, name)
       // --- constructor(shape: List[int]) → zero‐initialized tensor ---
       .def(py::init([](const std::vector<size_t> &shape) {
-             size_t total =
-                 std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
-                                 std::multiplies<size_t>());
+             size_t total = std::accumulate(shape.begin(), shape.end(),
+                                            static_cast<size_t>(1),
+                                            std::multiplies<size_t>());
              return new PyT(shape, std::vector<T>(total));
            }),
            py::arg("shape"),
@@ -31,9 +31,9 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       // --- constructor(shape, flat_data) ---
       .def(py::init([](const std::vector<size_t> &shape,
                        const std::vector<T> &data) {
-             size_t total =
-                 std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
-                                 std::multiplies<size_t>());
+             size_t total = std::accumulate(shape.begin(), shape.end(),
+                                            static_cast<size_t>(1),
+                                            std::multiplies<size_t>());
              if (data.size() != total) {
                throw std::invalid_argument("shape* must equal data.size()");
              }
@@ -62,6 +62,15 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def_property_readonly(
           "shape", [](const PyT &t) { return t.shape_; },
           "Returns the shape as a list of ints.")
+
+      .def_property_readonly(
+          "ndim", [](const PyT &t) { return t.rank_; },
+          "Returns the shape as a list of ints.")
+
+      .def_property_readonly(
+          "dtype", [](const PyT &) { return py::dtype::of<T>(); },
+          "Returns the NumPy dtype of the tensor.")
+
       .def_property_readonly(
           "size", &PyT::flat_size,
           "Returns total number of elements (product of shape).")
@@ -93,6 +102,14 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def("__mul__", &PyT::operator*)
       .def("__truediv__", &PyT::operator/)
       .def("__ge__", &PyT::operator>=)
+      .def("__gt__", &PyT::operator>)
+      .def(
+          "__neg__",
+          [](const PyT &t) {
+            auto z = zeros_like<T>(t);
+            return z - t;
+          },
+          py::is_operator())
 
       // --- matrix multiply ( @ ) ---
       .def("__matmul__", &PyT::matmul, "Matrix multiplication (A @ B)")
@@ -110,6 +127,8 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def("maximum", &PyT::maximum, py::arg("other"))
       .def("transpose", &PyT::transpose,
            "Return a new Tensor that is the transpose of this one.")
+      .def("swapaxes", &PyT::swapaxes, py::arg("axis1"), py::arg("axis2"))
+      .def("diag", &PyT::diagonal)
 
       // -- factory methods --
       // NB: Currently these factory functions are bound to the Tensor class not

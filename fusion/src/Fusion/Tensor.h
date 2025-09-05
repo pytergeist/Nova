@@ -4,9 +4,9 @@
 #include "kernels/Serial.cpp"
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
+#include <ostream>
 #include <stdexcept>
 #include <vector>
-#include <ostream>
 
 #include "core/ElementWise.h"
 #include "core/Ffunc.h"
@@ -116,6 +116,14 @@ public:
     return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
+  auto operator>(const Tensor &other) const {
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::binary_ewise_tag<T, GreaterThanSIMD>(*this, other, out_shape,
+                                                out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
+  }
+
   auto &operator>=(const Tensor &other) {
     auto &out_shape = this->shape_;
     auto &out_data = this->storage->data();
@@ -186,6 +194,26 @@ public:
     blas_ops::matmul(this->raw_data(), shapeA, other.raw_data(), shapeB, data);
 
     return Tensor<T>(std::move(out_shape), std::move(data), Device::CPU);
+  }
+
+  Tensor<T> swapaxes(int axis1, int axis2) {
+    std::vector<size_t> out_shape = this->shape_;
+    axis1 = serial_ops::normalise_axis(axis1, this->rank_);
+    axis2 = serial_ops::normalise_axis(axis2, this->rank_);
+    std::swap(out_shape[axis1], out_shape[axis2]);
+    std::vector<T> out =
+        serial_ops::swapaxes(this->raw_data(), this->shape_, axis1, axis2);
+    return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
+  }
+
+  Tensor<T> diagonal() {
+    size_t arr_size =
+        std::sqrt(std::accumulate(this->shape_.begin(), this->shape_.end(),
+                                  int64_t{1}, std::multiplies<int>()));
+    size_t out_dim = std::floor(arr_size);
+    std::vector<size_t> out_shape{out_dim, 1};
+    std::vector<T> out = serial_ops::diagonal2D(this->raw_data(), this->shape_);
+    return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
   }
 
   //

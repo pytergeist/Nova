@@ -123,6 +123,22 @@ template <> struct simd_traits<GreaterThanEqualSIMD, float> {
   }
 };
 
+// ---------- Greater Than ----------
+template <> struct simd_traits<GreaterThanSIMD, float> {
+  static constexpr bool available = true;
+
+  static void execute_contiguous(const float *a, const float *b, float *out,
+                                 std::size_t n, bool a_scalar, bool b_scalar) {
+    if (b_scalar) {
+      simd::greater_than_f32_neon_scalar(out, a, *b, n);
+    } else if (a_scalar) {
+      simd::greater_than_f32_neon_scalar(out, b, *a, n);
+    } else {
+      simd::greater_than_f32_neon(out, a, b, n);
+    }
+  }
+};
+
 // ---------- Exponential ----------
 template <> struct simd_traits<ExponentialSIMD, float> {
   static constexpr bool available = true;
