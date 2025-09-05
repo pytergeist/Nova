@@ -1,5 +1,6 @@
 #include <cmath>
 #include <numeric>
+#include <stdexcept>
 #include <vector>
 
 namespace serial_ops {
