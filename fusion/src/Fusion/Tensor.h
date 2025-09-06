@@ -22,10 +22,12 @@ public:
   std::unique_ptr<ITensorStorage<T>> storage;
   std::vector<size_t> shape_;
   size_t rank_;
+  bool requires_grad_;
 
   explicit Tensor(std::vector<size_t> shape, std::vector<T> data,
-                  Device device = Device::CPU)
-      : shape_(std::move(shape)) {
+                  Device device = Device::CPU, bool requires_grad = false)
+      : shape_(std::move(shape)),
+        requires_grad_(std::move(requires_grad))  {
     if (device == Device::CPU) {
       // Use the stored shape_ (guaranteed non-empty if you passed one in)
       storage = std::make_unique<NDTensorStorage<T>>(shape_, std::move(data));
@@ -60,26 +62,26 @@ public:
     return os;
   }
 
-  template <class Callable, class... Ops,
-            typename R = std::invoke_result_t<Callable, T, T>>
-  Tensor(FFunc<Callable, Ops...> const &ffunc) {
-    // 1) pull shape out of the ffunc
-    shape_ = ffunc.shape();
-    rank_ = shape_.size();
-    size_t n = ffunc.flat_size();
-
-    if constexpr (simd_traits<Callable, T>::available) {
-      std::vector<T> data(n);
-      // call your SIMD driver
-      simd_traits<Callable, T>::execute(ffunc, data.data());
-      storage = std::make_unique<NDTensorStorage<T>>(shape_, std::move(data));
-    } else {
-      std::vector<R> data(n);
-      for (size_t i = 0; i < n; ++i)
-        data[i] = ffunc[i];
-      storage = std::make_unique<NDTensorStorage<R>>(shape_, std::move(data));
-    }
-  }
+//  template <class Callable, class... Ops,
+//            typename R = std::invoke_result_t<Callable, T, T>>
+//  Tensor(FFunc<Callable, Ops...> const &ffunc) {
+//    // 1) pull shape out of the ffunc
+//    shape_ = ffunc.shape();
+//    rank_ = shape_.size();
+//    size_t n = ffunc.flat_size();
+//
+//    if constexpr (simd_traits<Callable, T>::available) {
+//      std::vector<T> data(n);
+//      // call your SIMD driver
+//      simd_traits<Callable, T>::execute(ffunc, data.data());
+//      storage = std::make_unique<NDTensorStorage<T>>(shape_, std::move(data));
+//    } else {
+//      std::vector<R> data(n);
+//      for (size_t i = 0; i < n; ++i)
+//        data[i] = ffunc[i];
+//      storage = std::make_unique<NDTensorStorage<R>>(shape_, std::move(data));
+//    }
+//  }
 
   T operator[](int idx) const { return storage->data()[idx]; };
 

@@ -1,8 +1,8 @@
 #include <vector>
 #include <iostream>
 #include "Operation.h"
-#include "LinAlg/Registry.cpp"
-#include "../Node.h"
+#include "LinAlg/LinAlg.h"
+#include "../autodiff/Node.h"
 
 
 
