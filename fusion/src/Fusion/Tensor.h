@@ -35,6 +35,12 @@ public:
     }
   }
 
+  Tensor(const Tensor&) = delete;
+  Tensor& operator=(const Tensor&) = delete;
+  Tensor(Tensor&&) noexcept = default;
+  Tensor& operator=(Tensor&&) noexcept = default;
+  ~Tensor() = default;
+
   friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
     const auto *cpuStorage =
         dynamic_cast<const NDTensorStorage<T> *>(tensor.storage.get());
