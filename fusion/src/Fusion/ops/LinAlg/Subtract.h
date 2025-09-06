@@ -12,7 +12,7 @@ struct Subtract {
   using GradIn = BinaryType<T>;
   using GradOut = UnaryType<T>;
 
-  Out forward(Context<T>& context, const In& input) {
+  Out forward(Context& context, const In& input) {
     Out out;
     out.a.resize(input.a.size());
     for (size_t i = 0; i < input.a.size(); ++i) {
@@ -21,7 +21,7 @@ struct Subtract {
     return out;
   };
 
-  GradIn backward(Context<T>& context, GradOut& grad_out) {
+  GradIn backward(Context& context, GradOut& grad_out) {
     GradIn g;
     g.a = grad_out.a;
     g.b.resize(g.a.size());
