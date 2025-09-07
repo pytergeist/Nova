@@ -5,14 +5,13 @@
 #include "../ops/Operation.h"
 
 
-template <typename T, class Op>
+template <class Op>
 class Node {
   public:
-    using Host = Operation<T, Op>;
-    using In = typename Host::In;
-    using Out = typename Host::Out;
-    using GradIn = typename Host::GradIn;
-    using GradOut = typename Host::GradOut;
+    using In = typename Op::In;
+    using Out = typename Op::Out;
+    using GradIn = typename Op::GradIn;
+    using GradOut = typename Op::GradOut;
 
   Node() = default;
   Node(Op op) : op_(std::move(op)) {};
@@ -33,7 +32,7 @@ class Node {
 
 
   private:
-    Host op_{};
+    Op op_{};
     Context ctx_{};
     In inputs_{};
     Out output_{};

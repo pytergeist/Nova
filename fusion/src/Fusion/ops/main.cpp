@@ -7,12 +7,15 @@
 
 
 int main() {
-    std::vector<float> a{1,2,3,4};
-    std::vector<float> b{1,2,3,4};
+    using T = float;
+    using Op = Multiply<T>;
 
-    auto add_op =  Operation<float, Subtract<float>>();
+    std::vector<T> a{1,2,3,4};
+    std::vector<T> b{1,2,3,4};
 
-    Node<float, Operation<float, Subtract<float>>> node(add_op);
+    auto add_op =  Operation<T, Op>();
+
+    Node<Operation<T, Op>> node(add_op);
 
     auto y = node.run_forward(BinaryType<float>{a, b});
 
