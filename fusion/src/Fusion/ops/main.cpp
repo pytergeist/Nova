@@ -11,7 +11,7 @@
 
 int main() {
     using T = float;
-    using Op = Subtract<T>;
+    using Op = Divide<T>;
     using ConcreteOp = Operation<T, Op>;
 
     std::vector<T> a{1,2,3,4};
@@ -21,8 +21,10 @@ int main() {
     INode node(add_op);
 //    Node<Operation<T, Op>> node(add_op);
 
-    std::any out_any = node.forward(BinaryType<float>{a, b});
-    auto y = std::any_cast<ConcreteOp::Out>(std::move(out_any));
+//    std::any out_any = node.forward(BinaryType<float>{a, b});
+//    auto y = std::any_cast<ConcreteOp::Out>(std::move(out_any));
+
+    UnaryType<float> y = node.forward_t<ConcreteOp>(BinaryType<float>{a, b});
 
     for (auto v: y.a) {
       std::cout << v << " ";
@@ -31,10 +33,11 @@ int main() {
 
     UnaryType<float> gy;
     gy.a.assign(y.a.size(), 1.0f);
+    BinaryType<float> gx = node.backward_t<ConcreteOp>(gy);;
 
-    std::any gy_any = gy;                          // backward takes std::any&
-    std::any gx_any = node.backward(gy_any);
-    auto gx = std::any_cast<ConcreteOp::GradIn>(std::move(gx_any));
+//    std::any gy_any = gy;                          // backward takes std::any
+//    std::any gx_any = node.backward(gy_any);
+//    auto gx = std::any_cast<ConcreteOp::GradIn>(std::move(gx_any));
 
 //
     for (auto v : gx.a) std::cout << v << ' ';
