@@ -10,6 +10,19 @@ struct BinaryType {std::vector<T> a; std::vector<T> b;};
 template <typename T>
 struct UnaryType {std::vector<T> a;};
 
+template <typename T, typename Enable = void>
+struct static_arity : std::integral_constant<std::uint16_t, 0> {};
+
+
+template <typename T>
+struct static_arity<UnaryType<T>, void>
+    : std::integral_constant<std::uint16_t, 1> {};
+
+template <typename T>
+struct static_arity<BinaryType<T>, void>
+    : std::integral_constant<std::uint16_t, 2> {};
+
+
 struct Context {
    std::unordered_map<std::string, std::any> saved_result;
 

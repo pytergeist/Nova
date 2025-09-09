@@ -31,6 +31,9 @@ class INode {
       return std::any_cast<typename ConcreteOp::GradIn>(std::move(grad_in_any));
     }
 
+    std::uint16_t get_static_num_outputs() {return self_->get_static_num_outputs();};
+    std::uint16_t get_static_num_inputs() {return self_->get_static_num_inputs();};
+
     private:
       struct NodeConcept {
         virtual ~NodeConcept() = default;
@@ -41,6 +44,9 @@ class INode {
         virtual const std::type_info& out_type() = 0;
         virtual const std::type_info& grad_in_type() = 0;
         virtual const std::type_info& grad_out_type() = 0;
+
+        virtual uint16_t get_static_num_outputs() = 0;
+        virtual uint16_t get_static_num_inputs() = 0;
       };
       template<class Op>
       struct NodeModel : NodeConcept {
@@ -62,6 +68,14 @@ class INode {
           auto& grad_out_cast = std::any_cast<GradOut&>(grad_out);
           auto grad_in = node_.run_backward(grad_out_cast);
           return std::any{std::move(grad_in)};
+        }
+
+        std::uint16_t get_static_num_outputs() {
+          return node_.KStaticNumOutputs;
+        }
+
+        std::uint16_t get_static_num_inputs() {
+          return node_.KStaticNumInputs;
         }
 
         const std::type_info& in_type() {return typeid(In);};

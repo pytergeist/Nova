@@ -13,22 +13,30 @@ class Node {
     using GradIn = typename Op::GradIn;
     using GradOut = typename Op::GradOut;
 
-  Node() = default;
-  Node(Op op) : op_(std::move(op)) {};
+    std::vector<Out> outputs;
 
-  void set_inputs(In inputs) { inputs_ = std::move(inputs);};
+    Node() = default;
+    Node(Op op) : op_(std::move(op)) {};
 
-  Out run_forward(const In& input) {
-    output_ = op_.forward(ctx_, input);
-    fwd_done_ = true;
-    return output_;
-  };
+    using CleanOut = std::remove_cvref_t<Out>;
+    using CleanIn = std::remove_cvref_t<In>;
+    static constexpr std::uint16_t KStaticNumOutputs = static_arity<CleanOut>::value;
+    static constexpr std::uint16_t KStaticNumInputs = static_arity<CleanIn>::value;
 
-  GradIn run_backward(GradOut& grad_out) {
-    grad_input_ = op_.backward(ctx_, grad_out);
-    bwd_done_ = true;
-    return grad_input_;
-  }
+
+    void set_inputs(In inputs) { inputs_ = std::move(inputs);};
+
+    Out run_forward(const In& input) {
+      output_ = op_.forward(ctx_, input);
+      fwd_done_ = true;
+      return output_;
+    };
+
+    GradIn run_backward(GradOut& grad_out) {
+      grad_input_ = op_.backward(ctx_, grad_out);
+      bwd_done_ = true;
+      return grad_input_;
+    }
 
 
   private:
