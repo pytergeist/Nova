@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "../ops/Operation.h"
+#include "Traits.h"
 
 
 template <class Op>
@@ -13,7 +14,9 @@ class Node {
     using GradIn = typename Op::GradIn;
     using GradOut = typename Op::GradOut;
 
-    std::vector<Out> outputs;
+    std::vector<ValueID> inputs;
+    std::vector<ValueID> outputs;
+
 
     Node() = default;
     Node(Op op) : op_(std::move(op)) {};

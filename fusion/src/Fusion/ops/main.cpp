@@ -49,7 +49,7 @@ int main() {
 
 
 
-    graph.add_node(std::move(node1), 1);
+    graph.add_node(std::move(node1), node1.get_static_num_outputs(), node1.get_static_num_inputs());
 
 
     UnaryType<float> y = graph.nodes[0].forward_t<ConcreteOp1>(UnaryType<float>{a});

@@ -4,9 +4,13 @@
 #include <any>
 #include <utility>
 #include "Node.h"
+#include "Traits.h"
 
 class INode {
   public:
+    std::vector<ValueID> inputs;
+    std::vector<ValueID> outputs;
+
     template<class Op>
     explicit INode(Op& op) : self_(std::make_unique<NodeModel<Op>>(op)) {};
 
@@ -34,8 +38,12 @@ class INode {
     std::uint16_t get_static_num_outputs() {return self_->get_static_num_outputs();};
     std::uint16_t get_static_num_inputs() {return self_->get_static_num_inputs();};
 
+
     private:
       struct NodeConcept {
+        std::vector<ValueID> inputs;
+    	std::vector<ValueID> outputs;
+
         virtual ~NodeConcept() = default;
         virtual std::any forward(const std::any& input) = 0;
         virtual std::any backward(std::any& grad_out) = 0;
@@ -55,6 +63,9 @@ class INode {
         using Out     = typename Op::Out;
         using GradIn  = typename Op::GradIn;
         using GradOut = typename Op::GradOut;
+
+        std::vector<ValueID> inputs;
+    	std::vector<ValueID> outputs;
 
         explicit NodeModel(Op& op) : node_(std::move(op)) {}
 
