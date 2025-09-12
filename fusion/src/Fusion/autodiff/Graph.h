@@ -4,6 +4,8 @@
 #include <memory>
 #include "NodeInterface.h"
 
+struct Edge {std::tuple<NodeID, NodeID> edge;};
+
 
 class Graph {
   public:
@@ -12,6 +14,7 @@ class Graph {
     std::uint16_t value_counter = 0;
     std::vector<INode> nodes;
     std::vector<NodeID> node_ids;
+    std::vector<Edge> edges;
 
     void add_node(INode&& node, uint16_t num_outputs, uint16_t num_inputs) {
       make_output_ids(node, num_outputs);
@@ -22,24 +25,25 @@ class Graph {
 
   private:
     void make_node_id() {
-      node_ids.emplace_back(node_counter);
-      node_counter++;
+      node_ids.push_back(NodeID{node_counter});
+      node_counter++ ;
     }
 
    	void make_output_ids(INode& node, uint16_t num) {
           node.outputs.resize(num);
           for (uint16_t i = 0; i < num; i++) {
-            node.outputs[i] = ValueID{i};
+            node.outputs[i] = ValueID{value_counter};
+            value_counter++;
           }
    	}
 
     void make_input_ids(INode& node, uint16_t num) {
       	  node.inputs.resize(num);
           for (uint16_t i = 0; i < num; i++) {
-            node.outputs[i] = ValueID{i};
+            node.inputs[i] = ValueID{value_counter};
+            value_counter++;
           }
    	}
-
 
 
 };
