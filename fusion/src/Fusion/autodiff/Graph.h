@@ -4,7 +4,6 @@
 #include <memory>
 #include "NodeInterface.h"
 
-struct Edge {std::tuple<NodeID, NodeID> edge;};
 
 
 class Graph {
@@ -14,7 +13,7 @@ class Graph {
     std::uint16_t value_counter = 0;
     std::vector<INode> nodes;
     std::vector<NodeID> node_ids;
-    std::vector<Edge> edges;
+    std::vector<NodeID> parents;
 
     void add_node(INode&& node, uint16_t num_outputs, uint16_t num_inputs) {
       make_output_ids(node, num_outputs);
