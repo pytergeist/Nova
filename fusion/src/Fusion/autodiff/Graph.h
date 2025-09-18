@@ -4,16 +4,26 @@
 #include <memory>
 #include "NodeInterface.h"
 
+struct Edge {
+  public:
+    NodeID v;
+    NodeID w;
+  	Edge(NodeID v_ = NodeID{-1}, NodeID w_ = NodeID{-1}) : v(v_), w(w_) {};
+  private:
+  	NodeID v_;
+    NodeID w_;
+};
 
 
 class Graph {
   public:
     Graph() = default;
-    std::uint16_t node_counter = 0;
+    std::int16_t node_counter = 0;
     std::uint16_t value_counter = 0;
     std::vector<INode> nodes;
     std::vector<NodeID> node_ids;
     std::vector<NodeID> parents;
+    std::vector<Edge> edges;
 
     void add_node(INode&& node, uint16_t num_outputs, uint16_t num_inputs) {
       make_output_ids(node, num_outputs);

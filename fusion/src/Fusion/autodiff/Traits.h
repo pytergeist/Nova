@@ -4,6 +4,6 @@
 #include <cstdint>
 
 struct ValueID {uint16_t idx;};
-struct NodeID {uint16_t idx;};
+struct NodeID {int16_t idx;};
 
 #endif // TRAITS_H
