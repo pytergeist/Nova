@@ -7,7 +7,7 @@
 #include "../autodiff/Graph.h"
 
 #include "../autodiff/NodeInterface.h"
-
+#include "../autodiff/Engine.h"
 
 int main() {
     using T = float;
@@ -15,83 +15,31 @@ int main() {
     using ConcreteOp1 = Operation<T, Op1>;
     using Op2 = Exp<T>;
     using ConcreteOp2 = Operation<T, Op2>;
+	using Op3 = Exp<T>;
+	using ConcreteOp3 = Operation<T, Op3>;
 
     std::vector<T> a{1,2,3,4};
     std::vector<T> b{1,2,3,4};
 
-    Graph graph{};
+	std::any v = BinaryType<float>{a, b};
 
-    graph.build_node<ConcreteOp1>();
-    graph.build_node<ConcreteOp2>();
+    Engine<T> engine{};
 
-	std::cout << "Node1<Add> inputs: " << graph.nodes[0].get_static_num_inputs();
-    std::cout << " Outputs: " << graph.nodes[0].get_static_num_outputs() << std::endl;
+    engine.graph.build_node<ConcreteOp1>();
+    engine.graph.build_node<ConcreteOp2>();
+	engine.graph.build_node<ConcreteOp3>();
 
-    std::cout << "Node2<Exp> inputs: " << graph.nodes[1].get_static_num_outputs();
-    std::cout << " Outputs: " << graph.nodes[1].get_static_num_outputs() << std::endl;
+	for (uint16_t i = 0; i < engine.graph.nodes.size(); i++) {
+		auto& n = engine.graph.nodes[i];
+		v = engine.run_forward(n, v);
+		auto& u = std::any_cast<UnaryType<T>&>(v);
+        std::cout << typeid(u).name() << std::endl;
 
-    UnaryType<float> y1 = graph.build_node<ConcreteOp1>(BinaryType<T>{a, b});
-
-    UnaryType<float> y2 = graph.build_node<ConcreteOp2>(UnaryType<T>{y1});
-
-    std::cout << "Graph<Node> indexs: ";
-    std::cout << graph.node_ids[0].idx << ", ";
-    std::cout << graph.node_ids[1].idx << std::endl;
-
-
+        for (auto n : u.a) {
+			std::cout << n << " ";
+        }
+	}
 
 
-    std::cout << "Node1<Add> input ValueIDs: ";
-    for (auto v : graph.nodes[0].inputs) {
-      std::cout << v.idx << " ";
-    }
-    std::cout << std::endl;
-
-        std::cout << "Node2<Exp> input ValueIDs: ";
-    for (auto v : graph.nodes[1].inputs) {
-      std::cout << v.idx << " ";
-    }
-    std::cout << std::endl;
-
-
-        std::cout << "Node1<Add> output ValueIDs: ";
-    for (auto v : graph.nodes[0].outputs) {
-      std::cout << v.idx << " ";
-    }
-    std::cout << std::endl;
-
-        std::cout << "Node2<Exp> output ValueIDs: ";
-    for (auto v : graph.nodes[1].outputs) {
-      std::cout << v.idx << " ";
-    }
-    std::cout << std::endl;
-
-	std::cout << "Forward<Add> Output: ";
-    for (auto v: y1.a) {
-      std::cout << v << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Forward<Exp> Output: ";
-    for (auto v: y2.a) {
-      std::cout << v << " ";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Producer Table" << std::endl;
-    for (auto v: graph.producer_of) {
-      std::cout << "NodeID: " << v.node.idx << " Produced Output: " << v.out_slot.idx << std::endl;
-    }
-
-//
-//    UnaryType<float> gy;
-//    gy.a.assign(y1.a.size(), 1.0f);
-//    UnaryType<float> gx = graph.nodes[0].backward_t<ConcreteOp1>(gy);;
-//
-//
-//    for (auto v : gx.a) std::cout << v << ' ';
-//    std::cout << std::endl;
-//    for (auto v : gx.b) std::cout << v << ' ';
-//    std::cout << std::endl;
 
 }
