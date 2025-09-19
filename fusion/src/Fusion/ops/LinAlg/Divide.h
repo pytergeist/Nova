@@ -2,7 +2,7 @@
 #define DIVIDE_H
 
 #include <vector>
-#include "Operation.h"
+#include "../Operation.h"
 
 template <typename T>
 struct Divide {

@@ -8,11 +8,16 @@
 
 class INode {
   public:
+    const std::type_info& in_type()  const { return self_->in_type(); }
+    const std::type_info& out_type() const { return self_->out_type(); }
+    const std::type_info& grad_in_type()  const { return self_->grad_in_type(); }
+    const std::type_info& grad_out_type() const { return self_->grad_out_type(); }
+
     std::vector<ValueID> inputs;
     std::vector<ValueID> outputs;
 
     template<class Op>
-    explicit INode(Op& op) : self_(std::make_unique<NodeModel<Op>>(op)) {};
+    explicit INode(Op op) : self_(std::make_unique<NodeModel<Op>>(std::move(op))) {};
 
     INode(INode&&) noexcept = default;
     INode& operator=(INode&&) noexcept = default;
@@ -21,6 +26,28 @@ class INode {
 
     std::any forward(const std::any& input) {return self_->forward(input);};
     std::any backward(std::any& grad_out) {return self_->backward(grad_out);};
+
+    std::any apply_forward(const std::any& input) {
+//      if (input.type() != in_type())
+//        throw std::runtime_error("type mismatch");
+      std::any out = self_->forward(input);
+//      if (out.type() != out_type())
+//        throw std::runtime_error("bad out type");
+      return out;
+  }
+
+  std::any apply_backward(const std::any& grad_out) {
+    if (!self_) throw std::runtime_error("INode used after move");
+    if (grad_out.type() != grad_out_type())
+      throw std::runtime_error(std::string("grad type mismatch: expected ")
+                               + grad_out_type().name() + " got " + grad_out.type().name());
+    std::any gin = self_->backward(const_cast<std::any&>(grad_out));
+    if (gin.type() != grad_in_type())
+      throw std::runtime_error(std::string("bad grad_in type: expected ")
+                               + grad_in_type().name() + " got " + gin.type().name());
+    return gin;
+  }
+
 
     template<class ConcreteOp>
     typename ConcreteOp::Out forward_t(const typename ConcreteOp::In& input) {
@@ -67,7 +94,7 @@ class INode {
         std::vector<ValueID> inputs;
     	std::vector<ValueID> outputs;
 
-        explicit NodeModel(Op& op) : node_(std::move(op)) {}
+        explicit NodeModel(Op op) : node_(std::move(op)) {}
 
         std::any forward(const std::any& input) {
         const In& x = std::any_cast<const In&>(input);

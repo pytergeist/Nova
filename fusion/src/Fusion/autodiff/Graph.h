@@ -28,70 +28,54 @@ class Graph {
       INode node(op);
       uint16_t num_outputs = node.get_static_num_outputs();
       nodes.emplace_back(std::move(node));
-      producer_of.push_back(ProducerInfo{NodeID{node_counter}, ValueID{value_counter}});
-      make_node_id();
-      make_output_ids(node, num_outputs);
+      NodeID nid = make_node_id();
   }
 
 
   template <class ConcreteOp>
-  UnaryType<float> build_node(UnaryType<float> vec) {
+  NodeID build_node(UnaryType<float> vec) {
       auto op = ConcreteOp{};
       INode node(op);
       uint16_t num_outputs = node.get_static_num_outputs();
       nodes.emplace_back(std::move(node));
       auto& stored = nodes.back();
-      producer_of.push_back(ProducerInfo{NodeID{node_counter}, ValueID{value_counter}});
-      make_node_id();
-      make_output_ids(stored, num_outputs);
-      UnaryType<float> y = this->tmp_run_forward<ConcreteOp>(stored, vec);
-      return y;
+      NodeID nid = make_node_id();
+      append_producer_table(stored, nid);
+      return nid;
     }
 
 
   template <class ConcreteOp>
-  UnaryType<float> build_node(BinaryType<float> vec) {
+  NodeID build_node(BinaryType<float> vec) {
       auto op = ConcreteOp{};
       INode node(op);
-      uint16_t num_outputs = node.get_static_num_outputs();
       nodes.emplace_back(std::move(node));
       auto& stored = nodes.back();
-      producer_of.push_back(ProducerInfo{NodeID{node_counter}, ValueID{value_counter}});
-      make_node_id();
-      make_output_ids(stored, num_outputs);
-      UnaryType<float> y = this->tmp_run_forward<ConcreteOp>(stored, vec);
-      return y;
+      NodeID nid = make_node_id();
+      append_producer_table(stored, nid);
+      return nid;
     }
 
 
-  // this will abstracted into the engine
-  template <class ConcreteOp>
-  UnaryType<float> tmp_run_forward(INode &node, BinaryType<float> vec) {
-      UnaryType<float> y = node.forward_t<ConcreteOp>(vec);
-      return y;
-  }
-  // this will abstracted into the engine
-  template <class ConcreteOp>
-  UnaryType<float> tmp_run_forward(INode &node, UnaryType<float> vec) {
-      UnaryType<float> y = node.forward_t<ConcreteOp>(vec);
-      return y;
-    }
 
   private:
-    void make_node_id() {
-      node_ids.push_back(NodeID{node_counter});
-      node_counter++ ;
+    NodeID make_node_id() {
+      NodeID nid = NodeID{node_counter};
+      node_ids.push_back(nid);
+      node_counter++;
+      return nid;
     }
 
-   	void make_output_ids(INode& node, uint16_t num) {
-          node.outputs.resize(num);
-          for (uint16_t i = 0; i < num; i++) {
-            node.outputs[i] = ValueID{value_counter};
-            value_counter++;
-          }
-   	}
-
-
+  void append_producer_table(INode& node, NodeID nid) {
+      uint16_t num = node.get_static_num_outputs();
+      node.outputs.resize(num);
+      for (uint16_t i = 0; i < num; i++) {
+        ValueID vid = ValueID{value_counter};
+        node.outputs[i] = vid;
+        producer_of.push_back(ProducerInfo{nid, vid});
+        value_counter++;
+      }
+    }
 
 };
 
