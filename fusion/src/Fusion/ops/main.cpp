@@ -21,8 +21,8 @@ int main() {
 
     Graph graph{};
 
-    graph.build_leaf_node<ConcreteOp1>();
-    graph.build_leaf_node<ConcreteOp2>();
+    graph.build_node<ConcreteOp1>();
+    graph.build_node<ConcreteOp2>();
 
 	std::cout << "Node1<Add> inputs: " << graph.nodes[0].get_static_num_inputs();
     std::cout << " Outputs: " << graph.nodes[0].get_static_num_outputs() << std::endl;
@@ -30,11 +30,9 @@ int main() {
     std::cout << "Node2<Exp> inputs: " << graph.nodes[1].get_static_num_outputs();
     std::cout << " Outputs: " << graph.nodes[1].get_static_num_outputs() << std::endl;
 
+    UnaryType<float> y1 = graph.build_node<ConcreteOp1>(BinaryType<T>{a, b});
 
-    std::tuple<UnaryType<float>, UnaryType<float>> yn = graph.build_node<ConcreteOp1, ConcreteOp2>(graph.nodes[0], graph.nodes[1], a, b);
-
-    UnaryType<float> y1 = std::get<0>(yn);
-    UnaryType<float> y2 = std::get<1>(yn);
+    UnaryType<float> y2 = graph.build_node<ConcreteOp2>(UnaryType<T>{y1});
 
     std::cout << "Graph<Node> indexs: ";
     std::cout << graph.node_ids[0].idx << ", ";

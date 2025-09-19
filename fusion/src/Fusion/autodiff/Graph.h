@@ -23,7 +23,7 @@ class Graph {
     std::vector<ProducerInfo> producer_of;
 
     template <typename ConcreteOp>
-    void build_leaf_node() {
+    void build_node() {
       auto op = ConcreteOp{};
       INode node(op);
       uint16_t num_outputs = node.get_static_num_outputs();
@@ -34,14 +34,48 @@ class Graph {
   }
 
 
-  template <class ConcreteOp1, class ConcreteOp2>
-  std::tuple<UnaryType<float>, UnaryType<float>>
-  build_node(INode &node1, INode &node2, std::vector<float> a,
-             std::vector<float> b) {
-        UnaryType<float> y1 = node1.forward_t<ConcreteOp1>(BinaryType<float>{a, b});
-        UnaryType<float> y2 = node2.forward_t<ConcreteOp2>(y1);
-        return std::make_tuple(y1, y2);
-      }
+  template <class ConcreteOp>
+  UnaryType<float> build_node(UnaryType<float> vec) {
+      auto op = ConcreteOp{};
+      INode node(op);
+      uint16_t num_outputs = node.get_static_num_outputs();
+      nodes.emplace_back(std::move(node));
+      auto& stored = nodes.back();
+      producer_of.push_back(ProducerInfo{NodeID{node_counter}, ValueID{value_counter}});
+      make_node_id();
+      make_output_ids(stored, num_outputs);
+      UnaryType<float> y = this->tmp_run_forward<ConcreteOp>(stored, vec);
+      return y;
+    }
+
+
+  template <class ConcreteOp>
+  UnaryType<float> build_node(BinaryType<float> vec) {
+      auto op = ConcreteOp{};
+      INode node(op);
+      uint16_t num_outputs = node.get_static_num_outputs();
+      nodes.emplace_back(std::move(node));
+      auto& stored = nodes.back();
+      producer_of.push_back(ProducerInfo{NodeID{node_counter}, ValueID{value_counter}});
+      make_node_id();
+      make_output_ids(stored, num_outputs);
+      UnaryType<float> y = this->tmp_run_forward<ConcreteOp>(stored, vec);
+      return y;
+    }
+
+
+  // this will abstracted into the engine
+  template <class ConcreteOp>
+  UnaryType<float> tmp_run_forward(INode &node, BinaryType<float> vec) {
+      UnaryType<float> y = node.forward_t<ConcreteOp>(vec);
+      return y;
+  }
+  // this will abstracted into the engine
+  template <class ConcreteOp>
+  UnaryType<float> tmp_run_forward(INode &node, UnaryType<float> vec) {
+      UnaryType<float> y = node.forward_t<ConcreteOp>(vec);
+      return y;
+    }
 
   private:
     void make_node_id() {
