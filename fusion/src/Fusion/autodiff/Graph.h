@@ -10,6 +10,7 @@ struct Edge {
   	Edge(NodeID v = NodeID{-1}, NodeID w = NodeID{-1}) : v(v), w(w) {};
 };
 
+struct ProducerInfo { NodeID node; ValueID out_slot; };
 
 class Graph {
   public:
@@ -19,22 +20,28 @@ class Graph {
     std::vector<INode> nodes;
     std::vector<NodeID> node_ids;
     std::vector<Edge> edges;
-    std::vector<std::pair<NodeID, ValueID>> producer_of;
+    std::vector<ProducerInfo> producer_of;
 
-    template <class ConcreteOp>
+    template <typename ConcreteOp>
     void build_leaf_node() {
       auto op = ConcreteOp{};
       INode node(op);
       uint16_t num_outputs = node.get_static_num_outputs();
-      make_output_ids(node, num_outputs);
       nodes.emplace_back(std::move(node));
+      producer_of.push_back(ProducerInfo{NodeID{node_counter}, ValueID{value_counter}});
       make_node_id();
+      make_output_ids(node, num_outputs);
   }
 
-//  	template <class ConcreteOp>
-//    void build_node(INode& node, uint16_t output_idx)) {
-//      make_node_id();
-//  }
+
+  template <class ConcreteOp1, class ConcreteOp2>
+  std::tuple<UnaryType<float>, UnaryType<float>>
+  build_node(INode &node1, INode &node2, std::vector<float> a,
+             std::vector<float> b) {
+        UnaryType<float> y1 = node1.forward_t<ConcreteOp1>(BinaryType<float>{a, b});
+        UnaryType<float> y2 = node2.forward_t<ConcreteOp2>(y1);
+        return std::make_tuple(y1, y2);
+      }
 
   private:
     void make_node_id() {

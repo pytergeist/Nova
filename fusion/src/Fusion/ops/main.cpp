@@ -31,9 +31,10 @@ int main() {
     std::cout << " Outputs: " << graph.nodes[1].get_static_num_outputs() << std::endl;
 
 
+    std::tuple<UnaryType<float>, UnaryType<float>> yn = graph.build_node<ConcreteOp1, ConcreteOp2>(graph.nodes[0], graph.nodes[1], a, b);
 
-    UnaryType<float> y1 = graph.nodes[0].forward_t<ConcreteOp1>(BinaryType<float>{a, b});
-    UnaryType<float> y2 = graph.nodes[1].forward_t<ConcreteOp2>(y1);
+    UnaryType<float> y1 = std::get<0>(yn);
+    UnaryType<float> y2 = std::get<1>(yn);
 
     std::cout << "Graph<Node> indexs: ";
     std::cout << graph.node_ids[0].idx << ", ";
@@ -78,6 +79,11 @@ int main() {
       std::cout << v << " ";
     }
     std::cout << std::endl;
+
+    std::cout << "Producer Table" << std::endl;
+    for (auto v: graph.producer_of) {
+      std::cout << "NodeID: " << v.node.idx << " Produced Output: " << v.out_slot.idx << std::endl;
+    }
 
 //
 //    UnaryType<float> gy;
