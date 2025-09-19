@@ -19,23 +19,18 @@ int main() {
     std::vector<T> a{1,2,3,4};
     std::vector<T> b{1,2,3,4};
 
-    auto add_op = ConcreteOp1{};
-    auto exp_op = ConcreteOp2{};
-
     Graph graph{};
-    INode node1(add_op);
 
-    INode node2(exp_op);
+    graph.build_leaf_node<ConcreteOp1>();
+    graph.build_leaf_node<ConcreteOp2>();
 
-	std::cout << "Node1<Add> inputs: " << node1.get_static_num_inputs();
-    std::cout << " Outputs: " << node1.get_static_num_outputs() << std::endl;
+	std::cout << "Node1<Add> inputs: " << graph.nodes[0].get_static_num_inputs();
+    std::cout << " Outputs: " << graph.nodes[0].get_static_num_outputs() << std::endl;
 
-    std::cout << "Node2<Exp> inputs: " << node2.get_static_num_outputs();
-    std::cout << " Outputs: " << node2.get_static_num_outputs() << std::endl;
+    std::cout << "Node2<Exp> inputs: " << graph.nodes[1].get_static_num_outputs();
+    std::cout << " Outputs: " << graph.nodes[1].get_static_num_outputs() << std::endl;
 
 
-    graph.add_node(std::move(node1), node1.get_static_num_outputs(), node1.get_static_num_inputs());
-    graph.add_node(std::move(node2), node2.get_static_num_outputs(), node2.get_static_num_inputs());
 
     UnaryType<float> y1 = graph.nodes[0].forward_t<ConcreteOp1>(BinaryType<float>{a, b});
     UnaryType<float> y2 = graph.nodes[1].forward_t<ConcreteOp2>(y1);

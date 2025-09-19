@@ -5,13 +5,9 @@
 #include "NodeInterface.h"
 
 struct Edge {
-  public:
     NodeID v;
     NodeID w;
-  	Edge(NodeID v_ = NodeID{-1}, NodeID w_ = NodeID{-1}) : v(v_), w(w_) {};
-  private:
-  	NodeID v_;
-    NodeID w_;
+  	Edge(NodeID v = NodeID{-1}, NodeID w = NodeID{-1}) : v(v), w(w) {};
 };
 
 
@@ -22,15 +18,23 @@ class Graph {
     std::uint16_t value_counter = 0;
     std::vector<INode> nodes;
     std::vector<NodeID> node_ids;
-    std::vector<NodeID> parents;
     std::vector<Edge> edges;
+    std::vector<std::pair<NodeID, ValueID>> producer_of;
 
-    void add_node(INode&& node, uint16_t num_outputs, uint16_t num_inputs) {
+    template <class ConcreteOp>
+    void build_leaf_node() {
+      auto op = ConcreteOp{};
+      INode node(op);
+      uint16_t num_outputs = node.get_static_num_outputs();
       make_output_ids(node, num_outputs);
-      make_input_ids(node, num_inputs);
       nodes.emplace_back(std::move(node));
       make_node_id();
   }
+
+//  	template <class ConcreteOp>
+//    void build_node(INode& node, uint16_t output_idx)) {
+//      make_node_id();
+//  }
 
   private:
     void make_node_id() {
@@ -46,13 +50,6 @@ class Graph {
           }
    	}
 
-    void make_input_ids(INode& node, uint16_t num) {
-      	  node.inputs.resize(num);
-          for (uint16_t i = 0; i < num; i++) {
-            node.inputs[i] = ValueID{value_counter};
-            value_counter++;
-          }
-   	}
 
 
 };
