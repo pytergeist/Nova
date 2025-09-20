@@ -21,24 +21,40 @@ int main() {
     std::vector<T> a{1,2,3,4};
     std::vector<T> b{1,2,3,4};
 
-	std::any v = BinaryType<float>{a, b};
+	BinaryType<float> v{a, b};
 
     Engine<T> engine{};
 
-    engine.graph.build_node<ConcreteOp1>();
-    engine.graph.build_node<ConcreteOp2>();
-	engine.graph.build_node<ConcreteOp3>();
+    std::any x = engine.apply<ConcreteOp1>(v);
+    auto& u = std::any_cast<UnaryType<T>&>(x);
+    std::any y = engine.apply<ConcreteOp2>(u);
+    auto& w = std::any_cast<UnaryType<T>&>(y);
+    std::any z = engine.apply<ConcreteOp3>(w);
 
-	for (uint16_t i = 0; i < engine.graph.nodes.size(); i++) {
-		auto& n = engine.graph.nodes[i];
-		v = engine.run_forward(n, v);
-		auto& u = std::any_cast<UnaryType<T>&>(v);
-        std::cout << typeid(u).name() << std::endl;
+    for (uint16_t i = 0; i < engine.value_buffer.size(); i++) {
+      for (auto v : engine.value_buffer[i]) {
+        std::cout << v << " ";
+      }
+      std::cout << std::endl;
+    }
 
-        for (auto n : u.a) {
-			std::cout << n << " ";
-        }
-	}
+
+
+
+//    engine.graph.build_node<ConcreteOp1>();
+//    engine.graph.build_node<ConcreteOp2>();
+//	engine.graph.build_node<ConcreteOp3>();
+//
+//	for (uint16_t i = 0; i < engine.graph.nodes.size(); i++) {
+//		auto& n = engine.graph.nodes[i];
+//		v = engine.run_forward(n, v);
+//		auto& u = std::any_cast<UnaryType<T>&>(v);
+//        std::cout << typeid(u).name() << std::endl;
+//
+//        for (auto n : u.a) {
+//			std::cout << n << " ";
+//        }
+//	}
 
 
 
