@@ -28,11 +28,11 @@ class INode {
     std::any backward(std::any& grad_out) {return self_->backward(grad_out);};
 
     std::any apply_forward(const std::any& input) {
-//      if (input.type() != in_type())
-//        throw std::runtime_error("type mismatch");
+      if (input.type() != in_type())
+        throw std::runtime_error("type mismatch");
       std::any out = self_->forward(input);
-//      if (out.type() != out_type())
-//        throw std::runtime_error("bad out type");
+      if (out.type() != out_type())
+        throw std::runtime_error("bad out type");
       return out;
   }
 
