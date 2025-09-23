@@ -10,7 +10,7 @@ struct Edge {
   	Edge(NodeID v = NodeID{-1}, NodeID w = NodeID{-1}) : v(v), w(w) {};
 };
 
-struct ProducerInfo { NodeID node; ValueID out_slot; };
+struct ProducerInfo { NodeID nid; uint16_t out_slot; };
 
 class Graph {
   public:
@@ -22,13 +22,20 @@ class Graph {
     std::vector<Edge> edges;
     std::vector<ProducerInfo> producer_of;
 
+    void add_edge(INode node, NodeID src_nid, NodeID dst_nid) {
+      edges.emplace_back(Edge{src_nid, dst_nid});
+    }
+
     template <typename ConcreteOp>
-    void build_node() {
+    NodeID build_node() {
       auto op = ConcreteOp{};
       INode node(op);
       uint16_t num_outputs = node.get_static_num_outputs();
       nodes.emplace_back(std::move(node));
+      auto& stored = nodes.back();
       NodeID nid = make_node_id();
+      this->append_producer_table(stored, nid);
+      return nid;
   }
 
 
@@ -40,7 +47,7 @@ class Graph {
       nodes.emplace_back(std::move(node));
       auto& stored = nodes.back();
       NodeID nid = make_node_id();
-      append_producer_table(stored, nid);
+      this->append_producer_table(stored, nid);
       return nid;
     }
 
@@ -52,7 +59,7 @@ class Graph {
       nodes.emplace_back(std::move(node));
       auto& stored = nodes.back();
       NodeID nid = make_node_id();
-      append_producer_table(stored, nid);
+      this->append_producer_table(stored, nid);
       return nid;
     }
 
@@ -66,13 +73,14 @@ class Graph {
       return nid;
     }
 
+
   void append_producer_table(INode& node, NodeID nid) {
       uint16_t num = node.get_static_num_outputs();
       node.outputs.resize(num);
       for (uint16_t i = 0; i < num; i++) {
         ValueID vid = ValueID{value_counter};
         node.outputs[i] = vid;
-        producer_of.push_back(ProducerInfo{nid, vid});
+        producer_of.emplace_back(ProducerInfo{nid, i});
         value_counter++;
       }
     }
