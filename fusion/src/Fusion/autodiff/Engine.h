@@ -8,6 +8,7 @@
 template <typename T>
 class Engine {
   public:
+    // You need to store inputs and outputs
     std::vector<std::vector<T>> value_buffer;
     Graph graph{};
     Engine() = default;

@@ -31,7 +31,16 @@ int main() {
     auto& w = std::any_cast<UnaryType<T>&>(y);
     std::any z = engine.apply<ConcreteOp3>(w);
 
+    auto& j = std::any_cast<UnaryType<T>&>(z);
+
+	for (auto k : j.a) {
+          std::cout << k << " ";
+	};
+        std::cout << std::endl;
+
     for (uint16_t i = 0; i < engine.value_buffer.size(); i++) {
+      auto& n = engine.graph.nodes[i];
+      std::cout << "Node index: " << i << std::endl;
       for (auto v : engine.value_buffer[i]) {
         std::cout << v << " ";
       }
