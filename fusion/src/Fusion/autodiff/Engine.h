@@ -28,7 +28,7 @@ class Engine {
   template <class Op>
   std::any apply(BinaryType<T> a) {
     this->add_value(a);
-    this->graph.build_node<Op>();
+    this->graph.build_node<Op>(a);
     auto& n = this->graph.nodes.back();
     std::any v = a;
     v = this->run_forward(n, v);
@@ -38,7 +38,7 @@ class Engine {
   template <class Op>
   std::any apply(UnaryType<T> a) {
     this->add_value(a);
-    this->graph.build_node<Op>();
+    this->graph.build_node<Op>(a);
     auto& n = this->graph.nodes.back();
     std::any v = a;
     v = this->run_forward(n, v);
