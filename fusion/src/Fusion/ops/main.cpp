@@ -5,66 +5,31 @@
 #include "Transcendental/Exp.h"
 #include "../autodiff/Node.h"
 #include "../autodiff/Graph.h"
-
 #include "../autodiff/NodeInterface.h"
 #include "../autodiff/Engine.h"
 
 int main() {
     using T = float;
-    using Op1 = Add<T>;
-    using ConcreteOp1 = Operation<T, Op1>;
-    using Op2 = Exp<T>;
-    using ConcreteOp2 = Operation<T, Op2>;
-	using Op3 = Exp<T>;
-	using ConcreteOp3 = Operation<T, Op3>;
+    using AddOp = Operation<T, Add<T>>;
+    using ExpOp = Operation<T, Exp<T>>;
 
     std::vector<T> a{1,2,3,4};
     std::vector<T> b{1,2,3,4};
 
-	BinaryType<float> v{a, b};
+    Engine<T> engine;
 
-    Engine<T> engine{};
+    ValueID v1 = engine.apply<AddOp>(BinaryType<T>{a, b});
 
-    std::any x = engine.apply<ConcreteOp1>(v);
-    auto& u = std::any_cast<UnaryType<T>&>(x);
-    std::any y = engine.apply<ConcreteOp2>(u);
-    auto& w = std::any_cast<UnaryType<T>&>(y);
-    std::any z = engine.apply<ConcreteOp3>(w);
+    ValueID v2 = engine.apply<ExpOp>( v1 );
+    ValueID v3 = engine.apply<ExpOp>( v2 );
 
-    auto& j = std::any_cast<UnaryType<T>&>(z);
+    const auto& out = engine.value_buffer[v3.idx];
+    for (auto x : out) std::cout << x << " ";
+    std::cout << "\n";
 
-	for (auto k : j.a) {
-          std::cout << k << " ";
-	};
-        std::cout << std::endl;
-
-    for (uint16_t i = 0; i < engine.value_buffer.size(); i++) {
-      auto& n = engine.graph.nodes[i];
-      std::cout << "Node index: " << i << std::endl;
-      for (auto v : engine.value_buffer[i]) {
-        std::cout << v << " ";
-      }
-      std::cout << std::endl;
+    std::cout << "Producer info\n";
+    for (size_t i = 0; i < engine.graph.producer_of.size(); ++i) {
+        auto p = engine.graph.producer_of[i];
+        std::cout << p.nid.idx << " " << p.out_slot << "\n";
     }
-
-
-
-
-//    engine.graph.build_node<ConcreteOp1>();
-//    engine.graph.build_node<ConcreteOp2>();
-//	engine.graph.build_node<ConcreteOp3>();
-//
-//	for (uint16_t i = 0; i < engine.graph.nodes.size(); i++) {
-//		auto& n = engine.graph.nodes[i];
-//		v = engine.run_forward(n, v);
-//		auto& u = std::any_cast<UnaryType<T>&>(v);
-//        std::cout << typeid(u).name() << std::endl;
-//
-//        for (auto n : u.a) {
-//			std::cout << n << " ";
-//        }
-//	}
-
-
-
 }
