@@ -1,9 +1,10 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include "Graph.h"
 #include <memory>
 #include <any>
+
+#include "Graph.h"
 
 template <typename T>
 class Engine {
@@ -19,15 +20,15 @@ public:
   }
 
   ValueID feed_raw(const std::vector<T>& data) {
-    ValueID vid = this->graph.new_input_value();
+    ValueID vid = graph.new_input_value();
     ensure_value_capacity(vid);
     value_buffer[vid.idx] = data;
     return vid;
   }
 
   template <class Op> ValueID feed(UnaryType<T> v) {
-    NodeID dst_nid = this->graph.build_node<Op>(v);
-    auto &node = this->graph.nodes[dst_nid.idx];
+    NodeID dst_nid = graph.build_node<Op>(v);
+    auto &node = graph.nodes[dst_nid.idx];
     ValueID vid = node.outputs.at[0];
     ensure_value_capacity(vid);
     value_buffer[vid.idx] = v.a;
@@ -48,14 +49,15 @@ public:
 
     template <class Op>
     ValueID apply(ValueID in_vid) {
-        NodeID dst_nid = this->graph.build_node<Op>(UnaryType<T>{});
-        auto& node = this->graph.nodes[dst_nid.idx];
+        NodeID dst_nid = graph.build_node<Op>(UnaryType<T>{});
+        NodeID src_nid = graph.producer_of.at(in_vid.idx).nid;
+        graph.add_edge(src_nid, dst_nid);
+        auto& node = graph.nodes[dst_nid.idx];
 
         node.inputs.resize(1);
         node.inputs[0] = in_vid;
 
-        NodeID src = this->graph.producer_of[in_vid.idx].nid;
-        if (src.idx != kNoNode) this->graph.edges.emplace_back(src, dst_nid);
+        NodeID src = graph.producer_of.at(in_vid.idx).nid;
 
         UnaryType<T> in{ value_buffer[in_vid.idx] };
 
@@ -73,17 +75,16 @@ public:
 
     template <class Op>
     ValueID apply(ValueID a_vid, ValueID b_vid) {
-        NodeID dst_nid = this->graph.build_node<Op>(BinaryType<T>{});
-        auto& node = this->graph.nodes[dst_nid.idx];
+        NodeID dst_nid = graph.build_node<Op>(BinaryType<T>{});
+        NodeID src_nida = graph.producer_of.at(a_vid.idx).nid;
+        NodeID src_nidb = graph.producer_of.at(b_vid.idx).nid;
+        graph.add_edge(src_nida, dst_nid);
+        graph.add_edge(src_nidb, dst_nid);
+        auto& node = graph.nodes[dst_nid.idx];
 
         node.inputs.resize(2);
         node.inputs[0] = a_vid;
         node.inputs[1] = b_vid;
-
-        NodeID src_a = this->graph.producer_of[a_vid.idx].nid;
-        NodeID src_b = this->graph.producer_of[b_vid.idx].nid;
-        if (src_a.idx != kNoNode) this->graph.edges.emplace_back(src_a, dst_nid);
-        if (src_b.idx != kNoNode) this->graph.edges.emplace_back(src_b, dst_nid);
 
         BinaryType<T> in{ value_buffer[a_vid.idx], value_buffer[b_vid.idx] };
 

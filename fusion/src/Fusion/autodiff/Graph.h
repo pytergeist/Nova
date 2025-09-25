@@ -24,9 +24,10 @@ class Graph {
     std::vector<Edge> edges;
     std::vector<ProducerInfo> producer_of;
 
-//    void add_edge(INode node, NodeID src_nid, NodeID dst_nid) {
-//      edges.emplace_back(Edge{src_nid, dst_nid});
-//    }
+    void add_edge(NodeID src_nid, NodeID dst_nid) {
+      if (src_nid.idx == kNoNode || dst_nid.idx == kNoNode) return;
+      edges.push_back(Edge{src_nid, dst_nid});
+    }
 
 
     ValueID new_input_value() {
