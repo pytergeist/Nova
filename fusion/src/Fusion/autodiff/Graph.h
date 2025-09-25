@@ -22,7 +22,7 @@ class Graph {
     std::vector<INode> nodes;
     std::vector<NodeID> node_ids;
     std::vector<Edge> edges;
-    std::vector<ProducerInfo> producer_of;
+    std::vector<ProducerInfo> produced_by;
 
     void add_edge(NodeID src_nid, NodeID dst_nid) {
       if (src_nid.idx == kNoNode || dst_nid.idx == kNoNode) return;
@@ -32,10 +32,10 @@ class Graph {
 
     ValueID new_input_value() {
       ValueID vid{value_counter++};
-      if (producer_of.size() <= static_cast<size_t>(vid.idx)) {
-        producer_of.resize(static_cast<size_t>(vid.idx) + 1);
+      if (produced_by.size() <= static_cast<size_t>(vid.idx)) {
+        produced_by.resize(static_cast<size_t>(vid.idx) + 1);
     	}
-      producer_of[vid.idx] = ProducerInfo{NodeID{kNoNode}, 0};
+      produced_by[vid.idx] = ProducerInfo{NodeID{kNoNode}, 0};
       return vid;
     };
 
@@ -94,10 +94,10 @@ void append_producer_table(INode& node, NodeID nid) {
         ValueID vid{value_counter++};
         node.outputs[i] = vid;
 
-        if (producer_of.size() <= static_cast<size_t>(vid.idx)) {
-            producer_of.resize(static_cast<size_t>(vid.idx) + 1);
+        if (produced_by.size() <= static_cast<size_t>(vid.idx)) {
+            produced_by.resize(static_cast<size_t>(vid.idx) + 1);
         }
-        producer_of[vid.idx] = ProducerInfo{ nid, i };
+        produced_by[vid.idx] = ProducerInfo{ nid, i };
     }
 }
 

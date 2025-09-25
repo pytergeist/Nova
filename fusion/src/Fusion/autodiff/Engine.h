@@ -50,14 +50,14 @@ public:
     template <class Op>
     ValueID apply(ValueID in_vid) {
         NodeID dst_nid = graph.build_node<Op>(UnaryType<T>{});
-        NodeID src_nid = graph.producer_of.at(in_vid.idx).nid;
+        NodeID src_nid = graph.produced_by.at(in_vid.idx).nid;
         graph.add_edge(src_nid, dst_nid);
         auto& node = graph.nodes[dst_nid.idx];
 
         node.inputs.resize(1);
         node.inputs[0] = in_vid;
 
-        NodeID src = graph.producer_of.at(in_vid.idx).nid;
+        NodeID src = graph.produced_by.at(in_vid.idx).nid;
 
         UnaryType<T> in{ value_buffer[in_vid.idx] };
 
@@ -76,8 +76,8 @@ public:
     template <class Op>
     ValueID apply(ValueID a_vid, ValueID b_vid) {
         NodeID dst_nid = graph.build_node<Op>(BinaryType<T>{});
-        NodeID src_nida = graph.producer_of.at(a_vid.idx).nid;
-        NodeID src_nidb = graph.producer_of.at(b_vid.idx).nid;
+        NodeID src_nida = graph.produced_by.at(a_vid.idx).nid;
+        NodeID src_nidb = graph.produced_by.at(b_vid.idx).nid;
         graph.add_edge(src_nida, dst_nid);
         graph.add_edge(src_nidb, dst_nid);
         auto& node = graph.nodes[dst_nid.idx];

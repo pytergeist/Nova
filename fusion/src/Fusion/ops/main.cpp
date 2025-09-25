@@ -36,10 +36,10 @@ int main() {
     for (auto x : out) std::cout << x << " ";
     std::cout << "\n";
 
-    std::cout << "Producer info\n";
-    for (size_t i = 0; i < engine.graph.producer_of.size(); ++i) {
-        auto p = engine.graph.producer_of[i];
-        std::cout << p.nid.idx << " " << p.out_slot << "\n";
+    std::cout << "Produced By info\n";
+    for (size_t i = 0; i < engine.graph.produced_by.size(); ++i) {
+        auto p = engine.graph.produced_by[i];
+        std::cout << i << " " << p.nid.idx << " " << p.out_slot << "\n";
     }
 
     std::cout << "Edge List\n";
