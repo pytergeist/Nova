@@ -39,8 +39,23 @@ int main() {
     std::cout << "Produced By info\n";
     for (size_t i = 0; i < engine.graph.produced_by.size(); ++i) {
         auto p = engine.graph.produced_by[i];
-        std::cout << i << " " << p.nid.idx << " " << p.out_slot << "\n";
+        std::cout << "ValueID: " << i << " " << "NodeID: " << p.nid.idx << " " << "out_slot: " << p.out_slot;
+        if (p.nid.idx != -1) {
+          std::cout << " Test ValueID: " << engine.graph.nodes[p.nid.idx].outputs[p.out_slot].idx << "\n";
+          }
+        else {
+        std::cout << "\n";
+        }
     }
+
+  std::cout << "Consumed By info\n";
+  for (size_t i = 0; i < engine.graph.consumed_by.size(); ++i) {
+    auto p = engine.graph.consumed_by[i];
+    for (auto x : p) {
+      std::cout << "ValueID: " << i << " " << "NodeID: " << x.nid.idx << " " << "out_slot: " << x.in_slot;
+      std::cout << " Test ValueID: " << engine.graph.nodes[x.nid.idx].inputs[x.in_slot].idx << "\n";
+    }
+  }
 
     std::cout << "Edge List\n";
     for (size_t i = 0; i < engine.graph.edges.size(); ++i) {

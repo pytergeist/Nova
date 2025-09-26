@@ -14,6 +14,8 @@ struct Edge {
 
 struct ProducerInfo { NodeID nid; uint16_t out_slot; };
 
+struct ConsumerInfo { NodeID nid; uint16_t in_slot; };
+
 class Graph {
   public:
     Graph() = default;
@@ -23,6 +25,7 @@ class Graph {
     std::vector<NodeID> node_ids;
     std::vector<Edge> edges;
     std::vector<ProducerInfo> produced_by;
+    std::vector<std::vector<ConsumerInfo>> consumed_by;
 
     void add_edge(NodeID src_nid, NodeID dst_nid) {
       if (src_nid.idx == kNoNode || dst_nid.idx == kNoNode) return;
@@ -76,7 +79,19 @@ class Graph {
       return nid;
     }
 
-
+  void set_node_inputs(INode& node, std::vector<ValueID> vids) {
+  node.inputs.resize(vids.size());
+  for (uint16_t i = 0; i < vids.size(); i++) {
+    node.inputs[i] = vids[i];
+  }
+}
+  void append_consumer_table(NodeID dst_nid, std::vector<ValueID> vids) {
+        consumed_by.resize(consumed_by.size() + vids.size());
+        for (uint16_t i = 0; i < vids.size(); i++) {
+          std::vector<ConsumerInfo> v{ConsumerInfo{dst_nid, i}};
+          consumed_by[vids[i].idx] = v;
+      }
+  }
 
   private:
     NodeID make_node_id() {
@@ -85,6 +100,10 @@ class Graph {
       node_counter++;
       return nid;
     }
+
+//void append_consumer_table(INode& stored, NodeID nid) {
+//
+//}
 
 
 void append_producer_table(INode& node, NodeID nid) {

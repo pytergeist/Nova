@@ -51,12 +51,13 @@ public:
     ValueID apply(ValueID in_vid) {
         NodeID dst_nid = graph.build_node<Op>(UnaryType<T>{});
         NodeID src_nid = graph.produced_by.at(in_vid.idx).nid;
+
         graph.add_edge(src_nid, dst_nid);
         auto& node = graph.nodes[dst_nid.idx];
 
-        node.inputs.resize(1);
-        node.inputs[0] = in_vid;
 
+        graph.set_node_inputs(node, std::vector<ValueID>{in_vid});
+        graph.append_consumer_table(dst_nid, std::vector<ValueID>{in_vid});
         NodeID src = graph.produced_by.at(in_vid.idx).nid;
 
         UnaryType<T> in{ value_buffer[in_vid.idx] };
@@ -82,9 +83,10 @@ public:
         graph.add_edge(src_nidb, dst_nid);
         auto& node = graph.nodes[dst_nid.idx];
 
-        node.inputs.resize(2);
-        node.inputs[0] = a_vid;
-        node.inputs[1] = b_vid;
+
+        graph.set_node_inputs(node, std::vector<ValueID>{a_vid, b_vid});
+        graph.append_consumer_table(dst_nid, std::vector<ValueID>{a_vid, b_vid});
+
 
         BinaryType<T> in{ value_buffer[a_vid.idx], value_buffer[b_vid.idx] };
 
