@@ -52,7 +52,7 @@ int main() {
   for (size_t i = 0; i < engine.graph.consumed_by.size(); ++i) {
     auto p = engine.graph.consumed_by[i];
     for (auto x : p) {
-      std::cout << "ValueID: " << i << " " << "NodeID: " << x.nid.idx << " " << "out_slot: " << x.in_slot;
+      std::cout << "ValueID: " << i << " " << "NodeID: " << x.nid.idx << " " << "in_slot: " << x.in_slot;
       std::cout << " Test ValueID: " << engine.graph.nodes[x.nid.idx].inputs[x.in_slot].idx << "\n";
     }
   }
