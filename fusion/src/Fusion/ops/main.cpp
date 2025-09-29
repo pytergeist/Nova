@@ -7,6 +7,7 @@
 #include "../autodiff/Graph.h"
 #include "../autodiff/NodeInterface.h"
 #include "../autodiff/Engine.h"
+#include "../autodiff/Sort.h"
 
 int main() {
     using T = float;
@@ -20,16 +21,18 @@ int main() {
 
     Engine<T> engine;
 
-    ValueID v1 = engine.apply<AddOp>(BinaryType<T>{a, b});
-
-    ValueID v2 = engine.apply<ExpOp>( v1 );
-    ValueID v3 = engine.apply<Divide<T>>(v1, v2);
-    ValueID v4 = engine.apply<MulOp>(v2, v3);
+	ValueID v0 = engine.apply<AddOp>(BinaryType<T>{a, b});
+	ValueID v1 = engine.apply<ExpOp>(v0);
+	ValueID v2 = engine.apply<MulOp>(BinaryType<T>{a, b});
+	ValueID v3 = engine.apply<AddOp>(v1, v2);
+	ValueID v4 = engine.apply<ExpOp>(engine.apply<AddOp>(BinaryType<T>{a, b}));
+	ValueID v5 = engine.apply<MulOp>(v3, v4);
 
     std::cout << "v1: " << v1.idx << std::endl;
     std::cout << "v2: " << v2.idx << std::endl;
     std::cout << "v3: " << v3.idx << std::endl;
     std::cout << "v4: " << v4.idx << std::endl;
+    std::cout << "v5: " << v5.idx << std::endl;
 
 
     const auto& out = engine.value_buffer[v4.idx];
@@ -76,4 +79,27 @@ int main() {
         std::cout << x.idx << ", ";
      std::cout << std::endl;
 	}
+
+   std::cout << "Sorting\n";
+
+   Sort sort = Sort(engine.graph.nodes.size());
+
+   std::vector<uint16_t> in_degree = sort.calc_indegree(engine.graph.nodes, engine.graph.produced_by);
+   std::cout << "In degree\n";
+   for (uint16_t i = 0; i < in_degree.size(); ++i) {
+     std::cout << "Node idx: " << i << " Node Degree:  " << in_degree[i] << "\n";
+   }
+
+   std::cout << "Sorted idx's\n";
+   std::vector<NodeID> sorted_nodes = sort.topological_sort(
+       engine.graph.nodes,
+       engine.graph.produced_by,
+       engine.graph.consumed_by,
+       engine.graph.node_ids
+       );
+
+   for (auto x : sorted_nodes) {
+     std::cout << "Node idx: " << x.idx << "\n";
+   }
+
 }
