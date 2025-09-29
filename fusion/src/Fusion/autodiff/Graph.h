@@ -4,7 +4,7 @@
 #include <memory>
 #include "NodeInterface.h"
 
-static constexpr int kNoNode = -1;
+static constexpr int16_t kNoNode = -1;
 
 struct Edge {
     NodeID src;
@@ -86,10 +86,12 @@ class Graph {
   }
 }
   void append_consumer_table(NodeID dst_nid, std::vector<ValueID> vids) {
+    	if (consumed_by.size() <= static_cast<size_t>(value_counter)) {
+          consumed_by.resize(consumed_by.size() + vids.size());
+    	}
         consumed_by.resize(consumed_by.size() + vids.size());
         for (uint16_t i = 0; i < vids.size(); i++) {
-          std::vector<ConsumerInfo> v{ConsumerInfo{dst_nid, i}};
-          consumed_by[vids[i].idx] = v;
+          consumed_by[vids[i].idx].push_back(ConsumerInfo{dst_nid, i});;
       }
   }
 
@@ -100,10 +102,6 @@ class Graph {
       node_counter++;
       return nid;
     }
-
-//void append_consumer_table(INode& stored, NodeID nid) {
-//
-//}
 
 
 void append_producer_table(INode& node, NodeID nid) {
