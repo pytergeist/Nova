@@ -56,7 +56,7 @@ class Operation {
     Out forward(Context& context, const In& input) {return op_.forward(context, input);};
     GradIn backward(Context& context, GradOut& grad_out) {return op_.backward(context, grad_out);};
 
-    static constexpr std::string_view name() {return Op::name();};
+    inline static constexpr std::string_view name = Op::name;
 
 	private:
           Op op_;

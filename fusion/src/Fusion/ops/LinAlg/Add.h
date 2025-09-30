@@ -2,12 +2,13 @@
 #define ADD_H
 
 #include <vector>
+#include <string_view>
 #include "../Operation.h"
 
 
 template <typename T>
 struct Add {
-    static constexpr std::string_view name = "Add";
+    inline static constexpr std::string_view name = "Add";
     using In = BinaryType<T>;
     using Out = UnaryType<T>;
     using GradIn = BinaryType<T>;

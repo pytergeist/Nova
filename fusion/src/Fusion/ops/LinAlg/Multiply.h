@@ -2,12 +2,13 @@
 #define MULTIPLY_H
 
 #include <vector>
+#include <string_view>
 #include "../Operation.h"
 
 
 template <typename T>
 struct Multiply {
-    static constexpr std::string_view name = "Multiply";
+    inline static constexpr std::string_view name = "Multiply";
     using In = BinaryType<T>;
     using Out = UnaryType<T>;
     using GradIn = BinaryType<T>;

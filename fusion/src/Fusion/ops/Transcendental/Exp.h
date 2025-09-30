@@ -2,12 +2,13 @@
 #define EXP_H
 
 #include <vector>
+#include <string_view>
 #include "../Operation.h"
 
 
 template <typename T>
 struct Exp {
-    static constexpr std::string_view name = "Exp";
+    inline static constexpr std::string_view name = "Exp";
     using In = UnaryType<T>;
     using Out = UnaryType<T>;
     using GradIn = UnaryType<T>;

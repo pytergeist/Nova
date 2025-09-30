@@ -12,6 +12,7 @@ class INode {
     const std::type_info& out_type() const { return self_->out_type(); }
     const std::type_info& grad_in_type()  const { return self_->grad_in_type(); }
     const std::type_info& grad_out_type() const { return self_->grad_out_type(); }
+	std::string_view name() const { return self_->name(); }
 
     std::vector<ValueID> inputs;
     std::vector<ValueID> outputs;
@@ -75,13 +76,14 @@ class INode {
         virtual std::any forward(const std::any& input) = 0;
         virtual std::any backward(std::any& grad_out) = 0;
 
-        virtual const std::type_info& in_type() = 0;
-        virtual const std::type_info& out_type() = 0;
-        virtual const std::type_info& grad_in_type() = 0;
-        virtual const std::type_info& grad_out_type() = 0;
+        virtual const std::type_info& in_type() const = 0;
+        virtual const std::type_info& out_type() const = 0;
+        virtual const std::type_info& grad_in_type() const = 0;
+        virtual const std::type_info& grad_out_type() const = 0;
+		virtual std::string_view name() const = 0;
 
-        virtual uint16_t get_static_num_outputs() = 0;
-        virtual uint16_t get_static_num_inputs() = 0;
+        virtual uint16_t get_static_num_outputs() const = 0;
+        virtual uint16_t get_static_num_inputs() const = 0;
       };
       template<class Op>
       struct NodeModel : NodeConcept {
@@ -96,30 +98,32 @@ class INode {
 
         explicit NodeModel(Op op) : node_(std::move(op)) {}
 
-        std::any forward(const std::any& input) {
+		std::string_view name() const override { return Op::name; }
+
+        std::any forward(const std::any& input) override {
         const In& x = std::any_cast<const In&>(input);
         auto y = node_.run_forward(x);
         return std::any{std::move(y)};
         };
 
-        std::any backward(std::any& grad_out) {
+        std::any backward(std::any& grad_out) override {
           auto& grad_out_cast = std::any_cast<GradOut&>(grad_out);
           auto grad_in = node_.run_backward(grad_out_cast);
           return std::any{std::move(grad_in)};
         }
 
-        std::uint16_t get_static_num_outputs() {
+        std::uint16_t get_static_num_outputs() const override {
           return node_.KStaticNumOutputs;
         }
 
-        std::uint16_t get_static_num_inputs() {
+        std::uint16_t get_static_num_inputs() const override {
           return node_.KStaticNumInputs;
         }
 
-        const std::type_info& in_type() {return typeid(In);};
-        const std::type_info& out_type() {return typeid(Out);};
-        const std::type_info& grad_in_type() {return typeid(GradIn);};
-        const std::type_info& grad_out_type() {return typeid(GradOut);};
+        const std::type_info& in_type() const override {return typeid(In);};
+        const std::type_info& out_type() const override {return typeid(Out);};
+        const std::type_info& grad_in_type() const override {return typeid(GradIn);};
+        const std::type_info& grad_out_type() const override {return typeid(GradOut);};
 
         Node<Op> node_;
 

@@ -2,11 +2,12 @@
 #define DIVIDE_H
 
 #include <vector>
+#include <string_view>
 #include "../Operation.h"
 
 template <typename T>
 struct Divide {
-    static constexpr std::string_view name = "Divide";
+    inline static constexpr std::string_view name = "Divide";
     using In = BinaryType<T>;
     using Out = UnaryType<T>;
     using GradIn = BinaryType<T>;

@@ -2,11 +2,12 @@
 #define SUBTRACT_H
 
 #include <vector>
+#include <string_view>
 #include "../Operation.h"
 
 template <typename T>
 struct Subtract {
-  static constexpr std::string_view name = "Subtract";
+  inline static constexpr std::string_view name = "Subtract";
   using In = BinaryType<T>;
   using Out = UnaryType<T>;
   using GradIn = BinaryType<T>;
