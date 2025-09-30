@@ -29,38 +29,40 @@ public:
     return inDegree;
   };
 
-  std::vector<NodeID> topological_sort(std::vector<INode> &nodes,
-                        std::vector<ProducerInfo> &produced_by, std::vector<std::vector<ConsumerInfo>> &consumed_by, std::vector<NodeID> &node_ids) {
+  std::vector<NodeID>
+  topological_sort(std::vector<INode> &nodes,
+                   std::vector<ProducerInfo> &produced_by,
+                   std::vector<std::vector<ConsumerInfo>> &consumed_by,
+                   std::vector<NodeID> &node_ids) {
     std::queue<NodeID> q;
     std::vector<uint16_t> in_degree = calc_indegree(nodes, produced_by);
     for (uint16_t i = 0; i < numNodes_; i++) {
-            if (i > in_degree.size()) {
+      if (i > in_degree.size()) {
         throw std::runtime_error("Number of nodes greater than indegree vec");
-            };
-        	if (in_degree[i] == 0) {
+      };
+      if (in_degree[i] == 0) {
         q.push(node_ids[i]);
-        	}
+      }
+    }
+    std::vector<NodeID> result;
+    while (!q.empty()) {
+      NodeID nid = q.front();
+      q.pop();
+      result.push_back(nid);
+      auto outputs = nodes[nid.idx].outputs;
+      for (uint16_t j = 0; j < outputs.size(); ++j) {
+        std::vector<ConsumerInfo> children = consumed_by[outputs[j].idx];
+        for (uint16_t k = 0; k < children.size(); ++k) {
+          in_degree[children[k].nid.idx]--;
+          if (in_degree[children[k].nid.idx] == 0) {
+            q.push(children[k].nid);
+          }
         }
-	std::vector<NodeID> result;
-	while (!q.empty()) {
-		NodeID nid = q.front();
-        q.pop();
-        result.push_back(nid);
-        auto outputs = nodes[nid.idx].outputs;
-        for (uint16_t j = 0; j < outputs.size(); ++j) {
-			std::vector<ConsumerInfo> children = consumed_by[outputs[j].idx];
-            for (uint16_t k = 0; k < children.size(); ++k) {
-              in_degree[children[k].nid.idx]--;
-              if (in_degree[children[k].nid.idx] == 0) {
-              q.push(children[k].nid);
-            }
-           }
-        }
-     }
-    std::cout << "result size: " <<  result.size() << "\n";
-    std::cout << "num node size: " << numNodes_ << "\n";
+      }
+    }
     if (result.size() != numNodes_) {
-      throw std::runtime_error("Number of nodes greater than indegree vec - graph contains cycles!");
+      throw std::runtime_error(
+          "Number of nodes greater than indegree vec - graph contains cycles!");
     }
 
     return result;
