@@ -102,4 +102,88 @@ int main() {
      std::cout << "Node idx: " << x.idx << "\n";
    }
 
-}
+  std::cout << "Reverse Order\n";
+  for (uint16_t i = sorted_nodes.size() - 1; i > 0; --i) {
+    std::cout << "Node idx: " << i << "\n";
+    if (i == 6) {
+      auto& out = engine.graph.nodes[sorted_nodes[i].idx].outputs;
+      for (auto x : out) {
+        std::cout << "Output ValueID: " << x.idx << "\n";
+      }
+	auto val = engine.value_buffer[sorted_nodes[i].idx];
+    for (auto x : val) {
+      std::cout << x << " ";
+    }
+    std::cout << "\n";
+    }
+  }
+
+  std::cout << std::endl;
+  std::cout << std::endl;
+
+  std::cout << "Initialising Grad Vector\n";
+  auto val = engine.value_buffer[sorted_nodes[6].idx];
+  std::vector<T> grad(val.size(), 1);
+  for (auto x : grad) {
+    std::cout << x << " ";
+  }
+  std::cout << std::endl;
+//  UnaryType<T> unaryGrad{grad};
+  std::any grad_vec = UnaryType<T>{grad};
+//
+//  // -------------
+//  auto& n5 = engine.graph.nodes[sorted_nodes[5].idx];
+//  grad_vec = n5.apply_backward(grad_vec);
+//
+//  auto& n4 = engine.graph.nodes[sorted_nodes[4].idx];
+//  std::cout << n4.name() << std::endl;
+//  grad_vec = n4.apply_backward(grad_vec); // Breaking type mismatch
+  uint16_t slot_idx = 0;
+  std::vector<ValueID> inputs;
+  std::vector<ValueID> outputs;
+  outputs = engine.graph.nodes[sorted_nodes[sorted_nodes.size() - 1].idx].outputs;
+  auto output = outputs[slot_idx];
+  auto initial = engine.value_buffer[output.idx];
+  std::vector<T> initialGrad(initial.size(), 1);
+  std::any gradVec = UnaryType<T>{initialGrad};
+  engine.grad_buffer.resize(engine.value_buffer.size());
+  std::cout << "Vec size: " << engine.value_buffer.size() << "\n";
+  std::cout << "Vec idx: " << output.idx << "\n";
+  engine.grad_buffer[output.idx] = UnaryType<T>{initialGrad};
+  for (int16_t i = sorted_nodes.size() - 1; i > -1; --i) {
+      auto& n = engine.graph.nodes[sorted_nodes[i].idx];
+      auto& inputs = n.inputs;
+      auto output_id = n.outputs[0];
+      gradVec = engine.grad_buffer[output_id.idx];
+      // here we have final node (id = 6), output valueID = 12
+      // we have inputs list, two slots [ValueID, ValueID] = [7, 11]
+      // we can get dst nodes with the produced by table - this gives
+      // nid1 = 3, nid2 = 5
+
+      gradVec = n.apply_backward(gradVec);
+      if (n.grad_in_type() == typeid(BinaryType<T>)) {
+        auto grad = std::any_cast<BinaryType<T>>(gradVec);
+		engine.grad_buffer[inputs[0].idx] = UnaryType<T>{grad.a};
+       	engine.grad_buffer[inputs[1].idx] = UnaryType<T>{grad.b};
+      }
+      else if (n.grad_out_type() == typeid(UnaryType<T>)) {
+        auto grad = std::any_cast<UnaryType<T>>(gradVec);
+        engine.grad_buffer[inputs[0].idx] = UnaryType<T>{grad.a};
+      }
+  }
+
+  for (uint16_t i = 0; i < engine.grad_buffer.size(); ++i) {
+    std::cout << "Node idx: " << i << " ";
+    for (auto x : engine.grad_buffer[i].a) {
+      std::cout << x << " ";
+    }
+    std::cout << std::endl;
+  }
+
+//    auto& n = engine.graph.nodes[sorted_nodes[i].idx];
+//    std::cout << "Node: " << sorted_nodes[i].idx << " Op: " << n.name();
+//    std::cout << " GradInType: " << n.grad_in_type().name();
+//    std::cout << " GradOutType: " << n.grad_out_type().name() << std::endl;
+//    grad_vec = n.apply_backward(grad_vec);
+//    std::cout << " GradVec: " << typeid(grad_vec).name() << std::endl;;
+  }

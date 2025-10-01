@@ -10,6 +10,7 @@ template <typename T>
 class Engine {
 public:
   std::vector<std::vector<T>> value_buffer;
+  std::vector<UnaryType<T>> grad_buffer;
   Graph graph{};
   Engine() = default;
 
