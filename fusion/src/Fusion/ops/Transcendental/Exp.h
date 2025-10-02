@@ -3,36 +3,39 @@
 
 #include <vector>
 #include <string_view>
+#include "../../autodiff/Traits.h"
 #include "../Operation.h"
 
 
 template <typename T>
 struct Exp {
     inline static constexpr std::string_view name = "Exp";
-    using In = UnaryType<T>;
-    using Out = UnaryType<T>;
-    using GradIn = UnaryType<T>;
-    using GradOut = UnaryType<T>;
+    using In = MultiTensor<T>;
+    using Out = MultiTensor<T>;
+    using GradIn = MultiTensor<T>;
+    using GradOut = MultiTensor<T>;
 
     Out forward(Context& context, const In& input) {
-        Out out;
-        out.a.resize(input.a.size());
-        for (size_t i = 0; i < input.a.size(); ++i) {
-            out.a[i] = std::exp(input.a[i]);
+      	std::vector<T> c(input[0].size());
+        for (size_t i = 0; i < input[0].size(); ++i) {
+            c[i] = std::exp(input[0][i]);
         }
-        context.save("c", out.a);
+        context.save("c", c);
+		Out out;
+        out.push_back(std::move(c));
         return out;
     };
 
     GradIn backward(Context& context, GradOut& grad_out) {
-        GradIn g;
-        g.a.resize(grad_out.a.size());
+        std::vector<T> d(grad_out[0].size());
         std::vector<T> a = context.template load<std::vector<T>>("c");
-        for (size_t i = 0; i < grad_out.a.size(); ++i) {
+        for (size_t i = 0; i < grad_out[0].size(); ++i) {
             const T& ai = a[i];
-            const T& dyi = grad_out.a[i];
-            g.a[i] = dyi * ai;
+            const T& dyi = grad_out[0][i];
+            d[i] = dyi * ai;
         }
+        GradIn g;
+        g.push_back(std::move(d));
         return g;
     }
 };
