@@ -1,16 +1,15 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include <memory>
 #include <any>
+#include <memory>
 
 #include "Graph.h"
 
-template <typename T>
-class Engine {
+template <typename T> class Engine {
 public:
   std::vector<std::vector<T>> value_buffer;
-  std::vector<UnaryType<T>> grad_buffer;
+  std::vector<std::vector<T>> grad_buffer;
   Graph graph{};
   Engine() = default;
 
@@ -20,88 +19,74 @@ public:
     }
   }
 
-  ValueID feed_raw(const std::vector<T>& data) {
+  ValueID feed_raw(const std::vector<T> &data) {
     ValueID vid = graph.new_input_value();
     ensure_value_capacity(vid);
     value_buffer[vid.idx] = data;
     return vid;
   }
 
-  template <class Op> ValueID feed(UnaryType<T> v) {
+  template <class Op> ValueID feed(MultiTensor<T> v) {
     NodeID dst_nid = graph.build_node<Op>(v);
     auto &node = graph.nodes[dst_nid.idx];
+    // Arbitrily set to 0 for single tensor feed
+    // TODO: make return type vec<ValueID> to allow for multi output??? Not sure
+    // this is needed
     ValueID vid = node.outputs.at[0];
     ensure_value_capacity(vid);
-    value_buffer[vid.idx] = v.a;
+    value_buffer[vid.idx] = v[0];
     return vid;
   }
-    template <class Op>
-    ValueID apply(BinaryType<T> payload) {
-        ValueID a_vid = feed_raw(payload.a);
-        ValueID b_vid = feed_raw(payload.b);
-        return apply<Op>(a_vid, b_vid);
+  template <class Op> ValueID apply(MultiTensor<T> payload) {
+    size_t num = payload.size();
+    std::vector<ValueID> vids; // was: std::vector<ValueID> vids(num);
+    vids.reserve(num);
+    for (size_t i = 0; i < num; i++) {
+      vids.push_back(feed_raw(payload[i]));
+    }
+    return apply<Op>(vids); // what here?
+  }
+
+  //    template <class Op>
+  //    ValueID apply(UnaryType<T> payload) {
+  //        ValueID in_vid = feed_raw(payload.a);
+  //        return apply<Op>(in_vid);
+  //    }
+
+  template <class Op> // TODO: evaluate impl
+  ValueID apply(std::vector<ValueID> vids) {
+    NodeID dst_nid = graph.build_node<Op>(MultiTensor<T>{});
+    MultiTensor<T> in; // was: MultiTensor<T> in(vids.size());
+    in.data.reserve(vids.size());
+    auto &node = graph.nodes[dst_nid.idx];
+    for (uint16_t i = 0; i < vids.size(); i++) {
+      NodeID src_nid = graph.produced_by.at(vids[i].idx).nid;
+      graph.add_edge(src_nid, dst_nid);
+      graph.set_node_input(node, vids[i]);
+      graph.append_consumer_table(dst_nid, vids[i], i);
+      in.push_back(value_buffer[vids[i].idx]);
+    }
+    std::any any_out = run_forward(node, std::any{in});
+    auto out_mt = std::any_cast<typename Op::Out>(any_out);
+    if (node.outputs.empty()) {
+      node.outputs.reserve(out_mt.size());
+      for (size_t i = 0; i < out_mt.size(); ++i) {
+        ValueID vid = graph.new_intermediate_value();
+        graph.set_produced_by(vid, dst_nid, static_cast<uint16_t>(i));
+        node.outputs.push_back(vid);
+        ensure_value_capacity(vid);
+      }
     }
 
-    template <class Op>
-    ValueID apply(UnaryType<T> payload) {
-        ValueID in_vid = feed_raw(payload.a);
-        return apply<Op>(in_vid);
+    if (out_mt.size() == 0) {
+      throw std::runtime_error("No outputs produced");
     }
-
-    template <class Op>
-    ValueID apply(ValueID in_vid) {
-        NodeID dst_nid = graph.build_node<Op>(UnaryType<T>{});
-        NodeID src_nid = graph.produced_by.at(in_vid.idx).nid;
-
-        graph.add_edge(src_nid, dst_nid);
-        auto& node = graph.nodes[dst_nid.idx];
-
-
-        graph.set_node_inputs(node, std::vector<ValueID>{in_vid});
-        graph.append_consumer_table(dst_nid, std::vector<ValueID>{in_vid});
-        NodeID src = graph.produced_by.at(in_vid.idx).nid;
-
-        UnaryType<T> in{ value_buffer[in_vid.idx] };
-
-        std::any any_out = run_forward(node, std::any{in});
-
-        if (node.outputs.empty()) {
-            throw std::runtime_error("No outputs produced");
-        }
-        ValueID out_vid = node.outputs[0];
-        ensure_value_capacity(out_vid);
-        auto& out_u = std::any_cast<UnaryType<T>&>(any_out);
-        value_buffer[out_vid.idx] = out_u.a;
-        return out_vid;
-    }
-
-    template <class Op>
-    ValueID apply(ValueID a_vid, ValueID b_vid) {
-        NodeID dst_nid = graph.build_node<Op>(BinaryType<T>{});
-        NodeID src_nida = graph.produced_by.at(a_vid.idx).nid;
-        NodeID src_nidb = graph.produced_by.at(b_vid.idx).nid;
-        graph.add_edge(src_nida, dst_nid);
-        graph.add_edge(src_nidb, dst_nid);
-        auto& node = graph.nodes[dst_nid.idx];
-
-
-        graph.set_node_inputs(node, std::vector<ValueID>{a_vid, b_vid});
-        graph.append_consumer_table(dst_nid, std::vector<ValueID>{a_vid, b_vid});
-
-
-        BinaryType<T> in{ value_buffer[a_vid.idx], value_buffer[b_vid.idx] };
-
-        std::any any_out = run_forward(node, std::any{in});
-
-        if (node.outputs.empty()) {
-        	throw std::runtime_error("No outputs produced");
-        }
-        ValueID out_vid = node.outputs[0];
-        ensure_value_capacity(out_vid);
-        auto& out_u = std::any_cast<UnaryType<T>&>(any_out);
-        value_buffer[out_vid.idx] = out_u.a;
-        return out_vid;
-    }
+    ValueID out_vid = node.outputs[0];
+    ensure_value_capacity(out_vid);
+    auto &out_u = std::any_cast<MultiTensor<T> &>(any_out);
+    value_buffer[out_vid.idx] = out_u[0];
+    return out_vid;
+  }
 
   std::any run_forward(INode &node, const std::any &vec) {
     return node.apply_forward(vec);
