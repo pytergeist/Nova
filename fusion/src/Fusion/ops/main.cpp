@@ -21,12 +21,13 @@ int main() {
 
     Engine<T> engine;
 
-	ValueID v0 = engine.apply<AddOp>(BinaryType<T>{a, b});
-	ValueID v1 = engine.apply<ExpOp>(v0);
-	ValueID v2 = engine.apply<MulOp>(BinaryType<T>{a, b});
-	ValueID v3 = engine.apply<AddOp>(v1, v2);
-	ValueID v4 = engine.apply<ExpOp>(engine.apply<AddOp>(BinaryType<T>{a, b}));
-	ValueID v5 = engine.apply<MulOp>(v3, v4);
+	ValueID v0 = engine.apply<AddOp>(MultiTensor<T>{a, b});
+	ValueID v1 = engine.apply<ExpOp>(std::vector<ValueID>{v0});
+	ValueID v2 = engine.apply<MulOp>(MultiTensor<T>{a, b});
+	ValueID v3 = engine.apply<AddOp>(std::vector<ValueID>{v1, v2});
+    ValueID v4 = engine.apply<AddOp>(MultiTensor<T>{a, b});
+	ValueID v5 = engine.apply<ExpOp>(std::vector<ValueID>{v4});
+	ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v4});
 
     std::cout << "v1: " << v1.idx << std::endl;
     std::cout << "v2: " << v2.idx << std::endl;
@@ -128,16 +129,6 @@ int main() {
     std::cout << x << " ";
   }
   std::cout << std::endl;
-//  UnaryType<T> unaryGrad{grad};
-  std::any grad_vec = UnaryType<T>{grad};
-//
-//  // -------------
-//  auto& n5 = engine.graph.nodes[sorted_nodes[5].idx];
-//  grad_vec = n5.apply_backward(grad_vec);
-//
-//  auto& n4 = engine.graph.nodes[sorted_nodes[4].idx];
-//  std::cout << n4.name() << std::endl;
-//  grad_vec = n4.apply_backward(grad_vec); // Breaking type mismatch
   uint16_t slot_idx = 0;
   std::vector<ValueID> inputs;
   std::vector<ValueID> outputs;
@@ -145,45 +136,32 @@ int main() {
   auto output = outputs[slot_idx];
   auto initial = engine.value_buffer[output.idx];
   std::vector<T> initialGrad(initial.size(), 1);
-  std::any gradVec = UnaryType<T>{initialGrad};
+  std::any gradVec = MultiTensor<T>{initialGrad};
   engine.grad_buffer.resize(engine.value_buffer.size());
   std::cout << "Vec size: " << engine.value_buffer.size() << "\n";
   std::cout << "Vec idx: " << output.idx << "\n";
-  engine.grad_buffer[output.idx] = UnaryType<T>{initialGrad};
+  engine.grad_buffer[output.idx] = initialGrad;
   for (int16_t i = sorted_nodes.size() - 1; i > -1; --i) {
       auto& n = engine.graph.nodes[sorted_nodes[i].idx];
       auto& inputs = n.inputs;
       auto output_id = n.outputs[0];
-      gradVec = engine.grad_buffer[output_id.idx];
-      // here we have final node (id = 6), output valueID = 12
-      // we have inputs list, two slots [ValueID, ValueID] = [7, 11]
-      // we can get dst nodes with the produced by table - this gives
-      // nid1 = 3, nid2 = 5
-
+      gradVec = MultiTensor{engine.grad_buffer[output_id.idx]};
       gradVec = n.apply_backward(gradVec);
-      if (n.grad_in_type() == typeid(BinaryType<T>)) {
-        auto grad = std::any_cast<BinaryType<T>>(gradVec);
-		engine.grad_buffer[inputs[0].idx] = UnaryType<T>{grad.a};
-       	engine.grad_buffer[inputs[1].idx] = UnaryType<T>{grad.b};
-      }
-      else if (n.grad_out_type() == typeid(UnaryType<T>)) {
-        auto grad = std::any_cast<UnaryType<T>>(gradVec);
-        engine.grad_buffer[inputs[0].idx] = UnaryType<T>{grad.a};
+      for (uint16_t j = 0; j < inputs.size(); ++j) {
+        auto grad = std::any_cast<MultiTensor<T>>(gradVec);
+        engine.grad_buffer[inputs[j].idx] = grad[j];
       }
   }
 
   for (uint16_t i = 0; i < engine.grad_buffer.size(); ++i) {
-    std::cout << "Node idx: " << i << " ";
-    for (auto x : engine.grad_buffer[i].a) {
+    NodeID nid = engine.graph.produced_by[i].nid;
+    if (nid.idx >= 0) {
+    std::cout << "Node idx: " << nid.idx << " Node Op: " << engine.graph.nodes[nid.idx].name() << " ";
+    for (auto x : engine.grad_buffer[i]) {
       std::cout << x << " ";
     }
     std::cout << std::endl;
   }
+  }
 
-//    auto& n = engine.graph.nodes[sorted_nodes[i].idx];
-//    std::cout << "Node: " << sorted_nodes[i].idx << " Op: " << n.name();
-//    std::cout << " GradInType: " << n.grad_in_type().name();
-//    std::cout << " GradOutType: " << n.grad_out_type().name() << std::endl;
-//    grad_vec = n.apply_backward(grad_vec);
-//    std::cout << " GradVec: " << typeid(grad_vec).name() << std::endl;;
   }
