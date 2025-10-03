@@ -16,6 +16,7 @@ struct ProducerInfo { NodeID nid; uint16_t out_slot; };
 
 struct ConsumerInfo { NodeID nid; uint16_t in_slot; };
 
+// TODO: Make template by typename T
 class Graph {
   public:
     Graph() = default;
@@ -31,6 +32,26 @@ class Graph {
       if (src_nid.idx == kNoNode || dst_nid.idx == kNoNode) return;
       edges.push_back(Edge{src_nid, dst_nid});
     }
+
+    ValueID new_intermediate_value() {
+  		ValueID vid{value_counter++};
+
+  		if (produced_by.size() <= static_cast<size_t>(vid.idx)) {
+    		produced_by.resize(static_cast<size_t>(vid.idx) + 1);
+  		}
+ 		 if (consumed_by.size() <= static_cast<size_t>(vid.idx)) {
+    		consumed_by.resize(static_cast<size_t>(vid.idx) + 1);
+  		}
+ 		 return vid;
+	}
+
+    void set_produced_by(ValueID vid, NodeID nid, uint16_t out_slot) {
+  		if (produced_by.size() <= static_cast<size_t>(vid.idx)) {
+    		produced_by.resize(static_cast<size_t>(vid.idx) + 1);
+  		}
+  		produced_by[vid.idx] = ProducerInfo{nid, out_slot};
+	}
+
 
 
     ValueID new_input_value() {
@@ -54,46 +75,31 @@ class Graph {
       return nid;
   }
 
-
-  template <class ConcreteOp>
-  NodeID build_node(UnaryType<float> vec) {
-      auto op = ConcreteOp{};
-      INode node(op);
-      uint16_t num_outputs = node.get_static_num_outputs();
-      nodes.emplace_back(std::move(node));
-      auto& stored = nodes.back();
-      NodeID nid = make_node_id();
-      this->append_producer_table(stored, nid);
-      return nid;
-    }
-
-
-  template <class ConcreteOp>
-  NodeID build_node(BinaryType<float> vec) {
-      auto op = ConcreteOp{};
-      INode node(op);
-      nodes.emplace_back(std::move(node));
-      auto& stored = nodes.back();
-      NodeID nid = make_node_id();
-      this->append_producer_table(stored, nid);
-      return nid;
-    }
-
-  void set_node_inputs(INode& node, std::vector<ValueID> vids) {
-  node.inputs.resize(vids.size());
-  for (uint16_t i = 0; i < vids.size(); i++) {
-    node.inputs[i] = vids[i];
+  template <typename ConcreteOp>
+  NodeID build_node(MultiTensor<float> vec) {
+    auto op = ConcreteOp{};
+    INode node(op);
+    uint16_t num_outputs = node.get_static_num_outputs();
+    nodes.emplace_back(std::move(node));
+    auto& stored = nodes.back();
+  	NodeID nid = make_node_id();
+ 	this->append_producer_table(stored, nid);
+  	return nid;
   }
-}
-  void append_consumer_table(NodeID dst_nid, std::vector<ValueID> vids) {
-    	if (consumed_by.size() <= static_cast<size_t>(value_counter)) {
-          consumed_by.resize(consumed_by.size() + vids.size());
+
+  void set_node_input(INode& node, ValueID vid) {
+    size_t curr_size = node.inputs.size();
+    node.inputs.resize(curr_size + 1);
+    node.inputs[curr_size] = vid;
+  }
+
+
+  void append_consumer_table(NodeID dst_nid, ValueID vid, uint16_t slot) {
+        if (consumed_by.size() <= static_cast<size_t>(value_counter)) {
+          consumed_by.resize(consumed_by.size() + 1);
     	}
-        consumed_by.resize(consumed_by.size() + vids.size());
-        for (uint16_t i = 0; i < vids.size(); i++) {
-          consumed_by[vids[i].idx].push_back(ConsumerInfo{dst_nid, i});;
-      }
-  }
+        consumed_by[vid.idx].push_back(ConsumerInfo{dst_nid, slot});
+  	}
 
   private:
     NodeID make_node_id() {
