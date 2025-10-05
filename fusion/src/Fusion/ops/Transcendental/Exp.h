@@ -16,9 +16,9 @@ struct Exp {
     using GradOut = MultiTensor<T>;
 
     Out forward(Context& context, const In& input) {
-      	std::vector<T> c(input[0].size());
-        for (size_t i = 0; i < input[0].size(); ++i) {
-            c[i] = std::exp(input[0][i]);
+      	std::vector<T> c(input.at(0).size());
+        for (size_t i = 0; i < input.at(0).size(); ++i) {
+            c[i] = std::exp(input.at(0).at(i));
         }
         context.save("c", c);
 		Out out;
@@ -27,11 +27,11 @@ struct Exp {
     };
 
     GradIn backward(Context& context, GradOut& grad_out) {
-        std::vector<T> d(grad_out[0].size());
+        std::vector<T> d(grad_out.at(0).size());
         std::vector<T> a = context.template load<std::vector<T>>("c");
-        for (size_t i = 0; i < grad_out[0].size(); ++i) {
+        for (size_t i = 0; i < grad_out.at(0).size(); ++i) {
             const T& ai = a[i];
-            const T& dyi = grad_out[0][i];
+            const T& dyi = grad_out.at(0).at(i);
             d[i] = dyi * ai;
         }
         GradIn g;

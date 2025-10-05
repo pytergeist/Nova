@@ -16,11 +16,11 @@ struct Multiply {
     using GradOut = MultiTensor<T>;
 
     Out forward(Context& context, const In& input) {
-        std::vector<T> c(input[0].size());
-        context.save("a", input[0]);
-        context.save("b", input[1]);
-        for (size_t i = 0; i < input[0].size(); ++i) {
-            c[i] = (input[1][i] * input[1][i]);
+        std::vector<T> c(input.at(0).size());
+        context.save("a", input.at(0));
+        context.save("b", input.at(1));
+        for (size_t i = 0; i < input.at(0).size(); ++i) {
+            c.at(i) = (input.at(1).at(i) * input.at(1).at(i));
         }
         Out out;
         out.push_back(std::move(c));
@@ -29,17 +29,17 @@ struct Multiply {
 
     GradIn backward(Context& context, GradOut& grad_out) {
         GradIn g;
-        std::vector<T> c(grad_out[0].size());
-        std::vector<T> d(grad_out[0].size());
+        std::vector<T> c(grad_out.at(0).size());
+        std::vector<T> d(grad_out.at(0).size());
         std::vector<T> a = context.template load<std::vector<T>>("a");
         std::vector<T> b = context.template load<std::vector<T>>("b");
-        for (size_t i = 0; i < grad_out[0].size(); ++i) {
-            const T& ai = a[i];
-            const T& bi = b[i];
-            const T& grad = grad_out[0][i];
+        for (size_t i = 0; i < grad_out.at(0).size(); ++i) {
+            const T& ai = a.at(i);
+            const T& bi = b.at(i);
+            const T& grad = grad_out.at(0).at(i);
 
-            c[i] = grad * bi;
-            d[i] = grad * ai;
+            c.at(i) = grad * bi;
+            d.at(i) = grad * ai;
         }
         g.push_back(std::move(c));
         g.push_back(std::move(d));

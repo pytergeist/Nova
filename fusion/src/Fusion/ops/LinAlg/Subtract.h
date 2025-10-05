@@ -20,7 +20,7 @@ struct Subtract {
       c.at(i) = (input.at(0).at(i) - input.at(1).at(i));
     }
     Out out;
-    out.push_back(c);
+    out.push_back(std::move(c));
     return out;
   };
 
@@ -28,7 +28,7 @@ struct Subtract {
     const auto& c = grad_out.at(0);
     std::vector<T> d(c.size());
     for (size_t i = 0; i < grad_out.at(0).size(); ++i) {
-      const T bi = -grad_out.at(0).at(i);
+      const T& bi = -grad_out.at(0).at(i);
       d.at(i) = bi;
     }
     GradIn g;
