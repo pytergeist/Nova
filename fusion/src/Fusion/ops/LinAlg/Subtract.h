@@ -32,8 +32,8 @@ struct Subtract {
       d.at(i) = bi;
     }
     GradIn g;
-    g.push_back(c);
-    g.push_back(d);
+    g.push_back(std::move(c));
+    g.push_back(std::move(d));
     return g;
   }
 };

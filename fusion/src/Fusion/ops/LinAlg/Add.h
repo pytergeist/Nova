@@ -17,15 +17,13 @@ struct Add {
 
     Out forward(Context& context, const In& input) {
         if (input.size() < 2) throw std::runtime_error("Add needs 2 inputs");
-    	const auto& a = input[0];
-    	const auto& b = input[1];
+    	const auto& a = input.at(0);
+    	const auto& b = input.at(1);
     	if (a.size() != b.size()) throw std::runtime_error("Add: size mismatch");
         std::vector<T> c(a.size());
-        for (size_t i = 0; i < input[0].size(); ++i) {
-            c[i] = (input[0][i] + input[1][i]);
-            std::cout << c[i] << ", ";
+        for (size_t i = 0; i < input.at(0).size(); ++i) {
+            c.at(i) = (input.at(0).at(i) + input.at(1).at(i));
         }
-         std::cout << std::endl;
         Out out;
         out.push_back(std::move(c));
         return out;
@@ -33,8 +31,8 @@ struct Add {
 
     GradIn backward(Context& context, const GradOut& grad_out) {
         GradIn g;
-        g.push_back(grad_out[0]);
-        g.push_back(grad_out[0]);
+        g.push_back(std::move(grad_out.at(0)));
+        g.push_back(std::move(grad_out.at(0)));
         return g;
     }
 };
