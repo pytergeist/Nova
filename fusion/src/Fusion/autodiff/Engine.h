@@ -44,7 +44,7 @@ public:
     for (size_t i = 0; i < num; i++) {
       vids.push_back(feed_raw(payload[i]));
     }
-    return apply<Op>(vids); // what here?
+    return apply<Op>(vids);
   }
 
 

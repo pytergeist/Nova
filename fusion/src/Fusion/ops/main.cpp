@@ -15,6 +15,7 @@ int main() {
     using ExpOp = Operation<T, Exp<T>>;
     using divOp = Operation<T, Divide<T>>;
     using MulOp = Operation<T, Multiply<T>>;
+    using subOp = Operation<T, Subtract<T>>;
 
     std::vector<T> a{1,2,3,4};
     std::vector<T> b{1,2,3,4};
@@ -28,6 +29,8 @@ int main() {
     ValueID v4 = engine.apply<AddOp>(MultiTensor<T>{a, b});
 	ValueID v5 = engine.apply<ExpOp>(std::vector<ValueID>{v4});
 	ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v4});
+    ValueID v7 = engine.apply<divOp>(std::vector<ValueID>{v3, v4});
+    ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v3, v4});
 
     std::cout << "v1: " << v1.idx << std::endl;
     std::cout << "v2: " << v2.idx << std::endl;
