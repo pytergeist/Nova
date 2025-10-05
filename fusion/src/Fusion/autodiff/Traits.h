@@ -30,6 +30,12 @@ struct MultiTensor {
 
   void push_back(std::vector<T> v) { data.push_back(std::move(v)); }
 
+  std::vector<T>&       at(std::size_t i)       { return data.at(i); }
+  const std::vector<T>& at(std::size_t i) const { return data.at(i); }
+
+  T&       at(std::size_t i, std::size_t j)       { return data.at(i).at(j); }
+  const T& at(std::size_t i, std::size_t j) const { return data.at(i).at(j); }
+
   std::size_t size() const noexcept { return data.size(); }
 
   std::vector<T>&       operator[](std::size_t i)       { return data.at(i); }
