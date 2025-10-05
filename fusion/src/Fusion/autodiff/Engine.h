@@ -39,7 +39,7 @@ public:
   }
   template <class Op> ValueID apply(MultiTensor<T> payload) {
     size_t num = payload.size();
-    std::vector<ValueID> vids; // was: std::vector<ValueID> vids(num);
+    std::vector<ValueID> vids;
     vids.reserve(num);
     for (size_t i = 0; i < num; i++) {
       vids.push_back(feed_raw(payload[i]));
@@ -47,11 +47,6 @@ public:
     return apply<Op>(vids); // what here?
   }
 
-  //    template <class Op>
-  //    ValueID apply(UnaryType<T> payload) {
-  //        ValueID in_vid = feed_raw(payload.a);
-  //        return apply<Op>(in_vid);
-  //    }
 
   template <class Op> // TODO: evaluate impl
   ValueID apply(std::vector<ValueID> vids) {

@@ -3,41 +3,45 @@
 
 #include <vector>
 #include <string_view>
+#include "../../autodiff/Traits.h"
 #include "../Operation.h"
 
 template <typename T>
 struct Divide {
     inline static constexpr std::string_view name = "Divide";
-    using In = BinaryType<T>;
-    using Out = UnaryType<T>;
-    using GradIn = BinaryType<T>;
-    using GradOut = UnaryType<T>;
+    using In = MultiTensor<T>;
+    using Out = MultiTensor<T>;
+    using GradIn = MultiTensor<T>;
+    using GradOut = MultiTensor<T>;
 
     Out forward(Context& context, const In& input) {
-        Out out;
-        out.a.resize(input.a.size());
-        context.save("a", input.a);
-        context.save("b", input.b);
-        for (size_t i = 0; i < input.a.size(); ++i) {
-            out.a[i] = (input.a[i] / input.b[i]);
+        context.save("a", input[0]);
+        context.save("b", input[1]);
+        std::vector<T> c(input[0].size());
+        for (size_t i = 0; i < input[0].size(); ++i) {
+            c[i] = (input[0][i] / input[0][i]);
         }
+        Out out;
+        out.push_back(c);
         return out;
     };
 
     GradIn backward(Context& context, GradOut& grad_out) {
-        GradIn g;
-        g.a.resize(grad_out.a.size());
-        g.b.resize(grad_out.a.size());
         std::vector<T> a = context.template load<std::vector<T>>("a");
         std::vector<T> b = context.template load<std::vector<T>>("b");
-        for (size_t i = 0; i < grad_out.a.size(); ++i) {
+        std::vector<T> c(grad_out[0].size());
+        std::vector<T> d(grad_out[0].size());
+        for (size_t i = 0; i < grad_out[0].size(); ++i) {
             const T& ai = a[i];
             const T& bi = b[i];
-            const T& dyi = grad_out.a[i];
+            const T& dyi = grad_out[0][i];
 
-            g.a[i] = dyi / bi;
-            g.b[i] = -dyi * ai / (bi * bi);
+            c[i] = dyi / bi;
+            d[i] = -dyi * ai / (bi * bi);
         }
+        GradIn g;
+        g.push_back(c);
+        g.push_back(d);
         return g;
     }
 };
