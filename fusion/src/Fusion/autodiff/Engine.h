@@ -6,6 +6,8 @@
 
 #include "Graph.h"
 
+// TODO: general TODO, move private members of all autodiff classes into private
+
 template <typename T> class Engine {
 public:
   std::vector<std::vector<T>> value_buffer;
@@ -45,6 +47,18 @@ public:
       vids.push_back(feed_raw(payload[i]));
     }
     return apply<Op>(vids);
+  }
+
+  void set_grad_buff_size() {
+    grad_buffer.resize(value_buffer.size());
+  }
+
+  std::any grad_init(ValueID vid, uint16_t out_slot) {
+    std::vector<T> vec = value_buffer[vid.idx];
+    std::vector<T> grad(vec.size(), 1);
+    std::any gradVec = MultiTensor<T>{grad};
+    grad_buffer[vid.idx] = grad;
+    return gradVec;
   }
 
 

@@ -28,15 +28,18 @@ int main() {
 	ValueID v3 = engine.apply<AddOp>(std::vector<ValueID>{v1, v2});
     ValueID v4 = engine.apply<AddOp>(MultiTensor<T>{a, b});
 	ValueID v5 = engine.apply<ExpOp>(std::vector<ValueID>{v4});
-	ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v4});
-    ValueID v7 = engine.apply<divOp>(std::vector<ValueID>{v3, v4});
-    ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v3, v4});
+	ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v5});
+    ValueID v7 = engine.apply<divOp>(std::vector<ValueID>{v5, v6});
+    ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v6, v7});
 
     std::cout << "v1: " << v1.idx << std::endl;
     std::cout << "v2: " << v2.idx << std::endl;
     std::cout << "v3: " << v3.idx << std::endl;
     std::cout << "v4: " << v4.idx << std::endl;
     std::cout << "v5: " << v5.idx << std::endl;
+    std::cout << "v6: " << v6.idx << std::endl;
+    std::cout << "v7: " << v7.idx << std::endl;
+    std::cout << "v8: " << v8.idx << std::endl;
 
 
     const auto& out = engine.value_buffer[v4.idx];
@@ -126,41 +129,50 @@ int main() {
   std::cout << std::endl;
 
   std::cout << "Initialising Grad Vector\n";
-  auto val = engine.value_buffer[sorted_nodes[6].idx];
+  auto val = engine.value_buffer[sorted_nodes.back().idx];
   std::vector<T> grad(val.size(), 1);
   for (auto x : grad) {
     std::cout << x << " ";
   }
   std::cout << std::endl;
   uint16_t slot_idx = 0;
-  std::vector<ValueID> inputs;
-  std::vector<ValueID> outputs;
-  outputs = engine.graph.nodes[sorted_nodes[sorted_nodes.size() - 1].idx].outputs;
-  auto output = outputs[slot_idx];
-  auto initial = engine.value_buffer[output.idx];
-  std::vector<T> initialGrad(initial.size(), 1);
-  std::any gradVec = MultiTensor<T>{initialGrad};
-  engine.grad_buffer.resize(engine.value_buffer.size());
-  std::cout << "Vec size: " << engine.value_buffer.size() << "\n";
-  std::cout << "Vec idx: " << output.idx << "\n";
-  engine.grad_buffer[output.idx] = initialGrad;
+//  std::vector<ValueID> inputs;
+//  std::vector<ValueID> outputs;
+//  outputs = engine.graph.nodes[sorted_nodes[sorted_nodes.size() - 1].idx].outputs;
+//  auto output = outputs[slot_idx];
+//  auto initial = engine.value_buffer[output.idx];
+//  std::vector<T> initialGrad(initial.size(), 1);
+//  std::any gradVec = MultiTensor<T>{initialGrad};
+//  engine.grad_buffer.resize(engine.value_buffer.size());
+//  std::cout << "Vec size: " << engine.value_buffer.size() << "\n";
+//  std::cout << "Vec idx: " << output.idx << "\n";
+//  engine.grad_buffer[output.idx] = initialGrad;
+  engine.set_grad_buff_size();
+  std::vector<ValueID> outputs = engine.graph.nodes[sorted_nodes[sorted_nodes.size() - 1].idx].outputs;
+
+  std::any gradVec = engine.grad_init(outputs.at(0), 0);
   for (int16_t i = sorted_nodes.size() - 1; i > -1; --i) {
       auto& n = engine.graph.nodes[sorted_nodes[i].idx];
       auto& inputs = n.inputs;
       auto output_id = n.outputs[0];
-      gradVec = MultiTensor{engine.grad_buffer[output_id.idx]};
-      gradVec = n.apply_backward(gradVec);
-      for (uint16_t j = 0; j < inputs.size(); ++j) {
-        auto grad = std::any_cast<MultiTensor<T>>(gradVec);
-        engine.grad_buffer[inputs[j].idx] = grad[j];
-      }
+      if (engine.grad_buffer[output_id.idx].empty()) continue;
+      gradVec = MultiTensor<T>{engine.grad_buffer[output_id.idx]};
+	  gradVec = n.apply_backward(gradVec);
+	  auto grad = std::any_cast<MultiTensor<T>>(gradVec);
+	  for (uint16_t j = 0; j < inputs.size(); ++j) {
+    	engine.grad_buffer[inputs[j].idx] = grad[j];
+  	 }
+
   }
 
   for (uint16_t i = 0; i < engine.grad_buffer.size(); ++i) {
     NodeID nid = engine.graph.produced_by[i].nid;
     if (nid.idx >= 0) {
     std::cout << "Node idx: " << nid.idx << " Node Op: " << engine.graph.nodes[nid.idx].name() << " ";
-    for (auto x : engine.grad_buffer[i]) {
+    if (engine.grad_buffer.at(i).empty()) {
+      std::cout << "fuck me" << std::endl;
+    }
+    for (auto x : engine.grad_buffer.at(i)) {
       std::cout << x << " ";
     }
     std::cout << std::endl;
