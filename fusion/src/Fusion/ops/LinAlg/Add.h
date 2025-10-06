@@ -20,8 +20,8 @@ struct Add {
         FUSION_CHECK(input.size() >= 2, "Add requires two inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
         FUSION_BOUNDS_CHECK(1, input.size());
-    	const auto& a = input.at(0);
-    	const auto& b = input.at(1);
+    	const auto& a = input[0];
+    	const auto& b = input[1];
     	FUSION_CHECK(a.size() == b.size(), "Add: input size mismatch");
         std::vector<T> c(a.size());
         for (size_t i = 0; i < a.size(); ++i) {

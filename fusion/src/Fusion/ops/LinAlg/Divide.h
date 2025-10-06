@@ -37,7 +37,7 @@ struct Divide {
         FUSION_CHECK(grad_out.size() == 1, "Divide::backward expects exactly 1 upstream grad tensor");
         std::vector<T> a = context.template load<std::vector<T>>("a");
         std::vector<T> b = context.template load<std::vector<T>>("b");
-         const auto& g0 = grad_out[0];
+        const auto& g0 = grad_out[0];
         std::vector<T> c(g0.size());
         std::vector<T> d(g0.size());
         FUSION_CHECK(!g0.empty(), "Divide::backward: upstream grad is empty");

@@ -15,9 +15,15 @@ struct Subtract {
   using GradOut = MultiTensor<T>;
 
   Out forward(Context& context, const In& input) {
-    std::vector<T> c(input.at(0).size());
-    for (size_t i = 0; i < input.at(0).size(); ++i) {
-      c.at(i) = (input.at(0).at(i) - input.at(1).at(i));
+    FUSION_CHECK(input.size() >= 2, "Subtract requires two inputs");
+    FUSION_BOUNDS_CHECK(0, input.size());
+    FUSION_BOUNDS_CHECK(1, input.size());
+    const auto& a = input[0];
+    const auto& b = input[1];
+    FUSION_CHECK(a.size() == b.size(), "Subtract: input size mismatch");
+    std::vector<T> c(a.size());
+    for (size_t i = 0; i < a.size(); ++i) {
+      c[i] = a[i] - b[i];
     }
     Out out;
     out.push_back(std::move(c));
@@ -25,15 +31,18 @@ struct Subtract {
   };
 
   GradIn backward(Context& context, GradOut& grad_out) {
-    const auto& c = grad_out.at(0);
-    std::vector<T> d(c.size());
-    for (size_t i = 0; i < grad_out.at(0).size(); ++i) {
-      const T& bi = -grad_out.at(0).at(i);
-      d.at(i) = bi;
+    if (grad_out.size() == 0) return {};
+    FUSION_CHECK(grad_out.size() == 1, "Subtract::backward expects exactly 1 upstream grad tensor");
+    const auto& g0 = grad_out[0];
+    std::vector<T> g1(g0.size());
+    FUSION_CHECK(!g0.empty(), "Subtract::backward: upstream grad is empty");
+    for (size_t i = 0; i < g0.size(); ++i) {
+      const T& bi = -g0[i];
+      g1[i] = bi;
     }
     GradIn g;
-    g.push_back(std::move(c));
-    g.push_back(std::move(d));
+    g.push_back(std::move(g0));
+    g.push_back(std::move(g1));
     return g;
   }
 };

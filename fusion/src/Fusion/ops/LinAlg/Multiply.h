@@ -16,11 +16,17 @@ struct Multiply {
     using GradOut = MultiTensor<T>;
 
     Out forward(Context& context, const In& input) {
-        std::vector<T> c(input.at(0).size());
-        context.save("a", input.at(0));
-        context.save("b", input.at(1));
-        for (size_t i = 0; i < input.at(0).size(); ++i) {
-            c.at(i) = (input.at(1).at(i) * input.at(1).at(i));
+        FUSION_CHECK(input.size() >= 2, "Divide requires two inputs");
+        FUSION_BOUNDS_CHECK(0, input.size());
+        FUSION_BOUNDS_CHECK(1, input.size());
+        const auto& a = input.at(0);
+    	const auto& b = input.at(1);
+        FUSION_CHECK(a.size() == b.size(), "Add: input size mismatch");
+        context.save("a", input[0]);
+        context.save("b", input[1]);
+        std::vector<T> c(a.size());
+        for (size_t i = 0; i < a.size(); ++i) {
+            c[i] = a[i] * b[i];
         }
         Out out;
         out.push_back(std::move(c));
@@ -28,19 +34,23 @@ struct Multiply {
     };
 
     GradIn backward(Context& context, GradOut& grad_out) {
-        GradIn g;
-        std::vector<T> c(grad_out.at(0).size());
-        std::vector<T> d(grad_out.at(0).size());
+        if (grad_out.size() == 0) return {};
+        FUSION_CHECK(grad_out.size() == 1, "Multiply::backward expects exactly 1 upstream grad tensor");
         std::vector<T> a = context.template load<std::vector<T>>("a");
         std::vector<T> b = context.template load<std::vector<T>>("b");
-        for (size_t i = 0; i < grad_out.at(0).size(); ++i) {
-            const T& ai = a.at(i);
-            const T& bi = b.at(i);
-            const T& grad = grad_out.at(0).at(i);
+        const auto& g0 = grad_out[0];
+        std::vector<T> c(g0.size());
+        std::vector<T> d(g0.size());
+        FUSION_CHECK(!g0.empty(), "Divide::backward: upstream grad is empty");
+        for (size_t i = 0; i < g0.size(); ++i) {
+            const T& ai = a[i];
+            const T& bi = b[i];
+            const T& grad = g0[i];
 
             c.at(i) = grad * bi;
             d.at(i) = grad * ai;
         }
+        GradIn g;
         g.push_back(std::move(c));
         g.push_back(std::move(d));
         return g;
