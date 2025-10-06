@@ -5,6 +5,7 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
+#include "../../common/Checks.h"
 
 
 template <typename T>
@@ -16,13 +17,15 @@ struct Add {
     using GradOut = MultiTensor<T>;
 
     Out forward(Context& context, const In& input) {
-        if (input.size() < 2) throw std::runtime_error("Add needs 2 inputs");
+        FUSION_CHECK(input.size() >= 2, "Add requires two inputs");
+        FUSION_BOUNDS_CHECK(0, input.size());
+        FUSION_BOUNDS_CHECK(1, input.size());
     	const auto& a = input.at(0);
     	const auto& b = input.at(1);
-    	if (a.size() != b.size()) throw std::runtime_error("Add: size mismatch");
+    	FUSION_CHECK(a.size() == b.size(), "Add: input size mismatch");
         std::vector<T> c(a.size());
-        for (size_t i = 0; i < input.at(0).size(); ++i) {
-            c.at(i) = (input.at(0).at(i) + input.at(1).at(i));
+        for (size_t i = 0; i < a.size(); ++i) {
+            c[i] = a[i] + b[i];
         }
         Out out;
         out.push_back(std::move(c));
@@ -30,9 +33,14 @@ struct Add {
     };
 
     GradIn backward(Context& context, const GradOut& grad_out) {
+        if (grad_out.size() == 0) return {}; // TODO: Make a macro??? or helper func
+        FUSION_CHECK(grad_out.size() == 1, "Add::backward expects exactly 1 upstream grad tensor");
+        const auto& g0 = grad_out[0];
+        FUSION_CHECK(!g0.empty(), "Add::backward: upstream grad is empty");
         GradIn g;
-        g.push_back(std::move(grad_out.at(0)));
-        g.push_back(std::move(grad_out.at(0)));
+        g.data.reserve(2);
+        g.push_back(g0);
+        g.push_back(g0);
         return g;
     }
 };
