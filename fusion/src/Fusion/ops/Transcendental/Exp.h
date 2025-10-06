@@ -16,9 +16,12 @@ struct Exp {
     using GradOut = MultiTensor<T>;
 
     Out forward(Context& context, const In& input) {
-      	std::vector<T> c(input.at(0).size());
-        for (size_t i = 0; i < input.at(0).size(); ++i) {
-            c[i] = std::exp(input.at(0).at(i));
+        FUSION_CHECK(input.size() >= 1, "Exp requires one inputs");
+        FUSION_BOUNDS_CHECK(0, input.size());
+        const auto& a = input[0];
+      	std::vector<T> c(a.size());
+        for (size_t i = 0; i < a.size(); ++i) {
+            c[i] = std::exp(a[i]);
         }
         context.save("c", c);
 		Out out;
@@ -27,15 +30,19 @@ struct Exp {
     };
 
     GradIn backward(Context& context, GradOut& grad_out) {
-        std::vector<T> d(grad_out.at(0).size());
+        if (grad_out.size() == 0) return {};
+        FUSION_CHECK(grad_out.size() == 1, "Exp::backward expects exactly 1 upstream grad tensor");
+        const auto& g0 = grad_out[0];
+        std::vector<T> g1(g0.size());
+    	FUSION_CHECK(!g0.empty(), "Divide::backward: upstream grad is empty");
         std::vector<T> a = context.template load<std::vector<T>>("c");
-        for (size_t i = 0; i < grad_out.at(0).size(); ++i) {
+        for (size_t i = 0; i < g0.size(); ++i) {
             const T& ai = a[i];
-            const T& dyi = grad_out.at(0).at(i);
-            d[i] = dyi * ai;
+            const T& dyi = g0[i];
+            g1[i] = dyi * ai;
         }
         GradIn g;
-        g.push_back(std::move(d));
+        g.push_back(std::move(g1));
         return g;
     }
 };
