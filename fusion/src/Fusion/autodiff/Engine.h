@@ -26,6 +26,7 @@ public:
 
   void backward() {
     set_grad_buff_size();
+    for (auto& g : grad_buff_) {g.clear();};
     Sort sort_(graph_.nodes.size());
     std::vector<uint16_t> in_degree =
         sort_.calc_indegree(graph_.nodes, graph_.produced_by);
@@ -33,16 +34,26 @@ public:
         graph_.nodes, graph_.produced_by, graph_.consumed_by, graph_.node_ids);
     ValueID out_vid = get_output(sorted_nodes, 0);
     std::any gradVec = grad_init(out_vid, 0);
-    for (int16_t i = sorted_nodes.size() - 1; i > -1; --i) {
-      auto &n = graph_.nodes[sorted_nodes[i].idx];
+    for (auto it = sorted_nodes.rbegin(); it != sorted_nodes.rend(); ++it) {
+      auto &n = graph_.nodes[it->idx];
       auto &inputs = n.inputs;
       auto output_id = n.outputs[0];
       if (grad_buff_[output_id.idx].empty())
         continue;
       gradVec = MultiTensor<T>{grad_buff_[output_id.idx]};
       gradVec = n.apply_backward(gradVec);
-      auto grad = std::any_cast<MultiTensor<T>>(gradVec);
+      auto grad = std::any_cast<typename Op::Out>(gradVec);
+
       for (uint16_t j = 0; j < inputs.size(); ++j) {
+        auto& dst = grad_buff_[inputs[j].idx];
+        const auto& src = grad[j];
+        if (dst.empty()) {dst.assign(src.begin(), src.end());}
+        else {
+          FUSION_CHECK(dst.size() == src.size(), "grad size mismatch");
+          for (uint16_t k = 0; k < dst.size(); ++k) {
+            dst[k] += src[k];
+          }
+        };
         grad_buff_[inputs[j].idx] = grad[j];
       }
     }
@@ -76,7 +87,7 @@ public:
                  "Engine::apply: forward produced empty outputs");
     ValueID out_vid = node.outputs[0];
     ensure_value_capacity(out_vid);
-    auto &out_u = std::any_cast<MultiTensor<T> &>(any_out);
+    auto &out_u = std::any_cast<typename Op::Out &>(any_out);
     val_buff_[out_vid.idx] = out_u[0];
     return out_vid;
   }
