@@ -33,7 +33,7 @@ public:
     std::vector<NodeID> sorted_nodes = sort_.topological_sort(
         graph_.nodes, graph_.produced_by, graph_.consumed_by, graph_.node_ids);
     ValueID out_vid = get_output(sorted_nodes, 0);
-    std::any gradVec = grad_init(out_vid, 0);
+    std::any gradVec = grad_init(out_vid, 0); // TODO: This chooses a single sink for simplicity but graphs can have multiple sinks
     for (auto it = sorted_nodes.rbegin(); it != sorted_nodes.rend(); ++it) {
       auto &n = graph_.nodes[it->idx];
       auto &inputs = n.inputs;
@@ -42,7 +42,7 @@ public:
         continue;
       gradVec = MultiTensor<T>{grad_buff_[output_id.idx]};
       gradVec = n.apply_backward(gradVec);
-      auto grad = std::any_cast<typename Op::Out>(gradVec);
+      auto grad = std::any_cast<MultiTensor<T>>(gradVec);
 
       for (uint16_t j = 0; j < inputs.size(); ++j) {
         auto& dst = grad_buff_[inputs[j].idx];
@@ -83,13 +83,19 @@ public:
         ensure_value_capacity(vid);
       }
     }
-    FUSION_CHECK(out_mt.size() != 0,
+    FUSION_CHECK(out_mt.size() > 0,
                  "Engine::apply: forward produced empty outputs");
+    FUSION_BOUNDS_CHECK(0, node.outputs.size());
+    FUSION_CHECK(node.outputs.size() == out_mt.size(), "node output size mismatch");
     ValueID out_vid = node.outputs[0];
     ensure_value_capacity(out_vid);
-    auto &out_u = std::any_cast<typename Op::Out &>(any_out);
-    val_buff_[out_vid.idx] = out_u[0];
-    return out_vid;
+    auto &out_u = std::any_cast<MultiTensor<T> &>(any_out);
+    for (uint16_t i = 0; i < out_mt.size(); ++i) {
+      ValueID vid_i = node.outputs[i];
+      ensure_value_capacity(vid_i);
+      val_buff_[vid_i.idx] = out_mt[i];
+    }
+    return node.outputs[0]; // TODO: return all vids here?
   }
 
   void dump_graph(std::ostream &os) const {
