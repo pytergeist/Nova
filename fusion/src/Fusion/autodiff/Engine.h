@@ -38,8 +38,6 @@ public:
       auto &n = graph_.nodes[it->idx];
       auto &inputs = n.inputs;
       auto output_id = n.outputs[0];
-      if (grad_buff_[output_id.idx].empty())
-        continue;
       gradVec = MultiTensor<T>{grad_buff_[output_id.idx]};
       gradVec = n.apply_backward(gradVec);
       auto grad = std::any_cast<MultiTensor<T>>(gradVec);
