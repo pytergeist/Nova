@@ -1,9 +1,10 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include <any>
 #include <memory>
+#include <ostream>
 
+#include "../common/Checks.h"
 #include "Graph.h"
 #include "Sort.h"
 #include "Traits.h"
@@ -26,40 +27,41 @@ public:
 
   void backward() {
     set_grad_buff_size();
-    for (auto& g : grad_buff_) {g.clear();};
-    Sort sort_(graph_.nodes.size());
-    std::vector<uint16_t> in_degree =
-        sort_.calc_indegree(graph_.nodes, graph_.produced_by);
+    for (auto &g : grad_buff_) {
+      g.clear();
+    };
+    Sort<T> sort_(graph_.nodes.size());
     std::vector<NodeID> sorted_nodes = sort_.topological_sort(
         graph_.nodes, graph_.produced_by, graph_.consumed_by, graph_.node_ids);
     ValueID out_vid = get_output(sorted_nodes, 0);
-    std::any gradVec = grad_init(out_vid, 0); // TODO: This chooses a single sink for simplicity but graphs can have multiple sinks
+    MultiTensor<T> gradVec =
+        grad_init(out_vid, 0); // TODO: This chooses a single sink for
+                               // simplicity but graphs can have multiple sinks
     for (auto it = sorted_nodes.rbegin(); it != sorted_nodes.rend(); ++it) {
       auto &n = graph_.nodes[it->idx];
       auto &inputs = n.inputs;
       auto output_id = n.outputs[0];
       gradVec = MultiTensor<T>{grad_buff_[output_id.idx]};
       gradVec = n.apply_backward(gradVec);
-      auto grad = std::any_cast<MultiTensor<T>>(gradVec);
 
       for (uint16_t j = 0; j < inputs.size(); ++j) {
-        auto& dst = grad_buff_[inputs[j].idx];
-        const auto& src = grad[j];
-        if (dst.empty()) {dst.assign(src.begin(), src.end());}
-        else {
+        auto &dst = grad_buff_[inputs[j].idx];
+        const auto &src = gradVec[j];
+        if (dst.empty()) {
+          dst.assign(src.begin(), src.end());
+        } else {
           FUSION_CHECK(dst.size() == src.size(), "grad size mismatch");
           for (uint16_t k = 0; k < dst.size(); ++k) {
             dst[k] += src[k];
           }
         };
-        grad_buff_[inputs[j].idx] = grad[j];
       }
     }
   }
 
   template <class Op> // TODO: evaluate impl
   ValueID apply(std::vector<ValueID> vids) {
-    NodeID dst_nid = graph_.build_node<Op>(MultiTensor<T>{});
+    NodeID dst_nid = graph_.template build_node<Op>(MultiTensor<T>{});
     MultiTensor<T> in;
     in.data.reserve(vids.size());
     auto &node = graph_.nodes[dst_nid.idx];
@@ -70,28 +72,27 @@ public:
       graph_.append_consumer_table(dst_nid, vids[i], i);
       in.push_back(val_buff_[vids[i].idx]);
     }
-    std::any any_out = run_forward(node, std::any{in});
-    auto out_mt = std::any_cast<typename Op::Out>(any_out);
+    MultiTensor<T> out = run_forward(node, in);
     if (node.outputs.empty()) {
-      node.outputs.reserve(out_mt.size());
-      for (size_t i = 0; i < out_mt.size(); ++i) {
+      node.outputs.reserve(out.size());
+      for (size_t i = 0; i < out.size(); ++i) {
         ValueID vid = graph_.new_intermediate_value();
         graph_.set_produced_by(vid, dst_nid, static_cast<uint16_t>(i));
         node.outputs.push_back(vid);
         ensure_value_capacity(vid);
       }
     }
-    FUSION_CHECK(out_mt.size() > 0,
+    FUSION_CHECK(out.size() > 0,
                  "Engine::apply: forward produced empty outputs");
     FUSION_BOUNDS_CHECK(0, node.outputs.size());
-    FUSION_CHECK(node.outputs.size() == out_mt.size(), "node output size mismatch");
+    FUSION_CHECK(node.outputs.size() == out.size(),
+                 "node output size mismatch");
     ValueID out_vid = node.outputs[0];
     ensure_value_capacity(out_vid);
-    auto &out_u = std::any_cast<MultiTensor<T> &>(any_out);
-    for (uint16_t i = 0; i < out_mt.size(); ++i) {
+    for (uint16_t i = 0; i < out.size(); ++i) {
       ValueID vid_i = node.outputs[i];
       ensure_value_capacity(vid_i);
-      val_buff_[vid_i.idx] = out_mt[i];
+      val_buff_[vid_i.idx] = out[i];
     }
     return node.outputs[0]; // TODO: return all vids here?
   }
@@ -118,7 +119,7 @@ public:
   }
 
 private:
-  Graph graph_{};
+  Graph<T> graph_{};
   std::vector<std::vector<T>> val_buff_;
   std::vector<std::vector<T>> grad_buff_;
 
@@ -135,7 +136,7 @@ private:
   }
 
   template <class Op> ValueID feed(MultiTensor<T> v) {
-    NodeID dst_nid = graph_.build_node<Op>(v);
+    NodeID dst_nid = graph_.template build_node<Op>(v);
     auto &node = graph_.nodes[dst_nid.idx];
     // Arbitrily set to 0 for single tensor feed
     // TODO: make return type vec<ValueID> to allow for multi output??? Not sure
@@ -148,10 +149,10 @@ private:
 
   void set_grad_buff_size() { grad_buff_.resize(val_buff_.size()); }
 
-  std::any grad_init(ValueID vid, uint16_t out_slot) {
+  MultiTensor<T> grad_init(ValueID vid, uint16_t out_slot) {
     std::vector<T> vec = val_buff_[vid.idx];
     std::vector<T> grad(vec.size(), 1);
-    std::any gradVec = MultiTensor<T>{grad};
+    MultiTensor<T> gradVec = MultiTensor<T>{grad};
     grad_buff_[vid.idx] = grad;
     return gradVec;
   }
@@ -162,7 +163,7 @@ private:
     return outputs[out_slot];
   }
 
-  std::any run_forward(INode &node, const std::any &vec) {
+  MultiTensor<T> run_forward(INode<T> &node, const MultiTensor<T> &vec) {
     return node.apply_forward(vec);
   }
 };
