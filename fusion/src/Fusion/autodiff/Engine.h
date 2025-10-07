@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "Graph.h"
+#include "../autodiff/Sort.h"
 
 // TODO: general TODO, move private members of all autodiff classes into private
 
@@ -49,9 +50,7 @@ public:
     return apply<Op>(vids);
   }
 
-  void set_grad_buff_size() {
-    grad_buffer.resize(value_buffer.size());
-  }
+  void set_grad_buff_size() { grad_buffer.resize(value_buffer.size()); }
 
   std::any grad_init(ValueID vid, uint16_t out_slot) {
     std::vector<T> vec = value_buffer[vid.idx];
@@ -61,6 +60,34 @@ public:
     return gradVec;
   }
 
+  ValueID get_output(std::vector<NodeID> &sorted_nodes, uint16_t out_slot) {
+    std::vector<ValueID> outputs = graph.nodes[sorted_nodes.back().idx].outputs;
+    return outputs[out_slot];
+  }
+
+  void backward() {
+    set_grad_buff_size();
+    Sort sort = Sort(graph.nodes.size());
+    std::vector<uint16_t> in_degree =
+        sort.calc_indegree(graph.nodes, graph.produced_by);
+    std::vector<NodeID> sorted_nodes = sort.topological_sort(
+        graph.nodes, graph.produced_by, graph.consumed_by, graph.node_ids);
+    ValueID out_vid = get_output(sorted_nodes, 0);
+    std::any gradVec = grad_init(out_vid, 0);
+    for (int16_t i = sorted_nodes.size() - 1; i > -1; --i) {
+      auto &n = graph.nodes[sorted_nodes[i].idx];
+      auto &inputs = n.inputs;
+      auto output_id = n.outputs[0];
+      if (grad_buffer[output_id.idx].empty())
+        continue;
+      gradVec = MultiTensor<T>{grad_buffer[output_id.idx]};
+      gradVec = n.apply_backward(gradVec);
+      auto grad = std::any_cast<MultiTensor<T>>(gradVec);
+      for (uint16_t j = 0; j < inputs.size(); ++j) {
+        grad_buffer[inputs[j].idx] = grad[j];
+      }
+    }
+  }
 
   template <class Op> // TODO: evaluate impl
   ValueID apply(std::vector<ValueID> vids) {
