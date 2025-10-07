@@ -41,69 +41,9 @@ int main() {
     std::cout << "v7: " << v7.idx << std::endl;
     std::cout << "v8: " << v8.idx << std::endl;
 
+  	engine.backward();
 
-    const auto& out = engine.value_buffer[v4.idx];
-    for (auto x : out) std::cout << x << " ";
-    std::cout << "\n";
-
-    std::cout << "Produced By info\n";
-    for (size_t i = 0; i < engine.graph.produced_by.size(); ++i) {
-        auto p = engine.graph.produced_by[i];
-        std::cout << "ValueID: " << i << " " << "NodeID: " << p.nid.idx << " " << "out_slot: " << p.out_slot;
-        if (p.nid.idx != -1) {
-          std::cout << " Test ValueID: " << engine.graph.nodes[p.nid.idx].outputs[p.out_slot].idx << "\n";
-          }
-        else {
-        std::cout << "\n";
-        }
-    }
-
-  std::cout << "Consumed By info\n";
-  for (size_t i = 0; i < engine.graph.consumed_by.size(); ++i) {
-    auto p = engine.graph.consumed_by[i];
-    for (auto x : p) {
-      std::cout << "ValueID: " << i << " " << "NodeID: " << x.nid.idx << " " << "in_slot: " << x.in_slot;
-      std::cout << " Test ValueID: " << engine.graph.nodes[x.nid.idx].inputs[x.in_slot].idx << "\n";
-    }
-  }
-
-    std::cout << "Edge List\n";
-    for (size_t i = 0; i < engine.graph.edges.size(); ++i) {
-      auto p = engine.graph.edges[i];
-      std::cout << p.src.idx << " " << p.dst.idx << "\n";
-    }
-
-    std::cout << "Node info\n";
-    for (size_t i = 0; i < engine.graph.nodes.size(); ++i) {
-      auto& p = engine.graph.nodes[i];
-      std::cout << "Node idx: " << i << " Input idxs: ";
-      for (auto x : p.inputs)
-        std::cout << x.idx << ", ";
-      std::cout << std::endl;
-
-      std::cout << "Node idx: " << i << " Output idxs: ";
-      for (auto x : p.outputs)
-        std::cout << x.idx << ", ";
-     std::cout << std::endl;
-	}
-
-   std::cout << "Sorting\n";
+  	engine.dump_graph(std::cout);
 
 
-  engine.backward();
-
-  for (uint16_t i = 0; i < engine.grad_buffer.size(); ++i) {
-    NodeID nid = engine.graph.produced_by[i].nid;
-    if (nid.idx >= 0) {
-    std::cout << "Node idx: " << nid.idx << " Node Op: " << engine.graph.nodes[nid.idx].name() << " ";
-    if (engine.grad_buffer.at(i).empty()) {
-      std::cout << "fuck me" << std::endl;
-    }
-    for (auto x : engine.grad_buffer.at(i)) {
-      std::cout << x << " ";
-    }
-    std::cout << std::endl;
-  }
-  }
-
-  }
+}
