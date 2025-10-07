@@ -1,16 +1,18 @@
 #ifndef SORT_H
 #define SORT_H
 
+#include "Traits.h"
 #include <queue>
 #include <vector>
 
-class Sort {
+template <typename T> class Sort {
 public:
   std::vector<NodeID> sorted;
   Sort(uint16_t numNodes) : numNodes_(std::move(numNodes)) {
     std::vector<bool> visited(numNodes, false);
   };
-  std::vector<uint16_t> calc_indegree(std::vector<INode> &nodes,
+
+  std::vector<uint16_t> calc_indegree(std::vector<INode<T>> &nodes,
                                       std::vector<ProducerInfo> &produced_by) {
     // This belongs in the graph??? not in the sort - also iteratively update
     // this do not calculate on method exe
@@ -30,7 +32,7 @@ public:
   };
 
   std::vector<NodeID>
-  topological_sort(std::vector<INode> &nodes,
+  topological_sort(std::vector<INode<T>> &nodes,
                    std::vector<ProducerInfo> &produced_by,
                    std::vector<std::vector<ConsumerInfo>> &consumed_by,
                    std::vector<NodeID> &node_ids) {

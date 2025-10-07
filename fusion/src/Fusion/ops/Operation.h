@@ -1,8 +1,10 @@
 #ifndef OPERATION_H
 #define OPERATION_H
 
+#include <vector>
 #include <string>
 #include <any>
+#include <unordered_map>
 
 template <typename T>
 struct BinaryType {std::vector<T> a; std::vector<T> b;};
