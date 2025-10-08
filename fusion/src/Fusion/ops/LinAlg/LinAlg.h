@@ -6,5 +6,6 @@
 #include "Divide.h"
 #include "Multiply.h"
 #include "Subtract.h"
+#include "Pow.h"
 
 #endif // _LINALG_H

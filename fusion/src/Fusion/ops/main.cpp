@@ -18,6 +18,7 @@ int main() {
   using subOp = Operation<T, Subtract<T>>;
   using logOp = Operation<T, Log<T>>;
   using sqrtOp = Operation<T, Sqrt<T>>;
+  using powOp = Operation<T, Pow<T>>;
 
   std::vector<T> a{1, 2, 3, 4};
   std::vector<T> b{1, 2, 3, 4};
@@ -35,6 +36,7 @@ int main() {
   ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v6, v7});
   ValueID v9 = engine.apply<logOp>(std::vector<ValueID>{v8});
   ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
+  ValueID v11 = engine.apply<sqrtOp>(std::vector<ValueID>{v10});
 
 
   std::cout << "v1: " << v1.idx << std::endl;
