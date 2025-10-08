@@ -4,8 +4,8 @@
 #include "../autodiff/NodeInterface.h"
 #include "../autodiff/Sort.h"
 #include "LinAlg/LinAlg.h"
+#include "Transcendental/Transcendental.h"
 #include "Operation.h"
-#include "Transcendental/Exp.h"
 #include <iostream>
 #include <vector>
 
@@ -16,6 +16,8 @@ int main() {
   using divOp = Operation<T, Divide<T>>;
   using MulOp = Operation<T, Multiply<T>>;
   using subOp = Operation<T, Subtract<T>>;
+  using logOp = Operation<T, Log<T>>;
+  using sqrtOp = Operation<T, Sqrt<T>>;
 
   std::vector<T> a{1, 2, 3, 4};
   std::vector<T> b{1, 2, 3, 4};
@@ -31,6 +33,9 @@ int main() {
   ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v5});
   ValueID v7 = engine.apply<divOp>(std::vector<ValueID>{v5, v6});
   ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v6, v7});
+  ValueID v9 = engine.apply<logOp>(std::vector<ValueID>{v8});
+  ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
+
 
   std::cout << "v1: " << v1.idx << std::endl;
   std::cout << "v2: " << v2.idx << std::endl;
