@@ -70,7 +70,10 @@ public:
       graph_.add_edge(src_nid, dst_nid);
       graph_.set_node_input(node, vids[i]);
       graph_.append_consumer_table(dst_nid, vids[i], i);
-      in.push_back(val_buff_[vids[i].idx]);
+      auto& opt = val_buff_[vids[i].idx];
+//      assert(opt.has_value());
+      in.push_back(std::move(*opt));
+//      opt.reset();
     }
     MultiTensor<T> out = run_forward(node, in);
     if (node.outputs.empty()) {
@@ -92,7 +95,7 @@ public:
     for (uint16_t i = 0; i < out.size(); ++i) {
       ValueID vid_i = node.outputs[i];
       ensure_value_capacity(vid_i);
-      val_buff_[vid_i.idx] = out[i];
+      val_buff_[vid_i.idx] = std::move(out[i]);
     }
     return node.outputs[0]; // TODO: return all vids here?
   }
@@ -110,7 +113,7 @@ public:
         if (grad_buff_.at(i).empty()) {
           os << "[no grad]" << std::endl;
         }
-        for (auto x : grad_buff_.at(i)) {
+        for (auto x : grad_buff_.at(i).raw_data()) {
           os << x << " ";
         }
         os << std::endl;
@@ -120,18 +123,18 @@ public:
 
 private:
   Graph<T> graph_{};
-  std::vector<std::vector<T>> val_buff_;
-  std::vector<std::vector<T>> grad_buff_;
+  std::vector<std::optional<Tensor<T>>> val_buff_;
+  std::vector<Tensor<T>> grad_buff_;
 
   void ensure_value_capacity(ValueID vid) {
     if (val_buff_.size() <= static_cast<size_t>(vid.idx)) {
       val_buff_.resize(static_cast<size_t>(vid.idx) + 1);
     }
   }
-  ValueID feed_raw(const std::vector<T> &data) {
+  ValueID feed_raw(Tensor<T> &data) {
     ValueID vid = graph_.new_input_value();
     ensure_value_capacity(vid);
-    val_buff_[vid.idx] = data;
+    val_buff_[vid.idx] = std::move(data);
     return vid;
   }
 
@@ -143,15 +146,15 @@ private:
     // this is needed
     ValueID vid = node.outputs.at(0);
     ensure_value_capacity(vid);
-    val_buff_[vid.idx] = v[0];
+    val_buff_[vid.idx] = std::move(v[0]);
     return vid;
   }
 
   void set_grad_buff_size() { grad_buff_.resize(val_buff_.size()); }
 
   MultiTensor<T> grad_init(ValueID vid, uint16_t out_slot) {
-    std::vector<T> vec = val_buff_[vid.idx];
-    std::vector<T> grad(vec.size(), 1);
+    Tensor<T> vec = val_buff_[vid.idx];
+    Tensor<T> grad(vec.size(), 1);
     MultiTensor<T> gradVec = MultiTensor<T>{grad};
     grad_buff_[vid.idx] = grad;
     return gradVec;

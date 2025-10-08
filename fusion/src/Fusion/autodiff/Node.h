@@ -1,9 +1,9 @@
 #ifndef _NODE_H
 #define _NODE_H
 
-#include "../ops/Operation.h"
-#include "Traits.h"
 #include <memory>
+#include "Traits.h"
+#include "../policies/Operation.h"
 
 template <class Op> class Node {
 public:
@@ -31,13 +31,13 @@ public:
 
     output_ = op_.forward(ctx_, input);
     fwd_done_ = true;
-    return output_;
+    return std::move(output_);
   };
 
   GradIn run_backward(GradOut &grad_out) {
     grad_input_ = op_.backward(ctx_, grad_out);
     bwd_done_ = true;
-    return grad_input_;
+    return std::move(grad_input_);
   }
 
 private:

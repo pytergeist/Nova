@@ -24,6 +24,7 @@ public:
   size_t rank_;
   bool requires_grad_;
 
+
   explicit Tensor(std::vector<size_t> shape, std::vector<T> data,
                   Device device = Device::CPU, bool requires_grad = false)
       : shape_(std::move(shape)),
@@ -84,6 +85,10 @@ public:
 //  }
 
   T operator[](int idx) const { return storage->data()[idx]; };
+
+  size_t size() const noexcept { return storage->data().size(); }
+
+  bool empty() const noexcept { return storage->data().empty(); }
 
   std::vector<T> &raw_data() { return storage->data(); }
   const std::vector<T> &raw_data() const { return storage->data(); }

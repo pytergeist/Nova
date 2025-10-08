@@ -5,6 +5,8 @@
 #include <initializer_list>
 #include <vector>
 
+#include "../Tensor.h"
+
 // TODO: Create fixed size multitensor for hot paths
 
 struct ValueID {
@@ -14,39 +16,36 @@ struct NodeID {
   int16_t idx;
 };
 
-template <typename T> struct MultiTensor {
-  std::vector<std::vector<T>> data;
+// Traits.h
+template <typename T>
+struct MultiTensor {
+  std::vector<Tensor<T>> data;
 
   MultiTensor() = default;
 
-  explicit MultiTensor(std::size_t n) : data(n) {}
+  explicit MultiTensor(std::size_t n) { data.reserve(n); }
 
-  MultiTensor(std::initializer_list<std::initializer_list<T>> init) {
-    data.reserve(init.size());
-    for (const auto &il : init) {
-      data.emplace_back(il.begin(), il.end());
-    }
-  }
+  MultiTensor(const MultiTensor&) = delete;
+  MultiTensor& operator=(const MultiTensor&) = delete;
+  MultiTensor(MultiTensor&&) noexcept = default;
+  MultiTensor& operator=(MultiTensor&&) noexcept = default;
 
-  MultiTensor(std::initializer_list<std::vector<T>> init) : data(init) {}
+  void push_back(Tensor<T>&& v) { data.emplace_back(std::move(v)); }
+  void push_back(const Tensor<T>&) = delete;
 
-  void push_back(std::vector<T> v) { data.push_back(std::move(v)); }
-
-  std::vector<T> &at(std::size_t i) { return data.at(i); }
-  const std::vector<T> &at(std::size_t i) const { return data.at(i); }
-
-  T &at(std::size_t i, std::size_t j) { return data.at(i).at(j); }
-  const T &at(std::size_t i, std::size_t j) const { return data.at(i).at(j); }
+  Tensor<T>& at(std::size_t i) { return data.at(i); }
+  const Tensor<T>& at(std::size_t i) const { return data.at(i); }
 
   std::size_t size() const noexcept { return data.size(); }
 
-  std::vector<T> &operator[](std::size_t i) { return data.at(i); }
-  const std::vector<T> &operator[](std::size_t i) const { return data.at(i); }
+  Tensor<T>& operator[](std::size_t i) { return data.at(i); }
+  const Tensor<T>& operator[](std::size_t i) const { return data.at(i); }
 
   auto begin() { return data.begin(); }
   auto end() { return data.end(); }
   auto begin() const { return data.begin(); }
   auto end() const { return data.end(); }
 };
+
 
 #endif // TRAITS_H

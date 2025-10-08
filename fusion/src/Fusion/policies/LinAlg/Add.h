@@ -23,24 +23,24 @@ struct Add {
     	const auto& a = input[0];
     	const auto& b = input[1];
     	FUSION_CHECK(a.size() == b.size(), "Add: input size mismatch");
-        std::vector<T> c(a.size());
-        for (size_t i = 0; i < a.size(); ++i) {
-            c[i] = a[i] + b[i];
-        }
+        Tensor<T> c = a + b;
+//        for (size_t i = 0; i < a.size(); ++i) {
+//            c[i] = a[i] + b[i];
+//        }
         Out out;
         out.push_back(std::move(c));
         return out;
     };
 
-    GradIn backward(Context& context, const GradOut& grad_out) {
+    GradIn backward(Context& context, GradOut& grad_out) {
         if (grad_out.size() == 0) return {}; // TODO: Make a macro??? or helper func
         FUSION_CHECK(grad_out.size() == 1, "Add::backward expects exactly 1 upstream grad tensor");
-        const auto& g0 = grad_out[0];
+        Tensor<T>& g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "Add::backward: upstream grad is empty");
         GradIn g;
         g.data.reserve(2);
-        g.push_back(g0);
-        g.push_back(g0);
+        g.push_back(std::move(g0));
+        g.push_back(std::move(g0));
         return g;
     }
 };
