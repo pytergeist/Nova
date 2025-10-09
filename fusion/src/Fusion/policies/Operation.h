@@ -5,6 +5,7 @@
 #include <string>
 #include <any>
 #include <unordered_map>
+#include "../Tensor.h"
 
 template <typename T>
 struct BinaryType {std::vector<T> a; std::vector<T> b;};
@@ -24,23 +25,23 @@ template <typename T>
 struct static_arity<BinaryType<T>, void>
     : std::integral_constant<std::uint16_t, 2> {};
 
-
+template <typename T>
 struct Context {
-   std::unordered_map<std::string, std::any> saved_result;
+   std::unordered_map<std::string, Tensor<T>> saved_result;
 
    template <typename U>
    void save(std::string key, U&& data) {
-     saved_result[std::move(key)] = std::any(std::forward<U>(data));
+     saved_result.insert_or_assign(std::move(key), std::move(data));
    }
 
    template <typename U>
    U& load(std::string& key) {
-     return std::any_cast<U&>(saved_result.at(key));
+     return saved_result.at(key);
    }
 
    template <typename U>
     const U& load(const std::string& key) const {
-        return std::any_cast<const U&>(saved_result.at(key));
+        return saved_result.at(key);
     }
 };
 
@@ -55,15 +56,13 @@ class Operation {
     Operation() = default;
     explicit Operation(Op op) : op_(std::move(op)) {}
 
-    Out forward(Context& context, const In& input) {return op_.forward(context, input);};
-    GradIn backward(Context& context, GradOut& grad_out) {return op_.backward(context, grad_out);};
+    Out forward(Context<T>& context, In& input) {return op_.forward(context, input);};
+    GradIn backward(Context<T>& context, GradOut& grad_out) {return op_.backward(context, grad_out);};
 
     inline static constexpr std::string_view name = Op::name;
 
 	private:
           Op op_;
-
-
 };
 
 #endif // OPERATION_H

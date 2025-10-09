@@ -15,32 +15,24 @@ struct Sqrt {
     using GradIn = MultiTensor<T>;
     using GradOut = MultiTensor<T>;
 
-    Out forward(Context& context, const In& input) {
+    Out forward(Context<T>& context, const In& input) {
         FUSION_CHECK(input.size() >= 1, "Sqrt requires one inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
-        const auto& a = input[0];
-        std::vector<T> c(a.size());
-        for (size_t i = 0; i < a.size(); ++i) {
-            c[i] = std::sqrt(a[i]);
-        }
-        context.save("c", c);
+        const Tensor<T>& a = input[0];
+        context.save("c", a.clone());
+        Tensor<T> c = a.sqrt();
         Out out;
         out.push_back(std::move(c));
         return out;
     };
 
-    GradIn backward(Context& context, GradOut& grad_out) {
+    GradIn backward(Context<T>& context, GradOut& grad_out) {
         if (grad_out.size() == 0) return {};
         FUSION_CHECK(grad_out.size() == 1, "Sqrt::backward expects exactly 1 upstream grad tensor");
         const auto& g0 = grad_out[0];
-        std::vector<T> g1(g0.size());
         FUSION_CHECK(!g0.empty(), "Sqrt::backward: upstream grad is empty");
-        std::vector<T> a = context.template load<std::vector<T>>("c");
-        for (size_t i = 0; i < g0.size(); ++i) {
-            const T& ai = a[i];
-            const T& dyi = g0[i];
-            g1[i] = dyi / (2 * std::sqrt(ai));
-        }
+        const Tensor<T>& a = context.template load<Tensor<T>>("c");
+        Tensor<T> g1 = g0 / (a.sqrt()); // TODO: this is wrong - need 2* (need tensor * scalar)
         GradIn g;
         g.push_back(std::move(g1));
         return g;

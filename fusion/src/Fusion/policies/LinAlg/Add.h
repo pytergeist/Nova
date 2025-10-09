@@ -16,7 +16,7 @@ struct Add {
     using GradIn = MultiTensor<T>;
     using GradOut = MultiTensor<T>;
 
-    Out forward(Context& context, const In& input) {
+    Out forward(Context<T>& context, const In& input) {
         FUSION_CHECK(input.size() >= 2, "Add requires two inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
         FUSION_BOUNDS_CHECK(1, input.size());
@@ -24,23 +24,22 @@ struct Add {
     	const auto& b = input[1];
     	FUSION_CHECK(a.size() == b.size(), "Add: input size mismatch");
         Tensor<T> c = a + b;
-//        for (size_t i = 0; i < a.size(); ++i) {
-//            c[i] = a[i] + b[i];
-//        }
         Out out;
         out.push_back(std::move(c));
         return out;
     };
 
-    GradIn backward(Context& context, GradOut& grad_out) {
+    GradIn backward(Context<T>& context, GradOut& grad_out) {
         if (grad_out.size() == 0) return {}; // TODO: Make a macro??? or helper func
         FUSION_CHECK(grad_out.size() == 1, "Add::backward expects exactly 1 upstream grad tensor");
         Tensor<T>& g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "Add::backward: upstream grad is empty");
+        Tensor<T> ga = g0.clone();
+        Tensor<T> gb = g0.clone();
         GradIn g;
         g.data.reserve(2);
-        g.push_back(std::move(g0));
-        g.push_back(std::move(g0));
+        g.push_back(std::move(ga));
+        g.push_back(std::move(gb));
         return g;
     }
 };
