@@ -5,7 +5,7 @@
 #include "Traits.h"
 #include "../policies/Operation.h"
 
-template <class Op> class Node {
+template <typename T, class Op> class Node {
 public:
   using In = typename Op::In;
   using Out = typename Op::Out;
@@ -27,7 +27,7 @@ public:
 
   void set_inputs(In inputs) { inputs_ = std::move(inputs); };
 
-  Out run_forward(const In &input) {
+  Out run_forward(In &input) {
 
     output_ = op_.forward(ctx_, input);
     fwd_done_ = true;
@@ -42,7 +42,7 @@ public:
 
 private:
   Op op_{};
-  Context ctx_{};
+  Context<T> ctx_{};
   In inputs_{};
   Out output_{};
   GradIn grad_input_{};
