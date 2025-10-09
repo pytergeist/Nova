@@ -12,6 +12,7 @@
 #include "policies/Transcendental/Transcendental.h"
 #include "policies/Operation.h"
 #include "Tensor.h"
+#include "storage/TensorBuffer.h"
 
 int main() {
     using T = float;
@@ -21,8 +22,8 @@ int main() {
     using MulOp = Operation<T, Multiply<T>>;
     using subOp = Operation<T, Subtract<T>>;
     using logOp = Operation<T, Log<T>>;
-//    using sqrtOp = Operation<T, Sqrt<T>>;
-//    using powOp = Operation<T, Pow<T>>;
+    using sqrtOp = Operation<T, Sqrt<T>>;
+    using powOp = Operation<T, Pow<T>>;
 
     std::vector<T> va{1, 2, 3, 4};
     std::vector<T> vb{1, 2, 3, 4};
@@ -83,4 +84,7 @@ int main() {
     engine.backward();
 
     engine.dump_graph(std::cout);
+
+
+
 }
