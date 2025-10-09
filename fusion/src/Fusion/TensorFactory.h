@@ -1,11 +1,9 @@
 #ifndef TENSOR_FACTORY_H
 #define TENSOR_FACTORY_H
-#include "./Tensor.h"
 #include <numeric>
 #include <vector>
-// -- factory methods --
-
-// -- factory functions --
+#include "./Tensor.h"
+#include "common/Checks.h"
 
 template <typename T>
 Tensor<T> fill(const std::vector<size_t> &shape, T value) {
@@ -24,11 +22,13 @@ template <typename T> Tensor<T> ones(const std::vector<size_t> &shape) {
 }
 
 template <typename T> Tensor<T> zeros_like(const Tensor<T> &other) {
-  return zeros<T>(other.shape_);
+  FUSION_CHECK(other.is_initialised(), "zeros_like on uninitialised tensor");
+  return zeros<T>(other.storage->shape());
 }
 
 template <typename T> Tensor<T> ones_like(const Tensor<T> &other) {
-  return ones<T>(other.shape_);
+  FUSION_CHECK(other.is_initialised(), "oness_like on uninitialised tensor");
+  return ones<T>(other.storage->shape());
 }
 
 #endif
