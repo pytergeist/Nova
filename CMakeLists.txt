@@ -42,7 +42,6 @@ endif()
 set(FUSION_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fusion/src/Fusion")
 
 # ------------------------------------------------------------
-# ------------------------------------------------------------
 add_library(fusion_core STATIC
         ${FUSION_SRC_DIR}/core/Broadcast.cpp
 )
@@ -80,13 +79,15 @@ endif()
 # Link BLAS to core (and force Accelerate if needed).
 target_link_libraries(fusion_core PUBLIC ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK})
 
-#
+
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
   option(FUSION_ENABLE_NEON "Enable NEON SIMD optimizations" ON)
   if(FUSION_ENABLE_NEON)
     target_compile_definitions(fusion_core PUBLIC FUSION_ENABLE_NEON=1)
   endif()
 endif()
+
+
 
 # ------------------------------------------------------------
 # Python extension module
@@ -111,6 +112,7 @@ set_target_properties(fusion PROPERTIES
 install(TARGETS fusion LIBRARY DESTINATION ${PY_EXT_INSTALL_DIR})
 
 # ------------------------------------------------------------
+# Executable
 # ------------------------------------------------------------
 add_executable(FusionExecutable
         ${FUSION_SRC_DIR}/main.cpp
@@ -119,6 +121,13 @@ target_link_libraries(FusionExecutable PRIVATE
         fusion_core
         ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK}
 )
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
+  target_compile_options(FusionExecutable PRIVATE -fsanitize=address -fno-omit-frame-pointer -O1 -g)
+  target_link_options(FusionExecutable PRIVATE -fsanitize=address)
+  target_compile_options(fusion PRIVATE -fsanitize=address -fno-omit-frame-pointer -O1 -g)
+  target_link_options(fusion PRIVATE -fsanitize=address)
+endif()
 
 # ------------------------------------------------------------
 # Benchmarks
