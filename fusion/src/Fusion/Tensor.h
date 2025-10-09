@@ -17,6 +17,8 @@
 #include <utility>
 #include <vector>
 
+#include "common/Checks.h"
+
 template <typename T> class Tensor {
 public:
   std::unique_ptr<ITensorStorage<T>> storage;
@@ -24,19 +26,21 @@ public:
   size_t rank_;
   bool requires_grad_;
 
+  Tensor()
+     : storage(nullptr), shape_{}, rank_(0), requires_grad_(false) {}
 
   explicit Tensor(std::vector<size_t> shape, std::vector<T> data,
                   Device device = Device::CPU, bool requires_grad = false)
       : shape_(std::move(shape)),
         requires_grad_(std::move(requires_grad))  {
-    if (device == Device::CPU) {
-      // Use the stored shape_ (guaranteed non-empty if you passed one in)
-      storage = std::make_unique<NDTensorStorage<T>>(shape_, std::move(data));
-      rank_ = storage->ndims();
-    } else {
-      throw std::invalid_argument("Unsupported device type");
+    FUSION_CHECK(device == Device::CPU, "Unsupported device type");
+    FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
+    size_t n = 1;
+    for (auto d : shape_) { FUSION_CHECK(d > 0, "Tensor: non-positive dim"); n *= d; }
+    FUSION_CHECK(data.size() == n, "Tensor: data size != product(shape)");
+    storage = std::make_unique<NDTensorStorage<T>>(shape_, std::move(data));
+    rank_ = storage->ndims();
     }
-  }
 
   Tensor(const Tensor&) = delete;
   Tensor& operator=(const Tensor&) = delete;
@@ -84,11 +88,32 @@ public:
 //    }
 //  }
 
+  Tensor clone() const {
+    return Tensor(
+      this->storage->shape(),
+      this->raw_data(),
+      this->storage->device(),
+      false
+    );
+   }
+
   T operator[](int idx) const { return storage->data()[idx]; };
 
   size_t size() const noexcept { return storage->data().size(); }
 
-  bool empty() const noexcept { return storage->data().empty(); }
+  void clear() noexcept { if (storage) storage->data().clear(); }
+
+  void assign(const Tensor<T> &other) {
+    if (!storage) {
+      *this = other.clone();
+      } else {
+    storage->data().assign(other.begin(), other.end());
+      }
+    };
+
+  bool empty() const noexcept { return !storage || storage->data().empty(); };
+
+  bool is_initialised() const noexcept { return storage != nullptr; }
 
   std::vector<T> &raw_data() { return storage->data(); }
   const std::vector<T> &raw_data() const { return storage->data(); }
@@ -240,6 +265,11 @@ public:
 
     return Tensor<T>(std::move(new_shape), std::move(new_data), Device::CPU);
   }
+
+  auto begin() { return storage->data().begin(); }
+  auto end() { return storage->data().end(); }
+  auto begin() const { return storage->data().begin(); }
+  auto end() const { return storage->data().end(); }
 };
 
 #endif // TENSOR_H
