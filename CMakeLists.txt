@@ -122,13 +122,22 @@ target_link_libraries(FusionExecutable PRIVATE
         ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK}
 )
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
-  target_compile_options(FusionExecutable PRIVATE -fsanitize=address -fno-omit-frame-pointer -O1 -g)
-  target_link_options(FusionExecutable PRIVATE -fsanitize=address)
-  target_compile_options(fusion PRIVATE -fsanitize=address -fno-omit-frame-pointer -O1 -g)
-  target_link_options(fusion PRIVATE -fsanitize=address)
-endif()
+# ------------------------------------------------------------
+# Optional AddressSanitizer (exe only)
+# ------------------------------------------------------------
+option(NOVA_ENABLE_ASAN "Enable AddressSanitizer for the CLI executable" OFF)
 
+function(add_asan target)
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
+    target_compile_options(${target} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    target_link_options(${target} PRIVATE -fsanitize=address)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:-O1 -g>)
+  endif()
+endfunction()
+
+if (NOVA_ENABLE_ASAN)
+  add_asan(FusionExecutable)   # ASan on CLI only
+endif()
 # ------------------------------------------------------------
 # Benchmarks
 # ------------------------------------------------------------
