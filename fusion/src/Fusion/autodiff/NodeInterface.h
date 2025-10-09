@@ -1,10 +1,10 @@
 #ifndef INODE_H
 #define INODE_H
 
-#include "Node.h"
-#include "Traits.h"
 #include <memory>
 #include <utility>
+#include "Node.h"
+#include "Traits.h"
 
 template <typename T> class INode {
 public:
@@ -26,14 +26,14 @@ public:
   INode(const INode &) = delete;
   INode &operator=(const INode &) = delete;
 
-  MultiTensor<T> forward(const MultiTensor<T> &input) {
+  MultiTensor<T> forward(MultiTensor<T> &input) {
     return self_->forward(input);
   };
   MultiTensor<T> backward(MultiTensor<T> &grad_out) {
     return self_->backward(grad_out);
   };
 
-  MultiTensor<T> apply_forward(const MultiTensor<T> &input) {
+  MultiTensor<T> apply_forward(MultiTensor<T> &input) {
     MultiTensor<T> out = self_->forward(input);
     return out;
   }
@@ -58,7 +58,7 @@ private:
     std::vector<ValueID> outputs;
 
     virtual ~NodeConcept() = default;
-    virtual MultiTensor<T> forward(const MultiTensor<T> &input) = 0;
+    virtual MultiTensor<T> forward(MultiTensor<T> &input) = 0;
     virtual MultiTensor<T> backward(MultiTensor<T> &grad_out) = 0;
 
     virtual const std::type_info &in_type() const = 0;
@@ -84,7 +84,7 @@ private:
 
     std::string_view name() const override { return Op::name; }
 
-    MultiTensor<T> forward(const MultiTensor<T> &input) override {
+    MultiTensor<T> forward(MultiTensor<T> &input) override {
       auto y = node_.run_forward(input);
       return y;
     };
@@ -111,7 +111,7 @@ private:
       return typeid(GradOut);
     };
 
-    Node<Op> node_;
+    Node<T, Op> node_;
   };
   std::unique_ptr<NodeConcept> self_;
 };

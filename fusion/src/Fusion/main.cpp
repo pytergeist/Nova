@@ -16,21 +16,29 @@
 int main() {
     using T = float;
     using AddOp = Operation<T, Add<T>>;
-//    using ExpOp = Operation<T, Exp<T>>;
-//    using divOp = Operation<T, Divide<T>>;
-//    using MulOp = Operation<T, Multiply<T>>;
-//    using subOp = Operation<T, Subtract<T>>;
-//    using logOp = Operation<T, Log<T>>;
+    using ExpOp = Operation<T, Exp<T>>;
+    using divOp = Operation<T, Divide<T>>;
+    using MulOp = Operation<T, Multiply<T>>;
+    using subOp = Operation<T, Subtract<T>>;
+    using logOp = Operation<T, Log<T>>;
 //    using sqrtOp = Operation<T, Sqrt<T>>;
 //    using powOp = Operation<T, Pow<T>>;
 
-    std::vector<T> v1{1, 2, 3, 4};
-    std::vector<T> v2{1, 2, 3, 4};
+    std::vector<T> va{1, 2, 3, 4};
+    std::vector<T> vb{1, 2, 3, 4};
+    std::vector<T> vc{1, 2, 3, 4};
+    std::vector<T> vd{1, 2, 3, 4};
+    std::vector<T> ve{1, 2, 3, 4};
+    std::vector<T> vf{1, 2, 3, 4};
 
     std::size_t shape = 4;
 
-	Tensor<T> a{{shape}, v1};
-    Tensor<T> b{{shape}, v2};
+	Tensor<T> a{{shape}, va};
+    Tensor<T> b{{shape}, vb};
+    Tensor<T> c{{shape}, vc};
+    Tensor<T> d{{shape}, vd};
+    Tensor<T> e{{shape}, vc};
+    Tensor<T> f{{shape}, vd};
 
     Engine<T> engine;
 
@@ -38,30 +46,41 @@ int main() {
     mt1.push_back(std::move(a));
     mt1.push_back(std::move(b));
 
-    ValueID v0 = engine.apply<AddOp>(std::move(mt1));
-//    ValueID v1 = engine.apply<ExpOp>(std::vector<ValueID>{v0});
-//    ValueID v2 = engine.apply<MulOp>(MultiTensor<T>{std::move(a), std::move(b)});
-//    ValueID v3 = engine.apply<AddOp>(std::vector<ValueID>{v1, v2});
-//    ValueID v4 = engine.apply<AddOp>(MultiTensor<T>{std::move(a), std::move(b)});
-//    ValueID v5 = engine.apply<ExpOp>(std::vector<ValueID>{v4});
-//    ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v5});
-//    ValueID v7 = engine.apply<divOp>(std::vector<ValueID>{v5, v6});
-//    ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v6, v7});
-//    ValueID v9 = engine.apply<logOp>(std::vector<ValueID>{v8});
-//    ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
-//    ValueID v11 = engine.apply<sqrtOp>(std::vector<ValueID>{v10});
-//
-//
-//    std::cout << "v1: " << v1.idx << std::endl;
-//    std::cout << "v2: " << v2.idx << std::endl;
-//    std::cout << "v3: " << v3.idx << std::endl;
-//    std::cout << "v4: " << v4.idx << std::endl;
-//    std::cout << "v5: " << v5.idx << std::endl;
-//    std::cout << "v6: " << v6.idx << std::endl;
-//    std::cout << "v7: " << v7.idx << std::endl;
-//    std::cout << "v8: " << v8.idx << std::endl;
+    MultiTensor<T> mt2;
+    mt2.push_back(std::move(c));
+    mt2.push_back(std::move(d));
 
-//    engine.backward();
+
+    MultiTensor<T> mt3;
+    mt3.push_back(std::move(e));
+    mt3.push_back(std::move(f));
+
+
+
+    ValueID v0 = engine.apply<AddOp>(std::move(mt1));
+    ValueID v1 = engine.apply<ExpOp>(std::vector<ValueID>{v0});
+    ValueID v2 = engine.apply<MulOp>(std::move(mt2));
+    ValueID v3 = engine.apply<MulOp>(std::vector<ValueID>{v0, v1});
+    ValueID v4 = engine.apply<AddOp>(std::move(mt3));
+    ValueID v5 = engine.apply<ExpOp>(std::vector<ValueID>{v4});
+    ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v5});
+    ValueID v7 = engine.apply<divOp>(std::vector<ValueID>{v5, v6});
+    ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v6, v7});
+    ValueID v9 = engine.apply<logOp>(std::vector<ValueID>{v8});
+//    ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
+//    ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
+
+
+    std::cout << "v1: " << v1.idx << std::endl;
+    std::cout << "v2: " << v2.idx << std::endl;
+    std::cout << "v3: " << v3.idx << std::endl;
+    std::cout << "v4: " << v4.idx << std::endl;
+    std::cout << "v5: " << v5.idx << std::endl;
+    std::cout << "v6: " << v6.idx << std::endl;
+    std::cout << "v7: " << v7.idx << std::endl;
+    std::cout << "v8: " << v8.idx << std::endl;
+
+    engine.backward();
 
     engine.dump_graph(std::cout);
 }
