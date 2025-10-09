@@ -23,6 +23,9 @@ endif()
 # ---------- Eigen3 ----------
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
+# ----------- GTest -------------
+find_package(GTest REQUIRED)
+
 # ---------- SLEEF (prefer installed; else fetch) ----------
 find_package(SLEEF CONFIG QUIET)
 set(SLEEF_INCLUDE_DIRS "")

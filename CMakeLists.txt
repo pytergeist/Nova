@@ -142,3 +142,21 @@ endif()
 # Benchmarks
 # ------------------------------------------------------------
 add_subdirectory(fusion/benchmarks)
+
+
+# ------------------------------------------------------------
+# GTest
+# ------------------------------------------------------------
+enable_testing()
+add_executable(fusion_test
+        ${FUSION_SRC_DIR}/tests/tensor/cpu/operations.cpp
+)
+
+target_link_libraries(fusion_test PRIVATE
+        fusion_core
+        GTest::gtest
+        GTest::gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(fusion_test)
