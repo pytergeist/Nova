@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <new>
 #include <stdexcept>
+#include <memory>
+#include <vector>
+#include <cstring>
 
 inline void *aligned_alloc_bytes(size_t alignment, size_t size) {
   if (alignment < alignof(void *) || (alignment & (alignment - 1)) != 0) {
@@ -41,11 +44,11 @@ public:
     return TensorBuffer::allocate(count * sizeof(T), alignment);
   }
 
-  template <typename T> T *data_as(std::size_t byte_off) noexcept {
+  template <typename T> T *data_as(std::size_t byte_off = 0) noexcept {
     return reinterpret_cast<T *>(static_cast<std::byte *>(ptr_.get()) + byte_off);
-  }
+}
 
-  template <typename T> const T *data_as(std::size_t byte_off) const noexcept {
+  template <typename T> const T *data_as(std::size_t byte_off = 0) const noexcept {
     return reinterpret_cast<T *>(static_cast<std::byte *>(ptr_.get()) + byte_off);
   }
 
@@ -60,9 +63,18 @@ public:
 
   template <typename T> std::size_t size() const noexcept {return size_ / sizeof(T);};
   std::size_t size_bytes() const noexcept { return size_; };
+  bool empty() const noexcept { return size_ == 0; };
   std::size_t alignment() const noexcept { return alignment_; };
   explicit operator bool() const noexcept { return ptr_ != nullptr; };
   std::size_t use_count() const noexcept { return ptr_.use_count(); }
+
+  template <typename T>
+  void copy_from(std::vector<T>& src, std::size_t dst_elem_offset = 0) {
+    if (size_bytes() == 0 || src.empty()) throw std::out_of_range("Both dst buffer and src must not be empty");
+    if (size_bytes() < (sizeof(T) * src.size())) throw std::out_of_range("dst buffer to small for copy");
+    std::memcpy(data_as<T>(dst_elem_offset * sizeof(T)), src.data(), src.size() * sizeof(T));
+  }
+
 
 private:
   std::shared_ptr<void> ptr_{};

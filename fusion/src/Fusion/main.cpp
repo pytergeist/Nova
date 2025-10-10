@@ -68,8 +68,8 @@ int main() {
     ValueID v7 = engine.apply<divOp>(std::vector<ValueID>{v5, v6});
     ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v6, v7});
     ValueID v9 = engine.apply<logOp>(std::vector<ValueID>{v8});
-//    ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
-//    ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
+    ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
+    ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
 
 
     std::cout << "v1: " << v1.idx << std::endl;
@@ -84,6 +84,38 @@ int main() {
     engine.backward();
 
     engine.dump_graph(std::cout);
+
+
+    std::vector<T> vtb{1, 2, 3, 4};
+//    std::vector<T>* v = vtb;
+
+    TensorBuffer buff = TensorBuffer::allocate_elements<T>(vtb.size());
+    buff.copy_from<T>(vtb, 0);
+    std::cout << "buff type: " << typeid(buff).name() << std::endl;
+    std::cout << "buff size_bytes: " << buff.size_bytes() << std::endl;
+    std::cout << "buff size (elems): " << buff.size<T>() << std::endl;
+    std::cout << "Use count: " << buff.use_count() << std::endl;
+
+    TensorBuffer buff2 = buff;
+    std::cout << "buff Use count: " << buff.use_count() << std::endl;
+    std::cout << "buff2 Use count: " << buff.use_count() << std::endl;
+	std::cout << "buff addr: " << &buff << std::endl;
+    std::cout << "buff2 addr: " << &buff2 << std::endl;
+
+    std::vector<T> vtb3{1, 2, 3, 4};
+	TensorBuffer buff3 = TensorBuffer::allocate_elements<T>(vtb3.size());
+    buff3.copy_from<T>(vtb3, 0);
+
+    std::cout << "buff3 Use count: " << buff3.use_count() << std::endl;
+	std::cout << "buf3 addr: " << &buff3 << std::endl;
+
+
+
+
+
+
+
+
 
 
 
