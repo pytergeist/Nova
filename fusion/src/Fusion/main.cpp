@@ -41,6 +41,7 @@ int main() {
     Tensor<T> e{{shape}, vc};
     Tensor<T> f{{shape}, vd};
 
+
     Engine<T> engine;
 
     MultiTensor<T> mt1;
@@ -51,65 +52,56 @@ int main() {
     mt2.push_back(std::move(c));
     mt2.push_back(std::move(d));
 
-
+//    for (auto &t : mt2) {
+//      std::cout << t << std::endl;
+//    }
+//
+//
     MultiTensor<T> mt3;
     mt3.push_back(std::move(e));
     mt3.push_back(std::move(f));
-
-
-
+//
+//
+// ----- Broken Ops: Mul, Log
     ValueID v0 = engine.apply<AddOp>(std::move(mt1));
     ValueID v1 = engine.apply<ExpOp>(std::vector<ValueID>{v0});
-    ValueID v2 = engine.apply<MulOp>(std::move(mt2));
-    ValueID v3 = engine.apply<MulOp>(std::vector<ValueID>{v0, v1});
+    ValueID v2 = engine.apply<AddOp>(std::move(mt2));
+    ValueID v3 = engine.apply<MulOp>(std::vector<ValueID>{v0, v1}); // was MulOp
     ValueID v4 = engine.apply<AddOp>(std::move(mt3));
     ValueID v5 = engine.apply<ExpOp>(std::vector<ValueID>{v4});
-    ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v5});
+    ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v5}); // was MulOp
     ValueID v7 = engine.apply<divOp>(std::vector<ValueID>{v5, v6});
     ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v6, v7});
-    ValueID v9 = engine.apply<logOp>(std::vector<ValueID>{v8});
-    ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
-    ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
+    ValueID v9 = engine.apply<ExpOp>(std::vector<ValueID>{v8}); // Was log
+//    ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
+//    ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
 
-
-    std::cout << "v1: " << v1.idx << std::endl;
-    std::cout << "v2: " << v2.idx << std::endl;
-    std::cout << "v3: " << v3.idx << std::endl;
-    std::cout << "v4: " << v4.idx << std::endl;
-    std::cout << "v5: " << v5.idx << std::endl;
-    std::cout << "v6: " << v6.idx << std::endl;
-    std::cout << "v7: " << v7.idx << std::endl;
-    std::cout << "v8: " << v8.idx << std::endl;
-
+//
+//    std::cout << "v1: " << v1.idx << std::endl;
+//    std::cout << "v2: " << v2.idx << std::endl;
+//    std::cout << "v3: " << v3.idx << std::endl;
+//    std::cout << "v4: " << v4.idx << std::endl;
+//    std::cout << "v5: " << v5.idx << std::endl;
+//    std::cout << "v6: " << v6.idx << std::endl;
+//    std::cout << "v7: " << v7.idx << std::endl;
+//    std::cout << "v8: " << v8.idx << std::endl;
+//
     engine.backward();
-
+//
     engine.dump_graph(std::cout);
-
-
-    std::vector<T> vtb{1, 2, 3, 4};
-//    std::vector<T>* v = vtb;
-
-    TensorBuffer buff = TensorBuffer::allocate_elements<T>(vtb.size());
-    buff.copy_from<T>(vtb, 0);
-    std::cout << "buff type: " << typeid(buff).name() << std::endl;
-    std::cout << "buff size_bytes: " << buff.size_bytes() << std::endl;
-    std::cout << "buff size (elems): " << buff.size<T>() << std::endl;
-    std::cout << "Use count: " << buff.use_count() << std::endl;
-
-    TensorBuffer buff2 = buff;
-    std::cout << "buff Use count: " << buff.use_count() << std::endl;
-    std::cout << "buff2 Use count: " << buff.use_count() << std::endl;
-	std::cout << "buff addr: " << &buff << std::endl;
-    std::cout << "buff2 addr: " << &buff2 << std::endl;
-
-    std::vector<T> vtb3{1, 2, 3, 4};
-	TensorBuffer buff3 = TensorBuffer::allocate_elements<T>(vtb3.size());
-    buff3.copy_from<T>(vtb3, 0);
-
-    std::cout << "buff3 Use count: " << buff3.use_count() << std::endl;
-	std::cout << "buf3 addr: " << &buff3 << std::endl;
-
-
+//
+//
+//    std::vector<T> vtb{1, 2, 3, 4};
+//
+//    TensorBuffer buff = TensorBuffer::allocate_elements<T>(vtb.size());
+//    buff.copy_from<T>(vtb, 0);
+//    std::cout << "buff type: " << typeid(buff).name() << std::endl;
+//    std::cout << "buff size_bytes: " << buff.size_bytes() << std::endl;
+//    std::cout << "buff size (elems): " << buff.size<T>() << std::endl;
+//    std::cout << "Use count: " << buff.use_count() << std::endl;
+//
+//    TensorBuffer buff2 = buff;
+//    std::cout << "buff Use count: " << buff.use_count() << std::endl;Tensor<T> b{{shape}, vb};
 
 
 

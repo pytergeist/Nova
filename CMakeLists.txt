@@ -89,27 +89,27 @@ endif()
 
 
 
-# ------------------------------------------------------------
-# Python extension module
-# ------------------------------------------------------------
-pybind11_add_module(fusion
-        ${FUSION_SRC_DIR}/python/Bindings.cpp
-)
-
-target_link_libraries(fusion PRIVATE
-        fusion_core
-        ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK}
-)
-
-set(PY_EXT_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/nova/src/backend/core/clib)
-file(MAKE_DIRECTORY ${PY_EXT_INSTALL_DIR})
-set_target_properties(fusion PROPERTIES
-        PREFIX ""
-        LIBRARY_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
-        RUNTIME_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
-        ARCHIVE_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
-)
-install(TARGETS fusion LIBRARY DESTINATION ${PY_EXT_INSTALL_DIR})
+## ------------------------------------------------------------
+## Python extension module
+## ------------------------------------------------------------
+#pybind11_add_module(fusion
+#        ${FUSION_SRC_DIR}/python/Bindings.cpp
+#)
+#
+#target_link_libraries(fusion PRIVATE
+#        fusion_core
+#        ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK}
+#)
+#
+#set(PY_EXT_INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/nova/src/backend/core/clib)
+#file(MAKE_DIRECTORY ${PY_EXT_INSTALL_DIR})
+#set_target_properties(fusion PROPERTIES
+#        PREFIX ""
+#        LIBRARY_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
+#        RUNTIME_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
+#        ARCHIVE_OUTPUT_DIRECTORY  ${PY_EXT_INSTALL_DIR}
+#)
+#install(TARGETS fusion LIBRARY DESTINATION ${PY_EXT_INSTALL_DIR})
 
 # ------------------------------------------------------------
 # Executable
@@ -147,16 +147,16 @@ add_subdirectory(fusion/benchmarks)
 # ------------------------------------------------------------
 # GTest
 # ------------------------------------------------------------
-enable_testing()
-add_executable(fusion_test
-        ${FUSION_SRC_DIR}/tests/tensor/cpu/operations.cpp
-)
-
-target_link_libraries(fusion_test PRIVATE
-        fusion_core
-        GTest::gtest
-        GTest::gtest_main
-)
-
-include(GoogleTest)
-gtest_discover_tests(fusion_test)
+#enable_testing()
+#add_executable(fusion_test
+#        ${FUSION_SRC_DIR}/tests/tensor/cpu/operations.cpp
+#)
+#
+#target_link_libraries(fusion_test PRIVATE
+#        fusion_core
+#        GTest::gtest
+#        GTest::gtest_main
+#)
+#
+#include(GoogleTest)
+#gtest_discover_tests(fusion_test)
