@@ -33,7 +33,7 @@ inline py::array_t<float> tensor_to_numpy(const Tensor<float> &t) {
 
   // Copy from our flat std::vector<float>
   const auto &src = t.raw_data();
-  if (src.size() != total) {
+  if (src->size() != total) {
     throw std::runtime_error("tensor_to_numpy: size mismatch");
   }
   std::copy(src.begin(), src.end(), dst);
