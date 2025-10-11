@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <vector>
+#include "TensorBuffer.h"
 
 enum class Device {
   CPU,
@@ -15,8 +16,8 @@ public:
 
   // raw data access - this allows access to either
   // mutable or immutable raw data in child class
-  virtual std::vector<T> &data() = 0;
-  virtual const std::vector<T> &data() const = 0; // check this
+  virtual TensorBuffer &data() = 0;
+  virtual const TensorBuffer &data() const = 0; // check this
   virtual T *data_ptr() = 0;
   virtual const T *data_ptr() const = 0;
 

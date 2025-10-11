@@ -1,27 +1,28 @@
 #ifndef TENSOR_H
 #define TENSOR_H
+#include <ostream>
+#include <stdexcept>
+#include <vector>
+#include <memory>
+#include <utility>
+#include <vector>
+#include <cstring>
+
 #include "kernels/Blas.cpp"
 #include "kernels/Serial.cpp"
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
-#include <ostream>
-#include <stdexcept>
-#include <vector>
-
 #include "core/ElementWise.h"
 #include "core/Ffunc.h"
 #include "core/Reduce.h"
 #include "cpu/SimdTags.h"
 #include "cpu/SimdTraits.h"
-#include <memory>
-#include <utility>
-#include <vector>
 
 #include "common/Checks.h"
 
 template <typename T> class Tensor {
 public:
-  std::unique_ptr<ITensorStorage<T>> storage;
+  std::shared_ptr<ITensorStorage<T>> storage;
   std::vector<size_t> shape_;
   size_t rank_;
   bool requires_grad_;
@@ -38,12 +39,12 @@ public:
     size_t n = 1;
     for (auto d : shape_) { FUSION_CHECK(d > 0, "Tensor: non-positive dim"); n *= d; }
     FUSION_CHECK(data.size() == n, "Tensor: data size != product(shape)");
-    storage = std::make_unique<NDTensorStorage<T>>(shape_, std::move(data));
+    storage = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
     rank_ = storage->ndims();
     }
 
-  Tensor(const Tensor&) = delete;
-  Tensor& operator=(const Tensor&) = delete;
+  Tensor(const Tensor&) = default; // TODO: make this delete once you've built non-owning TensorView
+  Tensor& operator=(const Tensor&) = default;
   Tensor(Tensor&&) noexcept = default;
   Tensor& operator=(Tensor&&) noexcept = default;
   ~Tensor() = default;
@@ -52,12 +53,13 @@ public:
     const auto *cpuStorage =
         dynamic_cast<const NDTensorStorage<T> *>(tensor.storage.get());
     if (cpuStorage) {
-      const std::vector<T> &data = cpuStorage->data();
-      size_t size = cpuStorage->size();
+      const TensorBuffer& buf = cpuStorage->data();
+      const size_t n = cpuStorage->size();
+      const T* p = buf.template data_as<const T>();
       os << "Tensor(";
-      for (size_t i = 0; i < size; i++) {
-        os << data[i];
-        if (i + 1 < size)
+      for (size_t i = 0; i < n; i++) {
+        os << p[i];
+        if (i + 1 < n)
           os << ", ";
       }
       os << ")" << std::endl;
@@ -88,24 +90,32 @@ public:
 //    }
 //  }
 
-  Tensor clone() const {
-    return Tensor(
-      this->storage->shape(),
-      this->raw_data(),
-      this->storage->device(),
-      false
-    );
-   }
+//  Tensor clone() const {
+//    return Tensor(
+//      this->storage->shape(),
+//      this->raw_data(),
+//      this->storage->device(),
+//      false
+//    );
+//   }
 
-  T operator[](int idx) const { return storage->data()[idx]; };
+  T operator[](int idx) const {
+    return storage->data().template data_as<const T>()[idx];
+  }
 
-  size_t size() const noexcept { return storage->data().size(); }
+  size_t size() const noexcept { return storage->data().template size<T>(); }
 
-  void clear() noexcept { if (storage) storage->data().clear(); }
+  void clear() noexcept {
+    if (!storage) return;
+    auto& buf = storage->data();
+    if (buf.size_bytes() == 0) return;
+    std::memset(buf.data(), 0, buf.size_bytes());
+  }
+
 
   void assign(const Tensor<T> &other) {
     if (!storage) {
-      *this = other.clone();
+      *this = other;
       } else {
     storage->data().assign(other.begin(), other.end());
       }
@@ -115,8 +125,8 @@ public:
 
   bool is_initialised() const noexcept { return storage != nullptr; }
 
-  std::vector<T> &raw_data() { return storage->data(); }
-  const std::vector<T> &raw_data() const { return storage->data(); }
+  TensorBuffer &raw_data() { return storage->data(); }
+  const TensorBuffer &raw_data() const { return storage->data(); }
   [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
   auto operator+(const Tensor &other) const {
@@ -229,7 +239,7 @@ public:
 
     std::vector<T> data(batch * m * n);
 
-    blas_ops::matmul(this->raw_data(), shapeA, other.raw_data(), shapeB, data);
+    blas_ops::matmul<T>(this->raw_data(), shapeA, other.raw_data(), shapeB, data);
 
     return Tensor<T>(std::move(out_shape), std::move(data), Device::CPU);
   }
