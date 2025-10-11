@@ -14,7 +14,7 @@ struct Multiply {
     using GradIn = MultiTensor<T>;
     using GradOut = MultiTensor<T>;
 
-    Out forward(Context<T>& context, In& input) {
+    Out forward(Context<T>& context, const In& input) {
         std::cout << input.size() << std::endl;
         FUSION_CHECK(input.size() >= 2, "Multiply::forward requires two inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
@@ -22,8 +22,8 @@ struct Multiply {
     	const auto& a = input[0];
     	const auto& b = input[1];
         FUSION_CHECK(a.size() == b.size(), "Multiply::forward input size mismatch");
-        context.save("a", input[0].clone());
-        context.save("b", input[1].clone());
+        context.save("a", input[0]);
+        context.save("b", input[1]);
         Tensor<T> c = a * b;
         Out out;
         out.push_back(std::move(c));

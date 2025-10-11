@@ -19,7 +19,7 @@ struct Sqrt {
         FUSION_CHECK(input.size() >= 1, "Sqrt requires one inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
         const Tensor<T>& a = input[0];
-        context.save("c", a.clone());
+        context.save("c", a);
         Tensor<T> c = a.sqrt();
         Out out;
         out.push_back(std::move(c));

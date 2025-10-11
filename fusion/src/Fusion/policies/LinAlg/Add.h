@@ -34,8 +34,8 @@ struct Add {
         FUSION_CHECK(grad_out.size() == 1, "Add::backward expects exactly 1 upstream grad tensor");
         Tensor<T>& g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "Add::backward: upstream grad is empty");
-        Tensor<T> ga = g0.clone();
-        Tensor<T> gb = g0.clone();
+        Tensor<T> ga = g0;
+        Tensor<T> gb = g0;
         GradIn g;
         g.data.reserve(2);
         g.push_back(std::move(ga));

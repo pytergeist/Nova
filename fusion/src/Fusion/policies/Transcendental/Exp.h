@@ -19,7 +19,7 @@ struct Exp {
         FUSION_CHECK(input.size() >= 1, "Exp requires one inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
         const auto& a = input[0];
-        context.save("c", a.clone());
+        context.save("c", a);
         Tensor<T> c = a.exp();
 		Out out;
         out.push_back(std::move(c));

@@ -22,8 +22,8 @@ struct Pow {
         const Tensor<T>& a = input.at(0);
         const Tensor<T>& b = input.at(1);
         FUSION_CHECK(a.size() == b.size(), "Pow: input size mismatch");
-        context.save("a", input[0].clone());
-        context.save("b", input[1].clone());
+        context.save("a", input[0]);
+        context.save("b", input[1]);
         Tensor<T> c = a.pow(b);
         Out out;
         out.push_back(std::move(c));

@@ -20,8 +20,8 @@ struct Divide {
         FUSION_BOUNDS_CHECK(1, input.size());
         const auto& a = input[0];
     	const auto& b = input[1];
-        context.save("a", a.clone());
-        context.save("b", b.clone());
+        context.save("a", a);
+        context.save("b", b);
         FUSION_CHECK(a.size() == b.size(), "Divide: input size mismatch");
         Tensor<T> c = a / b;
         Out out;
