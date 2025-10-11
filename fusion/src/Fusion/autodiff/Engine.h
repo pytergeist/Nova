@@ -69,7 +69,7 @@ public:
 
       // Build upstream grad vector for this node (single-output assumption)
       MultiTensor<T> grad_in;
-      grad_in.push_back(grad_buff_[output_id.idx].clone());
+      grad_in.push_back(grad_buff_[output_id.idx]);
 
       MultiTensor<T> grad_out;
       try {
@@ -91,7 +91,7 @@ public:
         auto &dst = grad_buff_[inputs[j].idx];
         const auto &src = grad_out.at(j); // bounds-checked
         if (!dst.is_initialised()) {
-          dst = src.clone();
+          dst = src;
         } else {
           FUSION_CHECK(dst.size() == src.size(), "grad size mismatch");
           dst = dst + src;
@@ -112,7 +112,7 @@ public:
       graph_.set_node_input(node, vids[i]);
       graph_.append_consumer_table(dst_nid, vids[i], i);
       // TODO: make output fan out a shared_ptr scheme instead of clones
-      in.push_back(val_buff_[vids[i].idx].clone());
+      in.push_back(val_buff_[vids[i].idx]);
     }
     MultiTensor<T> out = run_forward(node, in);
     if (node.outputs.empty()) {
@@ -134,7 +134,7 @@ public:
     for (uint16_t i = 0; i < out.size(); ++i) {
       ValueID vid_i = node.outputs[i];
       ensure_value_capacity(vid_i);
-      val_buff_[vid_i.idx] = out[i].clone();
+      val_buff_[vid_i.idx] = out[i];
     }
     return node.outputs[0]; // TODO: return all vids here?
   }
@@ -152,11 +152,21 @@ public:
       if (nid.idx >= 0 && static_cast<size_t>(nid.idx) < graph_.nodes.size()) {
         os << "Node idx: " << nid.idx
            << " Node Op: " << graph_.nodes[nid.idx].name() << " ";
+        if (val_buff_[i].empty()) {
+           os << "[no val]\n";
+        } else {
+          std::cout << "Node Val: ";
+          for (uint16_t j = 0; j < val_buff_[i].size(); ++j) {
+            os << val_buff_[i][j] << " ";
+          }
+        }
         if (grad_buff_[i].empty()) {
           os << "[no grad]\n";
         } else {
-          for (auto x : grad_buff_[i].raw_data())
-            os << x << " ";
+          std::cout << "Node Grad: ";
+          for (uint16_t j = 0; j < grad_buff_[i].size(); ++j) {
+            os << grad_buff_[i][j] << " ";
+          }
           os << "\n";
         }
       }
@@ -176,7 +186,7 @@ private:
   ValueID feed_raw(Tensor<T> &data) {
     ValueID vid = graph_.new_input_value();
     ensure_value_capacity(vid);
-    val_buff_[vid.idx] = data.clone();
+    val_buff_[vid.idx] = data;
     return vid;
   }
 
@@ -196,7 +206,7 @@ private:
 
   MultiTensor<T> grad_init(ValueID vid, uint16_t out_slot) {
     Tensor<T> grad = ones_like(val_buff_[vid.idx]);
-    grad_buff_[vid.idx] = grad.clone();
+    grad_buff_[vid.idx] = grad;
     MultiTensor<T> gradVec;
     gradVec.push_back(std::move(grad));
     return gradVec;
