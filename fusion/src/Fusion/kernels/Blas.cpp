@@ -1,10 +1,12 @@
 #include <cblas.h>
 #include <vector>
+#include "../storage/TensorBuffer.h"
 
 namespace blas_ops {
 
-void matmul(std::vector<float> const &v1, std::vector<size_t> const &shapeA,
-            std::vector<float> const &v2, std::vector<size_t> const &shapeB,
+template<typename T>
+void matmul(TensorBuffer const &v1, std::vector<size_t> const &shapeA,
+            TensorBuffer const &v2, std::vector<size_t> const &shapeB,
             std::vector<float> &res) {
   const size_t rankA = shapeA.size();
   const size_t rankB = shapeB.size();
@@ -21,8 +23,8 @@ void matmul(std::vector<float> const &v1, std::vector<size_t> const &shapeA,
   const float beta = 0.0;
 
   for (size_t b = 0; b < batch; ++b) {
-    const float *A = v1.data() + b * (size_t(m) * k);
-    const float *B = v2.data() + b * (size_t(k) * n);
+    const float *A = v1.data<T>() + b * (size_t(m) * k);
+    const float *B = v2.data<T>() + b * (size_t(k) * n);
     float *C = res.data() + b * (size_t(m) * n);
 
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha, A, k,
