@@ -18,7 +18,7 @@ struct Log {
     Out forward(Context<T>& context, const In& input) {
         FUSION_CHECK(input.size() >= 1, "Log requires one inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
-        Tensor<T>& a = input[0];
+        const Tensor<T>& a = input[0];
         context.save("c", a);
         Tensor<T> c = a.log();
         Out out;

@@ -64,17 +64,19 @@ int main() {
 //
 // ----- Broken Ops: Mul, Log
     ValueID v0 = engine.apply<AddOp>(std::move(mt1));
-    ValueID v1 = engine.apply<ExpOp>(std::vector<ValueID>{v0});
+    ValueID v1 = engine.apply<sqrtOp>(std::vector<ValueID>{v0});
     ValueID v2 = engine.apply<AddOp>(std::move(mt2));
     ValueID v3 = engine.apply<MulOp>(std::vector<ValueID>{v0, v1}); // was MulOp
     ValueID v4 = engine.apply<AddOp>(std::move(mt3));
-    ValueID v5 = engine.apply<ExpOp>(std::vector<ValueID>{v4});
+    ValueID v5 = engine.apply<sqrtOp>(std::vector<ValueID>{v4});
     ValueID v6 = engine.apply<MulOp>(std::vector<ValueID>{v3, v5}); // was MulOp
     ValueID v7 = engine.apply<divOp>(std::vector<ValueID>{v5, v6});
     ValueID v8 = engine.apply<subOp>(std::vector<ValueID>{v6, v7});
-    ValueID v9 = engine.apply<ExpOp>(std::vector<ValueID>{v8}); // Was log
-//    ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
-//    ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
+    ValueID v9 = engine.apply<sqrtOp>(std::vector<ValueID>{v8}); // Was log
+    ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
+    ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
+    ValueID v12 = engine.apply<logOp>(std::vector<ValueID>{v11});
+
 
 //
 //    std::cout << "v1: " << v1.idx << std::endl;
