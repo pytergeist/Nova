@@ -85,7 +85,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
                       std::vector<T> &out_data) {
   // Initialise tensor descriptions with shape and stride
   FUSION_CHECK(A.is_initialised() && B.is_initialised(), "uninitialised tensor");
-  FUSION_CHECK(A.size() == B.size(), "size mismatch in binary op"); // TODO: this only works for same lenght ops
+//  FUSION_CHECK(A.size() == B.size(), "size mismatch in binary op"); // TODO: this only works for same lenght ops
                                                                     // include scalar operations
   auto dA = make_desc<T>(A.shape_, nullptr);
   auto dB = make_desc<T>(B.shape_, nullptr);

@@ -10,6 +10,8 @@
 #include "autodiff/Sort.h"
 #include "policies/LinAlg/LinAlg.h"
 #include "policies/Transcendental/Transcendental.h"
+#include "policies/Reduction/Reduction.h"
+#include "policies/Reduction/Sum.h"
 #include "policies/Operation.h"
 #include "Tensor.h"
 #include "storage/TensorBuffer.h"
@@ -24,6 +26,7 @@ int main() {
     using logOp = Operation<T, Log<T>>;
     using sqrtOp = Operation<T, Sqrt<T>>;
     using powOp = Operation<T, Pow<T>>;
+    using sumOp = Operation<T, Sum<T>>;
 
     std::vector<T> va{1, 2, 3, 4};
     std::vector<T> vb{1, 2, 3, 4};
@@ -62,7 +65,6 @@ int main() {
     mt3.push_back(std::move(f));
 //
 //
-// ----- Broken Ops: Mul, Log
     ValueID v0 = engine.apply<AddOp>(std::move(mt1));
     ValueID v1 = engine.apply<sqrtOp>(std::vector<ValueID>{v0});
     ValueID v2 = engine.apply<AddOp>(std::move(mt2));
@@ -76,6 +78,7 @@ int main() {
     ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
     ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
     ValueID v12 = engine.apply<logOp>(std::vector<ValueID>{v11});
+    ValueID v13 = engine.apply<sumOp>(std::vector<ValueID>{v12});
 
 
 //
