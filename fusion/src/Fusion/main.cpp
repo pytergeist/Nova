@@ -88,9 +88,9 @@ int main() {
     ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
     ValueID v12 = engine.apply<logOp>(std::vector<ValueID>{v11});
     ValueID v13 = engine.apply<matmulOp>(std::vector<ValueID>{v11, v12});
-//    ValueID v13 = engine.apply<maximumOp>(std::vector<ValueID>{v11, v12});
-//    ValueID v14 = engine.apply<greaterthanOp>(std::vector<ValueID>{v12, v13});
-//    ValueID v15 = engine.apply<transposeOp>(std::vector<ValueID>{v14});
+    ValueID v14 = engine.apply<maximumOp>(std::vector<ValueID>{v12, v13});
+    ValueID v15 = engine.apply<greaterthanOp>(std::vector<ValueID>{v13, v14});
+    ValueID v16 = engine.apply<transposeOp>(std::vector<ValueID>{v15});
 
 
 //

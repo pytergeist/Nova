@@ -7,8 +7,6 @@
 #include <vector>
 #include <stddef.h>
 
-#include "../storage/TensorBuffer.h"
-
 template <typename T> class Tensor;
 
 namespace serial_ops {

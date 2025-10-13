@@ -18,7 +18,7 @@ template <typename T>
 Tensor<T> create_tensor(const std::vector<T> &data,
                         const std::vector<std::size_t> &shape) {
 
-  return Tensor<T>(shape, data, Device::CPU);
+  return Tensor<T>(std::move(shape), std::move(data), Device::CPU);
 };
  //------------------------------------------------------------------------------
  // Unary Operations Tests
@@ -28,12 +28,11 @@ Tensor<T> create_tensor(const std::vector<T> &data,
    std::vector<std::size_t> shape = {3}; // 3×1 tensor.
    Tensor<T> tensor = create_tensor(data, shape);
    Tensor<T> result = tensor.sqrt();
+   Tensor<T> expected = create_tensor(std::vector<T>{2.0, 3.0, 4.0}, shape);
 
-   std::vector<T> expected = {2.0, 3.0, 4.0};
-   std::vector<T> resultVec = result.raw_data();
-   ASSERT_EQ(resultVec.size(), expected.size());
+   ASSERT_EQ(result.size(), expected.size());
    for (size_t i = 0; i < expected.size(); ++i) {
-     EXPECT_NEAR(resultVec[i], expected[i], 1e-6);
+     EXPECT_NEAR(result[i], expected[i], 1e-6);
    }
  }
 
@@ -42,12 +41,10 @@ Tensor<T> create_tensor(const std::vector<T> &data,
    std::vector<std::size_t> shape = {2}; // 2×1 tensor.
    Tensor<T> tensor = create_tensor(data, shape);
    Tensor<T> result = tensor.exp();
-
-   std::vector<T> expected = {std::exp(0.0f), std::exp(1.0f)};
-   std::vector<T> resultVec = result.raw_data();
-   ASSERT_EQ(resultVec.size(), expected.size());
+   Tensor<T> expected = create_tensor(std::vector<T>{std::exp(0.0f), std::exp(1.0f)}, shape);
+   ASSERT_EQ(result.size(), expected.size());
    for (size_t i = 0; i < expected.size(); ++i) {
-     EXPECT_NEAR(resultVec[i], expected[i], 1e-6);
+     EXPECT_NEAR(result[i], expected[i], 1e-6);
    }
  }
 
@@ -57,14 +54,13 @@ Tensor<T> create_tensor(const std::vector<T> &data,
    Tensor<T> tensor = create_tensor(data, shape);
    Tensor<T> result = tensor.log();
 
-   std::vector<T> expected = {1.0, 2.0};
-   std::vector<T> resultVec = result.raw_data();
-   ASSERT_EQ(resultVec.size(), expected.size());
+   Tensor<T> expected = create_tensor(std::vector<T>{1.0, 2.0}, shape);
+   ASSERT_EQ(result.size(), expected.size());
    for (size_t i = 0; i < expected.size(); ++i) {
-     EXPECT_NEAR(resultVec[i], expected[i], 1e-6);
+     EXPECT_NEAR(result[i], expected[i], 1e-6);
    }
  }
-//
+
 ////------------------------------------------------------------------------------
 // Binary Operations Tests
 
@@ -76,48 +72,43 @@ TEST(TensorOpsTest, BinaryOperationsTest) {
   Tensor<T> t2 = create_tensor(data2, shape);
 
   // Addition
-  Tensor<T> addResult = t1.clone() + t2.clone();
-  std::vector<T> expectedAdd = {5.0, 7.0, 9.0};
-  std::vector<T> addVec = addResult.raw_data();
+  Tensor<T> addResult = t1 + t2;
+  Tensor<T> expectedAdd = create_tensor(std::vector<T>{5.0, 7.0, 9.0}, shape);
   for (size_t i = 0; i < expectedAdd.size(); ++i) {
-    EXPECT_NEAR(addVec[i], expectedAdd[i], 1e-6);
+    EXPECT_NEAR(addResult[i], expectedAdd[i], 1e-6);
   }
 
   // Subtraction
-  Tensor<T> subResult = t2.clone() - t1.clone();
-  std::vector<T> expectedSub = {3.0, 3.0, 3.0};
-  std::vector<T> subVec = subResult.raw_data();
+  Tensor<T> subResult = t2 - t1;
+  Tensor<T> expectedSub = create_tensor(std::vector<T>{3.0, 3.0, 3.0}, shape);;
   for (size_t i = 0; i < expectedSub.size(); ++i) {
-    EXPECT_NEAR(subVec[i], expectedSub[i], 1e-6);
+    EXPECT_NEAR(subResult[i], expectedSub[i], 1e-6);
   }
 //
-  // Elementwise Multiplication
-  Tensor<T> mulResult = t1.clone() * t2.clone();
-  std::vector<T> expectedMul = {4.0, 10.0, 18.0};
-  std::vector<T> mulVec = mulResult.raw_data();
+  // Elementwise Mul
+  Tensor<T> mulResult = t1 * t2;
+  Tensor<T> expectedMul = create_tensor(std::vector<T>{4.0, 10.0, 18.0}, shape);;
   for (size_t i = 0; i < expectedMul.size(); ++i) {
-    EXPECT_NEAR(mulVec[i], expectedMul[i], 1e-6);
+    EXPECT_NEAR(mulResult[i], expectedMul[i], 1e-6);
   }
 
   // Elementwise Division
-  Tensor<T> divResult = t2.clone() / t1.clone();
-  std::vector<T> expectedDiv = {4.0, 2.5, 2.0};
-  std::vector<T> divVec = divResult.raw_data();
+  Tensor<T> divResult = t2 / t1;
+  Tensor<T> expectedDiv = create_tensor(std::vector<T>{4.0, 2.5, 2.0}, shape);
   for (size_t i = 0; i < expectedDiv.size(); ++i) {
-    EXPECT_NEAR(divVec[i], expectedDiv[i], 1e-6);
+    EXPECT_NEAR(divResult[i], expectedDiv[i], 1e-6);
   }
 
   // Pow: Note that Tensor::pow takes a scalar exponent.
   // Here, we raise each element of t1 to the 4th power.
   Tensor<T> tensor_to_pow = create_tensor(std::vector<T>{4.0}, {1});
-  Tensor<T> powResult = t1.clone().pow(tensor_to_pow);
+  Tensor<T> powResult = t1.pow(tensor_to_pow);
   std::vector<T> expectedPow;
   for (T d : data1) {
     expectedPow.push_back(std::pow(d, 4.0));
   }
-  std::vector<T> powVec = powResult.raw_data();
   for (size_t i = 0; i < expectedPow.size(); ++i) {
-    EXPECT_NEAR(powVec[i], expectedPow[i], 1e-6);
+    EXPECT_NEAR(powResult[i], expectedPow[i], 1e-6);
   }
 }
 
@@ -142,9 +133,9 @@ TEST(TensorOpsTest, BinaryOperationsTest) {
    for (T d : data) {
      expectedAdd.push_back(2.0 + d);
    }
-   std::vector<T> addVec = addResult.raw_data();
-   for (size_t i = 0; i < expectedAdd.size(); ++i) {
-     EXPECT_NEAR(addVec[i], expectedAdd[i], 1e-6);
+   Tensor<T> expectedAddTensor = create_tensor(expectedAdd, shape);
+   for (size_t i = 0; i < expectedAddTensor.size(); ++i) {
+     EXPECT_NEAR(addResult[i], expectedAddTensor[i], 1e-6);
    }
 
    // Test subtraction: tensor - scalar.
@@ -153,9 +144,9 @@ TEST(TensorOpsTest, BinaryOperationsTest) {
    for (T d : data) {
      expectedSub.push_back(d - 2.0);
    }
-   std::vector<T> subVec = subResult.raw_data();
+   Tensor<T> expectedSubTensor = create_tensor(expectedSub, shape);
    for (size_t i = 0; i < expectedSub.size(); ++i) {
-     EXPECT_NEAR(subVec[i], expectedSub[i], 1e-6);
+     EXPECT_NEAR(subResult[i], expectedSubTensor[i], 1e-6);
    }
  }
 
@@ -175,7 +166,7 @@ TEST(TensorOpsTest, BinaryOperationsTest) {
          auto result = t1 + t2;
          (void)result;
        },
-       std::invalid_argument);
+       std::runtime_error);
  }
 
  //------------------------------------------------------------------------------
@@ -199,10 +190,10 @@ TEST(TensorOpsTest, BinaryOperationsTest) {
 
    Tensor<T> result = A.matmul(B);
    std::vector<T> expected = {19, 22, 43, 50};
-   std::vector<T> resVec = result.raw_data();
-   ASSERT_EQ(resVec.size(), expected.size());
+   Tensor<T> expectedResult = create_tensor(expected, shapeA);
+   ASSERT_EQ(result.size(), expected.size());
    for (size_t i = 0; i < expected.size(); ++i) {
-     EXPECT_NEAR(resVec[i], expected[i], 1e-6);
+     EXPECT_NEAR(result[i], expected[i], 1e-6);
    }
  }
 
@@ -223,10 +214,10 @@ TEST(TensorOpsTest, BinaryOperationsTest) {
 
    Tensor<T> result = A.matmul(v);
    std::vector<T> expected = {6, 15};
-   std::vector<T> resVec = result.raw_data();
-   ASSERT_EQ(resVec.size(), expected.size());
+   Tensor<T> expectedResult = create_tensor(expected, shapeA);
+   ASSERT_EQ(result.size(), expected.size());
    for (size_t i = 0; i < expected.size(); ++i) {
-     EXPECT_NEAR(resVec[i], expected[i], 1e-6);
+     EXPECT_NEAR(result[i], expected[i], 1e-6);
    }
  }
 
@@ -240,7 +231,7 @@ TEST(TensorOpsTest, BinaryOperationsTest) {
          auto result = tensor.matmul(tensor);
          (void)result;
        },
-       std::invalid_argument);
+       std::runtime_error);
  }
 
  //------------------------------------------------------------------------------
