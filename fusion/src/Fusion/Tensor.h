@@ -8,8 +8,6 @@
 #include <vector>
 #include <cstring>
 
-#include "kernels/Blas.cpp"
-#include "kernels/Serial.cpp"
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
 #include "core/ElementWise.h"
@@ -17,6 +15,8 @@
 #include "core/Reduce.h"
 #include "cpu/SimdTags.h"
 #include "cpu/SimdTraits.h"
+#include "kernels/Blas.cpp"
+#include "kernels/Serial.h"
 
 #include "common/Checks.h"
 
@@ -273,13 +273,13 @@ public:
   }
 
   //
-  Tensor<T> transpose() {
+  Tensor<T> transpose() const {
     std::vector<size_t> new_shape(shape_.rbegin(), shape_.rend());
 
     size_t size = flat_size();
     std::vector<T> new_data(size);
 
-    serial_ops::transpose(this->raw_data(), this->shape_, new_data);
+    serial_ops::transpose<T>(*this, this->shape_, new_data);
 
     return Tensor<T>(std::move(new_shape), std::move(new_data), Device::CPU);
   }
@@ -289,5 +289,6 @@ public:
   auto begin() const { return storage->data().begin(); }
   auto end() const { return storage->data().end(); }
 };
+
 
 #endif // TENSOR_H

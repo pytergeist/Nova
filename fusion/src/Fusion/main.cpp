@@ -16,6 +16,7 @@
 #include "Tensor.h"
 #include "storage/TensorBuffer.h"
 #include "policies/Comparison/Comparison.h"
+#include "policies/Shape/Shape.h"
 
 int main() {
     using T = float;
@@ -30,6 +31,7 @@ int main() {
     using sumOp = Operation<T, Sum<T>>;
     using maximumOp = Operation<T, Maximum<T>>;
     using greaterthanOp = Operation<T, GreaterThan<T>>;
+    using transposeOp = Operation<T, Transpose<T>>;
 
     std::vector<T> va{1, 2, 3, 4};
     std::vector<T> vb{1, 2, 3, 4};
@@ -83,6 +85,7 @@ int main() {
     ValueID v12 = engine.apply<logOp>(std::vector<ValueID>{v11});
     ValueID v13 = engine.apply<maximumOp>(std::vector<ValueID>{v11, v12});
     ValueID v14 = engine.apply<greaterthanOp>(std::vector<ValueID>{v12, v13});
+    ValueID v15 = engine.apply<transposeOp>(std::vector<ValueID>{v14});
 
 
 //

@@ -1,26 +1,36 @@
+#ifndef _SERIAL_H
+#define _SERIAL_H
+
 #include <cmath>
 #include <numeric>
 #include <stdexcept>
 #include <vector>
+#include <stddef.h>
+
+#include "../storage/TensorBuffer.h"
+
+template <typename T> class Tensor;
 
 namespace serial_ops {
-void transpose(std::vector<float> &v1, std::vector<size_t> &shape,
-               std::vector<float> &res) {
+template <typename T>
+void transpose(const Tensor<T>& t1, const std::vector<size_t> &shape,
+               std::vector<T> &res) {
   for (std::size_t i = 0; i < shape[0]; i++) {
     for (std::size_t j = 0; j < shape[1]; j++) {
-      res[j * shape[0] + i] = v1[i * shape[1] + j];
+      res[j * shape[0] + i] = t1[i * shape[1] + j];
     }
   }
 }
 
-std::vector<size_t> get_contiguous_strides(std::vector<size_t> &shape) {
-  size_t product = 1;
-  size_t ndim = shape.size();
-  std::vector<size_t> strides;
+
+std::vector<std::size_t> get_contiguous_strides(std::vector<std::size_t> &shape) {
+  std::size_t product = 1;
+  std::size_t ndim = shape.size();
+  std::vector<std::size_t> strides;
   strides.resize(ndim);
-  for (size_t i = ndim; i-- > 0;) {
+  for (std::size_t i = ndim; i-- > 0;) {
     strides[i] = product;
-    const size_t curr_dim = shape[i];
+    const std::size_t curr_dim = shape[i];
     product *= curr_dim;
   }
   return strides;
@@ -133,3 +143,5 @@ std::vector<float> diagonal2D(std::vector<float> &a,
 }
 
 } // namespace serial_ops
+
+#endif // _SERIAL_H
