@@ -3,5 +3,6 @@
 
 #include "../../autodiff/Traits.h"
 #include "Maximum.h"
+#include "GreaterThan.h"
 
 #endif // _COMPARISON_H

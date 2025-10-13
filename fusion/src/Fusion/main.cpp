@@ -29,6 +29,7 @@ int main() {
     using powOp = Operation<T, Pow<T>>;
     using sumOp = Operation<T, Sum<T>>;
     using maximumOp = Operation<T, Maximum<T>>;
+    using greaterthanOp = Operation<T, GreaterThan<T>>;
 
     std::vector<T> va{1, 2, 3, 4};
     std::vector<T> vb{1, 2, 3, 4};
@@ -81,6 +82,7 @@ int main() {
     ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
     ValueID v12 = engine.apply<logOp>(std::vector<ValueID>{v11});
     ValueID v13 = engine.apply<maximumOp>(std::vector<ValueID>{v11, v12});
+    ValueID v14 = engine.apply<greaterthanOp>(std::vector<ValueID>{v12, v13});
 
 
 //
