@@ -23,7 +23,7 @@ void transpose(const Tensor<T>& t1, const std::vector<size_t> &shape,
 }
 
 
-std::vector<std::size_t> get_contiguous_strides(std::vector<std::size_t> &shape) {
+std::vector<std::size_t> get_contiguous_strides(const std::vector<std::size_t> &shape) {
   std::size_t product = 1;
   std::size_t ndim = shape.size();
   std::vector<std::size_t> strides;
@@ -36,7 +36,7 @@ std::vector<std::size_t> get_contiguous_strides(std::vector<std::size_t> &shape)
   return strides;
 }
 
-size_t normalise_axis(int axis, size_t ndim_sz) {
+std::size_t normalise_axis(int axis, size_t ndim_sz) {
   const int ndim = static_cast<int>(ndim_sz);
   if (axis < -ndim || axis >= ndim) {
     throw std::runtime_error("input axis out of range");
@@ -60,8 +60,8 @@ std::vector<size_t> linear_to_coord(size_t idx, size_t stride1, size_t stride2,
   return dst;
 }
 
-std::vector<size_t> unravel_idx(size_t idx, std::vector<size_t> &strides,
-                                std::vector<size_t> &shape) {
+std::vector<size_t> unravel_idx(size_t idx, const std::vector<size_t> &strides,
+                                const std::vector<size_t> &shape) {
   const size_t n = shape.size();
   std::vector<size_t> coord(n);
 
@@ -91,13 +91,14 @@ size_t coord_to_linear(std::vector<size_t> &coords,
   return Lidx;
 }
 
-std::vector<float> swapaxes(std::vector<float> &a, std::vector<size_t> &shape,
+template <typename T>
+std::vector<T> swapaxes(const Tensor<T> &a, const std::vector<size_t> &shape,
                             int a1, int a2) {
 
   int axis1 = normalise_axis(a1, shape.size());
   int axis2 = normalise_axis(a2, shape.size());
   if (axis1 == axis2) {
-    return a;
+    throw std::runtime_error("axis1 and axis2 cannot be the same");
   }
 
   std::vector<int> result;
@@ -109,7 +110,7 @@ std::vector<float> swapaxes(std::vector<float> &a, std::vector<size_t> &shape,
 
   size_t size = std::accumulate(shape.begin(), shape.end(), size_t{1},
                                 std::multiplies<int>());
-  std::vector<float> out(a.size());
+  std::vector<T> out(a.size());
   for (int i = 0; i < size; i++) {
     std::vector<size_t> old_coord = unravel_idx(i, original_strides, shape);
     std::swap(old_coord[axis1], old_coord[axis2]);
@@ -119,8 +120,9 @@ std::vector<float> swapaxes(std::vector<float> &a, std::vector<size_t> &shape,
   return out;
 }
 
-std::vector<float> diagonal2D(std::vector<float> &a,
-                              std::vector<size_t> &shape) {
+template <typename T>
+std::vector<T> diagonal2D(const Tensor<T> &a,
+                              const std::vector<size_t> &shape) {
   // Row-major: flat index (r, c) is r*cols + c for diag
   if (shape.size() != 2) {
     throw std::runtime_error("Diagonal2D can only be called with a 2D array");
@@ -134,7 +136,7 @@ std::vector<float> diagonal2D(std::vector<float> &a,
   };
 
   const size_t n = static_cast<size_t>(std::min(rows, cols));
-  std::vector<float> out(n);
+  std::vector<T> out(n);
 
   for (size_t i = 0; i < n; i++) {
     out[i] = a[i * static_cast<size_t>(cols) + i];
