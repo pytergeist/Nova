@@ -180,6 +180,14 @@ public:
     return *this;
   }
 
+  auto operator>=(const Tensor &other) const {
+    std::vector<size_t> out_shape;
+    std::vector<T> out_data;
+    ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(*this, other, out_shape,
+                                                out_data);
+    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
+  }
+
   auto maximum(const Tensor &other) const {
     std::vector<size_t> out_shape;
     std::vector<T> out_data;
