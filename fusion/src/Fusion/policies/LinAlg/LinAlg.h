@@ -7,5 +7,7 @@
 #include "Multiply.h"
 #include "Subtract.h"
 #include "Pow.h"
+#include "MatMul.h"
+
 
 #endif // _LINALG_H

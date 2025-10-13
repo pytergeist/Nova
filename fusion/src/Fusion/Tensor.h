@@ -15,7 +15,7 @@
 #include "core/Reduce.h"
 #include "cpu/SimdTags.h"
 #include "cpu/SimdTraits.h"
-#include "kernels/Blas.cpp"
+#include "kernels/Blas.h"
 #include "kernels/Serial.h"
 
 #include "common/Checks.h"
@@ -230,7 +230,7 @@ public:
     return Tensor<T>({1}, std::vector<T>{acc});
   };
 
-  Tensor<T> matmul(Tensor<T> &other) {
+  Tensor<T> matmul(const Tensor<T> &other) const {
     auto const &shapeA = this->shape_;
     auto const &shapeB = other.shape_;
     size_t rank = shapeA.size();
@@ -247,18 +247,18 @@ public:
 
     std::vector<T> data(batch * m * n);
 
-    blas_ops::matmul<T>(this->raw_data(), shapeA, other.raw_data(), shapeB, data);
+    blas_ops::matmul<T>(*this, shapeA, other, shapeB, data);
 
     return Tensor<T>(std::move(out_shape), std::move(data), Device::CPU);
   }
 
-  Tensor<T> swapaxes(int axis1, int axis2) {
+  Tensor<T> swapaxes(int axis1, int axis2) const {
     std::vector<size_t> out_shape = this->shape_;
     axis1 = serial_ops::normalise_axis(axis1, this->rank_);
     axis2 = serial_ops::normalise_axis(axis2, this->rank_);
     std::swap(out_shape[axis1], out_shape[axis2]);
     std::vector<T> out =
-        serial_ops::swapaxes(this->raw_data(), this->shape_, axis1, axis2);
+        serial_ops::swapaxes<T>(*this, this->shape_, axis1, axis2);
     return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
   }
 
@@ -268,7 +268,7 @@ public:
                                   int64_t{1}, std::multiplies<int>()));
     size_t out_dim = std::floor(arr_size);
     std::vector<size_t> out_shape{out_dim, 1};
-    std::vector<T> out = serial_ops::diagonal2D(this->raw_data(), this->shape_);
+    std::vector<T> out = serial_ops::diagonal2D(*this, this->shape_);
     return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
   }
 

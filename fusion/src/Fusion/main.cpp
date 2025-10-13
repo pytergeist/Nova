@@ -32,6 +32,8 @@ int main() {
     using maximumOp = Operation<T, Maximum<T>>;
     using greaterthanOp = Operation<T, GreaterThan<T>>;
     using transposeOp = Operation<T, Transpose<T>>;
+    using matmulOp = Operation<T, MatMul<T>>;
+
 
     std::vector<T> va{1, 2, 3, 4};
     std::vector<T> vb{1, 2, 3, 4};
@@ -40,15 +42,17 @@ int main() {
     std::vector<T> ve{1, 2, 3, 4};
     std::vector<T> vf{1, 2, 3, 4};
 
-    std::size_t shape = 4;
+    std::vector<std::size_t> shape = {2,2};
 
-	Tensor<T> a{{shape}, va};
-    Tensor<T> b{{shape}, vb};
-    Tensor<T> c{{shape}, vc};
-    Tensor<T> d{{shape}, vd};
-    Tensor<T> e{{shape}, vc};
-    Tensor<T> f{{shape}, vd};
 
+	Tensor<T> a{shape, va};
+    Tensor<T> b{shape, vb};
+    Tensor<T> c{shape, vc};
+    Tensor<T> d{shape, vd};
+    Tensor<T> e{shape, vc};
+    Tensor<T> f{shape, vd};
+
+    a.diagonal();
 
     Engine<T> engine;
 
@@ -83,9 +87,10 @@ int main() {
     ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
     ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
     ValueID v12 = engine.apply<logOp>(std::vector<ValueID>{v11});
-    ValueID v13 = engine.apply<maximumOp>(std::vector<ValueID>{v11, v12});
-    ValueID v14 = engine.apply<greaterthanOp>(std::vector<ValueID>{v12, v13});
-    ValueID v15 = engine.apply<transposeOp>(std::vector<ValueID>{v14});
+    ValueID v13 = engine.apply<matmulOp>(std::vector<ValueID>{v11, v12});
+//    ValueID v13 = engine.apply<maximumOp>(std::vector<ValueID>{v11, v12});
+//    ValueID v14 = engine.apply<greaterthanOp>(std::vector<ValueID>{v12, v13});
+//    ValueID v15 = engine.apply<transposeOp>(std::vector<ValueID>{v14});
 
 
 //
