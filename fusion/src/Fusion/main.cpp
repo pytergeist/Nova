@@ -15,6 +15,7 @@
 #include "policies/Operation.h"
 #include "Tensor.h"
 #include "storage/TensorBuffer.h"
+#include "policies/Comparison/Comparison.h"
 
 int main() {
     using T = float;
@@ -27,6 +28,7 @@ int main() {
     using sqrtOp = Operation<T, Sqrt<T>>;
     using powOp = Operation<T, Pow<T>>;
     using sumOp = Operation<T, Sum<T>>;
+    using maximumOp = Operation<T, Maximum<T>>;
 
     std::vector<T> va{1, 2, 3, 4};
     std::vector<T> vb{1, 2, 3, 4};
@@ -78,7 +80,7 @@ int main() {
     ValueID v10 = engine.apply<sqrtOp>(std::vector<ValueID>{v9});
     ValueID v11 = engine.apply<powOp>(std::vector<ValueID>{v10, v9});
     ValueID v12 = engine.apply<logOp>(std::vector<ValueID>{v11});
-    ValueID v13 = engine.apply<sumOp>(std::vector<ValueID>{v12});
+    ValueID v13 = engine.apply<maximumOp>(std::vector<ValueID>{v11, v12});
 
 
 //
