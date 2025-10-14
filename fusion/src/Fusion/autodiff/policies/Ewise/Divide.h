@@ -5,6 +5,7 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
+#include "../../ops/Ewise.h"
 
 template <typename T>
 struct Divide {
@@ -23,7 +24,7 @@ struct Divide {
         context.save("a", a);
         context.save("b", b);
         FUSION_CHECK(a.size() == b.size(), "Divide: input size mismatch");
-        Tensor<T> c = a / b;
+        Tensor<T> c = ops::div(a, b);
         Out out;
         out.push_back(c);
         return out;
@@ -36,11 +37,14 @@ struct Divide {
         const Tensor<T>& b = context.template load<Tensor<T>>("b");
         const auto& g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "Divide::backward: upstream grad is empty");
-        Tensor<T> c = g0 / b;
-        Tensor<T> d = ((zeros_like(g0) - g0) * a) / (b * b);
+        Tensor<T> c = ops::div(g0, b);
+        Tensor<T> d = ops::sub(zeros_like(g0), g0);
+        Tensor<T> e = ops::mul(d, g0);
+        Tensor<T> f = ops::mul(b, b);
+        Tensor<T> h = ops::div(e, f);
         GradIn g;
         g.push_back(c);
-        g.push_back(d);
+        g.push_back(h);
         return g;
     }
 };

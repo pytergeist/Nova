@@ -4,6 +4,7 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
+#include "../../ops/Ewise.h"
 
 
 template <typename T>
@@ -24,7 +25,7 @@ struct Multiply {
         FUSION_CHECK(a.size() == b.size(), "Multiply::forward input size mismatch");
         context.save("a", input[0]);
         context.save("b", input[1]);
-        Tensor<T> c = a * b;
+        Tensor<T> c = ops::mul(a, b);
         Out out;
         out.push_back(c);
         return out;
@@ -37,8 +38,8 @@ struct Multiply {
         auto& b = context.template load<Tensor<T>>("b");
         Tensor<T> g0 = std::move(grad_out[0]);
         FUSION_CHECK(!g0.empty(), "Multiply::backward: upstream grad is empty");
-        Tensor<T> c = g0 * b;
-        Tensor<T> d = g0 * a;
+        Tensor<T> c = ops::mul(g0, b);
+        Tensor<T> d = ops::mul(g0, a);
         GradIn g;
         g.push_back(c);
         g.push_back(d);

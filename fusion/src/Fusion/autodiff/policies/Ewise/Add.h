@@ -6,6 +6,7 @@
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
 #include "../../common/Checks.h"
+#include "../../ops/Ewise.h"
 
 
 template <typename T>
@@ -23,7 +24,7 @@ struct Add {
     	const auto& a = input[0];
     	const auto& b = input[1];
     	FUSION_CHECK(a.size() == b.size(), "Add: input size mismatch");
-        Tensor<T> c = a + b;
+        Tensor<T> c = ops::add(a, b);
         Out out;
         out.push_back(c);
         return out;

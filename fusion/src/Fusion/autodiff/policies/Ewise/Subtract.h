@@ -5,6 +5,7 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
+#include "../../ops/Ewise.h"
 
 template <typename T>
 struct Subtract {
@@ -21,7 +22,7 @@ struct Subtract {
     const auto& a = input[0];
     const auto& b = input[1];
     FUSION_CHECK(a.size() == b.size(), "Subtract: input size mismatch");
-    Tensor<T> c = a - b;
+    Tensor<T> c = ops::sub(a, b);
     Out out;
     out.push_back(c);
     return out;
@@ -32,7 +33,7 @@ struct Subtract {
     FUSION_CHECK(grad_out.size() == 1, "Subtract::backward expects exactly 1 upstream grad tensor");
     Tensor<T>& g0 = grad_out[0];
     FUSION_CHECK(!g0.empty(), "Subtract::backward: upstream grad is empty");
-    Tensor<T> g1 = zeros_like(g0) - g0;
+    Tensor<T> g1 = ops::sub(zeros_like(g0), g0);
     GradIn g;
     g.push_back(g0);
     g.push_back(g1);
