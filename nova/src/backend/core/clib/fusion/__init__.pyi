@@ -22,6 +22,7 @@ class Random:
 class Tensor:
     def __add__(self, arg0: Tensor) -> Tensor: ...
     def __ge__(self, arg0: Tensor) -> Tensor: ...
+    def __gt__(self, arg0: Tensor) -> Tensor: ...
     @typing.overload
     def __init__(self, shape: list[int]) -> None:
         """
@@ -41,6 +42,7 @@ class Tensor:
         """
 
     def __mul__(self, arg0: Tensor) -> Tensor: ...
+    def __neg__(self) -> Tensor: ...
     def __pow__(self, other: Tensor) -> Tensor:
         """
         Elementwise power: each element raised to corresponding element of other tensor.
@@ -50,6 +52,7 @@ class Tensor:
     def __rsub__(self, arg0: Tensor) -> Tensor: ...
     def __sub__(self, arg0: Tensor) -> Tensor: ...
     def __truediv__(self, arg0: Tensor) -> Tensor: ...
+    def diag(self) -> Tensor: ...
     def exp(self) -> Tensor: ...
     def log(self) -> Tensor: ...
     def maximum(self, other: Tensor) -> Tensor: ...
@@ -65,6 +68,7 @@ class Tensor:
 
     def sqrt(self) -> Tensor: ...
     def sum(self) -> Tensor: ...
+    def swapaxes(self, axis1: int, axis2: int) -> Tensor: ...
     def to_numpy(self) -> numpy.ndarray[numpy.float32]:
         """
         Return a NumPy array view of the Tensor’s contents.
@@ -78,6 +82,18 @@ class Tensor:
     def zeros_like(self) -> Tensor:
         """
         Return a Tensor of zeros with the same shape as this one.
+        """
+
+    @property
+    def dtype(self) -> numpy.dtype[typing.Any]:
+        """
+        Returns the NumPy dtype of the tensor.
+        """
+
+    @property
+    def ndim(self) -> int:
+        """
+        Returns the shape as a list of ints.
         """
 
     @property
