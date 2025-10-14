@@ -5,7 +5,7 @@
 #include <string>
 #include <any>
 #include <unordered_map>
-#include "../Tensor.h"
+#include "../../Tensor.h"
 
 template <typename T>
 struct BinaryType {std::vector<T> a; std::vector<T> b;};

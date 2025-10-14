@@ -8,15 +8,16 @@
 #include "autodiff/Node.h"
 #include "autodiff/NodeInterface.h"
 #include "autodiff/Sort.h"
-#include "policies/LinAlg/LinAlg.h"
-#include "policies/Transcendental/Transcendental.h"
-#include "policies/Reduction/Reduction.h"
-#include "policies/Reduction/Sum.h"
-#include "policies/Operation.h"
+#include "autodiff/policies/LinAlg/LinAlg.h"
+#include "autodiff/policies/Transcendental/Transcendental.h"
+#include "autodiff/policies/Reduction/Reduction.h"
+#include "autodiff/policies/Reduction/Sum.h"
+#include "autodiff/policies/Operation.h"
 #include "Tensor.h"
 #include "storage/TensorBuffer.h"
-#include "policies/Comparison/Comparison.h"
-#include "policies/Shape/Shape.h"
+#include "autodiff/policies/Comparison/Comparison.h"
+#include "autodiff/policies/Shape/Shape.h"
+#include "autodiff/policies/Ewise/Ewise.h"
 
 int main() {
     using T = float;
