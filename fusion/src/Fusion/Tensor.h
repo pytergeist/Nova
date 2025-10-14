@@ -16,7 +16,8 @@
 #include "kernels/Serial.h"
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
-
+#include "ops/Binary.h"
+#include "ops/Unary.h"
 #include "common/Checks.h"
 
 template <typename T> class Tensor {
@@ -133,19 +134,9 @@ public:
   const TensorBuffer &raw_data() const { return storage->data(); }
   [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
-  auto operator+(const Tensor &other) const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::binary_ewise_tag<T, AddSIMD>(*this, other, out_shape, out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  }
+  auto operator+(const Tensor &other) const { return ops::binary::add(*this, other); }
 
-  auto operator-(const Tensor &other) const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  }
+  auto operator-(const Tensor &other) const { return ops::binary::sub(*this, other); }
 
   auto &operator-=(const Tensor &other) {
     std::vector<size_t> out_shape;
@@ -159,19 +150,9 @@ public:
     return *this;
   }
 
-  auto operator/(const Tensor &other) const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::binary_ewise_tag<T, DivideSIMD>(*this, other, out_shape, out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  }
+  auto operator/(const Tensor &other) const { return ops::binary::div(*this, other); }
 
-  auto operator*(const Tensor &other) const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::binary_ewise_tag<T, MultiplySIMD>(*this, other, out_shape, out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  }
+  auto operator*(const Tensor &other) const { return ops::binary::mul(*this, other); }
 
   auto operator>(const Tensor &other) const {
     std::vector<size_t> out_shape;
@@ -204,33 +185,13 @@ public:
     return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
   }
 
-  auto sqrt() const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::unary_ewise_tag<T, SqrtSIMD>(*this, out_shape, out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  }
+  auto sqrt() const { return ops::unary::sqrt(*this); };
 
-  auto log() const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::unary_ewise_tag<T, NaturalLogSIMD>(*this, out_shape, out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  };
+  auto log() const { return ops::unary::log(*this); };
 
-  auto exp() const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::unary_ewise_tag<T, ExponentialSIMD>(*this, out_shape, out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  };
+  auto exp() const { return ops::unary::exp(*this); };
 
-  auto pow(const Tensor &other) const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::binary_ewise_tag<T, PowerSIMD>(*this, other, out_shape, out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  }
+  auto pow(const Tensor &other) const { return ops::binary::pow(*this, other); };
 
   auto sum() const {
     const T *x = this->storage->data_ptr();

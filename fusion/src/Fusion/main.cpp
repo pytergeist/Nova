@@ -57,23 +57,22 @@ int main() {
     Engine<T> engine;
 
     MultiTensor<T> mt1;
-    mt1.push_back(std::move(a));
-    mt1.push_back(std::move(b));
+    mt1.push_back(a);
+    mt1.push_back(b);
 
     MultiTensor<T> mt2;
-    mt2.push_back(std::move(c));
-    mt2.push_back(std::move(d));
+    mt2.push_back(c);
+    mt2.push_back(d);
 
-//    for (auto &t : mt2) {
-//      std::cout << t << std::endl;
-//    }
-//
-//
+
+
+
+
     MultiTensor<T> mt3;
-    mt3.push_back(std::move(e));
-    mt3.push_back(std::move(f));
-//
-//
+    mt3.push_back(e);
+    mt3.push_back(f);
+
+
     ValueID v0 = engine.apply<AddOp>(std::move(mt1));
     ValueID v1 = engine.apply<sqrtOp>(std::vector<ValueID>{v0});
     ValueID v2 = engine.apply<AddOp>(std::move(mt2));
@@ -93,16 +92,7 @@ int main() {
     ValueID v16 = engine.apply<transposeOp>(std::vector<ValueID>{v15});
 
 
-//
-//    std::cout << "v1: " << v1.idx << std::endl;
-//    std::cout << "v2: " << v2.idx << std::endl;
-//    std::cout << "v3: " << v3.idx << std::endl;
-//    std::cout << "v4: " << v4.idx << std::endl;
-//    std::cout << "v5: " << v5.idx << std::endl;
-//    std::cout << "v6: " << v6.idx << std::endl;
-//    std::cout << "v7: " << v7.idx << std::endl;
-//    std::cout << "v8: " << v8.idx << std::endl;
-//
+
     engine.backward();
 //
     engine.dump_graph(std::cout);
