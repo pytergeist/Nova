@@ -25,7 +25,7 @@ struct Maximum {
         FUSION_CHECK(a.size() == b.size(), "Maximum: input size mismatch");
         Tensor<T> c = a.maximum(b);
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -39,8 +39,8 @@ struct Maximum {
         Tensor<T> c = g0 * (a >= b);
         Tensor<T> d = g0 * (b > a);
         GradIn g;
-        g.push_back(std::move(c));
-        g.push_back(std::move(d));
+        g.push_back(c);
+        g.push_back(d);
         return g;
     }
 };

@@ -25,7 +25,7 @@ struct Divide {
         FUSION_CHECK(a.size() == b.size(), "Divide: input size mismatch");
         Tensor<T> c = a / b;
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -39,8 +39,8 @@ struct Divide {
         Tensor<T> c = g0 / b;
         Tensor<T> d = ((zeros_like(g0) - g0) * a) / (b * b);
         GradIn g;
-        g.push_back(std::move(c));
-        g.push_back(std::move(d));
+        g.push_back(c);
+        g.push_back(d);
         return g;
     }
 };

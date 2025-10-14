@@ -208,7 +208,7 @@ private:
     Tensor<T> grad = ones_like(val_buff_[vid.idx]);
     grad_buff_[vid.idx] = grad;
     MultiTensor<T> gradVec;
-    gradVec.push_back(std::move(grad));
+    gradVec.push_back(grad);
     return gradVec;
   }
 

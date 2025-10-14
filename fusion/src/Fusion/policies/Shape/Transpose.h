@@ -21,7 +21,7 @@ struct Transpose {
         const auto& a = input[0];
         Tensor<T> c = a.transpose();
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -32,7 +32,7 @@ struct Transpose {
         FUSION_CHECK(!g0.empty(), "Transpose::backward: upstream grad is empty");
         Tensor<T> g1 = g0.transpose();
         GradIn g;
-        g.push_back(std::move(g1));
+        g.push_back(g1);
         return g;
     }
 };

@@ -22,7 +22,7 @@ struct Sqrt {
         context.save("c", a);
         Tensor<T> c = a.sqrt();
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -34,7 +34,7 @@ struct Sqrt {
         const Tensor<T>& a = context.template load<Tensor<T>>("c");
         Tensor<T> g1 = g0 / (a.sqrt()); // TODO: this is wrong - need 2* (need tensor * scalar)
         GradIn g;
-        g.push_back(std::move(g1));
+        g.push_back(g1);
         return g;
     }
 };

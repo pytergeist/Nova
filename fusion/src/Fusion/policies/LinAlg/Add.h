@@ -25,7 +25,7 @@ struct Add {
     	FUSION_CHECK(a.size() == b.size(), "Add: input size mismatch");
         Tensor<T> c = a + b;
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -38,8 +38,8 @@ struct Add {
         Tensor<T> gb = g0;
         GradIn g;
         g.data.reserve(2);
-        g.push_back(std::move(ga));
-        g.push_back(std::move(gb));
+        g.push_back(ga);
+        g.push_back(gb);
         return g;
     }
 };

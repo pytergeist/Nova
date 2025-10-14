@@ -26,7 +26,7 @@ struct Pow {
         context.save("b", input[1]);
         Tensor<T> c = a.pow(b);
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -40,8 +40,8 @@ struct Pow {
         Tensor<T> k = (b * a).pow(b - ones_like(b));
         Tensor<T> d = a.pow(b) * a.log() * g0;
         GradIn g;
-        g.push_back(std::move(k));
-        g.push_back(std::move(d));
+        g.push_back(k);
+        g.push_back(d);
         return g;
     }
 };

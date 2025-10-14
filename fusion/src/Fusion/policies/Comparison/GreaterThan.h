@@ -26,7 +26,7 @@ struct GreaterThan {
         FUSION_CHECK(a.size() == b.size(), "GreaterThan: input size mismatch");
         Tensor<T> c = a > b;
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -40,8 +40,8 @@ struct GreaterThan {
         Tensor<T> c = zeros_like(a);
         Tensor<T> d = zeros_like(b);
         GradIn g;
-        g.push_back(std::move(c));
-        g.push_back(std::move(d));
+        g.push_back(c);
+        g.push_back(d);
         return g;
     }
 };

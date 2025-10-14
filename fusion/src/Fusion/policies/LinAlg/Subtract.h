@@ -23,7 +23,7 @@ struct Subtract {
     FUSION_CHECK(a.size() == b.size(), "Subtract: input size mismatch");
     Tensor<T> c = a - b;
     Out out;
-    out.push_back(std::move(c));
+    out.push_back(c);
     return out;
   };
 
@@ -34,8 +34,8 @@ struct Subtract {
     FUSION_CHECK(!g0.empty(), "Subtract::backward: upstream grad is empty");
     Tensor<T> g1 = zeros_like(g0) - g0;
     GradIn g;
-    g.push_back(std::move(g0));
-    g.push_back(std::move(g1));
+    g.push_back(g0);
+    g.push_back(g1);
     return g;
   }
 };

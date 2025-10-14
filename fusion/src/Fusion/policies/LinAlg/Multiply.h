@@ -26,7 +26,7 @@ struct Multiply {
         context.save("b", input[1]);
         Tensor<T> c = a * b;
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -40,8 +40,8 @@ struct Multiply {
         Tensor<T> c = g0 * b;
         Tensor<T> d = g0 * a;
         GradIn g;
-        g.push_back(std::move(c));
-        g.push_back(std::move(d));
+        g.push_back(c);
+        g.push_back(d);
         return g;
     }
 };

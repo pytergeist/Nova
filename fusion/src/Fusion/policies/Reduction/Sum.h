@@ -23,7 +23,7 @@ struct Sum {
         Tensor<T> c = a.sum();
         context.save("c", a);
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -40,7 +40,7 @@ struct Sum {
         Tensor<T> g1 = g0;
         }
         GradIn g;
-        g.push_back(std::move(g1));
+        g.push_back(g1);
         return g;
     }
 };

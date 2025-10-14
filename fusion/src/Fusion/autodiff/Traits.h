@@ -30,8 +30,9 @@ struct MultiTensor {
   MultiTensor(MultiTensor&&) noexcept = default;
   MultiTensor& operator=(MultiTensor&&) noexcept = default;
 
-  void push_back(Tensor<T>&& v)           { data.emplace_back(std::move(v)); }
+//  void push_back(Tensor<T>&& v)           { data.emplace_back(std::move(v)); }
   void push_back(const Tensor<T>& v)      { data.emplace_back(v); }
+  void push_back(Tensor<T>&&) = delete;
 
   Tensor<T>& at(std::size_t i) { return data.at(i); }
   const Tensor<T>& at(std::size_t i) const { return data.at(i); }

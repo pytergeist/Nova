@@ -22,7 +22,7 @@ struct Exp {
         context.save("c", a);
         Tensor<T> c = a.exp();
 		Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -34,7 +34,7 @@ struct Exp {
         auto& a = context.template load<Tensor<T>>("c");
         Tensor<T> g1 = g0 * a;
         GradIn g;
-        g.push_back(std::move(g1));
+        g.push_back(g1);
         return g;
     }
 };

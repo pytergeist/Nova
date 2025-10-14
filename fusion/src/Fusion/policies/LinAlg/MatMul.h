@@ -25,7 +25,7 @@ struct MatMul {
         FUSION_CHECK(a.size() == b.size(), "MatMul: input size mismatch");
         Tensor<T> c = a.matmul(b);
         Out out;
-        out.push_back(std::move(c));
+        out.push_back(c);
         return out;
     };
 
@@ -39,8 +39,8 @@ struct MatMul {
         Tensor<T> c = g0.matmul(a.swapaxes(-2,-1));
         Tensor<T> d = g0.swapaxes(-2,-1).matmul(b);
         GradIn g;
-        g.push_back(std::move(c));
-        g.push_back(std::move(d));
+        g.push_back(c);
+        g.push_back(d);
         return g;
     }
 };
