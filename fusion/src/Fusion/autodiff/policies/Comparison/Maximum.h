@@ -5,6 +5,7 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
+#include "../../ops/Comparison.h"
 
 template <typename T>
 struct Maximum {
@@ -23,7 +24,7 @@ struct Maximum {
         context.save("a", a);
         context.save("b", b);
         FUSION_CHECK(a.size() == b.size(), "Maximum: input size mismatch");
-        Tensor<T> c = a.maximum(b);
+        Tensor<T> c = ops::maximum(a, b);
         Out out;
         out.push_back(c);
         return out;
@@ -36,8 +37,8 @@ struct Maximum {
         const Tensor<T>& b = context.template load<Tensor<T>>("b");
         const auto& g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "Maximum::backward: upstream grad is empty");
-        Tensor<T> c = g0 * (a >= b);
-        Tensor<T> d = g0 * (b > a);
+        Tensor<T> c = g0 * (ops::greater_equal(a, b));
+        Tensor<T> d = g0 * (ops::greater(b, a));
         GradIn g;
         g.push_back(c);
         g.push_back(d);
