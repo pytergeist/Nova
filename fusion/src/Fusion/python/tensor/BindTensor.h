@@ -53,7 +53,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                   " elements, got " + std::to_string(vals.size()));
             }
             auto &out = t.raw_data();
-            std::copy(vals.begin(), vals.end(), out.begin());
+            std::copy(vals.begin(), vals.end(), t.begin());
           },
           py::arg("values"),
           "Fill the Tensor with a flat list of length prod(shape).")
@@ -101,7 +101,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
       .def("__rsub__", &PyT::operator-)
       .def("__mul__", &PyT::operator*)
       .def("__truediv__", &PyT::operator/)
-      .def("__ge__", &PyT::operator>=)
+      .def("__ge__", [](const PyT& a, const PyT& b) { return a >= b; }, py::is_operator())
       .def("__gt__", &PyT::operator>)
       .def(
           "__neg__",
