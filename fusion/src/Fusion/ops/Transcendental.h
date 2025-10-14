@@ -9,7 +9,7 @@
 
 
 
-namespace ops::unary {
+namespace ops {
 
 template <typename T>
 inline Tensor<T> sqrt(const Tensor<T> &x) {

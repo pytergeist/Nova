@@ -16,8 +16,10 @@
 #include "kernels/Serial.h"
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
-#include "ops/Binary.h"
-#include "ops/Unary.h"
+#include "ops/Ewise.h"
+#include "ops/Reduce.h"
+#include "ops/Comparison.h"
+#include "ops/Transcendental.h"
 #include "common/Checks.h"
 
 template <typename T> class Tensor {
@@ -134,9 +136,9 @@ public:
   const TensorBuffer &raw_data() const { return storage->data(); }
   [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
-  auto operator+(const Tensor &other) const { return ops::binary::add(*this, other); }
+  auto operator+(const Tensor &other) const { return ops::add(*this, other); }
 
-  auto operator-(const Tensor &other) const { return ops::binary::sub(*this, other); }
+  auto operator-(const Tensor &other) const { return ops::sub(*this, other); }
 
   auto &operator-=(const Tensor &other) {
     std::vector<size_t> out_shape;
@@ -150,17 +152,11 @@ public:
     return *this;
   }
 
-  auto operator/(const Tensor &other) const { return ops::binary::div(*this, other); }
+  auto operator/(const Tensor &other) const { return ops::div(*this, other); }
 
-  auto operator*(const Tensor &other) const { return ops::binary::mul(*this, other); }
+  auto operator*(const Tensor &other) const { return ops::mul(*this, other); }
 
-  auto operator>(const Tensor &other) const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::binary_ewise_tag<T, GreaterThanSIMD>(*this, other, out_shape,
-                                                out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  }
+  auto operator>(const Tensor &other) const {return ops::greater(*this, other); }
 
   auto &operator>=(const Tensor &other) {
     auto &out_shape = this->shape_;
@@ -170,35 +166,19 @@ public:
     return *this;
   }
 
-  auto operator>=(const Tensor &other) const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(*this, other, out_shape,
-                                                     out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  }
+  auto operator>=(const Tensor &other) const {return ops::greater_equal(*this, other); }
 
-  auto maximum(const Tensor &other) const {
-    std::vector<size_t> out_shape;
-    std::vector<T> out_data;
-    ewise::binary_ewise_tag<T, MaximumSIMD>(*this, other, out_shape, out_data);
-    return Tensor(std::move(out_shape), std::move(out_data), Device::CPU);
-  }
+  auto maximum(const Tensor &other) const {return ops::maximum(*this, other); }
 
-  auto sqrt() const { return ops::unary::sqrt(*this); };
+  auto sqrt() const { return ops::sqrt(*this); };
 
-  auto log() const { return ops::unary::log(*this); };
+  auto log() const { return ops::log(*this); };
 
-  auto exp() const { return ops::unary::exp(*this); };
+  auto exp() const { return ops::exp(*this); };
 
-  auto pow(const Tensor &other) const { return ops::binary::pow(*this, other); };
+  auto pow(const Tensor &other) const { return ops::pow(*this, other); };
 
-  auto sum() const {
-    const T *x = this->storage->data_ptr();
-    const std::size_t n = this->flat_size();
-    T acc = reduce::reduce_tag<T, GlobalSumSIMD>(x, n);
-    return Tensor<T>({1}, std::vector<T>{acc});
-  };
+  auto sum() const { return ops::sum(*this); };
 
   Tensor<T> matmul(const Tensor<T> &other) const {
     auto const &shapeA = this->shape_;

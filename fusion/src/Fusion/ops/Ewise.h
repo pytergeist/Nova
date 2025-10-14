@@ -9,7 +9,7 @@
 
 
 
-namespace ops::binary {
+namespace ops {
 
 template <typename T>
 inline Tensor<T> add(const Tensor<T> &x, const Tensor<T> &y) {
