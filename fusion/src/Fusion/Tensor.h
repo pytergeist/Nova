@@ -19,6 +19,7 @@
 #include "ops/Ewise.h"
 #include "ops/Reduce.h"
 #include "ops/Comparison.h"
+#include "ops/Linalg.h"
 #include "ops/Transcendental.h"
 #include "common/Checks.h"
 
@@ -144,7 +145,6 @@ public:
     std::vector<size_t> out_shape;
     std::vector<T> out_data;
     ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, out_data);
-
     storage =
         std::make_shared<NDTensorStorage<T>>(out_shape, std::move(out_data));
     shape_ = storage->shape();
@@ -180,27 +180,7 @@ public:
 
   auto sum() const { return ops::sum(*this); };
 
-  Tensor<T> matmul(const Tensor<T> &other) const {
-    auto const &shapeA = this->shape_;
-    auto const &shapeB = other.shape_;
-    size_t rank = shapeA.size();
-    size_t m = shapeA[rank - 2];
-    size_t n = shapeB[rank - 1];
-
-    std::vector<size_t> out_shape = shapeA;
-    out_shape[rank - 1] = n;
-
-    size_t batch = 1;
-    for (size_t i = 0; i < rank - 2; ++i) {
-      batch *= shapeA[i];
-    }
-
-    std::vector<T> data(batch * m * n);
-
-    blas_ops::matmul<T>(*this, shapeA, other, shapeB, data);
-
-    return Tensor<T>(std::move(out_shape), std::move(data), Device::CPU);
-  }
+  Tensor<T> matmul(const Tensor<T> &other) const { return ops::matmul(*this, other); };
 
   Tensor<T> swapaxes(int axis1, int axis2) const {
     std::vector<size_t> out_shape = this->shape_;

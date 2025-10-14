@@ -1,3 +1,6 @@
+#ifndef _BLAS_H
+#define _BLAS_H
+
 #include <cblas.h>
 #include <vector>
 
@@ -39,3 +42,5 @@ void matmul(Tensor<T> const &v1, std::vector<size_t> const &shapeA,
 }
 
 } // namespace blas_ops
+
+#endif //_BLAS_H
