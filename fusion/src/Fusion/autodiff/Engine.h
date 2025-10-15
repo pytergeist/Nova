@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <ostream>
+#include <iostream>
 
 #include "../TensorFactory.h"
 #include "../common/Checks.h"
@@ -137,6 +138,10 @@ public:
       val_buff_[vid_i.idx] = out[i];
     }
     return node.outputs[0]; // TODO: return all vids here?
+  }
+
+  Tensor<T> materialise(ValueID vid) {
+    return val_buff_[vid.idx];
   }
 
   void dump_graph(std::ostream &os) const {
