@@ -21,7 +21,12 @@
 #include "ops/Comparison.h"
 #include "ops/Linalg.h"
 #include "ops/Transcendental.h"
+#include "ops/Linalg.h"
 #include "common/Checks.h"
+#include "autodiff/AutodiffMode.h"
+#include "autodiff/policies/Ewise/Ewise.h"
+#include "autodiff/Engine.h"
+#include "autodiff/EngineContext.h"
 
 template <typename T> class Tensor {
 public:
@@ -53,6 +58,8 @@ public:
   Tensor(Tensor &&) noexcept = default;
   Tensor &operator=(Tensor &&) noexcept = default;
   ~Tensor() = default;
+
+  bool requires_grad() const { return requires_grad_; }
 
   friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
     const auto *cpuStorage =
@@ -137,9 +144,39 @@ public:
   const TensorBuffer &raw_data() const { return storage->data(); }
   [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
-  auto operator+(const Tensor &other) const { return ops::add(*this, other); }
 
-  auto operator-(const Tensor &other) const { return ops::sub(*this, other); }
+
+  auto operator+(const Tensor& other) const {
+    if (!requires_grad_ && !other.requires_grad_) return math::add(*this, other);
+    if (!autograd::grad_enabled())                return math::add(*this, other);
+
+    using AddOp = Operation<T, Add<T>>;
+    auto& engine = EngineContext<T>::get();
+
+    MultiTensor<T> mt;
+    mt.push_back(*this);
+    mt.push_back(other);
+
+    ValueID vid = engine.template apply<AddOp>(std::move(mt));
+    return engine.materialise(vid);
+}
+
+
+
+  auto operator-(const Tensor &other) const {
+    if (!requires_grad_ && !other.requires_grad_) return math::sub(*this, other);
+    if (!autograd::grad_enabled())                return math::sub(*this, other);
+
+    using SubOp = Operation<T, Subtract<T>>;
+    auto& engine = EngineContext<T>::get();
+
+    MultiTensor<T> mt;
+    mt.push_back(*this);
+    mt.push_back(other);
+
+    ValueID vid = engine.template apply<SubOp>(std::move(mt));
+    return engine.materialise(vid);
+  }
 
   auto &operator-=(const Tensor &other) {
     std::vector<size_t> out_shape;
@@ -152,11 +189,24 @@ public:
     return *this;
   }
 
-  auto operator/(const Tensor &other) const { return ops::div(*this, other); }
+  auto operator/(const Tensor &other) const {
+    if (!requires_grad_ && !other.requires_grad_) return math::div(*this, other);
+    if (!autograd::grad_enabled())                return math::div(*this, other);
 
-  auto operator*(const Tensor &other) const { return ops::mul(*this, other); }
+    using DivOp = Operation<T, Divide<T>>;
+    auto& engine = EngineContext<T>::get();
 
-  auto operator>(const Tensor &other) const {return ops::greater(*this, other); }
+    MultiTensor<T> mt;
+    mt.push_back(*this);
+    mt.push_back(other);
+
+    ValueID vid = engine.template apply<DivOp>(std::move(mt));
+    return engine.materialise(vid);
+  }
+
+  auto operator*(const Tensor &other) const { return math::mul(*this, other); }
+
+  auto operator>(const Tensor &other) const {return math::greater(*this, other); }
 
   auto &operator>=(const Tensor &other) {
     auto &out_shape = this->shape_;
@@ -166,21 +216,21 @@ public:
     return *this;
   }
 
-  auto operator>=(const Tensor &other) const {return ops::greater_equal(*this, other); }
+  auto operator>=(const Tensor &other) const {return math::greater_equal(*this, other); }
 
-  auto maximum(const Tensor &other) const {return ops::maximum(*this, other); }
+  auto maximum(const Tensor &other) const {return math::maximum(*this, other); }
 
-  auto sqrt() const { return ops::sqrt(*this); };
+  auto sqrt() const { return math::sqrt(*this); };
 
-  auto log() const { return ops::log(*this); };
+  auto log() const { return math::log(*this); };
 
-  auto exp() const { return ops::exp(*this); };
+  auto exp() const { return math::exp(*this); };
 
-  auto pow(const Tensor &other) const { return ops::pow(*this, other); };
+  auto pow(const Tensor &other) const { return math::pow(*this, other); };
 
-  auto sum() const { return ops::sum(*this); };
+  auto sum() const { return math::sum(*this); };
 
-  Tensor<T> matmul(const Tensor<T> &other) const { return ops::matmul(*this, other); };
+  Tensor<T> matmul(const Tensor<T> &other) const { return math::linalg::matmul(*this, other); };
 
   Tensor<T> swapaxes(int axis1, int axis2) const {
     std::vector<size_t> out_shape = this->shape_;
