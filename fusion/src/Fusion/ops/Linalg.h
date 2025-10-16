@@ -7,10 +7,11 @@
 #include "../Tensor.h"
 #include "../core/ElementWise.h"
 #include "../kernels/Blas.h"
+#include "Helpers.h"
 
 
 
-namespace ops {
+namespace math { namespace linalg {
     template <typename T>
     inline Tensor<T> matmul(const Tensor<T> &x, const Tensor<T> &y) {
         auto const &shapeA = x.shape_;
@@ -26,9 +27,9 @@ namespace ops {
         }
         std::vector<T> data(batch * m * n);
         blas_ops::matmul<T>(x, shapeA, y, shapeB, data);
-        return Tensor<T>(std::move(out_shape), std::move(data), Device::CPU);
+        return Tensor<T>(std::move(out_shape), std::move(data), Device::CPU, grad_flow(x, y));
     }
-
+}
 }
 
 

@@ -25,14 +25,27 @@
 #include "common/Checks.h"
 #include "autodiff/AutodiffMode.h"
 #include "autodiff/policies/Ewise/Ewise.h"
+#include "autodiff/policies/LinAlg/LinAlg.h"
 #include "autodiff/Engine.h"
 #include "autodiff/EngineContext.h"
+#include "autodiff/Dispatch.h"
+
+
+  template <typename T>
+  static inline ValueID ensure_handle(Engine<T>& eng, Tensor<T>& t) {
+    if (t.eng_ == &eng && t.vid_.idx >= 0) return t.vid_;
+    auto vid = eng.track_input(t);
+    t.eng_ = &eng;
+    t.vid_ = vid;
+    return vid;
+  }
 
 template <typename T> class Tensor {
 public:
   std::shared_ptr<ITensorStorage<T>> storage;
   std::vector<size_t> shape_;
   size_t rank_;
+  ValueID vid_{-1};
   bool requires_grad_;
 
   Tensor() : storage(nullptr), shape_{}, rank_(0), requires_grad_(false) {}
@@ -51,6 +64,16 @@ public:
     storage = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
     rank_ = storage->ndims();
   }
+
+  bool has_vid() const noexcept { return vid_.idx >= 0; }
+
+  ValueID ensure_vid() {
+  if (vid_.idx >= 0) return vid_;
+  auto& eng = EngineContext<T>::get();
+  vid_ = eng.track_input(*this);
+  return vid_;
+  }
+
 
   Tensor(const Tensor &) =
       default; // TODO: make this delete once you've built non-owning TensorView
@@ -104,14 +127,6 @@ public:
   //    }
   //  }
 
-  //  Tensor clone() const {
-  //    return Tensor(
-  //      this->storage->shape(),
-  //      this->raw_data(),
-  //      this->storage->device(),
-  //      false
-  //    );
-  //   }
 
   T operator[](int idx) const {
     return storage->data().template data_as<const T>()[idx];
@@ -147,35 +162,17 @@ public:
 
 
   auto operator+(const Tensor& other) const {
-    if (!requires_grad_ && !other.requires_grad_) return math::add(*this, other);
-    if (!autograd::grad_enabled())                return math::add(*this, other);
-
     using AddOp = Operation<T, Add<T>>;
-    auto& engine = EngineContext<T>::get();
-
-    MultiTensor<T> mt;
-    mt.push_back(*this);
-    mt.push_back(other);
-
-    ValueID vid = engine.template apply<AddOp>(std::move(mt));
-    return engine.materialise(vid);
-}
+    return autodiff::binary<T, AddOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::add(x, y); });
+  }
 
 
 
-  auto operator-(const Tensor &other) const {
-    if (!requires_grad_ && !other.requires_grad_) return math::sub(*this, other);
-    if (!autograd::grad_enabled())                return math::sub(*this, other);
-
+  auto operator-(const Tensor& other) const {
     using SubOp = Operation<T, Subtract<T>>;
-    auto& engine = EngineContext<T>::get();
-
-    MultiTensor<T> mt;
-    mt.push_back(*this);
-    mt.push_back(other);
-
-    ValueID vid = engine.template apply<SubOp>(std::move(mt));
-    return engine.materialise(vid);
+    return autodiff::binary<T, SubOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::sub(x, y); });
   }
 
   auto &operator-=(const Tensor &other) {
@@ -189,22 +186,17 @@ public:
     return *this;
   }
 
-  auto operator/(const Tensor &other) const {
-    if (!requires_grad_ && !other.requires_grad_) return math::div(*this, other);
-    if (!autograd::grad_enabled())                return math::div(*this, other);
-
+  auto operator/(const Tensor& other) const {
     using DivOp = Operation<T, Divide<T>>;
-    auto& engine = EngineContext<T>::get();
-
-    MultiTensor<T> mt;
-    mt.push_back(*this);
-    mt.push_back(other);
-
-    ValueID vid = engine.template apply<DivOp>(std::move(mt));
-    return engine.materialise(vid);
+    return autodiff::binary<T, DivOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::div(x, y); });
   }
 
-  auto operator*(const Tensor &other) const { return math::mul(*this, other); }
+  auto operator*(const Tensor& other) const {
+    using MulOp = Operation<T, Multiply<T>>;
+    return autodiff::binary<T, MulOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::mul(x, y); });
+  }
 
   auto operator>(const Tensor &other) const {return math::greater(*this, other); }
 
@@ -230,7 +222,11 @@ public:
 
   auto sum() const { return math::sum(*this); };
 
-  Tensor<T> matmul(const Tensor<T> &other) const { return math::linalg::matmul(*this, other); };
+  Tensor<T> matmul(const Tensor<T> &other) const {
+    using MatMulOp = Operation<T, MatMul<T>>;
+    return autodiff::binary<T, MatMulOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::linalg::matmul(x, y); });
+   };
 
   Tensor<T> swapaxes(int axis1, int axis2) const {
     std::vector<size_t> out_shape = this->shape_;
@@ -268,6 +264,9 @@ public:
   auto end() { return storage->data().template end<T>(); }
   auto begin() const { return storage->data().template begin<T>(); }
   auto end() const { return storage->data().template end<T>(); }
+
+
+
 };
 
 #endif // TENSOR_H
