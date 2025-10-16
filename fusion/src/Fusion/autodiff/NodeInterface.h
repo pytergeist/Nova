@@ -45,10 +45,10 @@ public:
     return gin;
   }
 
-  std::uint16_t get_static_num_outputs() {
+  std::size_t get_static_num_outputs() {
     return self_->get_static_num_outputs();
   };
-  std::uint16_t get_static_num_inputs() {
+  std::size_t get_static_num_inputs() {
     return self_->get_static_num_inputs();
   };
 
@@ -67,8 +67,8 @@ private:
     virtual const std::type_info &grad_out_type() const = 0;
     virtual std::string_view name() const = 0;
 
-    virtual uint16_t get_static_num_outputs() const = 0;
-    virtual uint16_t get_static_num_inputs() const = 0;
+    virtual size_t get_static_num_outputs() const = 0;
+    virtual size_t get_static_num_inputs() const = 0;
   };
   template <class Op> struct NodeModel : NodeConcept {
 
@@ -94,11 +94,11 @@ private:
       return grad_in;
     }
 
-    std::uint16_t get_static_num_outputs() const override {
+    std::size_t get_static_num_outputs() const override {
       return node_.KStaticNumOutputs;
     }
 
-    std::uint16_t get_static_num_inputs() const override {
+    std::size_t get_static_num_inputs() const override {
       return node_.KStaticNumInputs;
     }
 

@@ -2,7 +2,7 @@
 #define AUTODIFF_MODE_H
 
 
-namespace autograd {
+namespace autodiff {
     inline thread_local bool g_enable_grad = true;
 
     struct NoGradGuard {

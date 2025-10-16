@@ -7,7 +7,6 @@
 #include "../Operation.h"
 #include "../../TensorFactory.h"
 
-
 template <typename T>
 struct Sum {
     inline static constexpr std::string_view name = "Exp";

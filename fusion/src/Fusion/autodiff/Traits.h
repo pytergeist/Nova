@@ -10,10 +10,10 @@
 // TODO: Create fixed size multitensor for hot paths
 
 struct ValueID {
-  uint16_t idx;
+  int32_t idx;
 };
 struct NodeID {
-  int16_t idx;
+  int32_t idx;
 };
 
 // Traits.h
@@ -30,7 +30,6 @@ struct MultiTensor {
   MultiTensor(MultiTensor&&) noexcept = default;
   MultiTensor& operator=(MultiTensor&&) noexcept = default;
 
-//  void push_back(Tensor<T>&& v)           { data.emplace_back(std::move(v)); }
   void push_back(const Tensor<T>& v)      { data.emplace_back(v); }
   void push_back(Tensor<T>&&) = delete;
 

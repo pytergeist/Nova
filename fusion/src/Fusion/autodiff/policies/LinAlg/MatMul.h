@@ -5,6 +5,7 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
+#include "../../AutodiffMode.h"
 
 template <typename T>
 struct MatMul {
@@ -15,11 +16,12 @@ struct MatMul {
     using GradOut = MultiTensor<T>;
 
     Out forward(Context<T>& context, In& input) {
+        autodiff::NoGradGuard _;
         FUSION_CHECK(input.size() >= 2, "MatMul requires two inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
         FUSION_BOUNDS_CHECK(1, input.size());
         const auto& a = input[0];
-    	const auto& b = input[1];
+        const auto& b = input[1];
         context.save("a", a);
         context.save("b", b);
         FUSION_CHECK(a.size() == b.size(), "MatMul: input size mismatch");
@@ -30,6 +32,7 @@ struct MatMul {
     };
 
     GradIn backward(Context<T>& context, GradOut& grad_out) {
+        autodiff::NoGradGuard _;
         if (grad_out.size() == 0) return {};
         FUSION_CHECK(grad_out.size() == 1, "MatMul::backward expects exactly 1 upstream grad tensor");
         const Tensor<T>& a = context.template load<Tensor<T>>("a");

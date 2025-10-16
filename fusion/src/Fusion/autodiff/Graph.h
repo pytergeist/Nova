@@ -16,19 +16,19 @@ struct Edge {
 
 struct ProducerInfo {
   NodeID nid;
-  uint16_t out_slot;
+  size_t out_slot;
 };
 
 struct ConsumerInfo {
   NodeID nid;
-  uint16_t in_slot;
+  size_t in_slot;
 };
 
 template <typename T> class Graph {
 public:
   Graph() = default;
-  std::int16_t node_counter = 0;
-  std::uint16_t value_counter = 0;
+  std::int32_t node_counter = 0;
+  std::int32_t value_counter = 0;
   std::vector<INode<T>> nodes;
   std::vector<NodeID> node_ids;
   std::vector<Edge> edges;
@@ -53,7 +53,7 @@ public:
     return vid;
   }
 
-  void set_produced_by(ValueID vid, NodeID nid, uint16_t out_slot) {
+  void set_produced_by(ValueID vid, NodeID nid, size_t out_slot) {
     if (produced_by.size() <= static_cast<size_t>(vid.idx)) {
       produced_by.resize(static_cast<size_t>(vid.idx) + 1);
     }
@@ -72,7 +72,7 @@ public:
   template <typename ConcreteOp> NodeID build_node() {
     auto op = ConcreteOp{};
     INode<T> node(op);
-    uint16_t num_outputs = node.get_static_num_outputs();
+    size_t num_outputs = node.get_static_num_outputs();
     nodes.emplace_back(std::move(node));
     auto &stored = nodes.back();
     NodeID nid = make_node_id();
@@ -83,7 +83,7 @@ public:
   template <typename ConcreteOp> NodeID build_node(MultiTensor<T> vec) {
     auto op = ConcreteOp{};
     INode<T> node(op);
-    uint16_t num_outputs = node.get_static_num_outputs();
+    size_t num_outputs = node.get_static_num_outputs();
     nodes.emplace_back(std::move(node));
     auto &stored = nodes.back();
     NodeID nid = make_node_id();
@@ -97,7 +97,7 @@ public:
     node.inputs[curr_size] = vid;
   }
 
-  void append_consumer_table(NodeID dst_nid, ValueID vid, uint16_t slot) {
+  void append_consumer_table(NodeID dst_nid, ValueID vid, size_t slot) {
     if (consumed_by.size() <= static_cast<size_t>(value_counter)) {
       consumed_by.resize(consumed_by.size() + 1);
     }
@@ -113,9 +113,9 @@ private:
   }
 
   void append_producer_table(INode<T> &node, NodeID nid) {
-    uint16_t num = node.get_static_num_outputs();
+    size_t num = node.get_static_num_outputs();
     node.outputs.resize(num);
-    for (uint16_t i = 0; i < num; i++) {
+    for (size_t i = 0; i < num; i++) {
       ValueID vid{value_counter++};
       node.outputs[i] = vid;
 

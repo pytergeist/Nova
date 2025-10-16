@@ -7,7 +7,7 @@
 #include "../Operation.h"
 #include "../../common/Checks.h"
 #include "../../ops/Ewise.h"
-
+#include "../../AutodiffMode.h"
 
 template <typename T>
 struct Add {
@@ -18,19 +18,21 @@ struct Add {
     using GradOut = MultiTensor<T>;
 
     Out forward(Context<T>& context, const In& input) {
+		autodiff::NoGradGuard _;
         FUSION_CHECK(input.size() >= 2, "Add requires two inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
         FUSION_BOUNDS_CHECK(1, input.size());
     	const auto& a = input[0];
     	const auto& b = input[1];
     	FUSION_CHECK(a.size() == b.size(), "Add: input size mismatch");
-        Tensor<T> c = ops::add(a, b);
+        Tensor<T> c = a + b;
         Out out;
         out.push_back(c);
         return out;
     };
 
     GradIn backward(Context<T>& context, GradOut& grad_out) {
+        autodiff::NoGradGuard _;
         if (grad_out.size() == 0) return {}; // TODO: Make a macro??? or helper func
         FUSION_CHECK(grad_out.size() == 1, "Add::backward expects exactly 1 upstream grad tensor");
         Tensor<T>& g0 = grad_out[0];

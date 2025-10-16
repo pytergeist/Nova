@@ -20,9 +20,9 @@ public:
 
   using CleanOut = std::remove_cvref_t<Out>;
   using CleanIn = std::remove_cvref_t<In>;
-  static constexpr std::uint16_t KStaticNumOutputs =
+  static constexpr std::size_t KStaticNumOutputs =
       static_arity<CleanOut>::value;
-  static constexpr std::uint16_t KStaticNumInputs =
+  static constexpr std::size_t KStaticNumInputs =
       static_arity<CleanIn>::value;
 
   void set_inputs(In inputs) { inputs_ = std::move(inputs); };

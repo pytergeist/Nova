@@ -53,12 +53,10 @@ public:
                    "val_buff_[output_id] not initialised for node output (op=" +
                        std::string(n.name()) + ")");
 
-      // Ensure dL/d(output) exists; if not, zero
       if (!grad_buff_[output_id.idx].is_initialised()) {
         grad_buff_[output_id.idx] = zeros_like(val_buff_[output_id.idx]);
       }
 
-      // Breadcrumb
       std::cerr << "[backward] op=" << n.name() << " inputs=" << inputs.size()
                 << " out_vid=" << output_id.idx << " out_shape=(";
       {
@@ -68,7 +66,6 @@ public:
         std::cerr << ")\n";
       }
 
-      // Build upstream grad vector for this node (single-output assumption)
       MultiTensor<T> grad_in;
       grad_in.push_back(grad_buff_[output_id.idx]);
 
@@ -80,15 +77,13 @@ public:
                                  std::string(n.name()) + ": " + e.what());
       }
 
-      // Backward arity must match number of inputs
       FUSION_CHECK(grad_out.size() == inputs.size(),
                    std::string("backward arity mismatch: got ") +
                        std::to_string(grad_out.size()) + " for " +
                        std::to_string(inputs.size()) + " inputs in " +
                        std::string(n.name()));
 
-      // Accumulate into input grads
-      for (uint16_t j = 0; j < inputs.size(); ++j) {
+      for (size_t j = 0; j < inputs.size(); ++j) {
         auto &dst = grad_buff_[inputs[j].idx];
         const auto &src = grad_out.at(j); // bounds-checked
         if (!dst.is_initialised()) {
@@ -107,7 +102,7 @@ public:
     MultiTensor<T> in;
     in.data.reserve(vids.size());
     auto &node = graph_.nodes[dst_nid.idx];
-    for (uint16_t i = 0; i < vids.size(); i++) {
+    for (size_t i = 0; i < vids.size(); i++) {
       NodeID src_nid = graph_.produced_by.at(vids[i].idx).nid;
       graph_.add_edge(src_nid, dst_nid);
       graph_.set_node_input(node, vids[i]);
@@ -120,7 +115,7 @@ public:
       node.outputs.reserve(out.size());
       for (size_t i = 0; i < out.size(); ++i) {
         ValueID vid = graph_.new_intermediate_value();
-        graph_.set_produced_by(vid, dst_nid, static_cast<uint16_t>(i));
+        graph_.set_produced_by(vid, dst_nid, static_cast<size_t>(i));
         node.outputs.push_back(vid);
         ensure_value_capacity(vid);
       }
@@ -132,7 +127,7 @@ public:
                  "node output size mismatch");
     ValueID out_vid = node.outputs[0];
     ensure_value_capacity(out_vid);
-    for (uint16_t i = 0; i < out.size(); ++i) {
+    for (size_t i = 0; i < out.size(); ++i) {
       ValueID vid_i = node.outputs[i];
       ensure_value_capacity(vid_i);
       val_buff_[vid_i.idx] = out[i];
@@ -140,9 +135,22 @@ public:
     return node.outputs[0]; // TODO: return all vids here?
   }
 
-  Tensor<T> materialise(ValueID vid) {
-    return val_buff_[vid.idx];
+  ValueID track_input(Tensor<T>& t) {
+    if (t.vid_.idx >= 0) return t.vid_;
+    ValueID vid = graph_.new_input_value();
+    ensure_value_capacity(vid);
+    val_buff_[vid.idx] = t;
+    t.vid_ = vid;
+    return vid;
   }
+
+  Tensor<T> materialise(ValueID vid) {
+    Tensor<T> out = val_buff_[vid.idx];
+    out.vid_ = vid;
+    return out;
+  }
+
+
 
   void dump_graph(std::ostream &os) const {
     for (size_t i = 0; i < graph_.nodes.size(); ++i) {
@@ -161,7 +169,7 @@ public:
            os << "[no val]\n";
         } else {
           std::cout << "Node Val: ";
-          for (uint16_t j = 0; j < val_buff_[i].size(); ++j) {
+          for (size_t j = 0; j < val_buff_[i].size(); ++j) {
             os << val_buff_[i][j] << " ";
           }
         }
@@ -169,7 +177,7 @@ public:
           os << "[no grad]\n";
         } else {
           std::cout << "Node Grad: ";
-          for (uint16_t j = 0; j < grad_buff_[i].size(); ++j) {
+          for (size_t j = 0; j < grad_buff_[i].size(); ++j) {
             os << grad_buff_[i][j] << " ";
           }
           os << "\n";
@@ -209,7 +217,7 @@ private:
 
   void set_grad_buff_size() { grad_buff_.resize(val_buff_.size()); }
 
-  MultiTensor<T> grad_init(ValueID vid, uint16_t out_slot) {
+  MultiTensor<T> grad_init(ValueID vid, size_t out_slot) {
     Tensor<T> grad = ones_like(val_buff_[vid.idx]);
     grad_buff_[vid.idx] = grad;
     MultiTensor<T> gradVec;
@@ -217,7 +225,7 @@ private:
     return gradVec;
   }
 
-  ValueID get_output(std::vector<NodeID> &sorted_nodes, uint16_t out_slot) {
+  ValueID get_output(std::vector<NodeID> &sorted_nodes, size_t out_slot) {
     std::vector<ValueID> outputs =
         graph_.nodes[sorted_nodes.back().idx].outputs;
     return outputs[out_slot];

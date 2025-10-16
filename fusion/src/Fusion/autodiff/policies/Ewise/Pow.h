@@ -5,7 +5,6 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
-#include "../../ops/Ewise.h"
 
 
 template <typename T>
@@ -25,7 +24,7 @@ struct Pow {
         FUSION_CHECK(a.size() == b.size(), "Pow: input size mismatch");
         context.save("a", input[0]);
         context.save("b", input[1]);
-        Tensor<T> c = ops::pow(a, b);
+        Tensor<T> c = a.pow(b);
         Out out;
         out.push_back(c);
         return out;
@@ -38,12 +37,11 @@ struct Pow {
         const Tensor<T>& b = context.template load<Tensor<T>>("b");
         const auto& g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "Pow::backward: upstream grad is empty");
-        Tensor<T> c = ops::pow(ops::mul(b, a), ops::sub(b, ones_like(b)));
-        Tensor<T> d = ops::pow(a, b);
-        Tensor<T> e = ops::mul(ops::mul(d, ops::log(a)), g0);
+        Tensor<T> k = (b * a).pow(b - ones_like(b));
+        Tensor<T> d = a.pow(b) * a.log() * g0;
         GradIn g;
-        g.push_back(c);
-        g.push_back(e);
+        g.push_back(k);
+        g.push_back(d);
         return g;
     }
 };

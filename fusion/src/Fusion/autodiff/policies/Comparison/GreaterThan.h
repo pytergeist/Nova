@@ -6,7 +6,6 @@
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
 #include "../../TensorFactory.h"
-#include "../../ops/Comparison.h"
 
 template <typename T>
 struct GreaterThan {
@@ -25,7 +24,7 @@ struct GreaterThan {
         context.save("a", a);
         context.save("b", b);
         FUSION_CHECK(a.size() == b.size(), "GreaterThan: input size mismatch");
-        Tensor<T> c = ops::greater(a, b);
+        Tensor<T> c = a > b;
         Out out;
         out.push_back(c);
         return out;
