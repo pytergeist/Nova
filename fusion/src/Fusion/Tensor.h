@@ -26,6 +26,7 @@
 #include "autodiff/AutodiffMode.h"
 #include "autodiff/policies/Ewise/Ewise.h"
 #include "autodiff/policies/LinAlg/LinAlg.h"
+#include "autodiff/policies/Transcendental/Transcendental.h"
 #include "autodiff/Engine.h"
 #include "autodiff/EngineContext.h"
 #include "autodiff/Dispatch.h"
@@ -212,9 +213,17 @@ public:
 
   auto maximum(const Tensor &other) const {return math::maximum(*this, other); }
 
-  auto sqrt() const { return math::sqrt(*this); };
+  auto sqrt() const {
+    using SqrtOp = Operation<T, Sqrt<T>>;
+    return autodiff::unary<T, SqrtOp>(*this,
+        [](const Tensor& x){ return math::sqrt(x); });
+   };
 
-  auto log() const { return math::log(*this); };
+  auto log() const {
+    using LogOp = Operation<T, Log<T>>;
+    return autodiff::unary<T, LogOp>(*this,
+        [](const Tensor& x){ return math::log(x); });
+   };
 
   auto exp() const { return math::exp(*this); };
 

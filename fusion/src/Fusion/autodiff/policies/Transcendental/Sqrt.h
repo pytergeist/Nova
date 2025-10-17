@@ -5,6 +5,7 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
+#include "../../AutodiffMode.h"
 
 
 template <typename T>
@@ -17,6 +18,7 @@ struct Sqrt {
 
     Out forward(Context<T>& context, const In& input) {
         FUSION_CHECK(input.size() >= 1, "Sqrt requires one inputs");
+        autodiff::NoGradGuard _;
         FUSION_BOUNDS_CHECK(0, input.size());
         const Tensor<T>& a = input[0];
         context.save("c", a);
@@ -29,6 +31,7 @@ struct Sqrt {
     GradIn backward(Context<T>& context, GradOut& grad_out) {
         if (grad_out.size() == 0) return {};
         FUSION_CHECK(grad_out.size() == 1, "Sqrt::backward expects exactly 1 upstream grad tensor");
+        autodiff::NoGradGuard _;
         const auto& g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "Sqrt::backward: upstream grad is empty");
         const Tensor<T>& a = context.template load<Tensor<T>>("c");
