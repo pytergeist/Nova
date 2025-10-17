@@ -5,7 +5,7 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
-
+#include "../../AutodiffMode.h"
 
 template <typename T>
 struct Exp {
@@ -18,6 +18,7 @@ struct Exp {
     Out forward(Context<T>& context, const In& input) {
         FUSION_CHECK(input.size() >= 1, "Exp requires one inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
+        autodiff::NoGradGuard _;
         const auto& a = input[0];
         context.save("c", a);
         Tensor<T> c = a.exp();
@@ -29,6 +30,7 @@ struct Exp {
     GradIn backward(Context<T>& context, GradOut& grad_out) {
         if (grad_out.size() == 0) return {};
         FUSION_CHECK(grad_out.size() == 1, "Exp::backward expects exactly 1 upstream grad tensor");
+        autodiff::NoGradGuard _;
         Tensor<T> g0 = std::move(grad_out[0]);
     	FUSION_CHECK(!g0.empty(), "Exp::backward: upstream grad is empty");
         auto& a = context.template load<Tensor<T>>("c");

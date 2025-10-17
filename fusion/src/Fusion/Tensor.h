@@ -27,6 +27,8 @@
 #include "autodiff/policies/Ewise/Ewise.h"
 #include "autodiff/policies/LinAlg/LinAlg.h"
 #include "autodiff/policies/Transcendental/Transcendental.h"
+#include "autodiff/policies/Comparison/Comparison.h"
+#include "autodiff/policies/Reduction/Reduction.h"
 #include "autodiff/Engine.h"
 #include "autodiff/EngineContext.h"
 #include "autodiff/Dispatch.h"
@@ -199,7 +201,11 @@ public:
         [](const Tensor& x, const Tensor& y){ return math::mul(x, y); });
   }
 
-  auto operator>(const Tensor &other) const {return math::greater(*this, other); }
+  auto operator>(const Tensor &other) const {
+    using GreaterThanOp = Operation<T, GreaterThan<T>>;
+    return autodiff::binary<T, GreaterThanOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::greater(x, y); });
+   }
 
   auto &operator>=(const Tensor &other) {
     auto &out_shape = this->shape_;
@@ -225,7 +231,11 @@ public:
         [](const Tensor& x){ return math::log(x); });
    };
 
-  auto exp() const { return math::exp(*this); };
+  auto exp() const {
+    using ExpOp = Operation<T, Exp<T>>;
+    return autodiff::unary<T, ExpOp>(*this,
+        [](const Tensor& x){ return math::exp(x); });
+   };
 
   auto pow(const Tensor &other) const {
     using PowOp = Operation<T, Pow<T>>;
@@ -233,7 +243,11 @@ public:
         [](const Tensor& x, const Tensor& y){ return math::pow(x, y); });
    };
 
-  auto sum() const { return math::sum(*this); };
+  auto sum() const {
+    using SumOp = Operation<T, Sum<T>>;
+    return autodiff::unary<T, SumOp>(*this,
+        [](const Tensor& x){ return math::sum(x); });
+   };
 
   Tensor<T> matmul(const Tensor<T> &other) const {
     using MatMulOp = Operation<T, MatMul<T>>;

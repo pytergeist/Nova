@@ -6,6 +6,7 @@
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
 #include "../../TensorFactory.h"
+#include "../../AutodiffMode.h"
 
 template <typename T>
 struct Sum {
@@ -18,6 +19,7 @@ struct Sum {
     Out forward(Context<T>& context, const In& input) {
         FUSION_CHECK(input.size() >= 1, "Sum requires one inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
+        autodiff::NoGradGuard _;
         const auto& a = input[0];
         Tensor<T> c = a.sum();
         context.save("c", a);
@@ -29,6 +31,7 @@ struct Sum {
     GradIn backward(Context<T>& context, GradOut& grad_out) {
         if (grad_out.size() == 0) return {};
         FUSION_CHECK(grad_out.size() == 1, "Sum::backward expects exactly 1 upstream grad tensor");
+        autodiff::NoGradGuard _;
         Tensor<T> g0 = std::move(grad_out[0]);
         FUSION_CHECK(!g0.empty(), "Sum::backward: upstream grad is empty");
         Tensor<T> g1;

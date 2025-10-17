@@ -6,6 +6,7 @@
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
 #include "../../TensorFactory.h"
+#include "../../AutodiffMode.h"
 
 template <typename T>
 struct GreaterThan {
@@ -19,6 +20,7 @@ struct GreaterThan {
         FUSION_CHECK(input.size() >= 2, "GreaterThan requires two inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
         FUSION_BOUNDS_CHECK(1, input.size());
+        autodiff::NoGradGuard _;
         const auto& a = input[0];
         const auto& b = input[1];
         context.save("a", a);
@@ -33,6 +35,7 @@ struct GreaterThan {
     GradIn backward(Context<T>& context, GradOut& grad_out) {
         if (grad_out.size() == 0) return {};
         FUSION_CHECK(grad_out.size() == 1, "GreaterThan::backward expects exactly 1 upstream grad tensor");
+        autodiff::NoGradGuard _;
         const Tensor<T>& a = context.template load<Tensor<T>>("a");
         const Tensor<T>& b = context.template load<Tensor<T>>("b");
         const auto& g0 = grad_out[0];

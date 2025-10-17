@@ -39,7 +39,7 @@ int main() {
     using matmulOp = Operation<T, MatMul<T>>;
 
 
-    std::vector<T> va{1, 2, 3, 4};
+    std::vector<T> va{1, 2, 2, 5};
     std::vector<T> vb{1, 2, 3, 4};
     std::vector<T> vc{1, 2, 3, 4};
     std::vector<T> vd{1, 2, 3, 4};
@@ -67,6 +67,9 @@ int main() {
     Tensor<T> k = j.pow(i);
     Tensor<T> l = k.sqrt();
     Tensor<T> m = l.log();
+    Tensor<T> n = m.exp();
+    Tensor<T> o = m > n;
+    Tensor<T> p = o.sum();
 //    Tensor<T> j = g - i;
 //    Tensor<T> k = i / j;
 //
