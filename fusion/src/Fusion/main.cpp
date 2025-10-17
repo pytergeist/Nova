@@ -68,8 +68,9 @@ int main() {
     Tensor<T> l = k.sqrt();
     Tensor<T> m = l.log();
     Tensor<T> n = m.exp();
-    Tensor<T> o = m > n;
-    Tensor<T> p = o.sum();
+    Tensor<T> o = n.maximum(m);
+    Tensor<T> p = o >= n;
+    Tensor<T> q = p.sum();
 //    Tensor<T> j = g - i;
 //    Tensor<T> k = i / j;
 //

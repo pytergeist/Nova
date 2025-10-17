@@ -1,22 +1,23 @@
-#ifndef MAXIMUM_H
-#define MAXIMUM_H
+#ifndef GREATER_THAN_EQUAL_H
+#define GREATER_THAN_EQUAL_H
 
 #include <vector>
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
+#include "../../TensorFactory.h"
 #include "../../AutodiffMode.h"
 
 template <typename T>
-struct Maximum {
-    inline static constexpr std::string_view name = "Maximum";
+struct GreaterThanEqual {
+    inline static constexpr std::string_view name = "GreaterThanEqual";
     using In = MultiTensor<T>;
     using Out = MultiTensor<T>;
     using GradIn = MultiTensor<T>;
     using GradOut = MultiTensor<T>;
 
     Out forward(Context<T>& context, const In& input) {
-        FUSION_CHECK(input.size() >= 2, "Maximum requires two inputs");
+        FUSION_CHECK(input.size() >= 2, "GreaterThanEqual requires two inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
         FUSION_BOUNDS_CHECK(1, input.size());
         autodiff::NoGradGuard _;
@@ -24,8 +25,8 @@ struct Maximum {
         const auto& b = input[1];
         context.save("a", a);
         context.save("b", b);
-        FUSION_CHECK(a.size() == b.size(), "Maximum: input size mismatch");
-        Tensor<T> c = a.maximum(b);
+        FUSION_CHECK(a.size() == b.size(), "GreaterThanEqual: input size mismatch");
+        Tensor<T> c = a >= b;
         Out out;
         out.push_back(c);
         return out;
@@ -33,14 +34,14 @@ struct Maximum {
 
     GradIn backward(Context<T>& context, GradOut& grad_out) {
         if (grad_out.size() == 0) return {};
-        FUSION_CHECK(grad_out.size() == 1, "Maximum::backward expects exactly 1 upstream grad tensor");
+        FUSION_CHECK(grad_out.size() == 1, "GreaterThan::backward expects exactly 1 upstream grad tensor");
         autodiff::NoGradGuard _;
         const Tensor<T>& a = context.template load<Tensor<T>>("a");
         const Tensor<T>& b = context.template load<Tensor<T>>("b");
         const auto& g0 = grad_out[0];
-        FUSION_CHECK(!g0.empty(), "Maximum::backward: upstream grad is empty");
-        Tensor<T> c = g0 * (a >= b);
-        Tensor<T> d = g0 * (b > a);
+        FUSION_CHECK(!g0.empty(), "GreaterThan::backward: upstream grad is empty");
+        Tensor<T> c = zeros_like(a);
+        Tensor<T> d = zeros_like(b);
         GradIn g;
         g.push_back(c);
         g.push_back(d);
@@ -48,4 +49,4 @@ struct Maximum {
     }
 };
 
-#endif // MAXIMUM_H
+#endif // GREATER_THAN_EQUAL_H

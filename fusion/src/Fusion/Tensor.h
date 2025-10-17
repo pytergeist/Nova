@@ -207,17 +207,25 @@ public:
         [](const Tensor& x, const Tensor& y){ return math::greater(x, y); });
    }
 
-  auto &operator>=(const Tensor &other) {
-    auto &out_shape = this->shape_;
-    auto &out_data = this->storage->data();
-    ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(*this, other, out_shape,
-                                                     out_data);
-    return *this;
-  }
+//  auto &operator>=(const Tensor &other) {
+//    auto &out_shape = this->shape_;
+//    auto &out_data = this->storage->data();
+//    ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(*this, other, out_shape,
+//                                                     out_data);
+//    return *this;
+//  }
 
-  auto operator>=(const Tensor &other) const {return math::greater_equal(*this, other); }
+  auto operator>=(const Tensor &other) const {
+    using GreaterThanEqualOp = Operation<T, GreaterThanEqual<T>>;
+    return autodiff::binary<T, GreaterThanEqualOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::greater_equal(x, y); });
+   }
 
-  auto maximum(const Tensor &other) const {return math::maximum(*this, other); }
+  auto maximum(const Tensor &other) const {
+   using MaximumOp = Operation<T, Maximum<T>>;
+    return autodiff::binary<T, MaximumOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::maximum(x, y); });
+   }
 
   auto sqrt() const {
     using SqrtOp = Operation<T, Sqrt<T>>;
