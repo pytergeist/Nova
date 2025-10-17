@@ -64,6 +64,7 @@ int main() {
     Tensor<T> h = c * d;
     Tensor<T> i = g / h;
     Tensor<T> j = h.matmul(i);
+    Tensor<T> k = j.pow(i);
 //    Tensor<T> j = g - i;
 //    Tensor<T> k = i / j;
 //

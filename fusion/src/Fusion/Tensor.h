@@ -218,7 +218,11 @@ public:
 
   auto exp() const { return math::exp(*this); };
 
-  auto pow(const Tensor &other) const { return math::pow(*this, other); };
+  auto pow(const Tensor &other) const {
+    using PowOp = Operation<T, Pow<T>>;
+    return autodiff::binary<T, PowOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::pow(x, y); });
+   };
 
   auto sum() const { return math::sum(*this); };
 

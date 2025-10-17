@@ -5,7 +5,7 @@
 #include <string_view>
 #include "../../autodiff/Traits.h"
 #include "../Operation.h"
-
+#include "../../AutodiffMode.h"
 
 template <typename T>
 struct Pow {
@@ -19,6 +19,7 @@ struct Pow {
         FUSION_CHECK(input.size() >= 2, "Pow requires two inputs");
         FUSION_BOUNDS_CHECK(0, input.size());
         FUSION_BOUNDS_CHECK(1, input.size());
+        autodiff::NoGradGuard _;
         const Tensor<T>& a = input.at(0);
         const Tensor<T>& b = input.at(1);
         FUSION_CHECK(a.size() == b.size(), "Pow: input size mismatch");
@@ -33,6 +34,7 @@ struct Pow {
     GradIn backward(Context<T>& context, GradOut& grad_out) {
         if (grad_out.size() == 0) return {};
         FUSION_CHECK(grad_out.size() == 1, "Pow::backward expects exactly 1 upstream grad tensor");
+        autodiff::NoGradGuard _;
         const Tensor<T>& a = context.template load<Tensor<T>>("a");
         const Tensor<T>& b = context.template load<Tensor<T>>("b");
         const auto& g0 = grad_out[0];
