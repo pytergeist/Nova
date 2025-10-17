@@ -163,6 +163,12 @@ public:
   [[nodiscard]] size_t flat_size() const { return storage->size(); }
 
 
+  void backward() {
+	auto& eng = EngineContext<T>::get();
+    eng.backward();
+  }
+
+
 
   auto operator+(const Tensor& other) const {
     using AddOp = Operation<T, Add<T>>;
@@ -207,13 +213,6 @@ public:
         [](const Tensor& x, const Tensor& y){ return math::greater(x, y); });
    }
 
-//  auto &operator>=(const Tensor &other) {
-//    auto &out_shape = this->shape_;
-//    auto &out_data = this->storage->data();
-//    ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(*this, other, out_shape,
-//                                                     out_data);
-//    return *this;
-//  }
 
   auto operator>=(const Tensor &other) const {
     using GreaterThanEqualOp = Operation<T, GreaterThanEqual<T>>;

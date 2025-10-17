@@ -71,6 +71,8 @@ int main() {
     Tensor<T> o = n.maximum(m);
     Tensor<T> p = o >= n;
     Tensor<T> q = p.sum();
+
+    q.backward();
 //    Tensor<T> j = g - i;
 //    Tensor<T> k = i / j;
 //
@@ -87,7 +89,6 @@ int main() {
 //     std::cout << i << std::endl;
 
 //
-     engine.backward();
 
      engine.dump_graph(std::cout);
 
