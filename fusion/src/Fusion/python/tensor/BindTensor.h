@@ -125,7 +125,15 @@ void bind_tensor(py::module_ &m, const char *name) {
       .def("exp", &PyT::exp)
       .def("log", &PyT::log)
       .def("sum", &PyT::sum)
-      .def("maximum", &PyT::maximum, py::arg("other"))
+
+      .def("maximum",
+        	py::overload_cast<const PyT&>(&PyT::maximum, py::const_),
+        	py::is_operator())
+
+	  .def("maximum",
+        	py::overload_cast<T>(&PyT::maximum, py::const_),
+        	py::is_operator())
+
       .def("transpose", &PyT::transpose, "Return the transpose.")
       .def("swapaxes", &PyT::swapaxes, py::arg("axis1"), py::arg("axis2"))
       .def("diag", &PyT::diagonal)

@@ -218,6 +218,12 @@ public:
         [](const Tensor& x, const Tensor& y){ return math::sub(x, y); });
   }
 
+  auto maximum(const T scalar) const {
+    Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+    using MaximumOp = Operation<T, Maximum<T>>;
+    return autodiff::binary<T, MaximumOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::maximum(x, y); });
+   }
 
 
   auto operator-(const Tensor& other) const {

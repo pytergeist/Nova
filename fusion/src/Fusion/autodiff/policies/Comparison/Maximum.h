@@ -24,7 +24,7 @@ struct Maximum {
         const auto& b = input[1];
         context.save("a", a);
         context.save("b", b);
-        FUSION_CHECK(a.size() == b.size(), "Maximum: input size mismatch");
+        FUSION_ALLOW_SCALAR_BINARY(a, b);
         Tensor<T> c = a.maximum(b);
         Out out;
         out.push_back(c);
