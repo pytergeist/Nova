@@ -68,6 +68,9 @@ public:
     rank_ = storage->ndims();
   }
 
+  size_t rank() const { return rank_; }
+  size_t ndims() const { return storage->ndims(); }
+
   bool has_vid() const noexcept { return vid_.idx >= 0; }
 
   ValueID ensure_vid() {
@@ -76,6 +79,8 @@ public:
   vid_ = eng.track_input(*this);
   return vid_;
   }
+
+  ValueID get_vid() const noexcept { return vid_; }
 
 
   Tensor(const Tensor &) =
@@ -164,8 +169,14 @@ public:
 
 
   void backward() {
+    auto& eng = EngineContext<T>::get();
+    FUSION_CHECK(this->has_vid(), "backward(): tensor has no ValueID");
+    eng.backward(this->vid_);
+}
+
+  Tensor<T> grad() {
 	auto& eng = EngineContext<T>::get();
-    eng.backward();
+	return eng.get_grad(get_vid());
   }
 
 
@@ -174,6 +185,37 @@ public:
     using AddOp = Operation<T, Add<T>>;
     return autodiff::binary<T, AddOp>(*this, other,
         [](const Tensor& x, const Tensor& y){ return math::add(x, y); });
+  }
+
+
+  auto operator+(const T scalar) const {
+    Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+    using AddOp = Operation<T, Add<T>>;
+    return autodiff::binary<T, AddOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::add(x, y); });
+  }
+
+
+  auto operator*(const T scalar) const {
+    Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+    using MulOp = Operation<T, Multiply<T>>;
+    return autodiff::binary<T, MulOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::mul(x, y); });
+  }
+
+
+  auto operator/(const T scalar) const {
+    Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+    using DivOp = Operation<T, Divide<T>>;
+    return autodiff::binary<T, DivOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::div(x, y); });
+  }
+
+  auto operator-(const T scalar) const {
+    Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+    using SubOp = Operation<T, Subtract<T>>;
+    return autodiff::binary<T, SubOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::sub(x, y); });
   }
 
 
@@ -200,6 +242,7 @@ public:
     return autodiff::binary<T, DivOp>(*this, other,
         [](const Tensor& x, const Tensor& y){ return math::div(x, y); });
   }
+
 
   auto operator*(const Tensor& other) const {
     using MulOp = Operation<T, Multiply<T>>;
