@@ -24,7 +24,9 @@ struct MatMul {
         const auto& b = input[1];
         context.save("a", a);
         context.save("b", b);
-        FUSION_CHECK(a.size() == b.size(), "MatMul: input size mismatch");
+        FUSION_CHECK(a.rank() >= 2, "MatMul: Tensor a rank < 2");
+        FUSION_CHECK(b.rank() >= 2, "MatMul: Tensor a rank < 2");
+        FUSION_CHECK(a.size() == b.size(), "MatMul: input size mismatch"); // TODO: this isn't a valid check here
         Tensor<T> c = a.matmul(b);
         Out out;
         out.push_back(c);

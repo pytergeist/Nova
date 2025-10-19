@@ -2,47 +2,40 @@ import numpy as np
 import pytest
 import torch
 
-from tests.integration.gradient.finite_difference import (
-    Tolerance,
-    finite_difference_jacobian,
-)
+from nova.src.backend.core import Tensor, autodiff
+from tests.integration.gradient.finite_difference import Tolerance
 
-# TODO: Examine this test to ensure it functions as expected.
+autodiff.enabled(True)
 
 
-def fn_numpy(x):
-    return x @ x
-
-
-def compute_pytorch_gradient(x):
-    x_tensor = torch.tensor(x, dtype=torch.float32, requires_grad=True)
-
+def compute_autodiff_gradient(x):
+    x_tensor = Tensor(x, requires_grad=True)
     output = x_tensor @ x_tensor
+    output.backward()
+    return x_tensor.grad.to_numpy()
 
+
+def compute_pytorch_addition_gradient(x):
+    x_tensor = torch.tensor(x, dtype=torch.float32, requires_grad=True)
+    output = x_tensor @ x_tensor
     output.backward(torch.ones_like(x_tensor))
-
     return x_tensor.grad.detach().numpy()
 
 
-def test_matmul_grad():  # TODO: Should there be a test for matmul or 1D arrays?
-    x_test = np.random.rand(10, 10)
+def test_addition_grad():
+    np.random.seed(42)
+    torch.manual_seed(42)
 
-    numerical_jacobian = finite_difference_jacobian(
-        fn_numpy, x_test, epsilon=Tolerance.EPSILON.value
-    )
-    numerical_jacobian = numerical_jacobian.squeeze()
-    numerical_vector_grad = np.dot(
-        np.ones(numerical_jacobian.shape[0]), numerical_jacobian
-    )
-    numerical_vector_grad = numerical_vector_grad.reshape(x_test.shape)
-    analytical_grad = compute_pytorch_gradient(x_test)
+    x_test = np.random.rand(5, 5)
+    analytical_grad = compute_autodiff_gradient(x_test)
+    pytorch_grad = compute_pytorch_addition_gradient(x_test)
 
     np.testing.assert_allclose(
         analytical_grad,
-        numerical_vector_grad,
+        pytorch_grad,
         rtol=Tolerance.RTOL.value,
         atol=Tolerance.ATOL.value,
-        err_msg="Autodiff gradient does not match numerical gradient for matrix multiplication.",
+        err_msg="Autodiff gradient does not match PyTorch gradient for addition.",
     )
 
 

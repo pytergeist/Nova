@@ -2,15 +2,17 @@ import numpy as np
 import pytest
 import torch
 
-from nova.src.backend.core import Tensor
+from nova.src.backend.core import Tensor, autodiff
 from tests.integration.gradient.finite_difference import Tolerance
+
+autodiff.enabled(True)
 
 
 def compute_autodiff_gradient(x):
     x_tensor = Tensor(x, requires_grad=True)
     output = x_tensor + x_tensor
     output.backward()
-    return x_tensor.grad
+    return x_tensor.grad.to_numpy()
 
 
 def compute_pytorch_addition_gradient(x):
