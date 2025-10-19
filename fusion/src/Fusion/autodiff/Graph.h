@@ -35,6 +35,11 @@ public:
   std::vector<ProducerInfo> produced_by;
   std::vector<std::vector<ConsumerInfo>> consumed_by;
 
+  Graph(const Graph&) = delete;
+  Graph& operator=(const Graph&) = delete;
+  Graph(Graph&&) = delete;
+  Graph& operator=(Graph&&) = delete;
+
   void add_edge(NodeID src_nid, NodeID dst_nid) {
     if (src_nid.idx == kNoNode || dst_nid.idx == kNoNode)
       return;

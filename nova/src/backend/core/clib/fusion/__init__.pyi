@@ -5,9 +5,10 @@ Fusion Tensor module exposing Tensor<float> (for composition)
 from __future__ import annotations
 import numpy
 import typing
+from . import autodiff
 from . import factory
 
-__all__ = ["Random", "Tensor", "factory"]
+__all__ = ["Random", "Tensor", "autodiff", "factory", "grad_tape"]
 
 class Random:
     @typing.overload
@@ -24,15 +25,17 @@ class Tensor:
     def __ge__(self, arg0: Tensor) -> Tensor: ...
     def __gt__(self, arg0: Tensor) -> Tensor: ...
     @typing.overload
-    def __init__(self, shape: list[int]) -> None:
+    def __init__(self, shape: list[int], requires_grad: bool) -> None:
         """
-        Construct a Tensor of given shape, zero‐initialized.
+        Construct a Tensor of given shape, zero-initialized. Optionally set requires_grad.
         """
 
     @typing.overload
-    def __init__(self, shape: list[int], data: list[float]) -> None:
+    def __init__(
+        self, shape: list[int], data: list[float], requires_grad: bool
+    ) -> None:
         """
-        Construct a Tensor from a shape list and a flat data list.
+        Construct a Tensor from a shape list and a flat data list. Optionally set requires_grad.
         """
 
     def __isub__(self, arg0: Tensor) -> Tensor: ...
@@ -45,20 +48,22 @@ class Tensor:
     def __neg__(self) -> Tensor: ...
     def __pow__(self, other: Tensor) -> Tensor:
         """
-        Elementwise power: each element raised to corresponding element of other tensor.
+        Elementwise power.
         """
 
     def __repr__(self) -> str: ...
     def __rsub__(self, arg0: Tensor) -> Tensor: ...
     def __sub__(self, arg0: Tensor) -> Tensor: ...
     def __truediv__(self, arg0: Tensor) -> Tensor: ...
+    def backward(self) -> None: ...
     def diag(self) -> Tensor: ...
     def exp(self) -> Tensor: ...
+    def get_grad(self) -> Tensor: ...
     def log(self) -> Tensor: ...
     def maximum(self, other: Tensor) -> Tensor: ...
     def ones_like(self) -> Tensor:
         """
-        Return a Tensor of zeros with the same shape as this one.
+        Ones with same shape.
         """
 
     def set_values(self, values: list[float]) -> None:
@@ -76,26 +81,34 @@ class Tensor:
 
     def transpose(self) -> Tensor:
         """
-        Return a new Tensor that is the transpose of this one.
+        Return the transpose.
         """
 
     def zeros_like(self) -> Tensor:
         """
-        Return a Tensor of zeros with the same shape as this one.
+        Zeros with same shape.
         """
 
     @property
     def dtype(self) -> numpy.dtype[typing.Any]:
         """
-        Returns the NumPy dtype of the tensor.
+        NumPy dtype of the tensor.
         """
 
     @property
     def ndim(self) -> int:
         """
-        Returns the shape as a list of ints.
+        Number of dimensions.
         """
 
+    @property
+    def requires_grad(self) -> bool:
+        """
+        Whether this tensor participates in autodiff.
+        """
+
+    @requires_grad.setter
+    def requires_grad(self, arg1: bool) -> None: ...
     @property
     def shape(self) -> list[int]:
         """
@@ -105,5 +118,12 @@ class Tensor:
     @property
     def size(self) -> int:
         """
-        Returns total number of elements (product of shape).
+        Total number of elements (product of shape).
         """
+
+class grad_tape:
+    def __enter__(self) -> grad_tape: ...
+    def __exit__(
+        self, arg0: typing.Any, arg1: typing.Any, arg2: typing.Any
+    ) -> bool: ...
+    def __init__(self) -> None: ...

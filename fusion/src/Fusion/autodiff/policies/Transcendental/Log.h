@@ -34,9 +34,9 @@ struct Log {
         Tensor<T> g0 = std::move(grad_out[0]);
         FUSION_CHECK(!g0.empty(), "Log::backward: upstream grad is empty");
         const Tensor<T>& a = context.template load<Tensor<T>>("c");
-        Tensor<T> g1 = g0 * a;
+        Tensor<T> ga = g0 / a;
         GradIn g;
-        g.push_back(g1);
+        g.push_back(ga);
         return g;
     }
 };

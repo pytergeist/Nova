@@ -39,11 +39,11 @@ struct Pow {
         const Tensor<T>& b = context.template load<Tensor<T>>("b");
         const auto& g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "Pow::backward: upstream grad is empty");
-        Tensor<T> k = (b * a).pow(b - ones_like(b));
-        Tensor<T> d = a.pow(b) * a.log() * g0;
+        Tensor<T> ga = (b * a.pow(b - 1)) * g0;
+        Tensor<T> gb = (a.pow(b) * a.log()) * g0;
         GradIn g;
-        g.push_back(k);
-        g.push_back(d);
+        g.push_back(ga);
+        g.push_back(gb);
         return g;
     }
 };

@@ -22,7 +22,7 @@ struct Multiply {
         FUSION_BOUNDS_CHECK(1, input.size());
     	const auto& a = input[0];
     	const auto& b = input[1];
-        FUSION_CHECK(a.size() == b.size(), "Multiply::forward input size mismatch");
+    	FUSION_ALLOW_SCALAR_BINARY(a, b);
         context.save("a", input[0]);
         context.save("b", input[1]);
         Tensor<T> c = a * b;

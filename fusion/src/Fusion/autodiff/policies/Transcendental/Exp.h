@@ -34,7 +34,7 @@ struct Exp {
         Tensor<T> g0 = std::move(grad_out[0]);
     	FUSION_CHECK(!g0.empty(), "Exp::backward: upstream grad is empty");
         auto& a = context.template load<Tensor<T>>("c");
-        Tensor<T> g1 = g0 * a;
+        Tensor<T> g1 = g0 * a.exp();
         GradIn g;
         g.push_back(g1);
         return g;

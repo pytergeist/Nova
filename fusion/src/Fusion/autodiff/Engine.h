@@ -17,6 +17,11 @@ template <typename T> class Engine {
 public:
   Engine() : graph_{}, val_buff_{}, grad_buff_{} {};
 
+  Engine(const Engine&) = delete;
+  Engine& operator=(const Engine&) = delete;
+  Engine(Engine&&) = delete;
+  Engine& operator=(Engine&&) = delete;
+
   template <class Op> ValueID apply(MultiTensor<T> &&payload) {
     size_t num = payload.size();
     std::vector<ValueID> vids;
@@ -27,7 +32,7 @@ public:
     return apply<Op>(vids);
   }
 
-  void backward() {
+  void backward(ValueID seed_vid) {
     set_grad_buff_size();
     for (auto &g : grad_buff_) {
       if (g.is_initialised())
@@ -36,10 +41,8 @@ public:
     Sort<T> sort_(graph_.nodes.size());
     std::vector<NodeID> sorted_nodes = sort_.topological_sort(
         graph_.nodes, graph_.produced_by, graph_.consumed_by, graph_.node_ids);
-    ValueID out_vid = get_output(sorted_nodes, 0);
     MultiTensor<T> gradVec =
-        grad_init(out_vid, 0); // TODO: This chooses a single sink for
-                               // simplicity but graphs can have multiple sinks
+        grad_init(seed_vid, 0); // TODO: This chooses a single sink for the seed vid for now
     for (auto it = sorted_nodes.rbegin(); it != sorted_nodes.rend(); ++it) {
       auto &n = graph_.nodes[it->idx];
       FUSION_CHECK(!n.outputs.empty(), "node has no outputs in backward()");
@@ -90,6 +93,7 @@ public:
           dst = src;
         } else {
           FUSION_CHECK(dst.size() == src.size(), "grad size mismatch");
+          autodiff::NoGradGuard ng;
           dst = dst + src;
         }
       }
@@ -149,6 +153,13 @@ public:
     out.vid_ = vid;
     return out;
   }
+
+
+
+  Tensor<T> get_grad(ValueID vid) {
+    FUSION_BOUNDS_CHECK(vid.idx, val_buff_.size());
+    return grad_buff_[vid.idx];
+   }
 
 
 

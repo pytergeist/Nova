@@ -1,11 +1,13 @@
 import numpy as np
 import pytest
 
-from nova.src.backend.core import Tensor
+from nova.src.backend.core import Tensor, autodiff
 from tests.integration.gradient.finite_difference import (
     Tolerance,
     finite_difference_jacobian,
 )
+
+autodiff.enabled(True)
 
 
 def compute_autodiff_gradient(x):
@@ -15,7 +17,7 @@ def compute_autodiff_gradient(x):
 
     output.backward()
 
-    return x_tensor.grad
+    return x_tensor.grad.to_numpy()
 
 
 def test_matmul_2d_grad(

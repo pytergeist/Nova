@@ -37,10 +37,10 @@ struct MatMul {
         FUSION_CHECK(grad_out.size() == 1, "MatMul::backward expects exactly 1 upstream grad tensor");
         const Tensor<T>& a = context.template load<Tensor<T>>("a");
         const Tensor<T>& b = context.template load<Tensor<T>>("b");
-        auto& g0 = grad_out[0];
+        const Tensor<T>& g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "MatMul::backward: upstream grad is empty");
-        Tensor<T> c = g0.matmul(a.swapaxes(-2,-1));
-        Tensor<T> d = g0.swapaxes(-2,-1).matmul(b);
+        Tensor<T> c = g0.matmul(b.swapaxes(-2,-1));
+        Tensor<T> d = a.swapaxes(-2,-1).matmul(g0);
         GradIn g;
         g.push_back(c);
         g.push_back(d);
