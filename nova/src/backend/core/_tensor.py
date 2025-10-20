@@ -73,16 +73,6 @@ class Tensor(clib.Tensor):
         """
         return self.get_grad()
 
-    @property
-    def requires_grad(self) -> bool:
-        """Grad (gradient) property getter. There is no corresponding setter as the
-        requires_grad attribute is read-only.
-
-        Returns:
-            bool: True if finite_difference should be computed, False otherwise.
-        """
-        return self._node.requires_grad
-
     @staticmethod
     def standardise_dtype(
         dtype: "DType",
@@ -368,11 +358,11 @@ class Tensor(clib.Tensor):
     # def astype(self):
     #     raise NotImplementedError("astype not yet implemented")
 
-    def __repr__(self):
-        role_str = (
-            f", role={self._node.role}" if getattr(self._node, "role", None) else ""
-        )
-        return f"Tensor(data={self.data}, requires_grad={self.requires_grad}{role_str})"
+    # def __repr__(self):
+    #     role_str = (
+    #         f", role={self._node.role}" if getattr(self._node, "role", None) else ""
+    #     )
+    #     return f"Tensor(data={self.data}, requires_grad={self.requires_grad}{role_str})"
 
 
 def get_cpp(t: Tensor) -> clib.Tensor:

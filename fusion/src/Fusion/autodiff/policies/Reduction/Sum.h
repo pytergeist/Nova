@@ -10,7 +10,7 @@
 
 template <typename T>
 struct Sum {
-    inline static constexpr std::string_view name = "Exp";
+    inline static constexpr std::string_view name = "Sum";
     using In = MultiTensor<T>;
     using Out = MultiTensor<T>;
     using GradIn = MultiTensor<T>;
@@ -21,8 +21,8 @@ struct Sum {
         FUSION_BOUNDS_CHECK(0, input.size());
         autodiff::NoGradGuard _;
         const auto& a = input[0];
+        context.save("a", a);
         Tensor<T> c = a.sum();
-        context.save("c", a);
         Out out;
         out.push_back(c);
         return out;
@@ -32,14 +32,14 @@ struct Sum {
         if (grad_out.size() == 0) return {};
         FUSION_CHECK(grad_out.size() == 1, "Sum::backward expects exactly 1 upstream grad tensor");
         autodiff::NoGradGuard _;
-        Tensor<T> g0 = std::move(grad_out[0]);
+        Tensor<T> g0 = grad_out[0];
         FUSION_CHECK(!g0.empty(), "Sum::backward: upstream grad is empty");
+        const Tensor<T>& a = context.template load<Tensor<T>>("a");
         Tensor<T> g1;
-        if (g0.size() == 1) {
-            const Tensor<T>& a = context.template load<Tensor<T>>("c");
-            Tensor<T> g1 = ones_like<T>(a) * g0;
+        if (g0.flat_size() == 1) {
+            g1 = ones_like<T>(a) * g0;
         } else {
-        Tensor<T> g1 = g0;
+        g1 = g0;
         }
         GradIn g;
         g.push_back(g1);

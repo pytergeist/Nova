@@ -1,13 +1,15 @@
 import numpy as np
 import pytest
 
-from nova.src.backend.core import Tensor
+from nova.src.backend.core import Tensor, autodiff
 from nova.src.backend.topology.builder import Builder
 from nova.src.blocks.activations import ReLU
 from tests.integration.gradient.finite_difference import (
     Tolerance,
     finite_difference_jacobian,
 )
+
+autodiff.enabled(True)
 
 # TODO: Add parameterisation for multiple test cases
 # TODO: Implement integration tests for larger computation graphs
@@ -24,12 +26,11 @@ def compute_autodiff_gradient(x):
     tensor_output = x_tensor + x_tensor
 
     with Builder():  # TODO: change | temporary fix for builder context
-
         output = ReLU().call(tensor_output)
 
     output.backward()
 
-    return x_tensor.grad
+    return x_tensor.grad.to_numpy()
 
 
 def test_addition_grad():

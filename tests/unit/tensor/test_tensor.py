@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
 
-from nova.src.backend.core import Tensor
+from nova.src.backend.core import Tensor, autodiff
+
+autodiff.enabled(True)
 
 
 @pytest.mark.parametrize(
@@ -16,7 +18,7 @@ def test_tensor_addition(data_a, data_b, expected_data):
     a = Tensor(data_a, requires_grad=True)
     b = Tensor(data_b, requires_grad=True)
     c = a + b
-    np.testing.assert_array_equal(c.data, expected_data)
+    np.testing.assert_array_equal(c.to_numpy(), expected_data)
     assert c.requires_grad is True
 
 
@@ -32,7 +34,7 @@ def test_tensor_subtraction(data_a, data_b, expected_data):
     a = Tensor(data_a, requires_grad=True)
     b = Tensor(data_b, requires_grad=True)
     c = a - b
-    np.testing.assert_array_equal(c.data, expected_data)
+    np.testing.assert_array_equal(c.to_numpy(), expected_data)
     assert c.requires_grad is True
 
 
@@ -48,7 +50,7 @@ def test_tensor_right_subtraction(data_a, data_b, expected_data):
     a = Tensor(data_a, requires_grad=True)
     b = Tensor(data_b, requires_grad=True)
     c = b - a
-    np.testing.assert_array_equal(c.data, expected_data)
+    np.testing.assert_array_equal(c.to_numpy(), expected_data)
     assert c.requires_grad is True
 
 
@@ -65,8 +67,8 @@ def test_tensor_backward_addition(data_a, data_b, expected_grad_a, expected_grad
     b = Tensor(data_b, requires_grad=True)
     c = a + b
     c.backward()
-    np.testing.assert_array_equal(a.grad, expected_grad_a)
-    np.testing.assert_array_equal(b.grad, expected_grad_b)
+    np.testing.assert_array_equal(a.grad.to_numpy(), expected_grad_a)
+    np.testing.assert_array_equal(b.grad.to_numpy(), expected_grad_b)
 
 
 @pytest.mark.parametrize(
@@ -82,8 +84,8 @@ def test_tensor_backward_subtraction(data_a, data_b, expected_grad_a, expected_g
     b = Tensor(data_b, requires_grad=True)
     c = a - b
     c.backward()
-    np.testing.assert_array_equal(a.grad, expected_grad_a)
-    np.testing.assert_array_equal(b.grad, expected_grad_b)
+    np.testing.assert_array_equal(a.grad.to_numpy(), expected_grad_a)
+    np.testing.assert_array_equal(b.grad.to_numpy(), expected_grad_b)
 
 
 @pytest.mark.parametrize(  # TODO: is this correct?
@@ -101,8 +103,8 @@ def test_tensor_backward_right_subtraction(
     b = Tensor(data_b, requires_grad=True)
     c = a - b
     c.backward()
-    np.testing.assert_array_equal(a.grad, expected_grad_a)
-    np.testing.assert_array_equal(b.grad, expected_grad_b)
+    np.testing.assert_array_equal(a.grad.to_numpy(), expected_grad_a)
+    np.testing.assert_array_equal(b.grad.to_numpy(), expected_grad_b)
 
 
 @pytest.mark.parametrize(
@@ -119,7 +121,7 @@ def test_tensor_division(data_a, data_b, expected_data):
     b = Tensor(data_b, requires_grad=True)
     c = a / b
 
-    np.testing.assert_array_almost_equal(c.data, expected_data, decimal=5)
+    np.testing.assert_array_almost_equal(c.to_numpy(), expected_data, decimal=5)
     assert c.requires_grad is True
 
 
@@ -148,8 +150,8 @@ def test_tensor_backward_division(data_a, data_b, expected_grad_a, expected_grad
     c = a / b
     c.backward()
 
-    np.testing.assert_array_almost_equal(a.grad, expected_grad_a, decimal=5)
-    np.testing.assert_array_almost_equal(b.grad, expected_grad_b, decimal=5)
+    np.testing.assert_array_almost_equal(a.grad.to_numpy(), expected_grad_a, decimal=5)
+    np.testing.assert_array_almost_equal(b.grad.to_numpy(), expected_grad_b, decimal=5)
 
 
 @pytest.mark.parametrize(
@@ -164,11 +166,10 @@ def test_tensor_sum_backward(data):
     """For s = a.sum(), we expect ds/da = 1 for every element in `a`."""
     a = Tensor(data, requires_grad=True)
     s = a.sum()
-
     s.backward()
 
     expected_grad = a.ones_like().to_numpy()
-    np.testing.assert_array_almost_equal(a.grad, expected_grad, decimal=5)
+    np.testing.assert_array_almost_equal(a.grad.to_numpy(), expected_grad, decimal=5)
 
 
 def test_tensor_matmul_backward():
@@ -189,10 +190,10 @@ def test_tensor_matmul_backward():
     s.backward()
 
     expected_grad_a = c.ones_like().to_numpy() @ B.T
-    np.testing.assert_array_almost_equal(a.grad, expected_grad_a, decimal=5)
+    np.testing.assert_array_almost_equal(a.grad.to_numpy(), expected_grad_a, decimal=5)
 
     expected_grad_b = A.T @ c.ones_like().to_numpy()
-    np.testing.assert_array_almost_equal(b.grad, expected_grad_b, decimal=5)
+    np.testing.assert_array_almost_equal(b.grad.to_numpy(), expected_grad_b, decimal=5)
 
 
 if __name__ == "__main__":
