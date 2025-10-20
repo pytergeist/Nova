@@ -62,7 +62,7 @@ def test_from_config_method_returns_instance_of_activation():
 def test_relu_call_method(activation_fn, data, expected):
     with Builder():
         activation = activations.get(activation_fn)
-        assert all(activation.call(data).data == expected)
+        assert all(activation.call(data).to_numpy() == expected)
 
 
 if __name__ == "__main__":
