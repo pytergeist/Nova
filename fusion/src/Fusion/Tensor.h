@@ -112,6 +112,17 @@ public:
     return os;
   }
 
+  std::string shape_str() const {
+  	std::ostringstream oss;
+  	oss << '(';
+  	for (size_t i = 0; i < shape_.size(); ++i) {
+    	oss << shape_[i];
+    	if (i + 1 < shape_.size()) oss << ',';
+  	}
+  	oss << ')';
+  	return oss.str();
+	}
+
   //  template <class Callable, class... Ops,
   //            typename R = std::invoke_result_t<Callable, T, T>>
   //  Tensor(FFunc<Callable, Ops...> const &ffunc) {
