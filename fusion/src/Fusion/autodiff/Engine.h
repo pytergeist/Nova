@@ -22,14 +22,55 @@ public:
   Engine(Engine&&) = delete;
   Engine& operator=(Engine&&) = delete;
 
-  template <class Op> ValueID apply(AutodiffMeta<T> &&payload) {
-    size_t num = payload.size();
-    std::vector<ValueID> vids;
-    vids.reserve(num);
-    for (size_t i = 0; i < num; i++) {
-      vids.push_back(feed_raw(payload[i]));
+//  template <class Op> ValueID apply(AutodiffMeta<T> &&payload) {
+//    size_t num = payload.size();
+//    std::vector<ValueID> vids;
+//    vids.reserve(num);
+//    for (size_t i = 0; i < num; i++) {
+//      vids.push_back(feed_raw(payload[i]));
+//    }
+//    return apply<Op>(vids);
+//  }
+
+  template <class Op> // TODO: evaluate impl
+  ValueID apply(AutodiffMeta<T> &payload) {
+    for (auto p: payload) {
+      if (!p.has_vid()) {
+        feed_raw(p);
+      }
     }
-    return apply<Op>(vids);
+    NodeID dst_nid = graph_.template build_node<Op>(payload);
+    auto &node = graph_.nodes[dst_nid.idx];
+    for (size_t i = 0; i < payload.size(); i++) {
+      NodeID src_nid = graph_.produced_by.at(payload[i].get_vid().idx).nid;
+      graph_.add_edge(src_nid, dst_nid);
+      graph_.set_node_input(node, payload[i].get_vid());
+      graph_.append_consumer_table(dst_nid, payload[i].get_vid(), i);
+      // TODO: make output fan out a shared_ptr scheme instead of clones
+    }
+    AutodiffMeta<T> out = run_forward(node, payload);
+    if (node.outputs.empty()) {
+      node.outputs.reserve(out.size());
+      for (size_t i = 0; i < out.size(); ++i) {
+        ValueID vid = graph_.new_intermediate_value();
+        graph_.set_produced_by(vid, dst_nid, static_cast<size_t>(i));
+        node.outputs.push_back(vid);
+        ensure_value_capacity(vid);
+      }
+    }
+    FUSION_CHECK(out.size() > 0,
+                 "Engine::apply: forward produced empty outputs");
+    FUSION_BOUNDS_CHECK(0, node.outputs.size());
+    FUSION_CHECK(node.outputs.size() == out.size(),
+                 "node output size mismatch");
+    ValueID out_vid = node.outputs[0];
+    ensure_value_capacity(out_vid);
+    for (size_t i = 0; i < out.size(); ++i) {
+      ValueID vid_i = node.outputs[i];
+      ensure_value_capacity(vid_i);
+      val_buff_[vid_i.idx] = out[i];
+    }
+    return node.outputs[0]; // TODO: return all vids here?
   }
 
   void backward(ValueID seed_vid) {
@@ -100,44 +141,44 @@ public:
     }
   }
 
-  template <class Op> // TODO: evaluate impl
-  ValueID apply(const std::vector<ValueID> &vids) {
-    NodeID dst_nid = graph_.template build_node<Op>(AutodiffMeta<T>{});
-    AutodiffMeta<T> in;
-    in.data.reserve(vids.size());
-    auto &node = graph_.nodes[dst_nid.idx];
-    for (size_t i = 0; i < vids.size(); i++) {
-      NodeID src_nid = graph_.produced_by.at(vids[i].idx).nid;
-      graph_.add_edge(src_nid, dst_nid);
-      graph_.set_node_input(node, vids[i]);
-      graph_.append_consumer_table(dst_nid, vids[i], i);
-      // TODO: make output fan out a shared_ptr scheme instead of clones
-      in.push_back(val_buff_[vids[i].idx]);
-    }
-    AutodiffMeta<T> out = run_forward(node, in);
-    if (node.outputs.empty()) {
-      node.outputs.reserve(out.size());
-      for (size_t i = 0; i < out.size(); ++i) {
-        ValueID vid = graph_.new_intermediate_value();
-        graph_.set_produced_by(vid, dst_nid, static_cast<size_t>(i));
-        node.outputs.push_back(vid);
-        ensure_value_capacity(vid);
-      }
-    }
-    FUSION_CHECK(out.size() > 0,
-                 "Engine::apply: forward produced empty outputs");
-    FUSION_BOUNDS_CHECK(0, node.outputs.size());
-    FUSION_CHECK(node.outputs.size() == out.size(),
-                 "node output size mismatch");
-    ValueID out_vid = node.outputs[0];
-    ensure_value_capacity(out_vid);
-    for (size_t i = 0; i < out.size(); ++i) {
-      ValueID vid_i = node.outputs[i];
-      ensure_value_capacity(vid_i);
-      val_buff_[vid_i.idx] = out[i];
-    }
-    return node.outputs[0]; // TODO: return all vids here?
-  }
+//  template <class Op> // TODO: evaluate impl
+//  ValueID apply(const std::vector<ValueID> &vids) {
+//    NodeID dst_nid = graph_.template build_node<Op>(AutodiffMeta<T>{});
+//    AutodiffMeta<T> in;
+//    in.data.reserve(vids.size());
+//    auto &node = graph_.nodes[dst_nid.idx];
+//    for (size_t i = 0; i < vids.size(); i++) {
+//      NodeID src_nid = graph_.produced_by.at(vids[i].idx).nid;
+//      graph_.add_edge(src_nid, dst_nid);
+//      graph_.set_node_input(node, vids[i]);
+//      graph_.append_consumer_table(dst_nid, vids[i], i);
+//      // TODO: make output fan out a shared_ptr scheme instead of clones
+//      in.push_back(val_buff_[vids[i].idx]);
+//    }
+//    AutodiffMeta<T> out = run_forward(node, in);
+//    if (node.outputs.empty()) {
+//      node.outputs.reserve(out.size());
+//      for (size_t i = 0; i < out.size(); ++i) {
+//        ValueID vid = graph_.new_intermediate_value();
+//        graph_.set_produced_by(vid, dst_nid, static_cast<size_t>(i));
+//        node.outputs.push_back(vid);
+//        ensure_value_capacity(vid);
+//      }
+//    }
+//    FUSION_CHECK(out.size() > 0,
+//                 "Engine::apply: forward produced empty outputs");
+//    FUSION_BOUNDS_CHECK(0, node.outputs.size());
+//    FUSION_CHECK(node.outputs.size() == out.size(),
+//                 "node output size mismatch");
+//    ValueID out_vid = node.outputs[0];
+//    ensure_value_capacity(out_vid);
+//    for (size_t i = 0; i < out.size(); ++i) {
+//      ValueID vid_i = node.outputs[i];
+//      ensure_value_capacity(vid_i);
+//      val_buff_[vid_i.idx] = out[i];
+//    }
+//    return node.outputs[0]; // TODO: return all vids here?
+//  }
 
   ValueID track_input(Tensor<T>& t) {
     if (t.vid_.idx >= 0) return t.vid_;

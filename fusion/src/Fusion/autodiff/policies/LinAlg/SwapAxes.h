@@ -1,3 +1,4 @@
+// SwapAxes.h
 #ifndef SWAPAXES_POLICY_H
 #define SWAPAXES_POLICY_H
 
@@ -17,17 +18,22 @@ struct SwapAxes {
     using GradIn  = AutodiffMeta<T>;
     using GradOut = AutodiffMeta<T>;
 
-
     Out forward(Context<T>& context, In& input) {
         autodiff::NoGradGuard _;
         FUSION_CHECK(input.size() == 1, "SwapAxes requires exactly one input");
         const auto& x = input[0];
 
-        int a1 = serial_ops::normalise_axis(axis1, x.rank());
-        int a2 = serial_ops::normalise_axis(axis2, x.rank());
+        int a1 = input.template get_param<int>("axis1");
+        int a2 = input.template get_param<int>("axis2");
+
+        a1 = serial_ops::normalise_axis(a1, x.rank());
+        a2 = serial_ops::normalise_axis(a2, x.rank());
         FUSION_CHECK(a1 != a2, "SwapAxes: axes must be different");
 
-        Tensor<T> y = x.swapaxes(-2, -1);
+        context.save("axis1", a1);
+        context.save("axis2", a2);
+
+        Tensor<T> y = x.swapaxes(a1, a2);  // raw kernel is fine here
         Out out;
         out.push_back(y);
         return out;
@@ -44,10 +50,8 @@ struct SwapAxes {
         const Tensor<T>& gy = grad_out[0];
         FUSION_CHECK(!gy.empty(), "SwapAxes::backward: upstream grad is empty");
 
-        Tensor<T> gx = gy.swapaxes(-2, -1);
-
         GradIn g;
-        g.push_back(gx);
+        g.push_back(gy.swapaxes(a1, a2));
         return g;
     }
 };

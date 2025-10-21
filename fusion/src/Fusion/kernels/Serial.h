@@ -9,7 +9,7 @@
 
 template <typename T> class Tensor;
 
-namespace serial_ops {
+namespace serial {
 template <typename T>
 void transpose(const Tensor<T>& t1, const std::vector<size_t> &shape,
                std::vector<T> &res) {

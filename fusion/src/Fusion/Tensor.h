@@ -322,24 +322,42 @@ public:
         [](const Tensor& x, const Tensor& y){ return math::linalg::matmul(x, y); });
    };
 
-//  Tensor<T> swapaxes(int axis1, int axis2) const {
-//    std::vector<size_t> out_shape = this->shape_;
-//    axis1 = serial_ops::normalise_axis(axis1, this->rank_);
-//    axis2 = serial_ops::normalise_axis(axis2, this->rank_);
-//    std::swap(out_shape[axis1], out_shape[axis2]);
-//    std::vector<T> out =
-//        serial_ops::swapaxes<T>(*this, this->shape_, axis1, axis2);
-//    return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
-//  }
   Tensor<T> swapaxes(int axis1, int axis2) const {
     std::vector<size_t> out_shape = this->shape_;
-    axis1 = serial_ops::normalise_axis(axis1, this->rank_);
-    axis2 = serial_ops::normalise_axis(axis2, this->rank_);
+    axis1 = serial::normalise_axis(axis1, this->rank_);
+    axis2 = serial::normalise_axis(axis2, this->rank_);
     std::swap(out_shape[axis1], out_shape[axis2]);
     std::vector<T> out =
-        serial_ops::swapaxes<T>(*this, this->shape_, axis1, axis2);
+        serial::swapaxes<T>(*this, this->shape_, axis1, axis2);
     return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
   }
+
+
+//  Tensor<T> swapaxes(int axis1, int axis2) const {
+//    using SwapOp = Operation<T, SwapAxes<T>>;
+//
+//    auto eager = [axis1, axis2](const Tensor<T>& x) {
+//        std::vector<size_t> out_shape = x.shape_;
+//        int a1 = serial_ops::normalise_axis(axis1, x.rank());
+//        int a2 = serial_ops::normalise_axis(axis2, x.rank());
+//        std::swap(out_shape[a1], out_shape[a2]);
+//        std::vector<T> out = serial::swapaxes<T>(x, x.shape_, a1, a2);
+//        return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU, x.requires_grad_);
+//    };
+//
+//    if (!autodiff::grad_enabled() || !requires_grad_) {
+//        return eager(*this);
+//    }
+//
+//    auto& eng = EngineContext<T>::get();
+//    AutodiffMeta<T> meta(1);
+//    meta.push_back(*this);
+//    meta.set_param("axis1", axis1);
+//    meta.set_param("axis2", axis2);
+//
+//    ValueID out = eng.template apply<SwapOp>(std::move(meta));
+//    return eng.materialise(out);
+//}
 
   Tensor<T> diagonal() {
     size_t arr_size =
@@ -347,7 +365,7 @@ public:
                                   int64_t{1}, std::multiplies<int>()));
     size_t out_dim = std::floor(arr_size);
     std::vector<size_t> out_shape{out_dim, 1};
-    std::vector<T> out = serial_ops::diagonal2D(*this, this->shape_);
+    std::vector<T> out = serial::diagonal2D(*this, this->shape_);
     return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
   }
 
@@ -358,7 +376,7 @@ public:
     size_t size = flat_size();
     std::vector<T> new_data(size);
 
-    serial_ops::transpose<T>(*this, this->shape_, new_data);
+    serial::transpose<T>(*this, this->shape_, new_data);
 
     return Tensor<T>(std::move(new_shape), std::move(new_data), Device::CPU);
   }
