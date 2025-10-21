@@ -22,7 +22,7 @@ public:
   Engine(Engine&&) = delete;
   Engine& operator=(Engine&&) = delete;
 
-  template <class Op> ValueID apply(MultiTensor<T> &&payload) {
+  template <class Op> ValueID apply(AutodiffMeta<T> &&payload) {
     size_t num = payload.size();
     std::vector<ValueID> vids;
     vids.reserve(num);
@@ -41,7 +41,7 @@ public:
     Sort<T> sort_(graph_.nodes.size());
     std::vector<NodeID> sorted_nodes = sort_.topological_sort(
         graph_.nodes, graph_.produced_by, graph_.consumed_by, graph_.node_ids);
-    MultiTensor<T> gradVec =
+    AutodiffMeta<T> gradVec =
         grad_init(seed_vid, 0); // TODO: This chooses a single sink for the seed vid for now
     for (auto it = sorted_nodes.rbegin(); it != sorted_nodes.rend(); ++it) {
       auto &n = graph_.nodes[it->idx];
@@ -69,10 +69,10 @@ public:
         std::cerr << ")\n";
       }
 
-      MultiTensor<T> grad_in;
+      AutodiffMeta<T> grad_in;
       grad_in.push_back(grad_buff_[output_id.idx]);
 
-      MultiTensor<T> grad_out;
+      AutodiffMeta<T> grad_out;
       try {
         grad_out = n.apply_backward(grad_in);
       } catch (const std::exception &e) {
@@ -102,8 +102,8 @@ public:
 
   template <class Op> // TODO: evaluate impl
   ValueID apply(const std::vector<ValueID> &vids) {
-    NodeID dst_nid = graph_.template build_node<Op>(MultiTensor<T>{});
-    MultiTensor<T> in;
+    NodeID dst_nid = graph_.template build_node<Op>(AutodiffMeta<T>{});
+    AutodiffMeta<T> in;
     in.data.reserve(vids.size());
     auto &node = graph_.nodes[dst_nid.idx];
     for (size_t i = 0; i < vids.size(); i++) {
@@ -114,7 +114,7 @@ public:
       // TODO: make output fan out a shared_ptr scheme instead of clones
       in.push_back(val_buff_[vids[i].idx]);
     }
-    MultiTensor<T> out = run_forward(node, in);
+    AutodiffMeta<T> out = run_forward(node, in);
     if (node.outputs.empty()) {
       node.outputs.reserve(out.size());
       for (size_t i = 0; i < out.size(); ++i) {
@@ -214,7 +214,7 @@ private:
     return vid;
   }
 
-  template <class Op> ValueID feed(MultiTensor<T> v) {
+  template <class Op> ValueID feed(AutodiffMeta<T> v) {
     NodeID dst_nid = graph_.template build_node<Op>(v);
     auto &node = graph_.nodes[dst_nid.idx];
     // Arbitrily set to 0 for single tensor feed
@@ -228,10 +228,10 @@ private:
 
   void set_grad_buff_size() { grad_buff_.resize(val_buff_.size()); }
 
-  MultiTensor<T> grad_init(ValueID vid, size_t out_slot) {
+  AutodiffMeta<T> grad_init(ValueID vid, size_t out_slot) {
     Tensor<T> grad = ones_like(val_buff_[vid.idx]);
     grad_buff_[vid.idx] = grad;
-    MultiTensor<T> gradVec;
+    AutodiffMeta<T> gradVec;
     gradVec.push_back(grad);
     return gradVec;
   }
@@ -242,7 +242,7 @@ private:
     return outputs[out_slot];
   }
 
-  MultiTensor<T> run_forward(INode<T> &node, MultiTensor<T> &vec) {
+  AutodiffMeta<T> run_forward(INode<T> &node, AutodiffMeta<T> &vec) {
     return node.apply_forward(vec);
   }
 };

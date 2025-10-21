@@ -26,22 +26,22 @@ public:
   INode(const INode &) = delete;
   INode &operator=(const INode &) = delete;
 
-  MultiTensor<T> forward(MultiTensor<T> &input) {
+  AutodiffMeta<T> forward(AutodiffMeta<T> &input) {
     return self_->forward(input);
   };
-  MultiTensor<T> backward(MultiTensor<T> &grad_out) {
+  AutodiffMeta<T> backward(AutodiffMeta<T> &grad_out) {
     return self_->backward(grad_out);
   };
 
-  MultiTensor<T> apply_forward(MultiTensor<T> &input) {
-    MultiTensor<T> out = self_->forward(input);
+  AutodiffMeta<T> apply_forward(AutodiffMeta<T> &input) {
+    AutodiffMeta<T> out = self_->forward(input);
     return out;
   }
 
-  MultiTensor<T> apply_backward(MultiTensor<T> &grad_out) {
+  AutodiffMeta<T> apply_backward(AutodiffMeta<T> &grad_out) {
     if (!self_)
       throw std::runtime_error("INode used after move");
-    MultiTensor<T> gin = self_->backward(grad_out);
+    AutodiffMeta<T> gin = self_->backward(grad_out);
     return gin;
   }
 
@@ -58,8 +58,8 @@ private:
     std::vector<ValueID> outputs;
 
     virtual ~NodeConcept() = default;
-    virtual MultiTensor<T> forward(MultiTensor<T> &input) = 0;
-    virtual MultiTensor<T> backward(MultiTensor<T> &grad_out) = 0;
+    virtual AutodiffMeta<T> forward(AutodiffMeta<T> &input) = 0;
+    virtual AutodiffMeta<T> backward(AutodiffMeta<T> &grad_out) = 0;
 
     virtual const std::type_info &in_type() const = 0;
     virtual const std::type_info &out_type() const = 0;
@@ -84,13 +84,13 @@ private:
 
     std::string_view name() const override { return Op::name; }
 
-    MultiTensor<T> forward(MultiTensor<T> &input) override {
+    AutodiffMeta<T> forward(AutodiffMeta<T> &input) override {
       auto y = node_.run_forward(input);
       return y;
     };
 
-    MultiTensor<T> backward(MultiTensor<T> &grad_out) override {
-      MultiTensor<T> grad_in = node_.run_backward(grad_out);
+    AutodiffMeta<T> backward(AutodiffMeta<T> &grad_out) override {
+      AutodiffMeta<T> grad_in = node_.run_backward(grad_out);
       return grad_in;
     }
 

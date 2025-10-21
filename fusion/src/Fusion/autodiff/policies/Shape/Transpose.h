@@ -10,10 +10,10 @@
 template <typename T>
 struct Transpose {
     inline static constexpr std::string_view name = "Transpose";
-    using In = MultiTensor<T>;
-    using Out = MultiTensor<T>;
-    using GradIn = MultiTensor<T>;
-    using GradOut = MultiTensor<T>;
+    using In = AutodiffMeta<T>;
+    using Out = AutodiffMeta<T>;
+    using GradIn = AutodiffMeta<T>;
+    using GradOut = AutodiffMeta<T>;
 
     Out forward(Context<T>& context, const In& input) {
         FUSION_CHECK(input.size() >= 1, "Transpose requires one inputs");

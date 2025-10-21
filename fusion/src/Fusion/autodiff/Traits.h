@@ -7,7 +7,7 @@
 
 #include "../Tensor.h"
 
-// TODO: Create fixed size multitensor for hot paths
+// TODO: Create fixed size AutodiffMeta for hot paths
 
 struct ValueID {
   int32_t idx;
@@ -16,19 +16,20 @@ struct NodeID {
   int32_t idx;
 };
 
-// Traits.h
 template <typename T>
-struct MultiTensor {
+struct AutodiffMeta {
+  using Param = std::variant<int, double, bool>;
   std::vector<Tensor<T>> data;
+  std::unordered_map<std::string, Param> params;
 
-  MultiTensor() = default;
+  AutodiffMeta() = default;
 
-  explicit MultiTensor(std::size_t n) { data.reserve(n); }
+  explicit AutodiffMeta(std::size_t n) { data.reserve(n); }
 
-  MultiTensor(const MultiTensor&) = delete;
-  MultiTensor& operator=(const MultiTensor&) = delete;
-  MultiTensor(MultiTensor&&) noexcept = default;
-  MultiTensor& operator=(MultiTensor&&) noexcept = default;
+  AutodiffMeta(const AutodiffMeta&) = delete;
+  AutodiffMeta& operator=(const AutodiffMeta&) = delete;
+  AutodiffMeta(AutodiffMeta&&) noexcept = default;
+  AutodiffMeta& operator=(AutodiffMeta&&) noexcept = default;
 
   void push_back(const Tensor<T>& v)      { data.emplace_back(v); }
   void push_back(Tensor<T>&&) = delete;

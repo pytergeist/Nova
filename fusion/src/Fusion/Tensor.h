@@ -322,6 +322,15 @@ public:
         [](const Tensor& x, const Tensor& y){ return math::linalg::matmul(x, y); });
    };
 
+//  Tensor<T> swapaxes(int axis1, int axis2) const {
+//    std::vector<size_t> out_shape = this->shape_;
+//    axis1 = serial_ops::normalise_axis(axis1, this->rank_);
+//    axis2 = serial_ops::normalise_axis(axis2, this->rank_);
+//    std::swap(out_shape[axis1], out_shape[axis2]);
+//    std::vector<T> out =
+//        serial_ops::swapaxes<T>(*this, this->shape_, axis1, axis2);
+//    return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
+//  }
   Tensor<T> swapaxes(int axis1, int axis2) const {
     std::vector<size_t> out_shape = this->shape_;
     axis1 = serial_ops::normalise_axis(axis1, this->rank_);

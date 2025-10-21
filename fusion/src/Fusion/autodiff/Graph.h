@@ -85,7 +85,7 @@ public:
     return nid;
   }
 
-  template <typename ConcreteOp> NodeID build_node(MultiTensor<T> vec) {
+  template <typename ConcreteOp> NodeID build_node(AutodiffMeta<T> vec) {
     auto op = ConcreteOp{};
     INode<T> node(op);
     size_t num_outputs = node.get_static_num_outputs();
