@@ -65,7 +65,7 @@ public:
     }
     FUSION_CHECK(data.size() == n, "Tensor: data size != product(shape)");
     storage = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
-    rank_ = storage->ndims();
+    rank_ = shape_.size();
   }
 
   size_t rank() const { return rank_; }
@@ -250,7 +250,7 @@ public:
     storage =
         std::make_shared<NDTensorStorage<T>>(out_shape, std::move(out_data));
     shape_ = storage->shape();
-    rank_ = storage->ndims();
+    rank_ = shape_.size();
     return *this;
   }
 
