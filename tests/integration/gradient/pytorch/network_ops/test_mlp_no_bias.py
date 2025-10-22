@@ -2,12 +2,14 @@ import numpy as np
 import pytest
 import torch
 
-from nova.src.backend.core import Tensor
+from nova.src.backend.core import Tensor, autodiff
 from nova.src.backend.topology.builder import Builder
 from nova.src.blocks.activations.activations import ReLU
 from nova.src.blocks.core.linear import Linear
 from nova.src.initialisers import Constant, Ones, RandomNormal, RandomUniform, Zeros
 from tests.integration.gradient.finite_difference import Tolerance
+
+autodiff.enabled(True)
 
 network_configs = [
     # 2-layer network: input 5 -> hidden 10 -> output 1, activation after first layer only.
@@ -112,7 +114,7 @@ def test_network_grad(initializer, config):
 
     for key in autodiff_grads:
         np.testing.assert_allclose(
-            autodiff_grads[key],
+            autodiff_grads[key].to_numpy(),
             pytorch_grads[key],
             rtol=Tolerance.RTOL.value,
             atol=Tolerance.ATOL.value,
