@@ -18,6 +18,10 @@ public:
         return *instance_;
     }
 
+    static bool has() {
+      return instance_ != nullptr;
+    }
+
     static void set(Engine<T>* engine) {
         instance_ = engine;
     }
@@ -46,19 +50,5 @@ struct EngineScope {
   void exit()  { EngineContext<T>::set(nullptr); active_ = false; }
 };
 
-
-// AutodiffBridge.h
-#pragma once
-#include "AutodiffMode.h"
-#include "EngineContext.h"
-#include "Engine.h"
-
-template <typename T>
-inline void set_autodiff_enabled(bool on) {
-  autodiff::g_enable_grad = on;
-
-  static thread_local Engine<T> kDefaultEngine;
-  EngineContext<T>::set(on ? &kDefaultEngine : nullptr);
-}
 
 #endif // ENGINE_CONTEXT_H
