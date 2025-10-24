@@ -46,12 +46,12 @@
 template <typename T> class Tensor {
 public:
   std::shared_ptr<ITensorStorage<T>> storage;
+  std::shared_ptr<Tensor<T>> grad_;
   std::vector<size_t> shape_;
-  size_t rank_;
   ValueID vid_{-1};
   bool requires_grad_;
 
-  Tensor() : storage(nullptr), shape_{}, rank_(0), requires_grad_(false) {}
+  Tensor() : storage(nullptr), shape_{}, requires_grad_(false) {}
 
   explicit Tensor(std::vector<size_t> shape, std::vector<T> data,
                   Device device = Device::CPU, bool requires_grad = false)
@@ -65,10 +65,9 @@ public:
     }
     FUSION_CHECK(data.size() == n, "Tensor: data size != product(shape)");
     storage = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
-    rank_ = shape_.size();
   }
 
-  size_t rank() const { return rank_; }
+  size_t rank() const { return shape_.size(); }
   size_t ndims() const { return storage->ndims(); }
 
   bool has_vid() const noexcept { return vid_.idx >= 0; }
@@ -185,10 +184,29 @@ public:
     eng.backward(this->vid_);
 }
 
-  Tensor<T> grad() {
-	auto& eng = EngineContext<T>::get();
-	return eng.get_grad(get_vid());
+//  Tensor<T> grad() {
+//	auto& eng = EngineContext<T>::get();
+//	return eng.get_grad(get_vid());
+//  }
+
+  const Tensor<T>& grad() const {
+    // Lazy, const-safe allocation of a zero-like grad buffer
+    if (grad_ == nullptr) const_cast<Tensor<T>*>(this)->ensure_grad();
+    return *grad_;
   }
+  Tensor<T>& mutable_grad() {
+    ensure_grad();       // ensures grad_ exists and is zero-like
+    return *grad_;
+  }
+  bool has_grad() const noexcept {return grad_ && grad_->is_initialised();};
+
+  void ensure_grad() {
+    if (!has_grad()) {
+      std::vector<T> z(size(), T(0));
+      grad_ = std::make_shared<Tensor<T>>(shape_, std::move(z), Device::CPU, false);
+    }
+  }
+
 
 
 
@@ -236,6 +254,21 @@ public:
         [](const Tensor& x, const Tensor& y){ return math::maximum(x, y); });
    }
 
+  auto operator>=(const T scalar) const {
+    Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+    using GreaterThanEqualOp = Operation<T, GreaterThanEqual<T>>;
+    return autodiff::binary<T, GreaterThanEqualOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::greater_equal(x, y); });
+   }
+
+
+  auto pow(const T scalar) const {
+    Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+    using PowOp = Operation<T, Pow<T>>;
+    return autodiff::binary<T, PowOp>(*this, other,
+        [](const Tensor& x, const Tensor& y){ return math::pow(x, y); });
+   };
+
 
   auto operator-(const Tensor& other) const {
     using SubOp = Operation<T, Subtract<T>>;
@@ -249,8 +282,6 @@ public:
     ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, out_data);
     storage =
         std::make_shared<NDTensorStorage<T>>(out_shape, std::move(out_data));
-    shape_ = storage->shape();
-    rank_ = shape_.size();
     return *this;
   }
 
@@ -322,15 +353,22 @@ public:
         [](const Tensor& x, const Tensor& y){ return math::linalg::matmul(x, y); });
    };
 
-  Tensor<T> swapaxes(int axis1, int axis2) const {
-    std::vector<size_t> out_shape = this->shape_;
-    axis1 = serial::normalise_axis(axis1, this->rank_);
-    axis2 = serial::normalise_axis(axis2, this->rank_);
-    std::swap(out_shape[axis1], out_shape[axis2]);
-    std::vector<T> out =
-        serial::swapaxes<T>(*this, this->shape_, axis1, axis2);
-    return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
+  Tensor<T> swapaxes(const int axis1, const int axis2) const {
+    using SwapAxesOp = Operation<T, SwapAxes<T>>;
+    using Param = std::vector<int>;
+    std::vector<int> params;
+    params.reserve(2);
+    params.push_back(axis1); params.push_back(axis2);
+    FUSION_LOGI("swapaxes input shape: ", this->shape_str());
+    return autodiff::unary<T, SwapAxesOp, Param>(*this, params,
+        [](const Tensor& x, const int axis1, const int axis2){ return math::linalg::swapaxes(x, axis1, axis2); });
   }
+
+  auto mean() const {
+    using MeanOp = Operation<T, Mean<T>>;
+    return autodiff::unary<T, MeanOp>(*this,
+        [](const Tensor& x){ return math::mean(x); });
+   };
 
 
 //  Tensor<T> swapaxes(int axis1, int axis2) const {
