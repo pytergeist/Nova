@@ -1,16 +1,17 @@
 // BindTensor.h
 #pragma once
 
-#include "../../Random.h"
-#include "../../Tensor.h"
-#include "../../TensorFactory.h"
-#include "Helpers.h"
-
 #include <numeric>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <sstream>
 #include <stdexcept>
+
+#include "../../Random.h"
+#include "../../Tensor.h"
+#include "../../TensorFactory.h"
+#include "Helpers.h"
+
 
 namespace py = pybind11;
 
@@ -69,7 +70,7 @@ void bind_tensor(py::module_ &m, const char *name) {
            [](const PyT &t) { return t.shape_; },
            "Returns the shape as a list of ints.")
       .def_property_readonly("ndim",
-           [](const PyT &t) { return t.rank_; },
+           [](const PyT &t) { return t.rank(); },
            "Number of dimensions.")
       .def_property_readonly("dtype",
            [](const PyT &) { return py::dtype::of<T>(); },
@@ -95,18 +96,27 @@ void bind_tensor(py::module_ &m, const char *name) {
            })
 
       // --- elementwise binary ops ---
-      .def("__add__", [](const PyT &a, const PyT &b) { return PyT(a + b); },
-           py::is_operator())
+     .def("__add__",
+          py::overload_cast<const PyT&>(&PyT::operator+, py::const_), py::is_operator())
+     .def("__add__",
+          py::overload_cast<T>(&PyT::operator+, py::const_), py::is_operator())
       .def("__sub__", [](const PyT &a, const PyT &b) { return PyT(a - b); },
            py::is_operator())
       .def("__isub__", &PyT::operator-=)
       .def("__sub__", [](const PyT &a, const PyT &b) { return PyT(b - a); },
            py::is_operator())
-      .def("__mul__", [](const PyT &a, const PyT &b) { return PyT(a * b); },
-           py::is_operator())
-      .def("__truediv__", [](const PyT &a, const PyT &b) { return PyT(a / b); },
-           py::is_operator())
-      .def("__ge__", [](const PyT& a, const PyT& b) { return a >= b; }, py::is_operator())
+     .def("__mul__",
+          py::overload_cast<const PyT&>(&PyT::operator*, py::const_), py::is_operator())
+     .def("__mul__",
+          py::overload_cast<T>(&PyT::operator*, py::const_), py::is_operator())
+     .def("__truediv__",
+          py::overload_cast<const PyT&>(&PyT::operator/, py::const_), py::is_operator())
+     .def("__truediv__",
+          py::overload_cast<T>(&PyT::operator/, py::const_), py::is_operator())
+     .def("__ge__",
+          py::overload_cast<const PyT&>(&PyT::operator>=, py::const_), py::is_operator())
+     .def("__ge__",
+          py::overload_cast<T>(&PyT::operator>=, py::const_), py::is_operator())
       .def("__gt__", &PyT::operator>)
       .def("__neg__", [](const PyT &t) {
              auto z = zeros_like<T>(t);
@@ -117,8 +127,11 @@ void bind_tensor(py::module_ &m, const char *name) {
       .def("__matmul__", &PyT::matmul, "Matrix multiplication (A @ B)")
 
       // --- elementwise tensor-power ---
-      .def("__pow__", &PyT::pow, py::arg("other"),
-           "Elementwise power.")
+
+     .def("__pow__",
+         py::overload_cast<const PyT&>(&PyT::pow, py::const_), py::is_operator())
+     .def("__pow__",
+         py::overload_cast<T>(&PyT::pow, py::const_), py::is_operator())
 
       // --- unary & other ops ---
       .def("sqrt", &PyT::sqrt)
@@ -133,7 +146,7 @@ void bind_tensor(py::module_ &m, const char *name) {
 	  .def("maximum",
         	py::overload_cast<T>(&PyT::maximum, py::const_),
         	py::is_operator())
-
+      .def("mean", &PyT::mean, "Return the global mean of the Tensor.")
       .def("transpose", &PyT::transpose, "Return the transpose.")
       .def("swapaxes", &PyT::swapaxes, py::arg("axis1"), py::arg("axis2"))
       .def("diag", &PyT::diagonal)

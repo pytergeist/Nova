@@ -3,6 +3,7 @@
 #include "random/BindRandom.h"
 #include "tensor/BindTensor.h"
 #include "../../autodiff/EngineContext.h"
+#include "../../autodiff/AutodiffBridge.h"
 
 namespace py = pybind11;
 

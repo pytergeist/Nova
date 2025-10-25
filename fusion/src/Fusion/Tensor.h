@@ -69,6 +69,7 @@ public:
 
   size_t rank() const { return shape_.size(); }
   size_t ndims() const { return storage->ndims(); }
+  std::vector<size_t> shape() const { return shape_; }
 
   bool has_vid() const noexcept { return vid_.idx >= 0; }
 
@@ -359,7 +360,6 @@ public:
     std::vector<int> params;
     params.reserve(2);
     params.push_back(axis1); params.push_back(axis2);
-    FUSION_LOGI("swapaxes input shape: ", this->shape_str());
     return autodiff::unary<T, SwapAxesOp, Param>(*this, params,
         [](const Tensor& x, const int axis1, const int axis2){ return math::linalg::swapaxes(x, axis1, axis2); });
   }

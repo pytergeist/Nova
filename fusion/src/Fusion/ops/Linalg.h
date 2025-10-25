@@ -1,5 +1,5 @@
-#ifndef OPS_MATMUL_H
-#define OPS_MATMUL_H
+#ifndef OPS_LINALG_H
+#define OPS_LINALG_H
 
 #include <vector>
 #include <string_view>
@@ -8,6 +8,7 @@
 #include "../core/ElementWise.h"
 #include "../kernels/Blas.h"
 #include "Helpers.h"
+#include "../common/Log.h"
 
 
 
@@ -30,18 +31,37 @@ namespace math { namespace linalg {
         return Tensor<T>(std::move(out_shape), std::move(data), Device::CPU, grad_flow(x, y));
     }
 
+    std::string shape_str(std::vector<size_t> shape) {
+        std::ostringstream oss;
+        oss << '(';
+        for (size_t i = 0; i < shape.size(); ++i) {
+            oss << shape[i];
+            if (i + 1 < shape.size()) oss << ',';
+        }
+        oss << ')';
+        return oss.str();
+    }
+
    template <typename T>
    inline Tensor<T> swapaxes(const Tensor<T> &x, int axis1, int axis2) {
         std::vector<size_t> out_shape = x.shape_;
-        axis1 = serial::normalise_axis(axis1, x.rank());
-        axis2 = serial::normalise_axis(axis2, x.rank());
+        const int nd = static_cast<int>(out_shape.size());
+        if (nd < 2) {
+        	return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()), Device::CPU, x.requires_grad());
+    	}
+        axis1 = serial::normalise_axis(axis1, nd);
+        axis2 = serial::normalise_axis(axis2, nd);
+    	if (axis1 == axis2) {
+        	return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()), Device::CPU, x.requires_grad());
+    	}
         std::swap(out_shape[axis1], out_shape[axis2]);
         std::vector<T> out =
             serial::swapaxes<T>(x, x.shape_, axis1, axis2);
         return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
    }
 }
+
 }
 
 
-#endif // OPS_MATMUL_H
+#endif // OPS_LINALG_H

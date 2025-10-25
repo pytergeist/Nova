@@ -20,15 +20,15 @@ class SGD(
 
     def step(self):
         for idx, p in enumerate(self.parameters):
-            g_t = p.tensor.grad
+            g_t = p.tensor.get_grad()
             if g_t is None:
                 continue
-
             if self.momentum > 0.0:
-                v_t = self.momentum * self.velocities[idx].to_numpy()
-                g_t = (1 - self.momentum) * g_t
+                v_t = self.velocities[idx] * self.momentum
 
-                p.tensor -= self.lr * (v_t + g_t)
+                g_t = g_t * (1 - self.momentum)
+
+                p.tensor -= (g_t + v_t) * self.lr
 
             else:
                 p.tensor -= self.lr * g_t

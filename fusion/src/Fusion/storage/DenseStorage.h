@@ -38,10 +38,11 @@ public: // TODO: Be careful here - do we want this ptr to be mutable?
     return strides_;
   }
   [[nodiscard]] size_t size() const override { return data_.size<T>(); }
-  [[nodiscard]] size_t ndims() const override {
-    return std::count_if(shape_.begin(), shape_.end(),
-                         [](size_t d) { return d != 1; });
-  }
+  [[nodiscard]] size_t ndims() const override { return shape_.size(); }
+//  [[nodiscard]] size_t ndims() const override {
+//    return std::count_if(shape_.begin(), shape_.end(),
+//                         [](size_t d) { return d != 1; });
+//  }
 
   [[nodiscard]] Device device() const override { return Device::CPU; }
 };

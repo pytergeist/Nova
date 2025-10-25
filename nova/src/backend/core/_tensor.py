@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Literal, Optional, Sequence, Union
 
 import numpy as np
 
-from nova.src.backend.autodiff import Engine, Node
+# from nova.src.backend.autodiff import Engine, Node
 from nova.src.backend.core import clib
 
 if TYPE_CHECKING:
@@ -61,6 +61,14 @@ class Tensor(clib.Tensor):
         """
         return self.get_grad()
 
+    @grad.setter
+    def grad(self, new_grad: np.ndarray):
+        """Grad (gradient) property setter.
+
+        Updates the gradient of the tensor.
+        """
+        self.grad = new_grad
+
     @staticmethod
     def standardise_dtype(
         dtype: "DType",
@@ -77,6 +85,8 @@ class Tensor(clib.Tensor):
 
     @property
     def T(self):
+        if self.ndim < 2:
+            return self
         return self.swapaxes(-1, -2)
 
 

@@ -22,7 +22,7 @@ struct Pow {
         autodiff::NoGradGuard _;
         const Tensor<T>& a = input.at(0);
         const Tensor<T>& b = input.at(1);
-        FUSION_CHECK(a.size() == b.size(), "Pow: input size mismatch");
+        FUSION_ALLOW_SCALAR_BINARY(a, b);
         context.save("a", input[0]);
         context.save("b", input[1]);
         Tensor<T> c = a.pow(b);

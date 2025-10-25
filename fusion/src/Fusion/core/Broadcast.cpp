@@ -1,6 +1,8 @@
-#include "Broadcast.h"
 #include <stdexcept>
 #include <vector>
+#include <iostream>
+
+#include "Broadcast.h"
 
 BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs) {
   // Set Broadcast plan struct info (from Broadcast.h)
@@ -63,6 +65,7 @@ BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs) {
       auto new_dim = sizes[op][dim];
       if (new_dim != 1) {
         if (out_dim != 1 && out_dim != new_dim) {
+          std::cout << "out dim: " << out_dim << " new_dim: " << new_dim << std::endl;
           throw std::runtime_error("Broadcast sizes mismatch");
         }
         out_dim = new_dim;

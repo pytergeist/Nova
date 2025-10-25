@@ -55,8 +55,8 @@ class Trainer:
                         name=name,
                         trainable=op.trainable,
                         tensor=tensor,
-                        requires_grad=getattr(tensor, "requires_grad", False),
-                        grad=getattr(tensor, "grad", None),
+                        requires_grad=tensor.requires_grad,
+                        grad=None,
                     )
                 )
 

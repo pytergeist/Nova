@@ -13,6 +13,20 @@
 
 // TODO: general TODO, move private members of all autodiff classes into private
 
+
+inline void hash_combine(std::size_t& seed, std::size_t v) noexcept {
+  seed ^= v + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
+}
+
+struct ShapeHash {
+  std::size_t operator()(const std::vector<std::size_t>& shape) const noexcept {
+    std::size_t seed = 0;
+    for (auto s : shape) hash_combine(seed, s);
+    return seed;
+  }
+};
+
+
 template <typename T> class Engine {
 public:
   Engine() : graph_{}, val_buff_{}, grad_buff_{} {};
@@ -22,31 +36,37 @@ public:
   Engine(Engine&&) = delete;
   Engine& operator=(Engine&&) = delete;
 
-//  template <class Op> ValueID apply(AutodiffMeta<T> &&payload) {
-//    size_t num = payload.size();
-//    std::vector<ValueID> vids;
-//    vids.reserve(num);
-//    for (size_t i = 0; i < num; i++) {
-//      vids.push_back(feed_raw(payload[i]));
-//    }
-//    return apply<Op>(vids);
-//  }
-
-  template <class Op> // TODO: evaluate impl
+  template <class Op>
   ValueID apply(AutodiffMeta<T> &payload) {
-    for (auto p: payload) {
-      if (!p.has_vid()) {
-        feed_raw(p);
-      }
-    }
+	for (size_t i = 0; i < payload.size(); ++i) {
+  	auto& t = payload[i];
+  	bool needs_register = !t.has_vid();
+  	if (!needs_register) {
+ 	   ValueID vid = t.get_vid();
+ 	   if (static_cast<size_t>(vid.idx) >= graph_.produced_by.size()) {
+  	    needs_register = true; // VID not known by this graph
+  	  }
+ 	 }
+	  if (needs_register) track_input(t);
+	}
+
     NodeID dst_nid = graph_.template build_node<Op>(payload);
+
     auto &node = graph_.nodes[dst_nid.idx];
+
+
     for (size_t i = 0; i < payload.size(); i++) {
+
+      auto vidx = payload[i].get_vid().idx;
+	    FUSION_CHECK(static_cast<size_t>(vidx) < graph_.produced_by.size(),
+               "Input value " + std::to_string(vidx) + " not registered.");
       NodeID src_nid = graph_.produced_by.at(payload[i].get_vid().idx).nid;
-      graph_.add_edge(src_nid, dst_nid);
+
       graph_.set_node_input(node, payload[i].get_vid());
       graph_.append_consumer_table(dst_nid, payload[i].get_vid(), i);
-      // TODO: make output fan out a shared_ptr scheme instead of clones
+      if (src_nid.idx != -1) {
+      	graph_.add_edge(src_nid, dst_nid);
+      }
     }
     AutodiffMeta<T> out = run_forward(node, payload);
     if (node.outputs.empty()) {
@@ -73,7 +93,8 @@ public:
     return node.outputs[0]; // TODO: return all vids here?
   }
 
-  void backward(ValueID seed_vid) {
+
+  void backward(ValueID seed_vid, bool materialise = true, bool retain_graph = false) {
     set_grad_buff_size();
     for (auto &g : grad_buff_) {
       if (g.is_initialised())
@@ -101,14 +122,14 @@ public:
         grad_buff_[output_id.idx] = zeros_like(val_buff_[output_id.idx]);
       }
 
-      std::cerr << "[backward] op=" << n.name() << " inputs=" << inputs.size()
-                << " out_vid=" << output_id.idx << " out_shape=(";
-      {
-        const auto &sh = val_buff_[output_id.idx].storage->shape();
-        for (size_t k = 0; k < sh.size(); ++k)
-          std::cerr << sh[k] << (k + 1 < sh.size() ? "," : "");
-        std::cerr << ")\n";
-      }
+//      std::cerr << "[backward] op=" << n.name() << " inputs=" << inputs.size()
+//                << " out_vid=" << output_id.idx << " out_shape=(";
+//      {
+//        const auto &sh = val_buff_[output_id.idx].storage->shape();
+//        for (size_t k = 0; k < sh.size(); ++k)
+//          std::cerr << sh[k] << (k + 1 < sh.size() ? "," : "");
+//        std::cerr << ")\n";
+//      }
 
       AutodiffMeta<T> grad_in;
       grad_in.push_back(grad_buff_[output_id.idx]);
@@ -132,69 +153,113 @@ public:
         const auto &src = grad_out.at(j); // bounds-checked
         if (!dst.is_initialised()) {
           dst = src;
-        } else {
-          FUSION_CHECK(dst.size() == src.size(), "grad size mismatch");
+        } else { // TODO: below is commented out needs adjusting
+//          FUSION_CHECK(dst.size() == src.size(), "grad size mismatch");
           autodiff::NoGradGuard ng;
           dst = dst + src;
         }
       }
     }
+if (materialise) {
+  autodiff::NoGradGuard ng;
+  for (auto& [vidx, leaf_ptr] : leaf_map_) {
+    if (!leaf_ptr) continue;
+    if (static_cast<size_t>(vidx) >= grad_buff_.size()) continue;
+
+    auto& g = grad_buff_[vidx];
+    if (!g.is_initialised() || g.empty()) continue;
+
+    const bool storage_matches =
+      val_buff_.size() > static_cast<size_t>(vidx) &&
+      val_buff_[vidx].is_initialised() &&
+      leaf_ptr->is_initialised() &&
+      leaf_ptr->storage && val_buff_[vidx].storage &&
+      (leaf_ptr->storage.get() == val_buff_[vidx].storage.get());
+
+    if (storage_matches) {
+      leaf_ptr->ensure_grad();
+      leaf_ptr->mutable_grad() = g;
+    } else {
+      val_buff_[vidx].ensure_grad();
+      val_buff_[vidx].mutable_grad() = g;
+    }
+  }
+    }
+    if (!retain_graph) {
+      ; // TODO: implament a clear_temps for graph_
+    }
   }
 
-//  template <class Op> // TODO: evaluate impl
-//  ValueID apply(const std::vector<ValueID> &vids) {
-//    NodeID dst_nid = graph_.template build_node<Op>(AutodiffMeta<T>{});
-//    AutodiffMeta<T> in;
-//    in.data.reserve(vids.size());
-//    auto &node = graph_.nodes[dst_nid.idx];
-//    for (size_t i = 0; i < vids.size(); i++) {
-//      NodeID src_nid = graph_.produced_by.at(vids[i].idx).nid;
-//      graph_.add_edge(src_nid, dst_nid);
-//      graph_.set_node_input(node, vids[i]);
-//      graph_.append_consumer_table(dst_nid, vids[i], i);
-//      // TODO: make output fan out a shared_ptr scheme instead of clones
-//      in.push_back(val_buff_[vids[i].idx]);
-//    }
-//    AutodiffMeta<T> out = run_forward(node, in);
-//    if (node.outputs.empty()) {
-//      node.outputs.reserve(out.size());
-//      for (size_t i = 0; i < out.size(); ++i) {
-//        ValueID vid = graph_.new_intermediate_value();
-//        graph_.set_produced_by(vid, dst_nid, static_cast<size_t>(i));
-//        node.outputs.push_back(vid);
-//        ensure_value_capacity(vid);
-//      }
-//    }
-//    FUSION_CHECK(out.size() > 0,
-//                 "Engine::apply: forward produced empty outputs");
-//    FUSION_BOUNDS_CHECK(0, node.outputs.size());
-//    FUSION_CHECK(node.outputs.size() == out.size(),
-//                 "node output size mismatch");
-//    ValueID out_vid = node.outputs[0];
-//    ensure_value_capacity(out_vid);
-//    for (size_t i = 0; i < out.size(); ++i) {
-//      ValueID vid_i = node.outputs[i];
-//      ensure_value_capacity(vid_i);
-//      val_buff_[vid_i.idx] = out[i];
-//    }
-//    return node.outputs[0]; // TODO: return all vids here?
+
+//ValueID track_input(Tensor<T>& t) {
+//  const void* key = static_cast<const void*>(&t);
+//  if (auto it = import_cache_.find(key); it != import_cache_.end()) {
+//    t.vid_ = it->second;
+//    return it->second;
 //  }
+//
+//  ValueID vid = graph_.new_input_value();
+//  ensure_value_capacity(vid);
+//  val_buff_[vid.idx] = t;
+//  t.vid_ = vid;
+//
+//  if (t.requires_grad()) {
+//    leaf_map_.try_emplace(vid.idx, &t);
+//  }
+//
+//  import_cache_[key] = vid;
+//  return vid;
+//}
 
-  ValueID track_input(Tensor<T>& t) {
-    if (t.vid_.idx >= 0) return t.vid_;
-    ValueID vid = graph_.new_input_value();
-    ensure_value_capacity(vid);
-    val_buff_[vid.idx] = t;
-    t.vid_ = vid;
-    return vid;
+ValueID track_input(Tensor<T>& t) {
+  // If the tensor already has a VID and this graph knows it, reuse it.
+  if (t.has_vid()) {
+    const ValueID vid = t.get_vid();
+    if (static_cast<size_t>(vid.idx) < graph_.produced_by.size()) {
+      ensure_value_capacity(vid);
+      if (!val_buff_[vid.idx].is_initialised()) val_buff_[vid.idx] = t;
+      if (t.requires_grad()) leaf_map_.try_emplace(vid.idx, &t);
+      return vid;
+    }
+    // else: fall through to register as a fresh input for this graph
   }
+
+  // Cache probe: storage ptr + shape
+  const void* storage_key = static_cast<const void*>(t.storage.get());
+  const auto& shp = t.shape();
+
+  if (auto it = import_cache_.find(storage_key); it != import_cache_.end()) {
+    auto& inner = it->second;
+    if (auto it2 = inner.find(shp); it2 != inner.end()) {
+      const ValueID cached = it2->second;
+      if (static_cast<size_t>(cached.idx) < graph_.produced_by.size()) {
+        ensure_value_capacity(cached);
+        if (!val_buff_[cached.idx].is_initialised()) val_buff_[cached.idx] = t;
+        t.vid_ = cached;
+        if (t.requires_grad()) leaf_map_.try_emplace(cached.idx, &t);
+        return cached;
+      }
+      // stale: ignore and re-register
+    }
+  }
+
+  // Fresh graph input
+  const ValueID vid = graph_.new_input_value(); // should set produced_by[vid].nid = {-1}
+  ensure_value_capacity(vid);
+  val_buff_[vid.idx] = t;
+  t.vid_ = vid;
+  if (t.requires_grad()) leaf_map_.try_emplace(vid.idx, &t);
+
+  import_cache_[storage_key][shp] = vid; // cache only graph-valid VIDs
+  return vid;
+}
+
 
   Tensor<T> materialise(ValueID vid) {
     Tensor<T> out = val_buff_[vid.idx];
     out.vid_ = vid;
     return out;
   }
-
 
 
   Tensor<T> get_grad(ValueID vid) {
@@ -242,6 +307,8 @@ private:
   Graph<T> graph_{};
   std::vector<Tensor<T>> val_buff_;
   std::vector<Tensor<T>> grad_buff_;
+  std::unordered_map<int, Tensor<T>*> leaf_map_;
+  std::unordered_map<const void*, std::unordered_map<std::vector<size_t>, ValueID, ShapeHash>> import_cache_;
 
   void ensure_value_capacity(ValueID vid) {
     if (val_buff_.size() <= static_cast<size_t>(vid.idx)) {
@@ -287,5 +354,6 @@ private:
     return node.apply_forward(vec);
   }
 };
+
 
 #endif // ENGINE_H

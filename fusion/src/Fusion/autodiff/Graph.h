@@ -1,9 +1,10 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include <memory>
 #include "NodeInterface.h"
 #include "Traits.h"
-#include <memory>
+
 
 static constexpr int16_t kNoNode = -1;
 
@@ -103,8 +104,8 @@ public:
   }
 
   void append_consumer_table(NodeID dst_nid, ValueID vid, size_t slot) {
-    if (consumed_by.size() <= static_cast<size_t>(value_counter)) {
-      consumed_by.resize(consumed_by.size() + 1);
+    if (consumed_by.size() <= static_cast<size_t>(vid.idx)) {
+      consumed_by.resize(static_cast<size_t>(vid.idx) + 1);
     }
     consumed_by[vid.idx].push_back(ConsumerInfo{dst_nid, slot});
   }

@@ -2,12 +2,12 @@ import numpy as np
 import pytest
 import torch
 
-from nova.src.backend.core import Tensor, autodiff
+from nova.src.backend.core import Tensor
+from tests.integration.gradient import set_grad_tape
 from tests.integration.gradient.finite_difference import Tolerance
 
-autodiff.enabled(True)
 
-
+@set_grad_tape
 def compute_autodiff_gradient(x):
     x_tensor = Tensor(x, requires_grad=True)
     output = x_tensor - x_tensor

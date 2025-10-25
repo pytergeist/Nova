@@ -61,8 +61,16 @@ int main() {
     Engine<T> engine;
     EngineContext<T>::set(&engine);
 
-    Tensor<T> C = A - 4;
+    Tensor<T> C = A - B;
+    Tensor<T> D = C * B;
+    Tensor<T> E = C / D;
+    Tensor<T> F = A * E;
+
     std::cout << C << std::endl;
+
+    D.backward();
+    std::cout << F.grad() << std::endl;
+
 
 
 

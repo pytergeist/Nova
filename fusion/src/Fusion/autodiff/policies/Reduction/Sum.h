@@ -1,5 +1,5 @@
-#ifndef SUM_H
-#define SUM_H
+#ifndef REDUCTION_H
+#define REDUCTION_H
 
 #include <vector>
 #include <string_view>
@@ -47,4 +47,4 @@ struct Sum {
     }
 };
 
-#endif // SUM_H
+#endif // REDUCTION_H

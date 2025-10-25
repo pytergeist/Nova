@@ -3,5 +3,6 @@
 
 #include "../../autodiff/Traits.h"
 #include "Sum.h"
+#include "Mean.h"
 
 #endif // _REDUCTIONS_H

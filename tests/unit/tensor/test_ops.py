@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from nova.src.backend.core import Tensor, autodiff
+
 autodiff.enabled(True)
 
 

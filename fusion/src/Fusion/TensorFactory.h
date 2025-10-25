@@ -10,7 +10,7 @@ Tensor<T> fill(const std::vector<size_t> &shape, T value) {
   size_t n = std::accumulate(shape.begin(), shape.end(), size_t{1},
                              std::multiplies<size_t>());
   std::vector<T> data(n, value);
-  return Tensor<T>(shape, std::move(data), Device::CPU);
+  return Tensor<T>(shape, std::move(data), Device::CPU, false);
 }
 
 template <typename T> Tensor<T> zeros(const std::vector<size_t> &shape) {

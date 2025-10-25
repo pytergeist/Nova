@@ -42,15 +42,15 @@ struct AutodiffMeta {
   Tensor<T>& operator[](std::size_t i) { return data.at(i); }
   const Tensor<T>& operator[](std::size_t i) const { return data.at(i); }
 
-//  template <typename V>
-//  void set_param(const std::string& key, V value) { params[key] = value; }
-//
-//  template <typename V>
-//  V get_param(const std::string& key) const {
-//    auto it = params.find(key);
-//    FUSION_CHECK(it != params.end(), "Parameter not found: ", key);
-//    return std::get<V>(it->second);
-//  }
+  template <typename V>
+  void set_param(const std::string& key, V value) { params[key] = value; }
+
+  template <typename V>
+  V get_param(const std::string& key) const {
+    auto it = params.find(key);
+    FUSION_CHECK(it != params.end(), "Parameter not found");
+    return std::get<V>(it->second);
+  }
 
   auto begin() { return data.begin(); }
   auto end() { return data.end(); }

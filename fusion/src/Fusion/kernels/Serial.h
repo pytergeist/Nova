@@ -7,6 +7,8 @@
 #include <vector>
 #include <stddef.h>
 
+#include "../common/Log.h"
+
 template <typename T> class Tensor;
 
 namespace serial {
@@ -21,29 +23,25 @@ void transpose(const Tensor<T>& t1, const std::vector<size_t> &shape,
 }
 
 
-std::vector<std::size_t> get_contiguous_strides(const std::vector<std::size_t> &shape) {
-  std::size_t product = 1;
-  std::size_t ndim = shape.size();
-  std::vector<std::size_t> strides;
-  strides.resize(ndim);
-  for (std::size_t i = ndim; i-- > 0;) {
-    strides[i] = product;
-    const std::size_t curr_dim = shape[i];
-    product *= curr_dim;
+  inline std::vector<size_t> get_contiguous_strides(const std::vector<size_t>& shape) {
+  const size_t nd = shape.size();
+  std::vector<size_t> strides(nd);
+  size_t prod = 1;
+  for (size_t i = nd; i-- > 0; ) {
+    strides[i] = prod;
+    prod *= shape[i];
   }
   return strides;
 }
 
-std::size_t normalise_axis(int axis, size_t ndim_sz) {
-  const int ndim = static_cast<int>(ndim_sz);
-  if (axis < -ndim || axis >= ndim) {
-    throw std::runtime_error("input axis out of range");
-  }
-  if (axis < 0) {
-    return static_cast<size_t>(ndim + axis); // (signed add) then cast
-  }
-  return static_cast<size_t>(axis);
+
+  inline size_t normalise_axis(int axis, size_t ndim) {
+  const int nd = static_cast<int>(ndim);
+  if (axis < -nd || axis >= nd) throw std::runtime_error("input axis out of range");
+  return static_cast<size_t>(axis < 0 ? nd + axis : axis);
 }
+
+
 std::vector<size_t> linear_to_coord(size_t idx, size_t stride1, size_t stride2,
                                     size_t dim1, size_t dim2) {
   // Convert linear coordinate to 2d matrix coordinate based on
@@ -89,32 +87,39 @@ size_t coord_to_linear(std::vector<size_t> &coords,
   return Lidx;
 }
 
-template <typename T>
-std::vector<T> swapaxes(const Tensor<T> &a, const std::vector<size_t> &shape,
-                            int a1, int a2) {
+  template <typename T>
+  std::vector<T> swapaxes(const Tensor<T>& a,
+                          const std::vector<size_t>& shape,
+                          int a1, int a2) {
+  const size_t nd = shape.size();
 
-  int axis1 = normalise_axis(a1, shape.size());
-  int axis2 = normalise_axis(a2, shape.size());
-  if (axis1 == axis2) {
-    throw std::runtime_error("axis1 and axis2 cannot be the same");
+  if (nd < 2) {
+    return std::vector<T>(a.begin(), a.end());
   }
 
-  std::vector<int> result;
-  result.resize(shape.size());
-  std::vector<size_t> original_strides = get_contiguous_strides(shape);
+  const size_t axis1 = normalise_axis(a1, nd);
+  const size_t axis2 = normalise_axis(a2, nd);
+
+  if (axis1 == axis2) {
+    return std::vector<T>(a.begin(), a.end());
+  }
+
+  const std::vector<size_t> orig_strides = get_contiguous_strides(shape);
   std::vector<size_t> new_shape = shape;
   std::swap(new_shape[axis1], new_shape[axis2]);
-  std::vector<size_t> new_strides = get_contiguous_strides(new_shape);
+  const std::vector<size_t> new_strides = get_contiguous_strides(new_shape);
 
-  size_t size = std::accumulate(shape.begin(), shape.end(), size_t{1},
-                                std::multiplies<int>());
-  std::vector<T> out(a.size());
-  for (int i = 0; i < size; i++) {
-    std::vector<size_t> old_coord = unravel_idx(i, original_strides, shape);
-    std::swap(old_coord[axis1], old_coord[axis2]);
-    size_t j = ravel_idx(old_coord, new_strides);
+  const size_t size = std::accumulate(shape.begin(), shape.end(),
+                                      static_cast<size_t>(1),
+                                      std::multiplies<size_t>());
+
+  std::vector<T> out(size);
+  for (size_t i = 0; i < size; ++i) {
+    std::vector<size_t> coord = unravel_idx(i, orig_strides, shape);
+    std::swap(coord[axis1], coord[axis2]);
+    const size_t j = ravel_idx(coord, new_strides);
     out[j] = a[i];
-  };
+  }
   return out;
 }
 
