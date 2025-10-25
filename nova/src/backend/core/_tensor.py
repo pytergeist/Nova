@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Literal, Optional, Sequence, Union
 
 import numpy as np
 
-# from nova.src.backend.autodiff import Engine, Node
+from nova.src.backend.autodiff import Engine, Node
 from nova.src.backend.core import clib
 
 if TYPE_CHECKING:
