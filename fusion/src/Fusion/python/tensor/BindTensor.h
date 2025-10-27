@@ -2,6 +2,7 @@
 #pragma once
 
 #include <numeric>
+#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <sstream>
@@ -93,34 +94,51 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
             })
 
        // --- elementwise binary ops ---
-       .def("__add__",
-            py::overload_cast<const PyT &>(&PyT::operator+, py::const_),
-            py::is_operator())
-       .def("__add__", py::overload_cast<T>(&PyT::operator+, py::const_),
-            py::is_operator())
        .def(
-           "__sub__", [](const PyT &a, const PyT &b) { return PyT(a - b); },
+           "__add__", [](const PyT &a, const PyT &b) { return a + b; },
            py::is_operator())
-       .def("__isub__", &PyT::operator-=)
        .def(
-           "__sub__", [](const PyT &a, const PyT &b) { return PyT(b - a); },
+           "__add__", [](const PyT &a, T b) { return a + b; },
            py::is_operator())
-       .def("__mul__",
-            py::overload_cast<const PyT &>(&PyT::operator*, py::const_),
-            py::is_operator())
-       .def("__mul__", py::overload_cast<T>(&PyT::operator*, py::const_),
-            py::is_operator())
-       .def("__truediv__",
-            py::overload_cast<const PyT &>(&PyT::operator/, py::const_),
-            py::is_operator())
-       .def("__truediv__", py::overload_cast<T>(&PyT::operator/, py::const_),
-            py::is_operator())
-       .def("__ge__",
-            py::overload_cast<const PyT &>(&PyT::operator>=, py::const_),
-            py::is_operator())
-       .def("__ge__", py::overload_cast<T>(&PyT::operator>=, py::const_),
-            py::is_operator())
-       .def("__gt__", &PyT::operator>)
+
+       .def(
+           "__sub__", [](const PyT &a, const PyT &b) { return a - b; },
+           py::is_operator())
+       .def(
+           "__sub__", [](const PyT &a, T b) { return a - b; },
+           py::is_operator())
+
+       .def(
+           "__mul__", [](const PyT &a, const PyT &b) { return a * b; },
+           py::is_operator())
+       .def(
+           "__mul__", [](const PyT &a, T b) { return a * b; },
+           py::is_operator())
+
+       .def(
+           "__truediv__", [](const PyT &a, const PyT &b) { return a / b; },
+           py::is_operator())
+       .def(
+           "__truediv__", [](const PyT &a, T b) { return a / b; },
+           py::is_operator())
+
+       .def(
+           "__pow__", [](const PyT &a, const PyT &b) { return a.pow(b); },
+           py::is_operator())
+       .def(
+           "__pow__", [](const PyT &a, T b) { return a.pow(b); },
+           py::is_operator())
+
+       .def(
+           "__ge__", [](const PyT &a, const PyT &b) { return a >= b; },
+           py::is_operator())
+       .def(
+           "__ge__", [](const PyT &a, T b) { return a >= b; },
+           py::is_operator())
+       .def(
+           "__gt__", [](const PyT &a, const PyT &b) { return a > b; },
+           py::is_operator())
+
        .def(
            "__neg__",
            [](const PyT &t) {
@@ -129,28 +147,30 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
            },
            py::is_operator())
 
-       // --- matrix multiply ( @ ) ---
-       .def("__matmul__", &PyT::matmul, "Matrix multiplication (A @ B)")
-
-       // --- elementwise tensor-power ---
-
-       .def("__pow__", py::overload_cast<const PyT &>(&PyT::pow, py::const_),
-            py::is_operator())
-       .def("__pow__", py::overload_cast<T>(&PyT::pow, py::const_),
-            py::is_operator())
-
-       // --- unary & other ops ---
+       // -- inplace ops --
+       .def("__isub__", &PyT::operator-=)
+       // --- Unary / other ops ---
        .def("sqrt", &PyT::sqrt)
        .def("exp", &PyT::exp)
        .def("log", &PyT::log)
        .def("sum", &PyT::sum)
 
-       .def("maximum",
-            py::overload_cast<const PyT &>(&PyT::maximum, py::const_),
-            py::is_operator())
+       // --- matrix multiply ( @ ) ---
+       .def("__matmul__", &PyT::matmul, "Matrix multiplication (A @ B)")
 
-       .def("maximum", py::overload_cast<T>(&PyT::maximum, py::const_),
-            py::is_operator())
+       // --- power & maximum ---
+       .def(
+           "__pow__", [](const PyT &a, const PyT &b) { return a.pow(b); },
+           py::is_operator())
+       .def(
+           "__pow__", [](const PyT &a, T b) { return a.pow(b); },
+           py::is_operator())
+       .def(
+           "maximum", [](const PyT &a, const PyT &b) { return a.maximum(b); },
+           py::is_operator())
+       .def(
+           "maximum", [](const PyT &a, T b) { return a.maximum(b); },
+           py::is_operator())
        .def("mean", &PyT::mean, "Return the global mean of the Tensor.")
        .def("transpose", &PyT::transpose, "Return the transpose.")
        .def("swapaxes", &PyT::swapaxes, py::arg("axis1"), py::arg("axis2"))
