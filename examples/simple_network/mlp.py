@@ -48,6 +48,10 @@ loss_fn = MeanSquaredError()
 epoch_mses = []
 
 
+def ten_mean(x: Tensor):
+    return x.mean()
+
+
 for epoch in range(1, epochs + 1):
     perm = np.random.permutation(N)
     X_shuf, Y_shuf = X[perm], Y[perm]
@@ -63,11 +67,10 @@ for epoch in range(1, epochs + 1):
             loss.backward()
 
         optimizer.step()
-        batch_losses.append(loss.mean())
+        batch_losses.append(loss.mean().to_numpy())
 
-
-    epoch_mses.append(np.mean([x.to_numpy()[0] for x in batch_losses])) # TODO: the data structure created here is horrible
-    losses = np.min([x.to_numpy()[0] for x in batch_losses])
+    epoch_mses.append(batch_losses[0].mean()) # TODO: the data structure created here is horrible
+    losses = np.min(batch_losses[0])
     print(
         f"Epoch {epoch:2d} | "
         f"Batch MSE range: {np.min(losses):.4f}–{np.max(losses):.4f} | "
