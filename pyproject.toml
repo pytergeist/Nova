@@ -32,6 +32,7 @@ docformatter = "^1.7.5"
 mypy = "^1.15.0"
 pybind11-stubgen = "^2.5.3"
 line-profiler = "^4.2.0"
+cmake = "^4.1.2"
 
 [build-system]
 requires = ["poetry-core"]

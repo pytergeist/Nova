@@ -18,12 +18,10 @@ class Parameter:
 
     def __post_init__(self):
         if self.grad is None:
-            self.grad = Tensor(self.tensor.zeros_like())  # TODO: evaluate this impl
+            self.grad = self.tensor.zeros_like()
 
     def zero_grad(self):
         if self.grad is not None:
-            self.grad = Tensor(
-                np.zeros_like(self.tensor.data)
-            )  # TODO: create tensor factory functions
+            self.grad = self.tensor.zeros_like()
         else:
             raise ValueError("Gradient is not initialized.")

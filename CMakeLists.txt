@@ -42,7 +42,6 @@ endif()
 set(FUSION_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fusion/src/Fusion")
 
 # ------------------------------------------------------------
-# ------------------------------------------------------------
 add_library(fusion_core STATIC
         ${FUSION_SRC_DIR}/core/Broadcast.cpp
 )
@@ -80,7 +79,7 @@ endif()
 # Link BLAS to core (and force Accelerate if needed).
 target_link_libraries(fusion_core PUBLIC ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK})
 
-#
+
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
   option(FUSION_ENABLE_NEON "Enable NEON SIMD optimizations" ON)
   if(FUSION_ENABLE_NEON)
@@ -88,9 +87,11 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
   endif()
 endif()
 
-# ------------------------------------------------------------
-# Python extension module
-# ------------------------------------------------------------
+
+
+## ------------------------------------------------------------
+## Python extension module
+## ------------------------------------------------------------
 pybind11_add_module(fusion
         ${FUSION_SRC_DIR}/python/Bindings.cpp
 )
@@ -111,6 +112,7 @@ set_target_properties(fusion PROPERTIES
 install(TARGETS fusion LIBRARY DESTINATION ${PY_EXT_INSTALL_DIR})
 
 # ------------------------------------------------------------
+# Executable
 # ------------------------------------------------------------
 add_executable(FusionExecutable
         ${FUSION_SRC_DIR}/main.cpp
@@ -121,6 +123,40 @@ target_link_libraries(FusionExecutable PRIVATE
 )
 
 # ------------------------------------------------------------
+# Optional AddressSanitizer (exe only)
+# ------------------------------------------------------------
+option(NOVA_ENABLE_ASAN "Enable AddressSanitizer for the CLI executable" OFF)
+
+function(add_asan target)
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
+    target_compile_options(${target} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    target_link_options(${target} PRIVATE -fsanitize=address)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:-O1 -g>)
+  endif()
+endfunction()
+
+if (NOVA_ENABLE_ASAN)
+  add_asan(FusionExecutable)   # ASan on CLI only
+endif()
+# ------------------------------------------------------------
 # Benchmarks
 # ------------------------------------------------------------
 add_subdirectory(fusion/benchmarks)
+
+
+# ------------------------------------------------------------
+# GTest
+# ------------------------------------------------------------
+enable_testing()
+add_executable(fusion_test
+        ${FUSION_SRC_DIR}/tests/tensor/cpu/operations.cpp
+)
+
+target_link_libraries(fusion_test PRIVATE
+        fusion_core
+        GTest::gtest
+        GTest::gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(fusion_test)

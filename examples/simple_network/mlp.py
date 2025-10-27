@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from nova.src.backend.core._tensor import Tensor
+from nova.src.backend.core import Tensor, autodiff, grad_tape
 from nova.src.blocks.activations import ReLU
 from nova.src.blocks.core import InputBlock
 from nova.src.blocks.core.linear import Linear
@@ -8,6 +8,11 @@ from nova.src.losses import MeanSquaredError
 from nova.src.models import Model
 from nova.src.optim.sgd import SGD
 from nova.src.blocks.regularisation import Dropout
+
+
+
+from profiling import Profiler
+prof = Profiler()
 
 inp = InputBlock((None, 10))
 x = inp
@@ -26,7 +31,7 @@ model = Model(inputs=[inp], outputs=[out])
 
 params = model.parameters()
 
-N, D = 1000, 10
+N, D = 1024, 10 # TODO: Batch size currently failing at 40 step for N=1000: dynamic batch size fix
 X = np.random.randn(N, D).astype(np.float32)
 Y = 2 * X + 1 + 0.1 * np.random.randn(N, D).astype(np.float32)
 X = (X - X.mean(axis=0)) / (X.std(axis=0) + 1e-6)
@@ -42,6 +47,11 @@ loss_fn = MeanSquaredError()
 
 epoch_mses = []
 
+
+def ten_mean(x: Tensor):
+    return x.mean()
+
+
 for epoch in range(1, epochs + 1):
     perm = np.random.permutation(N)
     X_shuf, Y_shuf = X[perm], Y[perm]
@@ -51,17 +61,19 @@ for epoch in range(1, epochs + 1):
         xb = Tensor(X_shuf[i : i + batch_size])
         yb = Tensor(Y_shuf[i : i + batch_size])
 
-        y_pred = model(xb)
-        loss = loss_fn(y_pred, yb)
-        loss.backward()
+        with grad_tape():
+            y_pred = model(xb)
+            loss = loss_fn(y_pred, yb)
+            loss.backward()
+
         optimizer.step()
+        batch_losses.append(loss.mean().to_numpy())
 
-        batch_losses.append(loss.data.mean())
-
-    epoch_mses.append(np.mean(batch_losses))
+    epoch_mses.append(batch_losses[0].mean()) # TODO: the data structure created here is horrible
+    losses = np.min(batch_losses[0])
     print(
         f"Epoch {epoch:2d} | "
-        f"Batch MSE range: {min(batch_losses):.4f}–{max(batch_losses):.4f} | "
+        f"Batch MSE range: {np.min(losses):.4f}–{np.max(losses):.4f} | "
         f"Epoch MSE: {epoch_mses[-1]:.4f}"
     )
 

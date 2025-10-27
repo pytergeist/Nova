@@ -6,11 +6,11 @@
 template <typename U> class Tensor;
 
 template <class T> struct is_tensor {
-  static constexpr bool value = false;
+   static constexpr bool value = false;
 };
 
 template <class T> struct is_tensor<Tensor<T>> {
-  static constexpr bool value = true;
+   static constexpr bool value = true;
 };
 
 template <class T>

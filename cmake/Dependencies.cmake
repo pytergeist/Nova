@@ -23,6 +23,22 @@ endif()
 # ---------- Eigen3 ----------
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
+# ---------- Tests / GoogleTest ----------
+include(CTest)
+if(BUILD_TESTING)
+  find_package(GTest QUIET)
+  if(NOT GTest_FOUND)
+    message(STATUS "GTest not found; fetching via FetchContent")
+    FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    )
+    set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+    set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+  endif()
+endif()
+
 # ---------- SLEEF (prefer installed; else fetch) ----------
 find_package(SLEEF CONFIG QUIET)
 set(SLEEF_INCLUDE_DIRS "")

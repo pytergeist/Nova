@@ -4,6 +4,7 @@ import pytest
 from nova.src.backend.core import Tensor
 from nova.src.backend.topology.builder import Builder
 from nova.src.blocks.activations import ReLU
+from tests.integration.gradient import set_grad_tape
 from tests.integration.gradient.finite_difference import (
     Tolerance,
     finite_difference_jacobian,
@@ -18,18 +19,18 @@ def fn_numpy(x):
     return np.maximum(0, y)
 
 
+@set_grad_tape
 def compute_autodiff_gradient(x):
     x_tensor = Tensor(x, requires_grad=True)
 
     tensor_output = x_tensor + x_tensor
 
     with Builder():  # TODO: change | temporary fix for builder context
-
         output = ReLU().call(tensor_output)
 
     output.backward()
 
-    return x_tensor.grad
+    return x_tensor.grad.to_numpy()
 
 
 def test_addition_grad():

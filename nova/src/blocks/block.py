@@ -116,8 +116,8 @@ class Block(ABC):
         if isinstance(initialiser, str):
             self._check_valid_kernel_initialiser(initialiser)
             initialiser = initialisers.get(initialiser)
-        return io.as_variable(
-            data=initialiser(shape, dtype), role=role
+        return io.as_tensor(
+            data=initialiser(shape, dtype), requires_grad=True
         )  # TODO: asses whether bias should be variable or possibly untrainable tensor
 
     def forward(self, inputs):

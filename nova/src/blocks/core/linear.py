@@ -44,5 +44,5 @@ class Linear(Block):
         # we compute the output as: output = inputs @ kernel.T + bias.
         output = inputs @ self.kernel.T
         if self.bias:
-            output += self.bias
+            output += self.bias_value
         return output

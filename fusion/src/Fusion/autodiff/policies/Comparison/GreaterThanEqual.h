@@ -1,0 +1,56 @@
+#ifndef GREATER_THAN_EQUAL_H
+#define GREATER_THAN_EQUAL_H
+
+#include "../../AutodiffMode.h"
+#include "../../TensorFactory.h"
+#include "../../autodiff/Traits.h"
+#include "../Operation.h"
+#include <string_view>
+#include <vector>
+
+template <typename T> struct GreaterThanEqual {
+   inline static constexpr std::string_view name = "GreaterThanEqual";
+   using In = AutodiffMeta<T>;
+   using Out = AutodiffMeta<T>;
+   using GradIn = AutodiffMeta<T>;
+   using GradOut = AutodiffMeta<T>;
+
+   Out forward(Context<T> &context, const In &input) {
+      FUSION_CHECK(input.size() >= 2, "GreaterThanEqual requires two inputs");
+      FUSION_BOUNDS_CHECK(0, input.size());
+      FUSION_BOUNDS_CHECK(1, input.size());
+      autodiff::NoGradGuard _;
+      const auto &a = input[0];
+      const auto &b = input[1];
+      context.save("a", a);
+      context.save("b", b);
+      FUSION_CHECK(a.size() == b.size(),
+                   "GreaterThanEqual: input size mismatch");
+      Tensor<T> c = a >= b;
+      Out out;
+      out.push_back(c);
+      return out;
+   };
+
+   GradIn backward(Context<T> &context, GradOut &grad_out) {
+      if (grad_out.size() == 0)
+         return {};
+      FUSION_CHECK(
+          grad_out.size() == 1,
+          "GreaterThan::backward expects exactly 1 upstream grad tensor");
+      autodiff::NoGradGuard _;
+      const Tensor<T> &a = context.template load<Tensor<T>>("a");
+      const Tensor<T> &b = context.template load<Tensor<T>>("b");
+      const auto &g0 = grad_out[0];
+      FUSION_CHECK(!g0.empty(),
+                   "GreaterThan::backward: upstream grad is empty");
+      Tensor<T> c = zeros_like(a);
+      Tensor<T> d = zeros_like(b);
+      GradIn g;
+      g.push_back(c);
+      g.push_back(d);
+      return g;
+   }
+};
+
+#endif // GREATER_THAN_EQUAL_H
