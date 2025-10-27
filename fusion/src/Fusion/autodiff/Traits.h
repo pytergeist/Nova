@@ -36,6 +36,7 @@ template <typename T> struct AutodiffMeta {
    Tensor<T> &at(std::size_t i) { return data.at(i); }
    const Tensor<T> &at(std::size_t i) const { return data.at(i); }
 
+   bool empty() const { return data.empty(); }
    std::size_t size() const noexcept { return data.size(); }
 
    Tensor<T> &operator[](std::size_t i) { return data.at(i); }
