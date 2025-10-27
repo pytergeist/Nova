@@ -2,7 +2,7 @@
 #define _REDUCTIONS_H
 
 #include "../../autodiff/Traits.h"
-#include "Sum.h"
 #include "Mean.h"
+#include "Sum.h"
 
 #endif // _REDUCTIONS_H
