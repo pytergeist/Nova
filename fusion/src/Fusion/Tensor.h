@@ -61,12 +61,11 @@ template <typename T> class Tensor {
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       size_t sz = 1;
       strides_.resize(shape_.size());
-      for (size_t i = 0; i < shape_.size() - 1; i++) {
+      for (size_t i = 0; i < shape_.size(); i++) {
          strides_[i] = sz;
          sz *= shape_[i];
       }
-//      FUSION_LOGI("Tensor: shape = ", shape_str(), ", sz total = ", sz);
-//      FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
+      FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
       storage = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
    }
 
@@ -127,6 +126,18 @@ template <typename T> class Tensor {
       for (size_t i = 0; i < shape_.size(); ++i) {
          oss << shape_[i];
          if (i + 1 < shape_.size())
+            oss << ',';
+      }
+      oss << ')';
+      return oss.str();
+   }
+
+   std::string stride_str() const {
+      std::ostringstream oss;
+      oss << '(';
+      for (size_t i = 0; i < strides_.size(); ++i) {
+         oss << strides_[i];
+         if (i + 1 < strides_.size())
             oss << ',';
       }
       oss << ')';
