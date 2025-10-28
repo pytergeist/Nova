@@ -19,13 +19,14 @@ inline std::size_t dtype_size(DType dtype) {
    }
 }
 
-template <typename T>
-class TensorView {
+template <typename T> class TensorView {
  public:
    TensorView() = default;
-   TensorView(void *data, std::vector<size_t> shape, std::vector<size_t> strides, std::size_t rank,
-              std::size_t ndims, DType dtype = DType::Float32)
-       : data_(data), shape_(shape), strides_(strides), rank_(rank), ndims_(ndims), dtype_(dtype) {};
+   TensorView(T *data, std::vector<size_t> shape,
+              std::vector<size_t> strides, std::size_t rank, std::size_t ndims,
+              DType dtype = DType::Float32)
+       : data_(data), shape_(shape), strides_(strides), rank_(rank),
+         ndims_(ndims), dtype_(dtype) {};
 
    TensorView(const TensorView &) = delete;
    TensorView &operator=(const TensorView &) = delete;
@@ -44,25 +45,32 @@ class TensorView {
    const std::size_t ndims() const noexcept { return ndims_; }
    std::size_t ndims() noexcept { return ndims_; }
 
+   T *data() noexcept { return data_; };
+   const T *data() const noexcept { return data_; };
+
    inline bool is_contiguous() const noexcept {
-      if (shape_.empty()) {return true;}
+      if (shape_.empty()) {
+         return true;
+      }
       std::size_t expected = 1;
       for (std::size_t i = 0; i < shape_.size(); ++i) {
-         if (strides_[i] != expected) {return false;}
-         expected *= shape_[(i + 1 < shape_.size()) ? i + 1 : i];
-         if (i + 1 == shape_.size()) expected = 1;
+         if (strides_[i] != expected) {
+            return false;
          }
+         expected *= shape_[(i + 1 < shape_.size()) ? i + 1 : i];
+         if (i + 1 == shape_.size())
+            expected = 1;
+      }
       return true;
    }
 
  private:
-   void* data_ = nullptr;
+   T *data_ = nullptr;
    std::vector<std::size_t> shape_;
    std::vector<std::size_t> strides_;
    std::size_t rank_;
    std::size_t ndims_;
    DType dtype_;
 };
-
 
 #endif // TENSOR_VIEW_H

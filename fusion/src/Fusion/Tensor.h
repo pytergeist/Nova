@@ -76,8 +76,9 @@ template <typename T> class Tensor {
    std::vector<size_t> strides() const { return strides_; }
 
    TensorView<T> view() {
-      return TensorView<T>(storage->data().data(), this->shape(),
-                           this->strides(), this->rank(), this->ndims());
+      return TensorView<T>(
+          storage->data().template data<T>(),
+          this->shape(), this->strides(), this->rank(), this->ndims());
    }
 
    bool has_vid() const noexcept { return vid_.idx >= 0; }
