@@ -1,9 +1,10 @@
 #ifndef DENSE_STORAGE_H
 #define DENSE_STORAGE_H
 
+#include <algorithm>
+#include <cstddef>
 #include "StorageInterface.h"
 #include "TensorBuffer.h"
-#include <algorithm>
 
 template <typename T> class NDTensorStorage : public ITensorStorage<T> {
  private:
@@ -13,12 +14,6 @@ template <typename T> class NDTensorStorage : public ITensorStorage<T> {
  public: // TODO: Be careful here - do we want this ptr to be mutable?
    explicit NDTensorStorage(std::vector<size_t> shape, std::vector<T> data)
        : shape_(std::move(shape)), data_(copy_data_to_buff(data)) {
-      size_t sz = 1;
-      strides_.resize(shape_.size());
-      for (size_t i = 0; i < shape_.size() - 1; i++) {
-         strides_[i] = sz;
-         sz *= shape_[i];
-      }
    };
 
    TensorBuffer copy_data_to_buff(std::vector<T> vec) {
@@ -33,16 +28,7 @@ template <typename T> class NDTensorStorage : public ITensorStorage<T> {
    T *data_ptr() override { return data_.data<T>(); }
    const T *data_ptr() const override { return data_.data<T>(); }
 
-   [[nodiscard]] std::vector<size_t> shape() const override { return shape_; }
-   [[nodiscard]] std::vector<size_t> strides() const override {
-      return strides_;
-   }
-   [[nodiscard]] size_t size() const override { return data_.size<T>(); }
-   [[nodiscard]] size_t ndims() const override { return shape_.size(); }
-   //  [[nodiscard]] size_t ndims() const override {
-   //    return std::count_if(shape_.begin(), shape_.end(),
-   //                         [](size_t d) { return d != 1; });
-   //  }
+   [[nodiscard]] std::size_t size() const override { return data_.size<T>(); }
 
    [[nodiscard]] Device device() const override { return Device::CPU; }
 };

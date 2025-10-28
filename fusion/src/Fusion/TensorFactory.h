@@ -25,12 +25,12 @@ template <typename T> Tensor<T> ones(const std::vector<size_t> &shape) {
 
 template <typename T> Tensor<T> zeros_like(const Tensor<T> &other) {
    FUSION_CHECK(other.is_initialised(), "zeros_like on uninitialised tensor");
-   return zeros<T>(other.storage->shape());
+   return zeros<T>(other.shape());
 }
 
 template <typename T> Tensor<T> ones_like(const Tensor<T> &other) {
    FUSION_CHECK(other.is_initialised(), "oness_like on uninitialised tensor");
-   return ones<T>(other.storage->shape());
+   return ones<T>(other.shape());
 }
 
 #endif
