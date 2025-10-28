@@ -32,7 +32,6 @@
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
 #include "storage/TensorView.h"
-#include "common/Log.h"
 
 template <typename T>
 static inline ValueID ensure_handle(Engine<T> &eng, Tensor<T> &t) {
@@ -70,13 +69,15 @@ template <typename T> class Tensor {
    }
 
    size_t rank() const { return shape_.size(); }
-   size_t ndims() const { return shape_.size(); } // TODO: remove ndims (as == rank)
+   size_t ndims() const {
+      return shape_.size();
+   } // TODO: remove ndims (as == rank)
    std::vector<size_t> shape() const { return shape_; }
    std::vector<size_t> strides() const { return strides_; }
 
-   TensorView view() {
-      return TensorView(storage->data(), this->shape(), this->rank(),
-                        this->ndims());
+   TensorView<T> view() {
+      return TensorView<T>(storage->data().data(), this->shape(),
+                           this->strides(), this->rank(), this->ndims());
    }
 
    bool has_vid() const noexcept { return vid_.idx >= 0; }
@@ -171,7 +172,9 @@ template <typename T> class Tensor {
       return storage->data().template data_as<const T>()[idx];
    }
 
-   const size_t size() const noexcept { return storage->data().template size<T>(); }
+   const size_t size() const noexcept {
+      return storage->data().template size<T>();
+   }
 
    void clear() noexcept {
       if (!storage)
@@ -196,7 +199,9 @@ template <typename T> class Tensor {
 
    TensorBuffer &raw_data() { return storage->data(); }
    const TensorBuffer &raw_data() const { return storage->data(); }
-   [[nodiscard]] size_t flat_size() const { return storage->size(); } // TODO: wtf is this
+   [[nodiscard]] size_t flat_size() const {
+      return storage->size();
+   } // TODO: wtf is this
 
    void backward() {
       auto &eng = EngineContext<T>::get();
