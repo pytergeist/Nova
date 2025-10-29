@@ -47,6 +47,15 @@ dev:
 	@$(CMAKE) --preset "$(PRESET)"
 	@$(CMAKE) --build --preset "$(PRESET)" -j
 
+cpu-profile:
+	@echo "==> Fresh CPU profiling build (O2 + debug symbols + frame pointers)"
+	@rm -rf "$(BUILD_DIR)"
+	@$(CMAKE) --preset "$(PRESET)" \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DCMAKE_CXX_FLAGS="-O2 -g -fno-omit-frame-pointer"
+	@$(CMAKE) --build --preset "$(PRESET)" -j
+
+
 asan:
 	@echo "==> Fresh dev (ASAN) configure & build"
 	@rm -rf "$(BUILD_DIR)"
