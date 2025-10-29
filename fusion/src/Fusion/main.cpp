@@ -18,6 +18,7 @@
 #include "autodiff/policies/Shape/Shape.h"
 #include "autodiff/policies/Transcendental/Transcendental.h"
 #include "storage/TensorBuffer.h"
+#include "storage/TensorView.h"
 
 #include <cstddef>
 #include <random>
@@ -59,13 +60,19 @@ int main() {
    Engine<T> engine;
    EngineContext<T>::set(&engine);
 
-   Tensor<T> C = A - B;
-   Tensor<T> D = C * B;
-   Tensor<T> E = C / D;
-   Tensor<T> F = A * E;
+   auto v = A.view();
+   std::cout << v.shape().size() << std::endl;
+   std::cout << v.strides().size() << std::endl;
+   std::cout << v.is_contiguous() << std::endl;
 
-   std::cout << C << std::endl;
 
-   D.backward();
-   std::cout << F.grad() << std::endl;
+//   Tensor<T> C = A - B;
+//   Tensor<T> D = C * B;
+//   Tensor<T> E = C / D;
+//   Tensor<T> F = A * E;
+//
+//   std::cout << C << std::endl;
+//
+//   D.backward();
+//   std::cout << F.grad() << std::endl;
 }

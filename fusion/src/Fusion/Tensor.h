@@ -31,6 +31,7 @@
 #include "ops/Transcendental.h"
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
+#include "storage/TensorView.h"
 
 template <typename T>
 static inline ValueID ensure_handle(Engine<T> &eng, Tensor<T> &t) {
@@ -46,7 +47,7 @@ template <typename T> class Tensor {
  public:
    std::shared_ptr<ITensorStorage<T>> storage;
    std::shared_ptr<Tensor<T>> grad_;
-   std::vector<size_t> shape_;
+   std::vector<size_t> shape_, strides_;
    ValueID vid_{-1};
    bool requires_grad_;
 
@@ -57,18 +58,28 @@ template <typename T> class Tensor {
        : shape_(std::move(shape)), requires_grad_(std::move(requires_grad)) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
-      size_t n = 1;
-      for (auto d : shape_) {
-         FUSION_CHECK(d > 0, "Tensor: non-positive dim");
-         n *= d;
+      size_t sz = 1;
+      strides_.resize(shape_.size());
+      for (size_t i = 0; i < shape_.size(); i++) {
+         strides_[i] = sz;
+         sz *= shape_[i];
       }
-      FUSION_CHECK(data.size() == n, "Tensor: data size != product(shape)");
+      FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
       storage = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
    }
 
    size_t rank() const { return shape_.size(); }
-   size_t ndims() const { return storage->ndims(); }
+   size_t ndims() const {
+      return shape_.size();
+   } // TODO: remove ndims (as == rank)
    std::vector<size_t> shape() const { return shape_; }
+   std::vector<size_t> strides() const { return strides_; }
+
+   TensorView<T> view() {
+      return TensorView<T>(
+          storage->data().template data<T>(),
+          this->shape(), this->strides(), this->rank(), this->ndims());
+   }
 
    bool has_vid() const noexcept { return vid_.idx >= 0; }
 
@@ -123,6 +134,18 @@ template <typename T> class Tensor {
       return oss.str();
    }
 
+   std::string stride_str() const {
+      std::ostringstream oss;
+      oss << '(';
+      for (size_t i = 0; i < strides_.size(); ++i) {
+         oss << strides_[i];
+         if (i + 1 < strides_.size())
+            oss << ',';
+      }
+      oss << ')';
+      return oss.str();
+   }
+
    //  template <class Callable, class... Ops,
    //            typename R = std::invoke_result_t<Callable, T, T>>
    //  Tensor(FFunc<Callable, Ops...> const &ffunc) {
@@ -150,7 +173,9 @@ template <typename T> class Tensor {
       return storage->data().template data_as<const T>()[idx];
    }
 
-   size_t size() const noexcept { return storage->data().template size<T>(); }
+   const size_t size() const noexcept {
+      return storage->data().template size<T>();
+   }
 
    void clear() noexcept {
       if (!storage)
@@ -175,7 +200,9 @@ template <typename T> class Tensor {
 
    TensorBuffer &raw_data() { return storage->data(); }
    const TensorBuffer &raw_data() const { return storage->data(); }
-   [[nodiscard]] size_t flat_size() const { return storage->size(); }
+   [[nodiscard]] size_t flat_size() const {
+      return storage->size();
+   } // TODO: wtf is this
 
    void backward() {
       auto &eng = EngineContext<T>::get();
