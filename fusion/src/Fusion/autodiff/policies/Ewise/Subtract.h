@@ -2,8 +2,7 @@
 #define SUBTRACT_H
 
 #include "../../AutodiffMode.h"
-#include "../../autodiff/Traits.h"
-#include "../../ops/Ewise.h"
+#include "../../Traits.h"
 #include "../Operation.h"
 #include <string_view>
 #include <vector>

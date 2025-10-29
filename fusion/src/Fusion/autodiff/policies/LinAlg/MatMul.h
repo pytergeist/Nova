@@ -1,12 +1,12 @@
 #ifndef MATMUL_H
 #define MATMUL_H
 
-#include "../../AutodiffMode.h"
-#include "../../autodiff/Traits.h"
-#include "../../common/Log.h"
-#include "../Operation.h"
 #include <string_view>
 #include <vector>
+#include "../../AutodiffMode.h"
+#include "../../Traits.h"
+#include "../../../common/Log.h"
+#include "../Operation.h"
 
 template <typename T> struct MatMul {
    inline static constexpr std::string_view name = "MatMul";

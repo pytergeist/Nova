@@ -1,11 +1,13 @@
 #ifndef OPS_COMPARISON_H
 #define OPS_COMPARISON_H
 
+#include <string_view>
+#include <vector>
 #include "../Tensor.h"
 #include "../core/ElementWise.h"
 #include "Helpers.h"
-#include <string_view>
-#include <vector>
+#include "../core/Device.h"
+
 
 namespace math {
 template <typename T>

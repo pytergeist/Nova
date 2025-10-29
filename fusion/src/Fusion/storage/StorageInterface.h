@@ -1,14 +1,10 @@
 #ifndef TENSOR_STORAGE_H
 #define TENSOR_STORAGE_H
 
-#include "TensorBuffer.h"
 #include <cstddef>
 #include <vector>
-
-enum class Device {
-   CPU,
-   // GPU
-};
+#include "TensorBuffer.h"
+#include "../core/Device.h"
 
 template <typename T> class ITensorStorage {
  public:

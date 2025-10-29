@@ -2,9 +2,8 @@
 #define ADD_H
 
 #include "../../AutodiffMode.h"
-#include "../../autodiff/Traits.h"
-#include "../../common/Checks.h"
-#include "../../ops/Ewise.h"
+#include "../../Traits.h"
+#include "../../../common/Checks.h"
 #include "../Operation.h"
 #include <string_view>
 #include <vector>

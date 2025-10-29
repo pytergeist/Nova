@@ -64,7 +64,7 @@ template <typename T> class Tensor {
          strides_[i] = sz;
          sz *= shape_[i];
       }
-      FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
+//      FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
       storage = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
    }
 

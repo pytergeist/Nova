@@ -24,55 +24,39 @@
 #include <random>
 #include <vector>
 
+constexpr size_t N = 2048;
+
 std::vector<float> rand_matrix_flat(size_t rows, size_t cols,
                                     uint32_t seed = 123) {
+   const size_t n = rows * cols;
+   std::vector<float> buf(n);
    std::mt19937 rng(seed);
    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-   std::vector<float> buf;
-   buf.reserve(rows * cols);
-   for (size_t i = 0; i < rows * cols; ++i) {
-      buf.push_back(dist(rng));
-   }
-   return buf; // size == rows*cols; row-major implicit
+
+   for (size_t i = 0; i < n; ++i)
+      buf[i] = dist(rng);
+   return buf;
 }
-
 int main() {
-   using T = float;
-   using AddOp = Operation<T, Add<T>>;
-   using ExpOp = Operation<T, Exp<T>>;
-   using divOp = Operation<T, Divide<T>>;
-   using MulOp = Operation<T, Multiply<T>>;
-   using subOp = Operation<T, Subtract<T>>;
-   using logOp = Operation<T, Log<T>>;
-   using sqrtOp = Operation<T, Sqrt<T>>;
-   using powOp = Operation<T, Pow<T>>;
-   using sumOp = Operation<T, Sum<T>>;
-   using maximumOp = Operation<T, Maximum<T>>;
-   using greaterthanOp = Operation<T, GreaterThan<T>>;
-   using transposeOp = Operation<T, Transpose<T>>;
-   using matmulOp = Operation<T, MatMul<T>>;
+   auto a_data = rand_matrix_flat(1000, 1000, /*seed=*/42);
+   auto b_data = rand_matrix_flat(1000, 1000, /*seed=*/43);
 
-   auto a_data = rand_matrix_flat(10, 10, /*seed=*/42);
-   auto b_data = rand_matrix_flat(10, 10, /*seed=*/43);
+   Tensor<float> A({N, N}, a_data, Device::CPU, true);
+   Tensor<float> B({N, N}, b_data, Device::CPU, true);
+   Engine<float> engine;
+   EngineContext<float>::set(&engine);
 
-   Tensor<float> A({10, 10}, a_data, Device::CPU, /*requires_grad=*/true);
-   Tensor<float> B({10, 10}, b_data, Device::CPU, /*requires_grad=*/true);
-   Engine<T> engine;
-   EngineContext<T>::set(&engine);
+   // Warm up
+   volatile float guard = 0.f;
+   for (int i = 0; i < 3; ++i) {
+      auto C = A + B;
+      guard += C[0]; // prevent dead-code elimination if applicable
+   }
 
-   auto v = A.view();
-   std::cout << v.shape().size() << std::endl;
-   std::cout << v.strides().size() << std::endl;
-   std::cout << v.is_contiguous() << std::endl;
-
-
-//   Tensor<T> C = A - B;
-//   Tensor<T> D = C * B;
-//   Tensor<T> E = C / D;
-//   Tensor<T> F = A * E;
-//
-//   std::cout << C << std::endl;
-//
-//   D.backward();
-//   std::cout << F.grad() << std::endl;
+   // Profile window
+   for (int i = 0; i < 50; ++i) {
+      auto C = A + B;
+      guard += C[0];
+   }
+   std::cout << (guard != 0.f) << "\n";
 }

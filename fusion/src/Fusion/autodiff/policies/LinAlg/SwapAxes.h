@@ -5,8 +5,8 @@
 #include "../../../Tensor.h"
 #include "../../AutodiffMode.h"
 #include "../../Traits.h"
-#include "../../common/Checks.h"
-#include "../../kernels/Serial.h"
+#include "../../../common/Checks.h"
+#include "../../../kernels/Serial.h"
 #include "../Operation.h"
 #include <string_view>
 
