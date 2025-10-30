@@ -64,8 +64,21 @@ template <typename T> class Tensor {
          strides_[i] = sz;
          sz *= shape_[i];
       }
-//      FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
+      FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
       storage = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
+   }
+
+      explicit Tensor(std::vector<size_t> shape, Device device = Device::CPU, bool requires_grad = false)
+       : shape_(std::move(shape)), requires_grad_(std::move(requires_grad)) {
+      FUSION_CHECK(device == Device::CPU, "Unsupported device type");
+      FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
+      size_t sz = 1;
+      strides_.resize(shape_.size());
+      for (size_t i = 0; i < shape_.size(); i++) {
+         strides_[i] = sz;
+         sz *= shape_[i];
+      }
+      storage = std::make_shared<NDTensorStorage<T>>(shape_, sz);
    }
 
    size_t rank() const { return shape_.size(); }
