@@ -1,10 +1,10 @@
 #ifndef BROADCAST_ITER_H
 #define BROADCAST_ITER_H
 
-#include "broadcast.h"
 #include <cstdint>
 #include <functional>
 #include <vector>
+#include "broadcast.h"
 
 template <typename Fn>
 void for_each(const BroadcastPlan &plan,
