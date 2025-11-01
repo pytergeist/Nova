@@ -273,7 +273,7 @@ inline void greater_than_equal_f32_neon(float *dst, const float *a,
       dst[i] = a[i] >= b[i];
 }
 
-inline void add_f32_neon(float *dst, const float *a, const float *b,
+inline void add_f32_neon(float* __restrict__ dst, const float * __restrict__ a, const float * __restrict__ b,
                          std::size_t n) {
    std::size_t i = 0;
 
