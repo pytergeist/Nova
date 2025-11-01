@@ -62,6 +62,14 @@ asan:
 	@$(CMAKE) --preset "$(PRESET)" -D NOVA_ENABLE_ASAN=ON
 	@$(CMAKE) --build --preset "$(PRESET)" -j
 
+release:
+	@echo "==> Fresh release configure & build"
+	@rm -rf "build/release"
+	@$(CMAKE) --preset "release" \
+		-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
+		-DCMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG -ffast-math -fno-math-errno -fno-trapping-math -fstrict-aliasing -funroll-loops"
+	@$(CMAKE) --build --preset "release" -j
+
 rebuild:
 	@echo "==> Incremental build (no reconfigure)"
 	@$(CMAKE) --build "$(BUILD_DIR)" -j

@@ -38,11 +38,19 @@ std::vector<float> rand_matrix_flat(size_t rows, size_t cols,
    return buf;
 }
 int main() {
-   auto a_data = rand_matrix_flat(1000, 1000, /*seed=*/42);
-   auto b_data = rand_matrix_flat(1000, 1000, /*seed=*/43);
+   auto a_data = rand_matrix_flat(N, N, /*seed=*/42);
+   auto b_data = rand_matrix_flat(N, N, /*seed=*/43);
+//
+//   Tensor<float> A({N, N}, a_data, Device::CPU, true);
+//   Tensor<float> B({N, N}, a_data, Device::CPU, true);
+//
+//   Tensor<float> C = A + B;
 
-   Tensor<float> A({N, N}, a_data, Device::CPU, true);
-   Tensor<float> B({N, N}, b_data, Device::CPU, true);
+
+
+
+   Tensor<float> A({N, N}, a_data, Device::CPU, false);
+   Tensor<float> B({N, N}, b_data, Device::CPU, false);
    Engine<float> engine;
    EngineContext<float>::set(&engine);
 

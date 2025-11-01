@@ -32,6 +32,7 @@
 #include "storage/DenseStorage.h"
 #include "storage/StorageInterface.h"
 #include "storage/TensorView.h"
+#include "ops/Helpers.h"
 
 template <typename T>
 static inline ValueID ensure_handle(Engine<T> &eng, Tensor<T> &t) {
@@ -319,13 +320,13 @@ template <typename T> class Tensor {
           [](const Tensor &x, const Tensor &y) { return math::sub(x, y); });
    }
 
-   auto &operator-=(const Tensor &other) {
+   auto &operator-=(const Tensor &other) { // TODO: fix this impl to go through op kernel layer
       std::vector<size_t> out_shape;
-      std::vector<T> out_data;
+      Tensor<T> out = init_bin_out_tensor(*this, other);
       ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape,
-                                               out_data);
-      storage =
-          std::make_shared<NDTensorStorage<T>>(out_shape, std::move(out_data));
+                                               out);
+//      storage =
+//          std::make_shared<NDTensorStorage<T>>(out_shape, std::move(out_data));
       return *this;
    }
 

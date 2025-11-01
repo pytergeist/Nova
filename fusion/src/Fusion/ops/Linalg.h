@@ -12,7 +12,7 @@
 namespace math {
 namespace linalg {
 template <typename T>
-inline Tensor<T> matmul(const Tensor<T> &x, const Tensor<T> &y) {
+inline Tensor<T> matmul(const Tensor<T> &x, const Tensor<T> &y) { // TODO: this uses vector obj copying and doesn't go through broadcast layer?
    auto const &shapeA = x.shape_;
    auto const &shapeB = y.shape_;
    size_t rank = shapeA.size();

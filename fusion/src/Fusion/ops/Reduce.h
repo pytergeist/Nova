@@ -13,7 +13,7 @@
 
 namespace math {
 
-template <typename T> inline Tensor<T> sum(const Tensor<T> &x) {
+template <typename T> inline Tensor<T> sum(const Tensor<T> &x) { // TODO: This bypasses Tensor buffer/boadcast in curr impl
    const T *y = x.storage->data_ptr();
    const std::size_t n = x.flat_size();
    T acc = reduce::reduce_tag<T, GlobalSumSIMD>(y, n);
