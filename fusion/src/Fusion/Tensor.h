@@ -320,15 +320,38 @@ template <typename T> class Tensor {
           [](const Tensor &x, const Tensor &y) { return math::sub(x, y); });
    }
 
-   auto &operator-=(const Tensor &other) { // TODO: fix this impl to go through op kernel layer
-      std::vector<size_t> out_shape;
-      Tensor<T> out = init_bin_out_tensor(*this, other);
-      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape,
-                                               out);
-//      storage =
-//          std::make_shared<NDTensorStorage<T>>(out_shape, std::move(out_data));
-      return *this;
+  auto& operator-=(const Tensor& other) {
+   std::vector<size_t> out_shape;
+   Tensor<T> tmp = init_bin_out_tensor(*this, other);
+   ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, tmp);
+
+   if (!out_shape.empty() && out_shape != tmp.shape_) {
+      Tensor<T> corrected(out_shape, Device::CPU, grad_flow(*this, other));
+      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, corrected);
+      replace_from_tmp(std::move(corrected));
+   } else {
+      replace_from_tmp(std::move(tmp));
    }
+   return *this;
+}
+
+   void replace_from_tmp(Tensor<T>&& tmp) {
+      // If autograd is active, you might forbid in-place on leafs or shape-changing ops.
+      // For now: drop grad when shape changes.
+      const bool shape_changed = (shape_ != tmp.shape_);
+      if (shape_changed) {
+         grad_.reset();
+      }
+
+      // Swap storage and metadata
+      storage.swap(tmp.storage);
+      shape_.swap(tmp.shape_);
+      strides_.swap(tmp.strides_);
+
+      // This tensor’s value changed in-place; invalidate autodiff id.
+      vid_ = ValueID{-1};
+   }
+
 
    auto operator/(const Tensor &other) const {
       using DivOp = Operation<T, Divide<T>>;
