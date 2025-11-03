@@ -3,9 +3,11 @@
 
 #include <numeric>
 #include <vector>
-#include "./Tensor.h"
 #include "common/Checks.h"
 #include "storage/StorageInterface.h"
+
+template <typename T>
+class Tensor;
 
 template <typename T>
 Tensor<T> fill(const std::vector<size_t> &shape, T value) {

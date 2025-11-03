@@ -1,8 +1,17 @@
 #ifndef _BLAS_H
 #define _BLAS_H
 
-#include <cblas.h>
 #include <vector>
+
+#if defined(__APPLE__)
+  #ifndef ACCELERATE_NEW_LAPACK
+  #define ACCELERATE_NEW_LAPACK 1
+  #endif
+  #include <Accelerate/Accelerate.h>
+#else
+  #include <cblas.h>
+#endif
+
 
 template <typename T> class Tensor;
 

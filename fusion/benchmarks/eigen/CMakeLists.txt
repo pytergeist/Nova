@@ -16,3 +16,5 @@ target_link_libraries(EigenBenchMark PRIVATE
         Eigen3::Eigen
         ${OPENBLAS_LIB}
 )
+
+set_property(TARGET EigenBenchMark PROPERTY CXX_CLANG_TIDY "")

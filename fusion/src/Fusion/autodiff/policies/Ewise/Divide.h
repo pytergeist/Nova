@@ -1,11 +1,11 @@
 #ifndef DIVIDE_H
 #define DIVIDE_H
 
+#include <string_view>
+#include <vector>
 #include "../../AutodiffMode.h"
 #include "../../Traits.h"
 #include "../Operation.h"
-#include <string_view>
-#include <vector>
 
 template <typename T> struct Divide {
    inline static constexpr std::string_view name = "Divide";

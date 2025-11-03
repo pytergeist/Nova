@@ -6,7 +6,7 @@
 #include <vector>
 
 struct TensorDescription {
-   int ndims;
+   std::size_t ndims;
    std::vector<std::int64_t> sizes;
    std::vector<std::int64_t> strides;
    std::size_t itemsize;
@@ -18,8 +18,8 @@ struct LoopDim {
 };
 
 struct BroadcastPlan {
-   int num_operands;
-   int out_ndim;
+   std::size_t num_operands;
+   std::size_t out_ndim;
    std::vector<int64_t> out_sizes;
    std::vector<LoopDim> loop;
 

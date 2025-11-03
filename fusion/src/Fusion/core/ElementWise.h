@@ -35,7 +35,7 @@ inline TensorDescription make_desc(const std::vector<size_t> &shape,
       st.assign(strides_elems, strides_elems + static_cast<int>(shape.size()));
    else
       st = contig_elem_strides(shape);
-   return TensorDescription{static_cast<int>(shape.size()), std::move(sz),
+   return TensorDescription{static_cast<std::size_t>(shape.size()), std::move(sz),
                             std::move(st), sizeof(T)};
 }
 

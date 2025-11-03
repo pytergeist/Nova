@@ -5,9 +5,9 @@
 #include <initializer_list>
 #include <vector>
 
-#include "../Tensor.h"
-
 // TODO: Create fixed size AutodiffMeta for hot paths
+
+template <typename U> class Tensor;
 
 struct ValueID {
    int32_t idx;

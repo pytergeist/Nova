@@ -10,3 +10,5 @@ target_link_libraries(FusionBenchMark PRIVATE
         nanobench
         ${BLAS_LIBRARIES}
 )
+
+set_property(TARGET FusionBenchMark PROPERTY CXX_CLANG_TIDY "")

@@ -109,7 +109,7 @@ TEST(TensorOpsTest, BinaryOperationsTest) {
    Tensor<T> powResult = t1.pow(tensor_to_pow);
    std::vector<T> expectedPow;
    for (T d : data1) {
-      expectedPow.push_back(std::pow(d, 4.0));
+      expectedPow.push_back(std::pow(d, 4.0f));
    }
    for (size_t i = 0; i < expectedPow.size(); ++i) {
       EXPECT_NEAR(powResult[i], expectedPow[i], 1e-6);
@@ -135,7 +135,7 @@ TEST(TensorOpsTest, BinaryOpWithScalarTest) {
    Tensor<T> addResult = scalarTensor + tensor;
    std::vector<T> expectedAdd;
    for (T d : data) {
-      expectedAdd.push_back(2.0 + d);
+      expectedAdd.push_back(2.0f + d);
    }
    Tensor<T> expectedAddTensor = create_tensor(expectedAdd, shape);
    for (size_t i = 0; i < expectedAddTensor.size(); ++i) {
@@ -146,7 +146,7 @@ TEST(TensorOpsTest, BinaryOpWithScalarTest) {
    Tensor<T> subResult = tensor - scalarTensor;
    std::vector<T> expectedSub;
    for (T d : data) {
-      expectedSub.push_back(d - 2.0);
+      expectedSub.push_back(d - 2.0f);
    }
    Tensor<T> expectedSubTensor = create_tensor(expectedSub, shape);
    for (size_t i = 0; i < expectedSub.size(); ++i) {
