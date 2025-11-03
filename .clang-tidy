@@ -1,0 +1,17 @@
+Checks: >
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  readability-*
+#  modernize-*,
+#  cppcoreguidelines-*,
+#  concurrency-*,
+#  misc-*,
+#  portability-*,
+#  -fuchsia-*,
+#  -google-*,
+#  -llvm-header-guard
+
+WarningsAsErrors: 'bugprone-*,clang-analyzer-*,concurrency-*,performance-*'
+HeaderFilterRegex: '^(?!.*(?:/fusion/src/Fusion/cpu/simd/|/fusion/src/benchmarks/)).*/fusion'
+FormatStyle: none
