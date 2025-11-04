@@ -25,8 +25,8 @@ template <typename T> struct MatMul {
       context.save("a", a);
       context.save("b", b);
       FUSION_CHECK(a.rank() >= 2 && b.rank() >= 2, "MatMul: rank must be >= 2");
-      const auto K_a = a.shape_.back();
-      const auto K_b = b.shape_[b.rank() - 2];
+      const auto K_a = a.shape().back();
+      const auto K_b = b.shape()[b.rank() - 2];
       FUSION_CHECK(K_a == K_b, "MatMul: inner dims mismatch");
       Tensor<T> c = a.matmul(b);
       Out out;

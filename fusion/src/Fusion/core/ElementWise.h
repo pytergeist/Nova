@@ -101,14 +101,14 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
    FUSION_CHECK(A.is_initialised() && B.is_initialised(),
                 "uninitialised tensor");
    std::array<uint8_t *, 3> base = {
-        reinterpret_cast<uint8_t *>(const_cast<T *>(out_data.storage->data_ptr())),
-        reinterpret_cast<uint8_t *>(const_cast<T *>(A.storage->data_ptr())),
-        reinterpret_cast<uint8_t *>(const_cast<T *>(B.storage->data_ptr()))
+        reinterpret_cast<uint8_t *>(const_cast<T *>(out_data.get_ptr())),
+        reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
+        reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr()))
         };
 
    if (A.shape() == B.shape()) { // TODO: make shape checkl macro
     const size_t len = A.flat_size();
-    out_shape = A.shape_;
+    out_shape = A.shape();
     auto *o = reinterpret_cast<T *>(
      base[0]); // takes bytes ptr and treats it as if it were a ptr to T
     // (dtype from template)
@@ -122,8 +122,8 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
     return;
    }
 
-   auto dA = make_desc<T>(A.shape_, nullptr);
-   auto dB = make_desc<T>(B.shape_, nullptr);
+   auto dA = make_desc<T>(A.shape(), nullptr);
+   auto dB = make_desc<T>(B.shape(), nullptr);
    auto plan_in = make_broadcast_plan({dA, dB});
 
    out_shape.assign(plan_in.out_sizes.begin(), plan_in.out_sizes.end());
@@ -194,7 +194,7 @@ void unary_ewise_tag(const TensorT &A, std::vector<size_t> &out_shape,
 
 
 
-   auto dA = make_desc<T>(A.shape_, nullptr);
+   auto dA = make_desc<T>(A.shape(), nullptr);
    auto plan_in = make_broadcast_plan({dA});
 
    out_shape.assign(plan_in.out_sizes.begin(), plan_in.out_sizes.end());
@@ -205,8 +205,8 @@ void unary_ewise_tag(const TensorT &A, std::vector<size_t> &out_shape,
    auto plan = make_broadcast_plan({dOut, dA});
 
    std::array<uint8_t *, 2> base = {
-   reinterpret_cast<uint8_t *>(out_data.storage->data_ptr()),
-   reinterpret_cast<uint8_t *>(const_cast<T *>(A.storage->data_ptr())),
+   reinterpret_cast<uint8_t *>(out_data.get_ptr()),
+   reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
 };
    for_each_outer_then_inner<2>(
        plan, base,

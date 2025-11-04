@@ -13,8 +13,8 @@ namespace math {
 namespace linalg {
 template <typename T>
 inline Tensor<T> matmul(const Tensor<T> &x, const Tensor<T> &y) { // TODO: this uses vector obj copying and doesn't go through broadcast layer?
-   auto const &shapeA = x.shape_;
-   auto const &shapeB = y.shape_;
+   auto const &shapeA = x.shape();
+   auto const &shapeB = y.shape();
    size_t rank = shapeA.size();
    size_t m = shapeA[rank - 2];
    size_t n = shapeB[rank - 1];
@@ -44,7 +44,7 @@ std::string shape_str(std::vector<size_t> shape) {
 
 template <typename T>
 inline Tensor<T> swapaxes(const Tensor<T> &x, int axis1, int axis2) {
-   std::vector<size_t> out_shape = x.shape_;
+   std::vector<size_t> out_shape = x.shape();
    const int nd = static_cast<int>(out_shape.size());
    if (nd < 2) {
       return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
@@ -57,7 +57,7 @@ inline Tensor<T> swapaxes(const Tensor<T> &x, int axis1, int axis2) {
                        Device::CPU, x.requires_grad());
    }
    std::swap(out_shape[axis1], out_shape[axis2]);
-   std::vector<T> out = serial::swapaxes<T>(x, x.shape_, axis1, axis2);
+   std::vector<T> out = serial::swapaxes<T>(x, x.shape(), axis1, axis2);
    return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
 }
 } // namespace linalg

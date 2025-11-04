@@ -36,37 +36,33 @@
 
 template <typename T>
 static inline ValueID ensure_handle(Engine<T> &eng, Tensor<T> &t) {
-   if (t.eng_ == &eng && t.vid_.idx >= 0)
-      return t.vid_;
+   if (t.eng_ == &eng && t.vid().idx >= 0) {
+      return t.vid();
+      }
    auto vid = eng.track_input(t);
-   t.eng_ = &eng;
-   t.vid_ = vid;
+   t.eng_ = &eng; // TODO: make this a setter
+   t.set_vid(vid);
    return vid;
 }
 
 template <typename T> class Tensor {
  public:
-   std::shared_ptr<ITensorStorage<T>> storage;
-   std::shared_ptr<Tensor<T>> grad_;
-   std::vector<size_t> shape_, strides_;
-   ValueID vid_{-1};
-   bool requires_grad_;
 
-   Tensor() : storage(nullptr), shape_{}, requires_grad_(false) {}
+   Tensor() : storage_(nullptr), shape_{}, requires_grad_(false) {}
 
-   explicit Tensor(std::vector<size_t> shape, std::vector<T> data,
+   explicit Tensor(std::vector<std::size_t> shape, std::vector<T> data, // NOLINT
                    Device device = Device::CPU, bool requires_grad = false)
        : shape_(std::move(shape)), requires_grad_(std::move(requires_grad)) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
-      size_t sz = 1;
+      std::size_t sz = 1;
       strides_.resize(shape_.size());
       for (size_t i = 0; i < shape_.size(); i++) {
          strides_[i] = sz;
          sz *= shape_[i];
       }
       FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
-      storage = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
+      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
    }
 
       explicit Tensor(std::vector<size_t> shape, Device device = Device::CPU, bool requires_grad = false)
@@ -79,7 +75,37 @@ template <typename T> class Tensor {
          strides_[i] = sz;
          sz *= shape_[i];
       }
-      storage = std::make_shared<NDTensorStorage<T>>(shape_, sz);
+      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, sz);
+   }
+
+   ValueID vid() {
+      return vid_;
+   }
+
+   ValueID set_vid(ValueID vid) noexcept {
+      return vid_ = vid;
+   }
+
+   const ValueID vid() const {
+      return vid_;
+   }
+
+   ITensorStorage<T>* get_storage() {
+      return storage_.get();
+   }
+
+   const ITensorStorage<T>* get_storage() const {
+      return storage_.get();
+   }
+
+
+
+   T* get_ptr() {
+      return storage_->data_ptr();
+   }
+
+   const T* get_ptr() const {
+      return storage_->data_ptr();
    }
 
    size_t rank() const { return shape_.size(); }
@@ -91,15 +117,16 @@ template <typename T> class Tensor {
 
    TensorView<T> view() {
       return TensorView<T>(
-          storage->data().template data<T>(),
+          storage_->data().template data<T>(),
           this->shape(), this->strides(), this->rank(), this->ndims());
    }
 
    bool has_vid() const noexcept { return vid_.idx >= 0; }
 
    ValueID ensure_vid() {
-      if (vid_.idx >= 0)
+      if (vid_.idx >= 0) {
          return vid_;
+         }
       auto &eng = EngineContext<T>::get();
       vid_ = eng.track_input(*this);
       return vid_;
@@ -114,20 +141,22 @@ template <typename T> class Tensor {
    Tensor &operator=(Tensor &&) noexcept = default;
    ~Tensor() = default;
 
-   bool requires_grad() const { return requires_grad_; }
+   bool requires_grad() const noexcept { return requires_grad_; }
+   void set_requires_grad(bool v) noexcept { requires_grad_ = v; }
 
    friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
       const auto *cpuStorage =
-          dynamic_cast<const NDTensorStorage<T> *>(tensor.storage.get());
+          dynamic_cast<const NDTensorStorage<T> *>(tensor.get_storage());
       if (cpuStorage) {
          const TensorBuffer &buf = cpuStorage->data();
          const size_t n = cpuStorage->size();
          const T *p = buf.template data_as<const T>();
          os << "Tensor(";
          for (size_t i = 0; i < n; i++) {
-            os << p[i];
-            if (i + 1 < n)
+            os << p[i]; // NOLINT TODO: change to use view
+            if (i + 1 < n) {
                os << ", ";
+               }
          }
          os << ")" << std::endl;
       } else {
@@ -141,8 +170,9 @@ template <typename T> class Tensor {
       oss << '(';
       for (size_t i = 0; i < shape_.size(); ++i) {
          oss << shape_[i];
-         if (i + 1 < shape_.size())
+         if (i + 1 < shape_.size()) {
             oss << ',';
+            }
       }
       oss << ')';
       return oss.str();
@@ -153,8 +183,9 @@ template <typename T> class Tensor {
       oss << '(';
       for (size_t i = 0; i < strides_.size(); ++i) {
          oss << strides_[i];
-         if (i + 1 < strides_.size())
+         if (i + 1 < strides_.size()) {
             oss << ',';
+            }
       }
       oss << ')';
       return oss.str();
@@ -184,38 +215,40 @@ template <typename T> class Tensor {
    //  }
 
    T operator[](int idx) const {
-      return storage->data().template data_as<const T>()[idx];
+      return storage_->data().template data_as<const T>()[idx];
    }
 
-   const size_t size() const noexcept {
-      return storage->data().template size<T>();
+   std::size_t size() const noexcept {
+      return storage_->data().template size<T>();
    }
 
    void clear() noexcept {
-      if (!storage)
+      if (!storage_) {
          return;
-      auto &buf = storage->data();
-      if (buf.size_bytes() == 0)
+         }
+      auto &buf = storage_->data();
+      if (buf.size_bytes() == 0) {
          return;
+         }
       std::memset(buf.data(), 0, buf.size_bytes());
    }
 
    void assign(const Tensor<T> &other) {
-      if (!storage) {
+      if (!storage_) {
          *this = other;
       } else {
-         storage->data().assign(other.begin(), other.end());
+         storage_->data().assign(other.begin(), other.end());
       }
    };
 
-   bool empty() const noexcept { return !storage || storage->data().empty(); };
+   bool empty() const noexcept { return !storage_ || storage_->data().empty(); };
 
-   bool is_initialised() const noexcept { return storage != nullptr; }
+   bool is_initialised() const noexcept { return storage_ != nullptr; }
 
-   TensorBuffer &raw_data() { return storage->data(); }
-   const TensorBuffer &raw_data() const { return storage->data(); }
+   TensorBuffer &raw_data() { return storage_->data(); }
+   const TensorBuffer &raw_data() const { return storage_->data(); }
    [[nodiscard]] size_t flat_size() const {
-      return storage->size();
+      return storage_->size();
    } // TODO: wtf is this
 
    void backward() {
@@ -231,8 +264,9 @@ template <typename T> class Tensor {
 
    const Tensor<T> &grad() const {
       // Lazy, const-safe allocation of a zero-like grad buffer
-      if (grad_ == nullptr)
+      if (grad_ == nullptr) {
          const_cast<Tensor<T> *>(this)->ensure_grad();
+         }
       return *grad_;
    }
    Tensor<T> &mutable_grad() {
@@ -324,8 +358,7 @@ template <typename T> class Tensor {
    std::vector<size_t> out_shape;
    Tensor<T> tmp = init_bin_out_tensor(*this, other);
    ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, tmp);
-
-   if (!out_shape.empty() && out_shape != tmp.shape_) {
+   if (!out_shape.empty() && out_shape != tmp.shape()) {
       Tensor<T> corrected(out_shape, Device::CPU, grad_flow(*this, other));
       ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, corrected);
       replace_from_tmp(std::move(corrected));
@@ -344,7 +377,7 @@ template <typename T> class Tensor {
       }
 
       // Swap storage and metadata
-      storage.swap(tmp.storage);
+      storage_.swap(tmp.storage());
       shape_.swap(tmp.shape_);
       strides_.swap(tmp.strides_);
 
@@ -453,7 +486,7 @@ template <typename T> class Tensor {
    //    auto eager = [axis1, axis2](const Tensor<T>& x) {
    //        std::vector<size_t> out_shape = x.shape_;
    //        int a1 = serial_ops::normalise_axis(axis1, x.rank());
-   //        int a2 = serial_ops::normalise_axis(axis2, x.rank());
+   //        int a2 = serial_ops::noet_rmalise_axis(axis2, x.rank());
    //        std::swap(out_shape[a1], out_shape[a2]);
    //        std::vector<T> out = serial::swapaxes<T>(x, x.shape_, a1, a2);
    //        return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU,
@@ -496,10 +529,25 @@ template <typename T> class Tensor {
       return Tensor<T>(std::move(new_shape), std::move(new_data), Device::CPU);
    }
 
-   auto begin() { return storage->data().template begin<T>(); }
-   auto end() { return storage->data().template end<T>(); }
-   auto begin() const { return storage->data().template begin<T>(); }
-   auto end() const { return storage->data().template end<T>(); }
+   auto begin() { return storage_->data().template begin<T>(); }
+   auto end() { return storage_->data().template end<T>(); }
+   auto begin() const { return storage_->data().template begin<T>(); }
+   auto end() const { return storage_->data().template end<T>(); }
+
+   std::shared_ptr<ITensorStorage<T>>& storage() {
+      return storage_;
+   }
+
+   const std::shared_ptr<ITensorStorage<T>>& storage() const {
+      return storage_;
+   }
+
+   private:
+     std::shared_ptr<ITensorStorage<T>> storage_;
+     std::shared_ptr<Tensor<T>> grad_;
+     std::vector<size_t> shape_{}, strides_{};
+     ValueID vid_{-1};
+     bool requires_grad_;
 };
 
 #endif // TENSOR_H

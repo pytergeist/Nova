@@ -3,6 +3,7 @@ Checks: >
   bugprone-*,
   performance-*,
   readability-*,
+  -readability-identifier-length,
   modernize-*,
   -modernize-macro-to-enum,
   -modernize-return-braced-init-list,
@@ -11,8 +12,10 @@ Checks: >
   -modernize-use-trailing-return-type,
   -modernize-use-nodiscard,
   cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-do-while
   concurrency-*,
   misc-*,
+  -misc-include-cleaner,
   portability-*,
   -fuchsia-*,
   -google-*,

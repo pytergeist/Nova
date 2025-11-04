@@ -178,17 +178,3 @@ if (NOVA_BUILD_TEST)
   include(GoogleTest)
   gtest_discover_tests(fusion_test)
 endif()
-
-set(_TIDY "/opt/homebrew/opt/llvm/bin/clang-tidy")
-
-foreach(tgt fusion_core fusion FusionExecutable fusion_test)
-  if (TARGET ${tgt})
-    set_property(TARGET ${tgt} PROPERTY CXX_CLANG_TIDY "${_TIDY}")
-  endif()
-endforeach()
-
-foreach(btgt EigenBenchMark FusionBenchMark)
-  if (TARGET ${btgt})
-    set_property(TARGET ${btgt} PROPERTY CXX_CLANG_TIDY "")
-  endif()
-endforeach()

@@ -1,10 +1,11 @@
 // Helpers.h
 #pragma once
 
-#include "../../Tensor.h"
 #include <pybind11/numpy.h>
 #include <stdexcept>
 #include <vector>
+
+#include "../../Tensor.h"
 
 namespace py = pybind11;
 
@@ -12,7 +13,7 @@ namespace tensor_py_helpers {
 
 inline py::array_t<float> tensor_to_numpy(const Tensor<float> &t) {
    // Grab the shape vector
-   const auto &shape = t.shape_;
+   const auto &shape = t.shape();
    size_t ndim = shape.size();
    size_t total = t.flat_size();
 

@@ -87,11 +87,11 @@ template <typename T> class Engine {
          return *known;
       }
 
-      const void *storage_key = static_cast<const void *>(t.storage.get());
+      const void *storage_key = static_cast<const void *>(t.get_storage());
       const auto &shp = t.shape();
       if (auto cached = lookup_cached_vid(storage_key, shp)) {
          write_val(*cached, t);
-         t.vid_ = *cached;
+         t.set_vid(*cached);
          maybe_mark_leaf(*cached, t);
          return *cached;
       }
@@ -104,7 +104,7 @@ template <typename T> class Engine {
    Tensor<T> materialise(ValueID vid) {
       FUSION_BOUNDS_CHECK(vid.idx, val_buff_.size());
       Tensor<T> out = val_buff_[vid.idx];
-      out.vid_ = vid;
+      out.set_vid(vid);
       return out;
    }
 
@@ -196,7 +196,7 @@ template <typename T> class Engine {
    ValueID register_fresh_input_from(Tensor<T> &t) {
       const ValueID vid = graph_.new_input_value();
       write_val(vid, t);
-      t.vid_ = vid;
+      t.set_vid(vid);
       maybe_mark_leaf(vid, t);
       return vid;
    }
@@ -240,8 +240,8 @@ template <typename T> class Engine {
          const bool storage_matches =
              val_buff_.size() > static_cast<size_t>(vidx) &&
              val_buff_[vidx].is_initialised() && leaf_ptr->is_initialised() &&
-             leaf_ptr->storage && val_buff_[vidx].storage &&
-             (leaf_ptr->storage.get() == val_buff_[vidx].storage.get());
+             leaf_ptr->storage() && val_buff_[vidx].storage() &&
+             (leaf_ptr->get_storage() == val_buff_[vidx].get_storage());
 
          if (storage_matches) {
             leaf_ptr->ensure_grad();
