@@ -1,6 +1,10 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/detail/common.h>
+#include <pybind11/pytypes.h>
+#include <pybind11/cast.h>
 
 #include "../../autodiff/AutodiffBridge.h"
+#include "../../autodiff/AutodiffMode.h"
 #include "../../autodiff/EngineContext.h"
 #include "factory/BindFactory.h"
 #include "random/BindRandom.h"
@@ -36,7 +40,7 @@ PYBIND11_MODULE(fusion, m_ten) {
        "enabled",
        [](pybind11::object &state) -> bool {
           if (!state.is_none()) {
-             bool active = pybind11::cast<bool>(state);
+             const bool active = pybind11::cast<bool>(state);
              set_autodiff_enabled<float>(active);
           }
           return autodiff::grad_enabled();

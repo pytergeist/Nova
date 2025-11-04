@@ -24,7 +24,9 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_PREFIX_PATH": "/opt/homebrew",
-        "Python_EXECUTABLE": "/usr/bin/python3",
+        "Python_EXECUTABLE": "$env{VIRTUAL_ENV}/bin/python",
+        "Python3_EXECUTABLE": "$env{VIRTUAL_ENV}/bin/python",
+        "Python_ROOT_DIR": "$env{VIRTUAL_ENV}",
         "BUILD_BENCHMARKS": "ON"
       }
     }
