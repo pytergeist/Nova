@@ -12,6 +12,7 @@
 #include "../../Tensor.h"
 #include "../../TensorFactory.h"
 #include "Helpers.h"
+#include "../../core/DTypes.h"
 
 namespace py = pybind11;
 
@@ -25,7 +26,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                size_t total = std::accumulate(shape.begin(), shape.end(),
                                               static_cast<size_t>(1),
                                               std::multiplies<size_t>());
-               return new PyT(shape, std::vector<T>(total), Device::CPU,
+               return new PyT(shape, std::vector<T>(total), DType::Float32, Device::CPU, // TODO: pass in dtype from python layer
                               requires_grad);
             }),
             py::arg("shape"), py::arg("requires_grad"),
@@ -41,7 +42,8 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                if (data.size() != total) {
                   throw std::invalid_argument("shape* must equal data.size()");
                }
-               return new PyT(shape, data, Device::CPU, requires_grad);
+               return new PyT(shape, data, DType::Float32, Device::CPU, requires_grad); // TODO: pass dtype in from python layer,
+               // TODO: setup dtype policies inside the python layer
             }),
             py::arg("shape"), py::arg("data"), py::arg("requires_grad"),
             "Construct a Tensor from a shape list and a flat data list. "

@@ -5,6 +5,7 @@
 #include <vector>
 #include "common/Checks.h"
 #include "storage/StorageInterface.h"
+#include "core/DTypes.h"
 
 template <typename T>
 class Tensor;
@@ -14,7 +15,7 @@ Tensor<T> fill(const std::vector<size_t> &shape, T value) {
    size_t n = std::accumulate(shape.begin(), shape.end(), size_t{1},
                               std::multiplies<size_t>());
    std::vector<T> data(n, value);
-   return Tensor<T>(shape, std::move(data), Device::CPU, false);
+   return Tensor<T>(shape, std::move(data), DType::Float32, Device::CPU, false); // TODO: pass dtype into here
 }
 
 template <typename T> Tensor<T> zeros(const std::vector<size_t> &shape) {
@@ -31,7 +32,7 @@ template <typename T> Tensor<T> zeros_like(const Tensor<T> &other) {
 }
 
 template <typename T> Tensor<T> ones_like(const Tensor<T> &other) {
-   FUSION_CHECK(other.is_initialised(), "oness_like on uninitialised tensor");
+   FUSION_CHECK(other.is_initialised(), "ones_like on uninitialised tensor");
    return ones<T>(other.shape());
 }
 

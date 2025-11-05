@@ -1,11 +1,13 @@
 #ifndef TENSOR_RANDOM_H
 #define TENSOR_RANDOM_H
 
-#include "./Tensor.h"
 #include <algorithm>
 #include <numeric>
 #include <random>
 #include <vector>
+
+#include "Tensor.h"
+#include "core/DTypes.h"
 
 // inline std::mt19937 engine{std::random_device{}()};
 
@@ -33,7 +35,7 @@ template <typename T> class Random {
          data.push_back(dist(this->engine_));
       }
 
-      return Tensor<T>(shape, std::move(data), Device::CPU);
+      return Tensor<T>(shape, std::move(data), DType::Float32, Device::CPU); // TODO: Pass in dtype/req_grad
    }
 };
 

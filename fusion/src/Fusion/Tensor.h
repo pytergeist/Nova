@@ -33,6 +33,8 @@
 #include "storage/StorageInterface.h"
 #include "storage/TensorView.h"
 #include "ops/Helpers.h"
+#include "core/Layout.h"
+#include "core/DTypes.h"
 
 template <typename T>
 static inline ValueID ensure_handle(Engine<T> &eng, Tensor<T> &t) {
@@ -45,14 +47,19 @@ static inline ValueID ensure_handle(Engine<T> &eng, Tensor<T> &t) {
    return vid;
 }
 
+template <typename T>
+inline Tensor<T> scalar_tensor(const T scalar, const DType dtype) {
+   return Tensor<T>{{1}, {scalar}, dtype, Device::CPU, false};
+}
+
 template <typename T> class Tensor {
  public:
 
    Tensor() : storage_(nullptr), shape_{}, requires_grad_(false) {}
 
-   explicit Tensor(std::vector<std::size_t> shape, std::vector<T> data, // NOLINT
+   explicit Tensor(std::vector<std::size_t> shape, std::vector<T> data, DType dtype = DType::Float32, // NOLINT
                    Device device = Device::CPU, bool requires_grad = false)
-       : shape_(std::move(shape)), requires_grad_(std::move(requires_grad)) {
+       : shape_(std::move(shape)), dtype_(dtype), requires_grad_(std::move(requires_grad)) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       std::size_t sz = 1;
@@ -65,8 +72,9 @@ template <typename T> class Tensor {
       storage_ = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
    }
 
-      explicit Tensor(std::vector<size_t> shape, Device device = Device::CPU, bool requires_grad = false)
-       : shape_(std::move(shape)), requires_grad_(std::move(requires_grad)) {
+      explicit Tensor(std::vector<size_t> shape, Device device = Device::CPU, DType dtype = DType::Float32,
+                   bool requires_grad = false)
+       : shape_(std::move(shape)), dtype_(dtype), requires_grad_(std::move(requires_grad)) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       size_t sz = 1;
@@ -76,6 +84,19 @@ template <typename T> class Tensor {
          sz *= shape_[i];
       }
       storage_ = std::make_shared<NDTensorStorage<T>>(shape_, sz);
+   }
+
+
+   inline bool is_contiguous() const noexcept {
+      return calc_contiguous(shape_, strides_);
+   }
+
+   DType dtype() const noexcept {
+      return dtype_;
+   }
+
+   inline std::size_t dtype_size() const noexcept {
+      return get_dtype_size(dtype_);
    }
 
    ValueID vid() {
@@ -278,7 +299,7 @@ template <typename T> class Tensor {
    void ensure_grad() {
       if (!has_grad()) {
          std::vector<T> z(size(), T(0));
-         grad_ = std::make_shared<Tensor<T>>(shape_, std::move(z), Device::CPU,
+         grad_ = std::make_shared<Tensor<T>>(shape_, std::move(z), dtype(), Device::CPU,
                                              false);
       }
    }
@@ -291,7 +312,7 @@ template <typename T> class Tensor {
    }
 
    auto operator+(const T scalar) const {
-      Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+      Tensor<T> other = scalar_tensor<T>(scalar, dtype());
       using AddOp = Operation<T, Add<T>>;
       return autodiff::binary<T, AddOp>(
           *this, other,
@@ -299,7 +320,7 @@ template <typename T> class Tensor {
    }
 
    auto operator*(const T scalar) const {
-      Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+      Tensor<T> other = scalar_tensor<T>(scalar, dtype());
       using MulOp = Operation<T, Multiply<T>>;
       return autodiff::binary<T, MulOp>(
           *this, other,
@@ -307,7 +328,7 @@ template <typename T> class Tensor {
    }
 
    auto operator/(const T scalar) const {
-      Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+      Tensor<T> other = scalar_tensor<T>(scalar, dtype());
       using DivOp = Operation<T, Divide<T>>;
       return autodiff::binary<T, DivOp>(
           *this, other,
@@ -315,7 +336,7 @@ template <typename T> class Tensor {
    }
 
    auto operator-(const T scalar) const {
-      Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+      Tensor<T> other = scalar_tensor<T>(scalar, dtype());
       using SubOp = Operation<T, Subtract<T>>;
       return autodiff::binary<T, SubOp>(
           *this, other,
@@ -323,7 +344,7 @@ template <typename T> class Tensor {
    }
 
    auto maximum(const T scalar) const {
-      Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+      Tensor<T> other = scalar_tensor<T>(scalar, dtype());
       using MaximumOp = Operation<T, Maximum<T>>;
       return autodiff::binary<T, MaximumOp>(
           *this, other,
@@ -331,7 +352,7 @@ template <typename T> class Tensor {
    }
 
    auto operator>=(const T scalar) const {
-      Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+      Tensor<T> other = scalar_tensor<T>(scalar, dtype());
       using GreaterThanEqualOp = Operation<T, GreaterThanEqual<T>>;
       return autodiff::binary<T, GreaterThanEqualOp>(
           *this, other, [](const Tensor &x, const Tensor &y) {
@@ -340,7 +361,7 @@ template <typename T> class Tensor {
    }
 
    auto pow(const T scalar) const {
-      Tensor<T> other{{1}, {scalar}, Device::CPU, false};
+      Tensor<T> other = scalar_tensor<T>(scalar, dtype());
       using PowOp = Operation<T, Pow<T>>;
       return autodiff::binary<T, PowOp>(
           *this, other,
@@ -359,7 +380,7 @@ template <typename T> class Tensor {
    Tensor<T> tmp = init_bin_out_tensor(*this, other);
    ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, tmp);
    if (!out_shape.empty() && out_shape != tmp.shape()) {
-      Tensor<T> corrected(out_shape, Device::CPU, grad_flow(*this, other));
+      Tensor<T> corrected(out_shape, Device::CPU, dtype(), grad_flow(*this, other));
       ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, corrected);
       replace_from_tmp(std::move(corrected));
    } else {
@@ -514,7 +535,7 @@ template <typename T> class Tensor {
       size_t out_dim = std::floor(arr_size);
       std::vector<size_t> out_shape{out_dim, 1};
       std::vector<T> out = serial::diagonal2D(*this, this->shape_);
-      return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
+      return Tensor<T>(std::move(out_shape), std::move(out), dtype(), Device::CPU);
    }
 
    //
@@ -526,7 +547,7 @@ template <typename T> class Tensor {
 
       serial::transpose<T>(*this, this->shape_, new_data);
 
-      return Tensor<T>(std::move(new_shape), std::move(new_data), Device::CPU);
+      return Tensor<T>(std::move(new_shape), std::move(new_data), dtype(), Device::CPU);
    }
 
    auto begin() { return storage_->data().template begin<T>(); }
@@ -545,9 +566,11 @@ template <typename T> class Tensor {
    private:
      std::shared_ptr<ITensorStorage<T>> storage_;
      std::shared_ptr<Tensor<T>> grad_;
-     std::vector<size_t> shape_{}, strides_{};
+     std::vector<std::size_t> shape_{}, strides_{};
+     DType dtype_;
      ValueID vid_{-1};
      bool requires_grad_;
+
 };
 
 #endif // TENSOR_H

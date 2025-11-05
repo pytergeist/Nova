@@ -3,21 +3,9 @@
 
 #include <cstddef>
 #include <memory>
+#include "../core/DTypes.h"
+#include "../core/Layout.h"
 
-enum class DType { Float32, Float64, Int32, Int64 };
-
-inline std::size_t dtype_size(DType dtype) {
-   switch (dtype) {
-   case DType::Float32:
-      return sizeof(float);
-   case DType::Float64:
-      return sizeof(double);
-   case DType::Int32:
-      return sizeof(int32_t);
-   case DType::Int64:
-      return sizeof(int64_t);
-   }
-}
 
 template <typename T> class TensorView {
  public:
@@ -49,19 +37,7 @@ template <typename T> class TensorView {
    const T *data() const noexcept { return data_; };
 
    inline bool is_contiguous() const noexcept {
-      if (shape_.empty()) {
-         return true;
-      }
-      std::size_t expected = 1;
-      for (std::size_t i = 0; i < shape_.size(); ++i) {
-         if (strides_[i] != expected) {
-            return false;
-         }
-         expected *= shape_[(i + 1 < shape_.size()) ? i + 1 : i];
-         if (i + 1 == shape_.size())
-            expected = 1;
-      }
-      return true;
+      return calc_contigous(shape_, strides_);
    }
 
  private:

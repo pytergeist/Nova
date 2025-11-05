@@ -17,7 +17,7 @@ template <typename T> inline Tensor<T> sum(const Tensor<T> &x) { // TODO: This b
    const T *y = x.get_ptr();
    const std::size_t n = x.flat_size();
    T acc = reduce::reduce_tag<T, GlobalSumSIMD>(y, n);
-   return Tensor<T>({1}, std::vector<T>{acc}, Device::CPU, x.requires_grad());
+   return Tensor<T>({1}, std::vector<T>{acc}, x.dtype(), Device::CPU, x.requires_grad());
 }
 
 template <typename T> inline Tensor<T> mean(const Tensor<T> &x) {
@@ -25,7 +25,7 @@ template <typename T> inline Tensor<T> mean(const Tensor<T> &x) {
    const std::size_t n = x.flat_size();
    T acc = reduce::reduce_tag<T, GlobalSumSIMD>(y, n);
    T mean = acc / static_cast<T>(n);
-   return Tensor<T>({1}, std::vector<T>{acc}, Device::CPU, x.requires_grad());
+   return Tensor<T>({1}, std::vector<T>{acc}, x.dtype(), Device::CPU, x.requires_grad());
 }
 } // namespace math
 

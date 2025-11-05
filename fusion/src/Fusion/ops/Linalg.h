@@ -1,18 +1,19 @@
 #ifndef OPS_LINALG_H
 #define OPS_LINALG_H
 
+#include <vector>
+#include <string_view>
 #include "../Tensor.h"
 #include "../common/Log.h"
 #include "../core/ElementWise.h"
 #include "../kernels/Blas.h"
 #include "Helpers.h"
-#include <string_view>
-#include <vector>
 
 namespace math {
 namespace linalg {
 template <typename T>
 inline Tensor<T> matmul(const Tensor<T> &x, const Tensor<T> &y) { // TODO: this uses vector obj copying and doesn't go through broadcast layer?
+   assert((x.dtype_size() == y.dtype_size()) && "binary op: dtype sizes must match" ); // TODO: abstract into macro (change from assert)
    auto const &shapeA = x.shape();
    auto const &shapeB = y.shape();
    size_t rank = shapeA.size();
@@ -26,7 +27,7 @@ inline Tensor<T> matmul(const Tensor<T> &x, const Tensor<T> &y) { // TODO: this 
    }
    std::vector<T> data(batch * m * n);
    blas_ops::matmul<T>(x, shapeA, y, shapeB, data);
-   return Tensor<T>(std::move(out_shape), std::move(data), Device::CPU,
+   return Tensor<T>(std::move(out_shape), std::move(data), x.dtype(), Device::CPU,
                     grad_flow(x, y));
 }
 
@@ -47,18 +48,18 @@ inline Tensor<T> swapaxes(const Tensor<T> &x, int axis1, int axis2) {
    std::vector<size_t> out_shape = x.shape();
    const int nd = static_cast<int>(out_shape.size());
    if (nd < 2) {
-      return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
+      return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()), x.dtype(),
                        Device::CPU, x.requires_grad());
    }
    axis1 = serial::normalise_axis(axis1, nd);
    axis2 = serial::normalise_axis(axis2, nd);
    if (axis1 == axis2) {
-      return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
+      return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()), x.dtype(),
                        Device::CPU, x.requires_grad());
    }
    std::swap(out_shape[axis1], out_shape[axis2]);
    std::vector<T> out = serial::swapaxes<T>(x, x.shape(), axis1, axis2);
-   return Tensor<T>(std::move(out_shape), std::move(out), Device::CPU);
+   return Tensor<T>(std::move(out_shape), std::move(out), x.dtype(), Device::CPU);
 }
 } // namespace linalg
 
