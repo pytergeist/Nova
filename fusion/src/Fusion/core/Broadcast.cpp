@@ -41,7 +41,7 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs) -> Broadca
    // broadcastable starting with the right most axes and incramenting left.
    //***************************
 
-   std::vector<std::vector<std::int64_t>> sizes(descs.size());
+   std::vector<std::vector<std::size_t>> sizes(descs.size());
    std::vector<std::vector<std::int64_t>> strides(descs.size());
 
    for (std::size_t op = 0; op < descs.size(); ++op) {
@@ -66,7 +66,7 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs) -> Broadca
    // Otherwise a runtime error is raised as broadcasting is unachievable.
    plan.out_sizes.resize(max_ndims);
    for (std::size_t dim = 0; dim < max_ndims; ++dim) {
-      std::int64_t out_dim = 1;
+      std::size_t out_dim = 1;
       for (std::size_t op = 0; op < plan.num_operands; ++op) {
          auto new_dim = sizes[op][dim];
          if (new_dim != 1) {
