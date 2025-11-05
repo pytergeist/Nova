@@ -14,33 +14,6 @@
 #include "EwiseMeta.h"
 
 namespace ewise {
-inline std::vector<int64_t>
-contig_elem_strides(const std::vector<size_t> &shape) {
-   std::vector<int64_t> st(shape.size());
-   int64_t r = 1;
-   for (int i = (int)shape.size() - 1; i >= 0; --i) {
-      st[i] = r;
-      r *= (int64_t)shape[i];
-   }
-   return st;
-}
-
-template <typename T>
-inline TensorDescription make_desc(const std::vector<std::size_t> &shape,
-                                   const std::size_t * strides_elems) {
-   // Create TensorDescription with ndims (shape.size()), int64_t vector of
-   // sizes (shape), strides is stride_elems is not a nullptr, and itemsize
-   std::vector<std::size_t> sz(shape.begin(), shape.end());
-   std::vector<std::int64_t> st;
-   if (strides_elems) {
-      st.assign(strides_elems, strides_elems + static_cast<int>(shape.size()));
-      }
-   else {
-      st = contig_elem_strides(shape);
-      }
-   return TensorDescription{static_cast<std::size_t>(shape.size()), std::move(sz),
-                            std::move(st), sizeof(T)};
-}
 
 template <std::size_t N, class InnerFn>
 inline void walk(int dim, const int inn, const BroadcastPlan &plan, std::array<uint8_t *, N>& ptr, InnerFn &&inner) {
@@ -182,7 +155,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
 
 // Tag = ExponentialSIMD / NaturalLogSIMD / ...
 template <typename T, class Tag, class TensorT>
-void unary_ewise_tag(const TensorT &A, std::vector<size_t> &out_shape,
+void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta& meta,
                      TensorT &out_data) {
 
       std::array<uint8_t *, 2> base = {
@@ -191,33 +164,20 @@ void unary_ewise_tag(const TensorT &A, std::vector<size_t> &out_shape,
 	};
 
 
-    if (A.is_contiguous()) { // TODO: is contig check correct here?
-   	 const size_t len = A.flat_size();
-   	 out_shape = A.shape();
-   	 auto *o = reinterpret_cast<T *>(
-   	  base[0]); // takes bytes ptr and treats it as if it were a ptr to T
-   	 // (dtype from template)
-   	 const auto *a = reinterpret_cast<const T *>(base[1]); // same as above
-		if constexpr (simd_traits<Tag, T>::available) {
-   	 	simd_traits<Tag, T>::execute_contiguous(
-   	                 	a, o, static_cast<size_t>(len), false);
-   	 	}
-   	 tag_fallback_unary<T, Tag>(o, a, 1, 1, len);
+    if (meta.fastpath) { // TODO: is contig check correct here?
+   	 auto *o = reinterpret_cast<T *>(base[0]);
+   	 const auto *a = reinterpret_cast<const T *>(base[1]);
+     const size_t len = meta.fast_len;
+     if constexpr (simd_traits<Tag, T>::available) {
+   	 	simd_traits<Tag, T>::execute_contiguous(a, o, len, false);
+   	 	} else {
+   	     tag_fallback_unary<T, Tag>(o, a, 1, 1, len);
+         }
    	 return;
    	}
 
-   auto dA = make_desc<T>(A.shape(), nullptr);
-   auto plan_in = make_broadcast_plan({dA});
-
-   out_shape.assign(plan_in.out_sizes.begin(), plan_in.out_sizes.end());
-   size_t n_out = std::accumulate(out_shape.begin(), out_shape.end(),
-                                  static_cast<size_t>(1), std::multiplies<>());
-
-   auto dOut = make_desc<T>(out_shape, nullptr);
-   auto plan = make_broadcast_plan({dOut, dA});
-
    for_each_outer_then_inner<2>(
-       plan, base,
+       meta.plan, base,
        [&](std::array<uint8_t *, 2> &p, int64_t len,
            const std::vector<int64_t> &sbytes) {
           const auto step = static_cast<int64_t>(

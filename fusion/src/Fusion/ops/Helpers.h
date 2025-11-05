@@ -18,8 +18,8 @@ inline Tensor<T> init_out_from_meta(const Tensor<T> &x, const Tensor<T> &y, cons
 }
 
 template <typename T>
-inline Tensor<T> init_un_out_tensor(const Tensor<T> &x) {
-   return Tensor<T>(x.shape(), Device::CPU, x.dtype(), x.requires_grad()); // TODO: This is LHS aligned on shape
+inline Tensor<T> init_out_from_meta(const Tensor<T> &x, const UnaryEwiseMeta& m) {
+   return Tensor<T>(m.out_shape, Device::CPU, x.dtype(), x.requires_grad()); // TODO: This is LHS aligned on shape
 }
 
 #endif // OP_HELPERS_H
