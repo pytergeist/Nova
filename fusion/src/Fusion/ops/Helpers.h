@@ -4,6 +4,7 @@
 #include <cassert>
 #include "../Tensor.h"
 #include "../core/Device.h"
+#include "../core/EwiseMeta.h"
 
 template <typename T> bool grad_flow(const Tensor<T> &x, const Tensor<T> &y) {
    return x.requires_grad() || y.requires_grad();
@@ -11,21 +12,13 @@ template <typename T> bool grad_flow(const Tensor<T> &x, const Tensor<T> &y) {
 
 
 template <typename T>
-inline Tensor<T> init_bin_out_tensor(const Tensor<T> &x, const Tensor<T> &y) {
-   assert((x.dtype_size() == y.dtype_size()) && "binary op: dtype sizes must match" ); // TODO: abstract into macro (change from assert)
-   if ((x.shape() == y.shape()) && (x.is_contiguous() && y.is_contiguous())) { // TODO: make macro for equal shape/contig path
-      return Tensor<T>(x.shape(), Device::CPU, x.dtype(), grad_flow(x, y));
-   }
-   auto dA = ewise::make_desc<T>(x.shape(), nullptr); // TODO: abstract this out of here or pass in plan? duplicate code
-   auto dB = ewise::make_desc<T>(y.shape(), nullptr);
-   auto plan_in = make_broadcast_plan({dA, dB});
-   std::vector<size_t> out_shape(plan_in.out_sizes.begin(), plan_in.out_sizes.end());
-   return Tensor<T>(out_shape, Device::CPU, x.dtype(), grad_flow(x, y)); // TODO: This is LHS aligned on shape
+inline Tensor<T> init_out_from_meta(const Tensor<T> &x, const Tensor<T> &y, const BinaryEwiseMeta& m) {
+    FUSION_CHECK(x.dtype() == y.dtype(), "dtypes do not match!");
+    return Tensor<T>(m.out_shape, Device::CPU, x.dtype(), grad_flow(x, y));
 }
 
 template <typename T>
 inline Tensor<T> init_un_out_tensor(const Tensor<T> &x) {
-
    return Tensor<T>(x.shape(), Device::CPU, x.dtype(), x.requires_grad()); // TODO: This is LHS aligned on shape
 }
 

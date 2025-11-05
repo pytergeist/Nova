@@ -11,6 +11,7 @@
 #include "../cpu/SimdTraits.h"
 #include "Broadcast.h"
 #include "../cpu/simd/Vec128Neon.h"
+#include "EwiseMeta.h"
 
 namespace ewise {
 inline std::vector<int64_t>
@@ -25,16 +26,18 @@ contig_elem_strides(const std::vector<size_t> &shape) {
 }
 
 template <typename T>
-inline TensorDescription make_desc(const std::vector<size_t> &shape,
-                                   const int64_t *strides_elems) {
+inline TensorDescription make_desc(const std::vector<std::size_t> &shape,
+                                   const std::size_t * strides_elems) {
    // Create TensorDescription with ndims (shape.size()), int64_t vector of
    // sizes (shape), strides is stride_elems is not a nullptr, and itemsize
-   std::vector<int64_t> sz(shape.begin(), shape.end());
-   std::vector<int64_t> st;
-   if (strides_elems)
+   std::vector<std::size_t> sz(shape.begin(), shape.end());
+   std::vector<std::int64_t> st;
+   if (strides_elems) {
       st.assign(strides_elems, strides_elems + static_cast<int>(shape.size()));
-   else
+      }
+   else {
       st = contig_elem_strides(shape);
+      }
    return TensorDescription{static_cast<std::size_t>(shape.size()), std::move(sz),
                             std::move(st), sizeof(T)};
 }
@@ -69,7 +72,7 @@ inline void for_each_outer_then_inner(const BroadcastPlan &plan,
       // if ndim = 0 set s vector to num_operands(0)
       // e.g. if num_operands = 3, s = {0, 0, 0}, we then pass into
       // the inner func
-      static thread_local std::vector<int64_t> zeros;
+      static thread_local std::vector<std::int64_t> zeros;
       zeros.assign(plan.num_operands, 0);
       inner(base, 1, zeros);
       return;
@@ -87,55 +90,47 @@ inline void tag_fallback(T* o, const T* a, const T* b, const int64_t& so, const 
 }
 
 
+template <typename T, class Tag>
+inline void tag_fallback_unary(T* o, const T* a, const int64_t& so, const int64_t& sa, const std::size_t len) {
+          Tag tag{};
+          for (int64_t i = 0; i < len; ++i)
+             o[i * so] = tag(a[i * sa]);
+}
+
+
 // ############################################# //
 // New impl test with empty buff for out_data    //
 // ############################################# //
 
 template <typename T, class Tag, class TensorT>
 void binary_ewise_tag(const TensorT &A, const TensorT &B,
-                      std::vector<size_t> &out_shape,
-                      TensorT &out_data) {
-   // Initialise tensor descriptions with shape and stride
+                      const BinaryEwiseMeta& meta,
+                      TensorT &out) {
+
    FUSION_CHECK(A.is_initialised(), "binary ewise: LHS uninitialised");
    FUSION_CHECK(B.is_initialised(), "binary ewise: RHS uninitialised");
-   FUSION_CHECK(A.is_initialised() && B.is_initialised(),
-                "uninitialised tensor");
+   FUSION_CHECK(A.is_initialised() && B.is_initialised(), "uninitialised tensor");
    std::array<uint8_t *, 3> base = {
-        reinterpret_cast<uint8_t *>(const_cast<T *>(out_data.get_ptr())),
+        reinterpret_cast<uint8_t *>(const_cast<T *>(out.get_ptr())),
         reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
         reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr()))
         };
 
-   if (A.shape() == B.shape()) { // TODO: make shape checkl macro
-    const size_t len = A.flat_size();
-    out_shape = A.shape();
-    auto *o = reinterpret_cast<T *>(
-     base[0]); // takes bytes ptr and treats it as if it were a ptr to T
-    // (dtype from template)
-    const auto *a = reinterpret_cast<const T *>(base[1]); // same as above
-    const auto *b = reinterpret_cast<const T *>(base[2]); // same as above
-	if constexpr (simd_traits<Tag, T>::available) {
-    	simd_traits<Tag, T>::execute_contiguous(
-                    	a, b, o, static_cast<size_t>(len), false, false);
-    	}
+   if (meta.fastpath) {
+    auto *o = reinterpret_cast<T *>(base[0]);
+    const auto *a = reinterpret_cast<const T *>(base[1]);
+    const auto *b = reinterpret_cast<const T *>(base[2]);
+    const size_t len = meta.fast_len;
+    if constexpr (simd_traits<Tag, T>::available) {
+      simd_traits<Tag, T>::execute_contiguous(a, b, o, len, false, false);
+    } else {
     tag_fallback<T, Tag>(o, a, b, 1, 1, 1, len);
+    }
     return;
    }
 
-   auto dA = make_desc<T>(A.shape(), nullptr);
-   auto dB = make_desc<T>(B.shape(), nullptr);
-   auto plan_in = make_broadcast_plan({dA, dB});
-
-   out_shape.assign(plan_in.out_sizes.begin(), plan_in.out_sizes.end());
-   size_t n_out = std::accumulate(out_shape.begin(), out_shape.end(),
-                                  static_cast<size_t>(1), std::multiplies<>());
-
-   auto dOut = make_desc<T>(out_shape, nullptr);
-   auto plan = make_broadcast_plan({dOut, dA, dB});
-
-
    for_each_outer_then_inner<3>(
-       plan, base,
+       meta.plan, base,
        [&](std::array<uint8_t *, 3> &p, int64_t len,
            const std::vector<int64_t> &sbytes) {
           const auto step = static_cast<int64_t>(
@@ -190,9 +185,26 @@ template <typename T, class Tag, class TensorT>
 void unary_ewise_tag(const TensorT &A, std::vector<size_t> &out_shape,
                      TensorT &out_data) {
 
+      std::array<uint8_t *, 2> base = {
+  		 reinterpret_cast<uint8_t *>(out_data.get_ptr()),
+	     reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
+	};
 
 
-
+    if (A.is_contiguous()) { // TODO: is contig check correct here?
+   	 const size_t len = A.flat_size();
+   	 out_shape = A.shape();
+   	 auto *o = reinterpret_cast<T *>(
+   	  base[0]); // takes bytes ptr and treats it as if it were a ptr to T
+   	 // (dtype from template)
+   	 const auto *a = reinterpret_cast<const T *>(base[1]); // same as above
+		if constexpr (simd_traits<Tag, T>::available) {
+   	 	simd_traits<Tag, T>::execute_contiguous(
+   	                 	a, o, static_cast<size_t>(len), false);
+   	 	}
+   	 tag_fallback_unary<T, Tag>(o, a, 1, 1, len);
+   	 return;
+   	}
 
    auto dA = make_desc<T>(A.shape(), nullptr);
    auto plan_in = make_broadcast_plan({dA});
@@ -204,10 +216,6 @@ void unary_ewise_tag(const TensorT &A, std::vector<size_t> &out_shape,
    auto dOut = make_desc<T>(out_shape, nullptr);
    auto plan = make_broadcast_plan({dOut, dA});
 
-   std::array<uint8_t *, 2> base = {
-   reinterpret_cast<uint8_t *>(out_data.get_ptr()),
-   reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
-};
    for_each_outer_then_inner<2>(
        plan, base,
        [&](std::array<uint8_t *, 2> &p, int64_t len,
@@ -247,8 +255,7 @@ void unary_ewise_tag(const TensorT &A, std::vector<size_t> &out_shape,
           const int64_t sa = (sbytes[1] == 0) ? 0 : sbytes[1] / step;
           // uses tag struct from simd tags as fallback
           Tag tag{};
-          for (int64_t i = 0; i < len; ++i)
-             o[i * so] = tag(a[i * sa]);
+          tag_fallback_unary<T, Tag>(o, a, so, sa, len);
        });
 }
 } // namespace ewise

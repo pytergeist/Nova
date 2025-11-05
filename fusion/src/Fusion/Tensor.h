@@ -376,12 +376,12 @@ template <typename T> class Tensor {
    }
 
   auto& operator-=(const Tensor& other) {
-   std::vector<size_t> out_shape;
-   Tensor<T> tmp = init_bin_out_tensor(*this, other);
-   ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, tmp);
-   if (!out_shape.empty() && out_shape != tmp.shape()) {
-      Tensor<T> corrected(out_shape, Device::CPU, dtype(), grad_flow(*this, other));
-      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, out_shape, corrected);
+   BinaryEwiseMeta meta = make_binary_meta(*this, other);
+   Tensor<T> tmp = init_out_from_meta(*this, other, meta);
+   ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
+   if (!meta.out_shape.empty() && meta.out_shape != tmp.shape()) {
+      Tensor<T> corrected(meta.out_shape, Device::CPU, dtype(), grad_flow(*this, other));
+      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, corrected);
       replace_from_tmp(std::move(corrected));
    } else {
       replace_from_tmp(std::move(tmp));

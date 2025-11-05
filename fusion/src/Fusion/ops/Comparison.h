@@ -7,30 +7,31 @@
 #include "../core/ElementWise.h"
 #include "Helpers.h"
 #include "../core/Device.h"
+#include "../core/EwiseMeta.h"
 
 
 namespace math {
 template <typename T>
 inline Tensor<T> greater(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   Tensor<T> out = init_bin_out_tensor(x, y);
-   ewise::binary_ewise_tag<T, GreaterThanSIMD>(x, y, out_shape, out);
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, GreaterThanSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
 inline Tensor<T> greater_equal(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   Tensor<T> out = init_bin_out_tensor(x, y);
-   ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(x, y, out_shape, out);
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
 inline Tensor<T> maximum(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   Tensor<T> out = init_bin_out_tensor(x, y);
-   ewise::binary_ewise_tag<T, MaximumSIMD>(x, y, out_shape, out);
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, MaximumSIMD>(x, y, meta, out);
    return out;
 }
 } // namespace math
