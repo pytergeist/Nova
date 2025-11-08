@@ -288,6 +288,12 @@ inline void add_f32_neon(float* __restrict dst, const float* __restrict a, const
    const float * __restrict pb = b;
    float * __restrict pd = dst;
 
+   #if defined(__clang__) || defined(__GNUC__)
+     pa = (const float *)__builtin_assume_aligned(pa, 64);
+     pb = (const float *)__builtin_assume_aligned(pb, 64);
+     pd = (float *)__builtin_assume_aligned(pd, 164);
+   #endif
+
    for (; i + kBlock <= n; i += kBlock) {
       float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
    	  float32x4x4_t vb = vld1q_f32_x4(pb); pb += kBlock;
