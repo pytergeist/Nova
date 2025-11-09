@@ -88,17 +88,6 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
 endif()
 
 
-## --------------------------------------------
-## clang-tidy
-## --------------------------------------------
-set(_TIDY "/opt/homebrew/opt/llvm/bin/clang-tidy")
-
-foreach(tgt fusion_core fusion FusionExecutable fusion_test)
-  if (TARGET ${tgt})
-    set_property(TARGET ${tgt} PROPERTY CXX_CLANG_TIDY "${_TIDY}")
-  endif()
-endforeach()
-
 ## ------------------------------------------------------------
 ## Python extension module
 ## ------------------------------------------------------------
