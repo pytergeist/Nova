@@ -12,6 +12,8 @@
 #include <arm_neon.h>
 #endif
 
+#include "../../common/Hints.h"
+
 namespace simd {
 static constexpr std::size_t kNeonVectorBytes = 16;
 static constexpr std::size_t kF32Lanes = kNeonVectorBytes / sizeof(float);
@@ -288,11 +290,9 @@ inline void add_f32_neon(float* __restrict dst, const float* __restrict a, const
    const float * __restrict pb = b;
    float * __restrict pd = dst;
 
-   #if defined(__clang__) || defined(__GNUC__)
-     pa = (const float *)__builtin_assume_aligned(pa, 64);
-     pb = (const float *)__builtin_assume_aligned(pb, 64);
-     pd = (float *)__builtin_assume_aligned(pd, 164);
-   #endif
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
       float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
