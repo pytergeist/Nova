@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <initializer_list>
 #include <vector>
+#include <variant>
 
 // TODO: Create fixed size AutodiffMeta for hot paths
 
