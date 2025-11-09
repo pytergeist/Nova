@@ -538,92 +538,124 @@ inline void maximum_f32_neon_scalar_rhs(float* __restrict dst, const float* __re
 
 inline void add_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
                                     std::size_t n) {
-   float32x4_t vb = vdupq_n_f32(b);
    std::size_t i = 0;
+
+   const float * __restrict pa = a;
+   float32x4_t vb = vdupq_n_f32(b);
+   float * __restrict pd = dst;
+
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
+
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
-      vst1q_f32(dst + i + 0 * kF32Lanes, vaddq_f32(a0, vb));
-      vst1q_f32(dst + i + 1 * kF32Lanes, vaddq_f32(a1, vb));
-      vst1q_f32(dst + i + 2 * kF32Lanes, vaddq_f32(a2, vb));
-      vst1q_f32(dst + i + 3 * kF32Lanes, vaddq_f32(a3, vb));
+      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+
+      va.val[0] = vaddq_f32(va.val[0], vb);
+      va.val[1] = vaddq_f32(va.val[1], vb);
+      va.val[2] = vaddq_f32(va.val[2], vb);
+      va.val[3] = vaddq_f32(va.val[3], vb);
+
+      vst1q_f32_x4(pd, va); pd += kBlock;
+
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      vst1q_f32(dst + i, vaddq_f32(va, vb));
+      float32x4_t va = vld1q_f32(pa); pa += kStep;
+      vst1q_f32(pd, vaddq_f32(va, vb)); pd += kStep;
    }
    for (; i < n; ++i)
-      dst[i] = a[i] + b;
-}
+      *pd++ = *pa++ + b;
+  }
 
 inline void sub_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
                                     std::size_t n) {
-   float32x4_t vb = vdupq_n_f32(b);
    std::size_t i = 0;
+
+   const float * __restrict pa = a;
+   float32x4_t vb = vdupq_n_f32(b);
+   float * __restrict pd = dst;
+
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
+
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
-      vst1q_f32(dst + i + 0 * kF32Lanes, vsubq_f32(a0, vb));
-      vst1q_f32(dst + i + 1 * kF32Lanes, vsubq_f32(a1, vb));
-      vst1q_f32(dst + i + 2 * kF32Lanes, vsubq_f32(a2, vb));
-      vst1q_f32(dst + i + 3 * kF32Lanes, vsubq_f32(a3, vb));
+      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+
+      va.val[0] = vsubq_f32(va.val[0], vb);
+      va.val[1] = vsubq_f32(va.val[1], vb);
+      va.val[2] = vsubq_f32(va.val[2], vb);
+      va.val[3] = vsubq_f32(va.val[3], vb);
+
+      vst1q_f32_x4(pd, va); pd += kBlock;
+
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      vst1q_f32(dst + i, vsubq_f32(va, vb));
+      float32x4_t va = vld1q_f32(pa); pa += kStep;
+      vst1q_f32(pd, vsubq_f32(va, vb)); pd += kStep;
    }
    for (; i < n; ++i)
-      dst[i] = a[i] - b;
-}
+      *pd++ = *pa++ - b;
+  }
 
 inline void mul_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
                                     std::size_t n) {
-   float32x4_t vb = vdupq_n_f32(b);
    std::size_t i = 0;
+
+   const float * __restrict pa = a;
+   float32x4_t vb = vdupq_n_f32(b);
+   float * __restrict pd = dst;
+
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
+
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
-      vst1q_f32(dst + i + 0 * kF32Lanes, vmulq_f32(a0, vb));
-      vst1q_f32(dst + i + 1 * kF32Lanes, vmulq_f32(a1, vb));
-      vst1q_f32(dst + i + 2 * kF32Lanes, vmulq_f32(a2, vb));
-      vst1q_f32(dst + i + 3 * kF32Lanes, vmulq_f32(a3, vb));
+      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+
+      va.val[0] = vmulq_f32(va.val[0], vb);
+      va.val[1] = vmulq_f32(va.val[1], vb);
+      va.val[2] = vmulq_f32(va.val[2], vb);
+      va.val[3] = vmulq_f32(va.val[3], vb);
+
+      vst1q_f32_x4(pd, va); pd += kBlock;
+
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      vst1q_f32(dst + i, vmulq_f32(va, vb));
+      float32x4_t va = vld1q_f32(pa); pa += kStep;
+      vst1q_f32(pd, vmulq_f32(va, vb)); pd += kStep;
    }
    for (; i < n; ++i)
-      dst[i] = a[i] * b;
-}
+      *pd++ = *pa++ * b;
+  }
 
 inline void div_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
                                     std::size_t n) {
-   float32x4_t vb = vdupq_n_f32(b);
+
    std::size_t i = 0;
+
+   const float * __restrict pa = a;
+   float32x4_t vb = vdupq_n_f32(b);
+   float * __restrict pd = dst;
+
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
+
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
-      vst1q_f32(dst + i + 0 * kF32Lanes, vdivq_f32(a0, vb));
-      vst1q_f32(dst + i + 1 * kF32Lanes, vdivq_f32(a1, vb));
-      vst1q_f32(dst + i + 2 * kF32Lanes, vdivq_f32(a2, vb));
-      vst1q_f32(dst + i + 3 * kF32Lanes, vdivq_f32(a3, vb));
+      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+
+      va.val[0] = vdivq_f32(va.val[0], vb);
+      va.val[1] = vdivq_f32(va.val[1], vb);
+      va.val[2] = vdivq_f32(va.val[2], vb);
+      va.val[3] = vdivq_f32(va.val[3], vb);
+
+      vst1q_f32_x4(pd, va); pd += kBlock;
+
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      vst1q_f32(dst + i, vdivq_f32(va, vb));
+      float32x4_t va = vld1q_f32(pa); pa += kStep;
+      vst1q_f32(pd, vdivq_f32(va, vb)); pd += kStep;
    }
    for (; i < n; ++i)
-      dst[i] = a[i] / b;
-}
-
+      *pd++ = *pa++ / b;
+  }
 #else // --------- Fallback (non-NEON builds) ---------
 
 inline void greater_than_equal_f32_neon(float* __restrict dst, const float* __restrict a,
