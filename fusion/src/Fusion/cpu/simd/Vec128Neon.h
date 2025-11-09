@@ -83,72 +83,91 @@ inline void sum_f32_neon(float* __restrict dst, const float* __restrict a, std::
 inline void sqrt_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
    std::size_t i = 0;
 
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
+   const float * __restrict pa = a;
+   float * __restrict pd = dst;
 
-      vst1q_f32(dst + i + 0 * kF32Lanes, Sleef_sqrtf4_u05(a0));
-      vst1q_f32(dst + i + 1 * kF32Lanes, Sleef_sqrtf4_u05(a1));
-      vst1q_f32(dst + i + 2 * kF32Lanes, Sleef_sqrtf4_u05(a2));
-      vst1q_f32(dst + i + 3 * kF32Lanes, Sleef_sqrtf4_u05(a3));
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
+
+   for (; i + kBlock <= n; i += kBlock) {
+      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+
+      va.val[0] = Sleef_sqrtf4_u05(va.val[0]);
+      va.val[1] = Sleef_sqrtf4_u05(va.val[1]);
+      va.val[2] = Sleef_sqrtf4_u05(va.val[2]);
+      va.val[3] = Sleef_sqrtf4_u05(va.val[3]);
+
+      vst1q_f32_x4(pd, va); pd += kBlock;
+
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      vst1q_f32(dst + i, Sleef_sqrtf4_u05(va));
+      float32x4_t va = vld1q_f32(pa); pa += kStep;
+      vst1q_f32(pd, Sleef_sqrtf4_u05(va)); pd += kStep;
    }
    for (; i < n; ++i)
-      dst[i] = std::sqrt(a[i]);
+      *pd++ = std::sqrt(*pa++);
 }
+
 
 inline void exp_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
    std::size_t i = 0;
 
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
+   const float * __restrict pa = a;
+   float * __restrict pd = dst;
 
-      vst1q_f32(dst + i + 0 * kF32Lanes, Sleef_expf4_u10(a0));
-      vst1q_f32(dst + i + 1 * kF32Lanes, Sleef_expf4_u10(a1));
-      vst1q_f32(dst + i + 2 * kF32Lanes, Sleef_expf4_u10(a2));
-      vst1q_f32(dst + i + 3 * kF32Lanes, Sleef_expf4_u10(a3));
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
+
+   for (; i + kBlock <= n; i += kBlock) {
+      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+
+      va.val[0] = Sleef_expf4_u10(va.val[0]);
+      va.val[1] = Sleef_expf4_u10(va.val[1]);
+      va.val[2] = Sleef_expf4_u10(va.val[2]);
+      va.val[3] = Sleef_expf4_u10(va.val[3]);
+
+      vst1q_f32_x4(pd, va); pd += kBlock;
+
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      vst1q_f32(dst + i, Sleef_expf4_u10(va));
+      float32x4_t va = vld1q_f32(pa); pa += kStep;
+      vst1q_f32(pd, Sleef_expf4_u10(va)); pd += kStep;
    }
    for (; i < n; ++i)
-      dst[i] = std::exp(a[i]);
+      *pd++ = std::exp(*pa++);
 }
 
 inline void log_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
    std::size_t i = 0;
 
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
+   const float * __restrict pa = a;
+   float * __restrict pd = dst;
 
-      vst1q_f32(dst + i + 0 * kF32Lanes, Sleef_logf4_u10(a0));
-      vst1q_f32(dst + i + 1 * kF32Lanes, Sleef_logf4_u10(a1));
-      vst1q_f32(dst + i + 2 * kF32Lanes, Sleef_logf4_u10(a2));
-      vst1q_f32(dst + i + 3 * kF32Lanes, Sleef_logf4_u10(a3));
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
+
+   for (; i + kBlock <= n; i += kBlock) {
+      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+
+      va.val[0] = Sleef_logf4_u10(va.val[0]);
+      va.val[1] = Sleef_logf4_u10(va.val[1]);
+      va.val[2] = Sleef_logf4_u10(va.val[2]);
+      va.val[3] = Sleef_logf4_u10(va.val[3]);
+
+      vst1q_f32_x4(pd, va); pd += kBlock;
+
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      vst1q_f32(dst + i, Sleef_logf4_u10(va));
+      float32x4_t va = vld1q_f32(pa); pa += kStep;
+      vst1q_f32(pd, Sleef_logf4_u10(va)); pd += kStep;
    }
    for (; i < n; ++i)
-      dst[i] = std::log(a[i]);
+      *pd++ = std::log(*pa++);
 }
 
 inline void pow_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
                          std::size_t n) {
-std::size_t i = 0;
+   std::size_t i = 0;
 
    const float * __restrict pa = a;
    const float * __restrict pb = b;
