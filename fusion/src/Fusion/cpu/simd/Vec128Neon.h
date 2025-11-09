@@ -148,31 +148,35 @@ inline void log_f32_neon(float* __restrict dst, const float* __restrict a, std::
 
 inline void pow_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
                          std::size_t n) {
-   std::size_t i = 0;
+std::size_t i = 0;
+
+   const float * __restrict pa = a;
+   const float * __restrict pb = b;
+   float * __restrict pd = dst;
+
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
+      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+   	  float32x4x4_t vb = vld1q_f32_x4(pb); pb += kBlock;
 
-      float32x4_t b0 = vld1q_f32(b + i + 0 * kF32Lanes);
-      float32x4_t b1 = vld1q_f32(b + i + 1 * kF32Lanes);
-      float32x4_t b2 = vld1q_f32(b + i + 2 * kF32Lanes);
-      float32x4_t b3 = vld1q_f32(b + i + 3 * kF32Lanes);
+      va.val[0] = Sleef_powf4_u10(va.val[0], vb.val[0]);
+      va.val[1] = Sleef_powf4_u10(va.val[1], vb.val[1]);
+      va.val[2] = Sleef_powf4_u10(va.val[2], vb.val[2]);
+      va.val[3] = Sleef_powf4_u10(va.val[3], vb.val[3]);
 
-      vst1q_f32(dst + i + 0 * kF32Lanes, Sleef_powf4_u10(a0, b0));
-      vst1q_f32(dst + i + 1 * kF32Lanes, Sleef_powf4_u10(a1, b1));
-      vst1q_f32(dst + i + 2 * kF32Lanes, Sleef_powf4_u10(a2, b2));
-      vst1q_f32(dst + i + 3 * kF32Lanes, Sleef_powf4_u10(a3, b3));
+      vst1q_f32_x4(pd, va); pd += kBlock;
+
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      float32x4_t vb = vld1q_f32(b + i);
-      vst1q_f32(dst + i, Sleef_powf4_u10(va, vb));
+      float32x4_t va = vld1q_f32(pa); pa += kStep;
+      float32x4_t vb = vld1q_f32(pb); pb += kStep;
+      vst1q_f32(pd, Sleef_powf4_u10(va, vb)); pd += kStep;
    }
    for (; i < n; ++i)
-      dst[i] = std::pow(a[i], b[i]);
+      *pd++ = std::pow(*pa++, *pb++);
 }
 
 inline void maximum_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
@@ -493,26 +497,33 @@ inline void greater_than_equal_f32_neon_scalar(float* __restrict dst, const floa
 
 inline void pow_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, const float b,
                                     std::size_t n) {
-   float32x4_t vb = vdupq_n_f32(b);
    std::size_t i = 0;
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
 
-      vst1q_f32(dst + i + 0 * kF32Lanes, Sleef_powf4_u10(a0, vb));
-      vst1q_f32(dst + i + 1 * kF32Lanes, Sleef_powf4_u10(a1, vb));
-      vst1q_f32(dst + i + 2 * kF32Lanes, Sleef_powf4_u10(a2, vb));
-      vst1q_f32(dst + i + 3 * kF32Lanes, Sleef_powf4_u10(a3, vb));
+   const float * __restrict pa = a;
+   float32x4_t vb = vdupq_n_f32(b);
+   float * __restrict pd = dst;
+
+   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
+   FUSION_ASSUME_ALIGNED(float, pd, 64);
+
+   for (; i + kBlock <= n; i += kBlock) {
+      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+
+      va.val[0] = Sleef_powf4_u10(va.val[0], vb);
+      va.val[1] = Sleef_powf4_u10(va.val[1], vb);
+      va.val[2] = Sleef_powf4_u10(va.val[2], vb);
+      va.val[3] = Sleef_powf4_u10(va.val[3], vb);
+
+      vst1q_f32_x4(pd, va); pd += kBlock;
+
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      vst1q_f32(dst + i, Sleef_powf4_u10(va, vb));
+      float32x4_t va = vld1q_f32(pa); pa += kStep;
+      vst1q_f32(pd, Sleef_powf4_u10(va, vb)); pd += kStep;
    }
    for (; i < n; ++i)
-      dst[i] = std::pow(a[i], b);
-}
+      *pd++ = std::pow(*pa++, b);
+  }
 
 inline void maximum_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
                                         std::size_t n) {
