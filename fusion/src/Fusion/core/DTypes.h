@@ -17,6 +17,7 @@ inline std::size_t get_dtype_size(DType dtype) {
         case DType::Int64:
             return sizeof(int64_t);
     }
+    throw std::runtime_error("Unknown DType");
 }
 
 #endif // DTYPE_H
