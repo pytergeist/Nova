@@ -1,11 +1,12 @@
 #ifndef OPERATION_H
 #define OPERATION_H
 
-#include "../../Tensor.h"
 #include <any>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+template <typename U> class Tensor;
 
 template <typename T> struct BinaryType {
    std::vector<T> a;

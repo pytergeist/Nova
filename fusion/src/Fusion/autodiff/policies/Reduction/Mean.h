@@ -1,12 +1,11 @@
 #ifndef SUM_H
 #define SUM_H
 
-#include "../../AutodiffMode.h"
-#include "../../TensorFactory.h"
-#include "../../autodiff/Traits.h"
-#include "../Operation.h"
 #include <string_view>
 #include <vector>
+#include "../../AutodiffMode.h"
+#include "../../Traits.h"
+#include "../Operation.h"
 
 template <typename T> struct Mean {
    inline static constexpr std::string_view name = "Mean";

@@ -2,13 +2,14 @@
 #ifndef SWAPAXES_POLICY_H
 #define SWAPAXES_POLICY_H
 
-#include "../../../Tensor.h"
+
+#include <string_view>
 #include "../../AutodiffMode.h"
 #include "../../Traits.h"
-#include "../../common/Checks.h"
-#include "../../kernels/Serial.h"
+#include "../../../common/Checks.h"
+#include "../../../kernels/Serial.h"
 #include "../Operation.h"
-#include <string_view>
+
 
 template <typename T> struct SwapAxes {
    inline static constexpr std::string_view name = "SwapAxes";
@@ -27,7 +28,7 @@ template <typename T> struct SwapAxes {
       int aa2 = serial::normalise_axis(a2, x.rank());
       FUSION_CHECK(aa1 != aa2, "SwapAxes: axes must be different");
 
-      Tensor<T> y = x.swapaxes(aa1, aa2);
+      auto y = x.swapaxes(aa1, aa2);
       Out out;
       out.push_back(y);
       return out;
@@ -40,9 +41,9 @@ template <typename T> struct SwapAxes {
       FUSION_CHECK(grad_out.size() == 1,
                    "SwapAxes::backward expects 1 upstream grad");
 
-      const Tensor<T> &gy = grad_out[0];
+      const auto &gy = grad_out[0];
       FUSION_CHECK(!gy.empty(), "SwapAxes::backward: upstream grad is empty");
-      Tensor<T> ga = gy.swapaxes(-1, -2);
+      auto ga = gy.swapaxes(-1, -2);
       GradIn g;
       g.push_back(ga);
       return g;

@@ -12,6 +12,7 @@
 #include "../../Tensor.h"
 #include "../../TensorFactory.h"
 #include "Helpers.h"
+#include "../../core/DTypes.h"
 
 namespace py = pybind11;
 
@@ -25,7 +26,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                size_t total = std::accumulate(shape.begin(), shape.end(),
                                               static_cast<size_t>(1),
                                               std::multiplies<size_t>());
-               return new PyT(shape, std::vector<T>(total), Device::CPU,
+               return new PyT(shape, std::vector<T>(total), DType::Float32, Device::CPU, // TODO: pass in dtype from python layer
                               requires_grad);
             }),
             py::arg("shape"), py::arg("requires_grad"),
@@ -41,7 +42,8 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                if (data.size() != total) {
                   throw std::invalid_argument("shape* must equal data.size()");
                }
-               return new PyT(shape, data, Device::CPU, requires_grad);
+               return new PyT(shape, data, DType::Float32, Device::CPU, requires_grad); // TODO: pass dtype in from python layer,
+               // TODO: setup dtype policies inside the python layer
             }),
             py::arg("shape"), py::arg("data"), py::arg("requires_grad"),
             "Construct a Tensor from a shape list and a flat data list. "
@@ -64,7 +66,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
 
        // --- shape & size accessors ---
        .def_property_readonly(
-           "shape", [](const PyT &t) { return t.shape_; },
+           "shape", [](const PyT &t) { return t.shape(); },
            "Returns the shape as a list of ints.")
        .def_property_readonly(
            "ndim", [](const PyT &t) { return t.rank(); },
@@ -76,10 +78,11 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                               "Total number of elements (product of shape).")
 
        // --- requires_grad property (read/write) ---
-       .def_property(
-           "requires_grad", [](const PyT &t) { return t.requires_grad(); },
-           [](PyT &t, bool v) { t.requires_grad_ = v; },
-           "Whether this tensor participates in autodiff.")
+		.def_property(
+   			 "requires_grad",
+   			 &PyT::requires_grad,
+   			 &PyT::set_requires_grad,
+   			 "Requires grad flag")
 
        // --- convert to NumPy array ---
        .def("to_numpy", &tensor_py_helpers::tensor_to_numpy,

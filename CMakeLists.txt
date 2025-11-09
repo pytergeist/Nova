@@ -88,7 +88,6 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
 endif()
 
 
-
 ## ------------------------------------------------------------
 ## Python extension module
 ## ------------------------------------------------------------
@@ -114,13 +113,19 @@ install(TARGETS fusion LIBRARY DESTINATION ${PY_EXT_INSTALL_DIR})
 # ------------------------------------------------------------
 # Executable
 # ------------------------------------------------------------
-add_executable(FusionExecutable
-        ${FUSION_SRC_DIR}/main.cpp
-)
-target_link_libraries(FusionExecutable PRIVATE
-        fusion_core
-        ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK}
-)
+option(NOVA_BUILD_CLI "Build CLI FusionExecutable" OFF)
+
+if (NOVA_BUILD_CLI)
+  add_executable(FusionExecutable
+          ${FUSION_SRC_DIR}/main.cpp
+  )
+  target_link_libraries(FusionExecutable PRIVATE
+          fusion_core
+          ${BLAS_LIBRARIES} ${ACCELERATE_FRAMEWORK}
+  )
+  set_property(TARGET FusionExecutable PROPERTY CXX_CLANG_TIDY "")
+endif()
+
 
 # ------------------------------------------------------------
 # Optional AddressSanitizer (exe only)
@@ -147,16 +152,18 @@ add_subdirectory(fusion/benchmarks)
 # ------------------------------------------------------------
 # GTest
 # ------------------------------------------------------------
-enable_testing()
-add_executable(fusion_test
-        ${FUSION_SRC_DIR}/tests/tensor/cpu/operations.cpp
-)
+if (NOVA_BUILD_TEST)
+  enable_testing()
+  add_executable(fusion_test
+          ${FUSION_SRC_DIR}/tests/tensor/cpu/operations.cpp
+  )
 
-target_link_libraries(fusion_test PRIVATE
-        fusion_core
-        GTest::gtest
-        GTest::gtest_main
-)
+  target_link_libraries(fusion_test PRIVATE
+          fusion_core
+          GTest::gtest
+          GTest::gtest_main
+  )
 
-include(GoogleTest)
-gtest_discover_tests(fusion_test)
+  include(GoogleTest)
+  gtest_discover_tests(fusion_test)
+endif()

@@ -1,12 +1,12 @@
 #ifndef GREATER_THAN_H
 #define GREATER_THAN_H
 
-#include "../../AutodiffMode.h"
-#include "../../TensorFactory.h"
-#include "../../autodiff/Traits.h"
-#include "../Operation.h"
 #include <string_view>
 #include <vector>
+#include "../../AutodiffMode.h"
+#include "../../../TensorFactory.h"
+#include "../../Traits.h"
+#include "../Operation.h"
 
 template <typename T> struct GreaterThan {
    inline static constexpr std::string_view name = "GreaterThan";

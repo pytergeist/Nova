@@ -9,27 +9,24 @@
 namespace math {
 
 template <typename T> inline Tensor<T> sqrt(const Tensor<T> &x) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::unary_ewise_tag<T, SqrtSIMD>(x, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 x.requires_grad());
+   UnaryEwiseMeta meta = make_binary_meta(x);
+   Tensor<T> out = init_out_from_meta(x, meta);
+   ewise::unary_ewise_tag<T, SqrtSIMD>(x, meta, out);
+   return out;
 }
 
 template <typename T> inline Tensor<T> log(const Tensor<T> &x) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::unary_ewise_tag<T, NaturalLogSIMD>(x, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 x.requires_grad());
+   UnaryEwiseMeta meta = make_binary_meta(x);
+   Tensor<T> out = init_out_from_meta(x, meta);
+   ewise::unary_ewise_tag<T, NaturalLogSIMD>(x, meta, out);
+   return out;
 }
 
 template <typename T> inline Tensor<T> exp(const Tensor<T> &x) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::unary_ewise_tag<T, ExponentialSIMD>(x, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 x.requires_grad());
+   UnaryEwiseMeta meta = make_binary_meta(x);
+   Tensor<T> out = init_out_from_meta(x, meta);
+   ewise::unary_ewise_tag<T, ExponentialSIMD>(x, meta, out);
+   return out;
 }
 
 } // namespace math

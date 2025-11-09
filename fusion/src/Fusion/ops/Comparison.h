@@ -1,38 +1,38 @@
 #ifndef OPS_COMPARISON_H
 #define OPS_COMPARISON_H
 
+#include <string_view>
+#include <vector>
 #include "../Tensor.h"
 #include "../core/ElementWise.h"
 #include "Helpers.h"
-#include <string_view>
-#include <vector>
+#include "../core/Device.h"
+#include "../core/EwiseMeta.h"
+
 
 namespace math {
 template <typename T>
 inline Tensor<T> greater(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::binary_ewise_tag<T, GreaterThanSIMD>(x, y, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 grad_flow(x, y));
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, GreaterThanSIMD>(x, y, meta, out);
+   return out;
 }
 
 template <typename T>
 inline Tensor<T> greater_equal(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(x, y, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 grad_flow(x, y));
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, GreaterThanEqualSIMD>(x, y, meta, out);
+   return out;
 }
 
 template <typename T>
 inline Tensor<T> maximum(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::binary_ewise_tag<T, MaximumSIMD>(x, y, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 grad_flow(x, y));
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, MaximumSIMD>(x, y, meta, out);
+   return out;
 }
 } // namespace math
 

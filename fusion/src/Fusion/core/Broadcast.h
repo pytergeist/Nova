@@ -6,27 +6,27 @@
 #include <vector>
 
 struct TensorDescription {
-   int ndims;
-   std::vector<std::int64_t> sizes;
+   std::size_t ndims;
+   std::vector<std::size_t> sizes;
    std::vector<std::int64_t> strides;
    std::size_t itemsize;
 };
 
 struct LoopDim {
-   std::int64_t size;
-   std::vector<int64_t> stride_bytes;
+   std::size_t size;
+   std::vector<std::int64_t> stride_bytes;
 };
 
 struct BroadcastPlan {
-   int num_operands;
-   int out_ndim;
-   std::vector<int64_t> out_sizes;
+   std::size_t num_operands;
+   std::size_t out_ndim;
+   std::vector<std::size_t> out_sizes;
    std::vector<LoopDim> loop;
 
    bool all_contiguous_like{false};
-   int64_t vector_bytes{0};
+   std::size_t vector_bytes{0};
 
-   std::vector<int64_t> out_strides;
+   std::vector<std::int64_t> out_strides;
    std::size_t itemsize;
 };
 

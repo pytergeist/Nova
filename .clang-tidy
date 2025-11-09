@@ -1,0 +1,26 @@
+Checks: >
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  readability-*,
+  -readability-identifier-length,
+  modernize-*,
+  -modernize-macro-to-enum,
+  -modernize-return-braced-init-list,
+  -modernize-use-auto,
+  -modernize-use-using,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-do-while
+  concurrency-*,
+  misc-*,
+  -misc-include-cleaner,
+  portability-*,
+  -fuchsia-*,
+  -google-*,
+  -llvm-header-guard
+
+WarningsAsErrors: '*'
+HeaderFilterRegex: '^(?!.*(?:/fusion/src/Fusion/cpu/simd/|/fusion/src/benchmarks/)).*/fusion'
+FormatStyle: none

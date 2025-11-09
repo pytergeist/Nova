@@ -1,12 +1,11 @@
 #ifndef REDUCTION_H
 #define REDUCTION_H
 
-#include "../../AutodiffMode.h"
-#include "../../TensorFactory.h"
-#include "../../autodiff/Traits.h"
-#include "../Operation.h"
 #include <string_view>
 #include <vector>
+#include "../../AutodiffMode.h"
+#include "../../Traits.h"
+#include "../Operation.h"
 
 template <typename T> struct Sum {
    inline static constexpr std::string_view name = "Sum";

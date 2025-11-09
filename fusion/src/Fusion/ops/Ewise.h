@@ -7,52 +7,48 @@
 #include "../core/ElementWise.h"
 #include "Helpers.h"
 #include "../storage/StorageInterface.h"
+#include "../core/EwiseMeta.h"
 
 namespace math {
 
 template <typename T>
 inline Tensor<T> add(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::binary_ewise_tag<T, AddSIMD>(x, y, out_shape, out_data);
-   return Tensor<T>(std::move(out_shape), std::move(out_data), Device::CPU,
-                    grad_flow(x, y));
+    BinaryEwiseMeta meta = make_binary_meta(x, y);
+    Tensor<T> out = init_out_from_meta(x, y, meta);
+    ewise::binary_ewise_tag<T, AddSIMD>(x, y, meta, out);
+    return out;
 }
 
 template <typename T>
 inline Tensor<T> sub(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::binary_ewise_tag<T, SubtractSIMD>(x, y, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 grad_flow(x, y));
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, SubtractSIMD>(x, y, meta, out);
+   return out;
 }
 
 template <typename T>
 inline Tensor<T> mul(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::binary_ewise_tag<T, MultiplySIMD>(x, y, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 grad_flow(x, y));
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, MultiplySIMD>(x, y, meta, out);
+   return out;
 }
 
 template <typename T>
 inline Tensor<T> div(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::binary_ewise_tag<T, DivideSIMD>(x, y, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 grad_flow(x, y));
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, DivideSIMD>(x, y, meta, out);
+   return out;
 }
 
 template <typename T>
 inline Tensor<T> pow(const Tensor<T> &x, const Tensor<T> &y) {
-   std::vector<size_t> out_shape;
-   std::vector<T> out_data;
-   ewise::binary_ewise_tag<T, PowerSIMD>(x, y, out_shape, out_data);
-   return Tensor(std::move(out_shape), std::move(out_data), Device::CPU,
-                 grad_flow(x, y));
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   Tensor<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, PowerSIMD>(x, y, meta, out);
+   return out;
 }
 
 } // namespace math

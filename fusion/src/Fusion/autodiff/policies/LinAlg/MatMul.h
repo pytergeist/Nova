@@ -1,12 +1,12 @@
 #ifndef MATMUL_H
 #define MATMUL_H
 
-#include "../../AutodiffMode.h"
-#include "../../autodiff/Traits.h"
-#include "../../common/Log.h"
-#include "../Operation.h"
 #include <string_view>
 #include <vector>
+#include "../../AutodiffMode.h"
+#include "../../Traits.h"
+#include "../../../common/Log.h"
+#include "../Operation.h"
 
 template <typename T> struct MatMul {
    inline static constexpr std::string_view name = "MatMul";
@@ -25,8 +25,8 @@ template <typename T> struct MatMul {
       context.save("a", a);
       context.save("b", b);
       FUSION_CHECK(a.rank() >= 2 && b.rank() >= 2, "MatMul: rank must be >= 2");
-      const auto K_a = a.shape_.back();
-      const auto K_b = b.shape_[b.rank() - 2];
+      const auto K_a = a.shape().back();
+      const auto K_b = b.shape()[b.rank() - 2];
       FUSION_CHECK(K_a == K_b, "MatMul: inner dims mismatch");
       Tensor<T> c = a.matmul(b);
       Out out;

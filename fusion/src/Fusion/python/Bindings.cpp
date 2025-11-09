@@ -1,19 +1,25 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/detail/common.h>
+#include <pybind11/pytypes.h>
+#include <pybind11/cast.h>
+
 #include "../../autodiff/AutodiffBridge.h"
+#include "../../autodiff/AutodiffMode.h"
 #include "../../autodiff/EngineContext.h"
 #include "factory/BindFactory.h"
 #include "random/BindRandom.h"
 #include "tensor/BindTensor.h"
-#include <pybind11/pybind11.h>
+
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(fusion, m) {
-   m.doc() = "Fusion Tensor module exposing Tensor<float> (for composition)";
-   bind_tensor<float>(m, "Tensor");
-   bind_factory<float>(m, "factory");
-   bind_random<float>(m, "Random");
+PYBIND11_MODULE(fusion, m_ten) {
+   m_ten.doc() = "Fusion Tensor module exposing Tensor<float> (for composition)";
+   bind_tensor<float>(m_ten, "Tensor");
+   bind_factory<float>(m_ten, "factory");
+   bind_random<float>(m_ten, "Random");
 
-   py::class_<EngineScope<float>>(m, "grad_tape")
+   py::class_<EngineScope<float>>(m_ten, "grad_tape")
        .def(py::init<>())
        .def(
            "__enter__",
@@ -23,19 +29,19 @@ PYBIND11_MODULE(fusion, m) {
            },
            py::return_value_policy::reference)
        .def("__exit__",
-            [](EngineScope<float> &self, py::object, py::object, py::object) {
+            [](EngineScope<float> &self, const py::object&, const py::object&, const py::object&) -> bool {
                self.exit();
                return false;
             });
 
-   auto m_ad = m.def_submodule("autodiff", "Autodiff control");
+   auto m_ad = m_ten.def_submodule("autodiff", "Autodiff control");
 
    m_ad.def(
        "enabled",
-       [](pybind11::object state) {
+       [](pybind11::object &state) -> bool {
           if (!state.is_none()) {
-             bool on = pybind11::cast<bool>(state);
-             set_autodiff_enabled<float>(on);
+             const bool active = pybind11::cast<bool>(state);
+             set_autodiff_enabled<float>(active);
           }
           return autodiff::grad_enabled();
        },

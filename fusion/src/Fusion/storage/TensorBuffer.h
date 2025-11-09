@@ -80,6 +80,12 @@ class TensorBuffer {
       return data_as<const T>(elem_off * sizeof(T));
    }
 
+   void swap(TensorBuffer& other) noexcept {
+    std::swap(ptr_, other.ptr_);
+    std::swap(size_, other.size_);
+    std::swap(alignment_, other.alignment_);
+}
+
    template <typename T> std::size_t size() const noexcept {
       return size_ / sizeof(T);
    };

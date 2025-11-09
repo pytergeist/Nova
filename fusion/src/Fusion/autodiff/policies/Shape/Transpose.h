@@ -1,7 +1,7 @@
 #ifndef TRANSPOSE_H
 #define TRANSPOSE_H
 
-#include "../../autodiff/Traits.h"
+#include "../../Traits.h"
 #include "../Operation.h"
 #include <string_view>
 #include <vector>
