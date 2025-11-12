@@ -59,9 +59,35 @@ class Bucket {
      std::byte* mem_data_{nullptr};
      std::byte* mem_ledger_{nullptr};
 
+     inline void set_bit(std::byte* ledger, std::size_t bit_index) noexcept {
+        const std::size_t byte_idx = bit_index / 8;
+        const std::size_t bit_off = byte_idx % 8;
+        const std::byte mask = std::byte{1u} << bit_off;
+		ledger[byte_idx] |= mask;
+     }
+
+     inline void clear_bit(std::byte* ledger, std::size_t bit_index) noexcept {
+        const std::size_t byte_idx = bit_index / 8;
+        const std::size_t bit_off = byte_idx % 8;
+        const std::byte mask = std::byte{1u} << bit_off;
+        ledger[byte_idx] &= ~(mask);
+     }
+
      std::size_t find_contiguous_blocks(std::size_t n) const noexcept; // TODO: impl
-     void set_blocks_in_use(std::size_t idx, std::size_t n) noexcept; // TODO: impl
-     void set_blocks_free(std::size_t idx, std::size_t n) noexcept; // TODO: impl
+
+     void set_blocks_in_use(std::size_t idx, std::size_t n) noexcept {
+        assert(idx + n <= block_count_);
+        for (std::size_t i = 0; i < n; ++i) {
+           set_bit(mem_ledger_, idx);
+        }
+     }
+
+     void set_blocks_free(std::size_t idx, std::size_t n) noexcept {
+        assert(idx + n <= block_count_);
+        for (std::size_t i = 0; i < n; ++i) {
+           clear_bit(mem_ledger_, idx);
+        }
+     }
 };
 
 template<std::size_t Id>
