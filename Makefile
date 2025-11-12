@@ -90,6 +90,21 @@ dev:
 		echo "Note: No $(COMPILE_DB_BUILD). If you already have $(COMPILE_DB_ROOT), tidy will use that."; \
 	fi
 
+
+cli:
+	@echo "==> Fresh dev configure & build"
+	@rm -rf "$(BUILD_DIR)"
+	@$(CMAKE) --preset "$(PRESET)" $(CMAKE_CONFIGURE_FLAGS) \
+		-D NOVA_BUILD_CLI=ON
+	@$(CMAKE) --build --preset "$(PRESET)" -j
+	@if [ -f "$(COMPILE_DB_BUILD)" ]; then \
+		ln -sf "$(COMPILE_DB_BUILD)" "$(COMPILE_DB_ROOT)"; \
+		echo "Symlinked $(COMPILE_DB_BUILD) -> $(COMPILE_DB_ROOT)"; \
+	else \
+		echo "Note: No $(COMPILE_DB_BUILD). If you already have $(COMPILE_DB_ROOT), tidy will use that."; \
+	fi
+
+
 cpu-profile:
 	@echo "==> Fresh CPU profiling build (O2 + debug symbols + frame pointers)"
 	@rm -rf "$(BUILD_DIR)"

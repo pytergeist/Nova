@@ -1,78 +1,63 @@
 #ifndef POOL_ALLOCATOR_H
 #define POOL_ALLOCATOR_H
 
-#include <memory>
+#include <cstddef>
+#include "Pool.h"
+struct info {
+  std::size_t index{0};
+  std::size_t block_count{0};
+  std::size_t waste{0};
 
-// implamentation of constant sixed sized mem bucket
+  bool operator<(const info &other) const noexcept {
+     return (waste == other.waste) ? block_count < other.block_count : waste < other.waste;
+  }
+};
 
-class Bucket {
-   public:
-
-     bucket(std::size_t block_size, std::size_t block_count) : block_size_(block_size), block_count_(block_count) {
-        const auto data_size = block_size * block_count;
-        mem_data_ = static_cast<std::byte*>(std::malloc(data_size));
-        assert(mem_data_ != nullptr);
-        const auto ledger_size = 1 + ((block_count - 1) / 8);
-        mem_ledger_ = static_cast<std::byte *>(std::malloc(ledger_size));
-        assert(mem_ledger_ != nullptr);
-        std::memset(data_ledger_, 0, data_size);
-        std::memset(mem_ledger_, 0, ledger_size);
-     }
-
-     ~bucket() {
-        std::free(mem_ledger_);
-        std::free(mem_data_);
-     }
-
-
-     std::size_t block_size() const noexcept {return block_size;}
-     std::size_t block_count() const noexcept {return block_count;}
-
-     bool belongs(void* ptr) const noexcept;
-
-     [[nodiscard]] void* allocate(std::size_t bytes) noexcept {
-        const auto n = 1 + ((bytes - 1) / block_size()); // calc num blocks
-
-        const auto index  = find_contiguous_blocks(n);
-        if (index == block_count()) {
-           return nullptr;
-        }
-
-        set_blocks_in_user(index, n);
-        return mem_data_ + (index * block_size());
-
-     };
-
-
-     void deallocate(void* ptr, std::size_t bytes) noexcept {
-        const auto p = static_cast<const std::byte *>(ptr);
-        const std::size_t dist = static_cast<std::size_t>(p - mem_data_);
-        const auto index = dist / block_size();
-        const auto n = 1 + ((bytes - 1) / block_size());
-
-        set_blocks_free(index, n);
-     };
-
-   private:
-     const std::size_t block_size_;
-     const std::size_t block_count_;
-     std::byte* mem_data_{nullptr};
-     std::byte* mem_ledger_{nullptr};
-
-     std::size_t find_contiguous_blocks(std::size_t n) const noexcept;
-     void set_blocks_in_use(std::size_t idx, std::size_t n) noexcept;
-     void set_blocks_free(std::size_t idx, std::size_t n) noexcept;
-}
-
-template <typename T>
-class PoolAllocator : public IAllocator {
+class PoolAllocator {
    public:
      PoolAllocator() = default;
+     ~PoolAllocator() = default;
 
-   private:
-     std::vector<void*> free_list_;
+     template<std::size_t id, std::size_t... Idx>
+     auto& get_pool_instance(std::index_sequence<Idx...>) noexcept {
+        static pool_type<id> instance{{{get_size<id, Idx>::value, get_count<id, Idx>::value} ...}};
+        return instance;
+     }
 
+     template<std::size_t id>
+     auto& get_pool_instance() noexcept {
+        return get_pool_instance<id>(std::make_index_sequence<bucket_count<id>>());
+     }
 
-}
+     template<std::size_t id>
+     [[nodiscard]] void *allocate(std::size_t bytes) {
+        auto& pool = get_pool_instance<id>();
+        std::array<info, bucket_count<id>> deltas;
+        std::size_t index = 0;
+        for (const auto& bucket: pool) {
+           deltas[index].index = index;
+           if (bucket.block_size() >= bytes) {
+           deltas[index].waste = bucket.block_size() - bytes;
+           deltas[index].block_count = 1;
+          } else {
+             const auto n = 1 + ((bytes - 1) / bucket.block_size());
+             const auto required_storage = n * bucket.block_size();
+             deltas[index].waste = required_storage - bytes;
+             deltas[index].block_count = n;
+          }
+          ++index;
+        }
+        std::sort(deltas.begin(), deltas.end()); // TODO: Change from std::sort as it can allocate
+
+        for (const auto &d: deltas) {
+           if (auto ptr = pool[d.index].allocate(bytes); ptr != nullptr) {
+              return ptr;
+           }
+        }
+        throw std::bad_alloc();
+     }
+
+};
+
 
 #endif // POOL_ALLOCATOR_H
