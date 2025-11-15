@@ -26,6 +26,7 @@ struct Chunk {
 
    ChunkId chunk_id = kInvalidChunkId;
    // next/prev allow iter to prev/next contiguous mem region | CURRENTLY NOT USED (for coalescing later)
+   // IMPORTANT NOTE: std::size_t = -1 becomes SIZE_MAX(ALL BYTES = 1) = 18446744073709551615 (so dont be alarmed)
    ChunkId prev = kInvalidChunkId; // starts at ptr - prev->size
    ChunkId next = kInvalidChunkId; // starts at ptr + size
 
@@ -37,24 +38,26 @@ struct Chunk {
    }
 };
 
-struct ChunkComparator {
-   public:
-     explicit ChunkComparator(IAllocator* allocator) : allocator_(allocator) {};
-     bool operator()(const ChunkId& ca, const ChunkId& cb) const {
-        const Chunk* a = allocator_->ChunkFromId(ca); // TODO: impl ChunkFromId
-        const Chunk* b = allocator_->ChunkFromId(cb);
-        if (a->size != b->size) {
-           return a->size < b->size;
-        }
-        return a->ptr < b->ptr;
-     }
-   private:
-     IAllocator* allocator_;
-};
+// Add back in later - this is for size ordering
+//struct ChunkComparator {
+//   public:
+//     explicit ChunkComparator(IAllocator* allocator) : allocator_(allocator) {};
+//     bool operator()(const ChunkId& ca, const ChunkId& cb) const {
+//        const Chunk* a = allocator_->ChunkFromId(ca); // TODO: impl ChunkFromId
+//        const Chunk* b = allocator_->ChunkFromId(cb);
+//        if (a->size != b->size) {
+//           return a->size < b->size;
+//        }
+//        return a->ptr < b->ptr;
+//     }
+//   private:
+//     IAllocator* allocator_;
+//};
 
 
 struct Bucket {
    void* ptr = nullptr; // base region ptr (used for freeing)
+   // below does not have proper ordering yet - once coalescing in impl - will need a customer comparator
    using FreeChunkSet = std::set<ChunkId>; //, ChunkComparator>;
    std::vector<Chunk> chunks;
    std::size_t bucket_size = 0;

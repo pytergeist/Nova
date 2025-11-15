@@ -1,15 +1,15 @@
 #ifndef POOL_ALLOCATOR_H
 #define POOL_ALLOCATOR_H
+#include <cstddef>
+#include <iostream>
 
 #include "AllocatorInterface.h"
 #include "BFCPool.h"
 #include "CPUSubAllocator.h"
-#include <cstddef>
-#include <iostream>
 
 static constexpr std::array<std::size_t, 5> kBucketSizes = {
     64, 128, 256, 512, 1024 //, 2048, 4096,
-    //    8192, 16384, 32768, 65536
+                            //    8192, 16384, 32768, 65536
 };
 
 static constexpr std::size_t kChunkCount = 64;
@@ -24,24 +24,60 @@ class PoolAllocator : public IAllocator {
    void *allocate(std::size_t size, std::size_t alignment) override {
       // allocating a size/ alignment (stick with alignment = 64 for now) *
       std::size_t bucket_index = find_bucket_idx(size);
-      std::cout << kBucketSizes[bucket_index] << std::endl;
-      if (!buckets_[bucket_index].has_mem_attatched) {
+      Bucket &bucket = buckets_[bucket_index];
+      if (!bucket.has_mem_attatched) {
          std::size_t region =
              calc_region_size(kBucketSizes[bucket_index], kChunkCount);
          void *ptr = allocate_bucket_region(region, alignment);
-         buckets_[bucket_index].ptr = ptr;
-         buckets_[bucket_index].region_size = region;
-         buckets_[bucket_index].has_mem_attatched = true;
-         split_chunks(bucket_index, size, region / kChunkCount);
+         bucket.ptr = ptr;
+         bucket.region_size = region;
+         bucket.has_mem_attatched = true;
+         split_chunks(bucket_index, region / kChunkCount);
       }
       Chunk &chunk = find_free_chunk(bucket_index);
-      std::cout << "allocating chunk id: " << chunk.chunk_id << std::endl;
       void *chunk_ptr = chunk.ptr;
+      chunk.in_use = true;
+      chunk.requested_size = size;
       if (chunk_ptr != nullptr) {
          return chunk_ptr;
       }
       throw std::bad_alloc();
    };
+
+   void deallocate(void *ptr) override {
+      if (!ptr)
+         return;
+      Bucket &bucket = find_bucket_for_ptr(ptr);
+
+      //        if (!bucket) {
+      //           // TODO: err handle?
+      //           return;
+      //        }
+      ChunkId id = chunk_idx_for_ptr(bucket, ptr);
+      bucket.free_chunks.insert(id);
+      bucket.chunks[id].in_use = false;
+   };
+
+   std::vector<Chunk> get_chunks_list(std::size_t bucket_size) {
+      std::size_t bucket_index = find_bucket_idx(bucket_size);
+      std::vector<Chunk> chunk_list = buckets_[bucket_index].chunks;
+      return chunk_list;
+   }
+
+   std::set<ChunkId> get_free_chunks(std::size_t bucket_size) {
+      std::size_t bucket_index = find_bucket_idx(bucket_size);
+      std::set<ChunkId> free_chunks_set = buckets_[bucket_index].free_chunks;
+      return free_chunks_set;
+   }
+
+ private:
+   std::unique_ptr<ISubAllocator> sub_allocator_;
+   std::array<Bucket, kBucketSizes.size()> buckets_;
+
+   std::size_t calc_region_size(std::size_t bucket_size,
+                                std::size_t chunk_count) {
+      return chunk_count * bucket_size;
+   }
 
    Chunk &find_free_chunk(std::size_t bucket_index) {
       Bucket &bucket =
@@ -63,21 +99,6 @@ class PoolAllocator : public IAllocator {
       return kBucketSizes.size() -
              1; // TODO: for below fallback behaviour we want to retry alloc
       // up in powers of 2
-   };
-
-   void deallocate(void *ptr) override {
-      if (!ptr)
-         return;
-      Bucket &bucket = find_bucket_for_ptr(ptr);
-
-      //        if (!bucket) {
-      //           // TODO: err handle?
-      //           return;
-      //        }
-      std::cout << ptr << std::endl;
-      ChunkId id = chunk_idx_for_ptr(bucket, ptr);
-      std::cout << "deallocating chunk id: " << id << std::endl;
-      bucket.free_chunks.insert(id);
    };
 
    Bucket &find_bucket_for_ptr(void *ptr) {
@@ -104,10 +125,10 @@ class PoolAllocator : public IAllocator {
    bool set_next_chunk(std::size_t idx, std::size_t chunk_count) {
       return idx + 1 <= chunk_count - 1;
    }
-   bool set_prev_chunk(std::size_t idx) { return idx - 1 > 0; }
+   bool set_prev_chunk(std::size_t idx) { return idx > 0; }
 
    void set_chunk_metadata(Bucket &bucket, Chunk &chunk, std::size_t id,
-                           std::size_t req_size, std::size_t mem_size) {
+                           std::size_t size) {
       chunk.chunk_id = ChunkId{id};
       if (set_next_chunk(id, kChunkCount)) {
          chunk.next = ChunkId{id + 1};
@@ -115,24 +136,13 @@ class PoolAllocator : public IAllocator {
       if (set_prev_chunk(id)) {
          chunk.prev = ChunkId{id - 1};
       }
+      chunk.size = size;
       bucket.free_chunks.insert(chunk.chunk_id);
       bucket.chunks.push_back(chunk);
-      chunk.size = mem_size;
-      chunk.requested_size = req_size;
       chunk.set_end_ptr();
    }
 
- private:
-   std::unique_ptr<ISubAllocator> sub_allocator_;
-   std::array<Bucket, kBucketSizes.size()> buckets_;
-
-   std::size_t calc_region_size(std::size_t bucket_size,
-                                std::size_t chunk_count) {
-      return chunk_count * bucket_size;
-   }
-
-   void split_chunks(std::size_t bucket_index, std::size_t req_size,
-                     std::size_t mem_size) {
+   void split_chunks(std::size_t bucket_index, std::size_t mem_size) {
       Bucket &bucket = buckets_[bucket_index];
       std::byte *byte_ptr = static_cast<std::byte *>(bucket.ptr);
       for (std::size_t i = 0; i < kChunkCount - 1; ++i) {
@@ -140,7 +150,7 @@ class PoolAllocator : public IAllocator {
          void *chunk_ptr =
              static_cast<void *>(byte_ptr + bucket.bucket_size * i);
          chunk.ptr = chunk_ptr;
-         set_chunk_metadata(bucket, chunk, i, req_size, em_sizem);
+         set_chunk_metadata(bucket, chunk, i, mem_size);
       }
    };
 
