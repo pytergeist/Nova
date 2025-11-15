@@ -120,7 +120,7 @@ cpu-profile:
 asan:
 	@echo "==> Fresh dev (ASAN) configure & build"
 	@rm -rf "$(BUILD_DIR)"
-	@$(CMAKE) --preset "$(PRESET)" $(CMAKE_CONFIGURE_FLAGS) -D NOVA_ENABLE_ASAN=ON
+	@$(CMAKE) --preset "$(PRESET)" $(CMAKE_CONFIGURE_FLAGS) -D NOVA_ENABLE_ASAN=ON -D NOVA_BUILD_CLI=ON
 	@$(CMAKE) --build --preset "$(PRESET)" -j
 	@if [ -f "$(COMPILE_DB_BUILD)" ]; then \
 		ln -sf "$(COMPILE_DB_BUILD)" "$(COMPILE_DB_ROOT)"; \

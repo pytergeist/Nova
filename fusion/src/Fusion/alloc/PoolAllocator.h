@@ -18,7 +18,7 @@ static constexpr std::size_t kChunkCount = 64;
 class PoolAllocator : public IAllocator {
    public:
 
-     PoolAllocator() {init_buckets();};
+     PoolAllocator() : sub_allocator_(std::make_unique<CPUSubAllocator>()) {init_buckets();};
      ~PoolAllocator() = default;
 
      void* allocate(std::size_t size, std::size_t alignment) override {
@@ -34,11 +34,12 @@ class PoolAllocator : public IAllocator {
             split_chunks(bucket_index, size, region / kChunkCount);
 		}
         Chunk& chunk = find_free_chunk(bucket_index);
+        std::cout << "allocating chunk id: " << chunk.chunk_id << std::endl;
         void* chunk_ptr = chunk.ptr;
-        // TODO: currently no mechanism for grabbing existing bucket
-        // TODO: map ptr back to chunk?
-        // set chunk metadata (ptr bumping? set prev/next)
-        return chunk_ptr;
+        if (chunk_ptr != nullptr) {
+           return chunk_ptr;
+        }
+        throw std::bad_alloc();
      };
 
      Chunk& find_free_chunk(std::size_t bucket_index) {
@@ -61,7 +62,45 @@ class PoolAllocator : public IAllocator {
         // up in powers of 2
      };
 
-     void deallocate(void* p) override {};
+     void deallocate(void* ptr) override {
+        if (!ptr) return;
+        Bucket& bucket = find_bucket_for_ptr(ptr);
+
+//        if (!bucket) {
+//           // TODO: err handle?
+//           return;
+//        }
+        std::cout << ptr << std::endl;
+        ChunkId id = chunk_idx_for_ptr(bucket, ptr);
+        std::cout << "deallocating chunk id: " << id << std::endl;
+        bucket.free_chunks.insert(id);
+
+     };
+
+
+     Bucket& find_bucket_for_ptr(void* ptr) {
+        auto addr = reinterpret_cast<std::byte*>(ptr);
+        for (auto& bucket: buckets_) {
+           if (!bucket.has_mem_attatched) continue;
+           auto base = reinterpret_cast<std::byte*>(bucket.ptr);
+           auto end = base + bucket.region_size; // TODO: swap to end ptr
+           if (addr >= base && addr < end) {
+              return bucket;
+           }
+        }
+        throw std::runtime_error("Failed to find bucket chunk ptr belongs too");
+     };
+
+     ChunkId chunk_idx_for_ptr(Bucket& bucket, void* ptr) {
+        auto base = reinterpret_cast<std::byte*>(bucket.ptr);
+        auto addr = reinterpret_cast<std::byte*>(ptr);
+        auto offset = addr - base;
+        return offset / bucket.bucket_size;
+
+     }
+
+
+
 
 
      bool set_next_chunk(std::size_t idx, std::size_t chunk_count) {
@@ -102,7 +141,7 @@ class PoolAllocator : public IAllocator {
      };
 
    private:
-    CPUSubAllocator sub_allocator_;
+    std::unique_ptr<ISubAllocator> sub_allocator_;
     std::array<Bucket, kBucketSizes.size()> buckets_;
 
     std::size_t calc_region_size(std::size_t bucket_size, std::size_t chunk_count) {
@@ -116,7 +155,7 @@ class PoolAllocator : public IAllocator {
     };
 
     void* allocate_bucket_region(std::size_t region, std::size_t alignment) {
-       void* ptr = sub_allocator_.allocate_region(alignment, region);
+       void* ptr = sub_allocator_->allocate_region(alignment, region);
        return ptr;
     };
 
