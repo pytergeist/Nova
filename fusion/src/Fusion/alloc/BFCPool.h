@@ -22,13 +22,13 @@ struct Chunk {
    void* end_ptr_ = nullptr;
    std::size_t size = 0;           // size of buffer
    std::size_t requested_size = 0; // the client requested size of the buffer
+   bool in_use = false;
 
    ChunkId chunk_id = kInvalidChunkId;
-   // next/prev allow iter to prev/next contiguous mem region
+   // next/prev allow iter to prev/next contiguous mem region | CURRENTLY NOT USED (for coalescing later)
    ChunkId prev = kInvalidChunkId; // starts at ptr - prev->size
    ChunkId next = kInvalidChunkId; // starts at ptr + size
 
-   bool in_use() const noexcept { return std::cmp_not_equal(chunk_id, kInvalidChunkId); }
    void set_end_ptr() noexcept {
       assert(ptr != nullptr);
       assert(size != 0);
