@@ -6,26 +6,30 @@
 #include "StorageInterface.h"
 #include "TensorBuffer.h"
 #include "common/Log.h"
+#include "../alloc/AllocatorInterface.h"
 
 template <typename T> class NDTensorStorage : public ITensorStorage<T> {
  private:
    std::vector<size_t> shape_, strides_;
    TensorBuffer data_;
+   IAllocator* allocator_;
 
  public: // TODO: Be careful here - do we want this ptr to be mutable?
-   explicit NDTensorStorage(std::vector<size_t> shape, std::vector<T> data)
-       : shape_(std::move(shape)), data_(copy_data_to_buff(data)) {
+   explicit NDTensorStorage(std::vector<size_t> shape, std::vector<T> data, IAllocator* allocator)
+       : shape_(std::move(shape)), data_(copy_data_to_buff(data, allocator)), allocator_(allocator) {
    };
 
+   ~NDTensorStorage() = default;
 
-   explicit NDTensorStorage(std::vector<size_t> shape, std::size_t count)
+
+   explicit NDTensorStorage(std::vector<size_t> shape, std::size_t count, IAllocator* allocator)
        : shape_(std::move(shape)),
-         data_(TensorBuffer::allocate_elements<T>(count)) {}
+         data_(TensorBuffer::allocate_elements_with<T>(allocator, count)), allocator_(allocator) {}
 
 
-   TensorBuffer init_buff_size(std::vector<size_t>& shape) {
+   TensorBuffer init_buff_size(std::vector<size_t>& shape, IAllocator* allocator) {
       size_t s = get_storage_size(shape);
-      TensorBuffer buff = TensorBuffer::allocate_elements<T>(s);
+      TensorBuffer buff = TensorBuffer::allocate_elements_with<T>(allocator, s);
       buff.data_as<T>();
       return buff;
    }
@@ -38,8 +42,8 @@ template <typename T> class NDTensorStorage : public ITensorStorage<T> {
       return size;
    }
 
-   TensorBuffer copy_data_to_buff(std::vector<T> vec) {
-      TensorBuffer buff = TensorBuffer::allocate_elements<T>(vec.size());
+   TensorBuffer copy_data_to_buff(std::vector<T> vec, IAllocator* allocator) {
+      TensorBuffer buff = TensorBuffer::allocate_elements_with<T>(allocator, vec.size());
       buff.data_as<T>();
       buff.copy_from<T>(vec, 0); // TODO: dynamically calculate the byte offset
       return buff;

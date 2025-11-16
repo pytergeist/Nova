@@ -6,10 +6,10 @@
 #include "AllocatorInterface.h"
 #include "BFCPool.h"
 #include "CPUSubAllocator.h"
+#include "../common/Log.h"
 
-static constexpr std::array<std::size_t, 5> kBucketSizes = {
-    64, 128, 256, 512, 1024 //, 2048, 4096,
-                            //    8192, 16384, 32768, 65536
+static constexpr std::array<std::size_t, 11> kBucketSizes = {
+    64, 128, 256, 512, 1024 , 2048, 4096, 8192, 16384, 32768, 65536
 };
 
 static constexpr std::size_t kChunkCount = 64;
@@ -59,11 +59,8 @@ class PoolAllocator : public IAllocator {
       //           return;
       //        }
       ChunkId id = chunk_idx_for_ptr(bucket, ptr);
-      std::cout << "Deallocating Chunk Id: " << id << "\n";
       bucket.free_chunks.insert(id);
       reset_chunk_metadata(bucket.chunks[id]);
-//      bucket.chunks[id].in_use = false;
-//      bucket.chunks[id].requested_size = 0;
    };
 
    std::vector<Chunk> get_chunks_list(std::size_t bucket_size) {

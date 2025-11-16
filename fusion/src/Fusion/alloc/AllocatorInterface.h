@@ -11,6 +11,7 @@ class IAllocator {
    virtual ~IAllocator() = default;
    virtual void *allocate(std::size_t size, std::size_t alignment) = 0;
    virtual void deallocate(void *p) = 0;
+
 };
 
 #endif // ALLOCATOR_INTERFACE_H_
