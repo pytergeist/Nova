@@ -44,6 +44,11 @@ class PoolAllocator : public IAllocator {
       throw std::bad_alloc();
    };
 
+   void reset_chunk_metadata(Chunk& chunk) {
+      chunk.in_use = false;
+      chunk.requested_size = 0;
+   }
+
    void deallocate(void *ptr) override {
       if (!ptr)
          return;
@@ -54,8 +59,11 @@ class PoolAllocator : public IAllocator {
       //           return;
       //        }
       ChunkId id = chunk_idx_for_ptr(bucket, ptr);
+      std::cout << "Deallocating Chunk Id: " << id << "\n";
       bucket.free_chunks.insert(id);
-      bucket.chunks[id].in_use = false;
+      reset_chunk_metadata(bucket.chunks[id]);
+//      bucket.chunks[id].in_use = false;
+//      bucket.chunks[id].requested_size = 0;
    };
 
    std::vector<Chunk> get_chunks_list(std::size_t bucket_size) {
