@@ -27,7 +27,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                                               static_cast<size_t>(1),
                                               std::multiplies<size_t>());
                return new PyT(shape, std::vector<T>(total), DType::Float32, Device::CPU, // TODO: pass in dtype from python layer
-                              requires_grad);
+                              requires_grad, /*allocator_*/nullptr);
             }),
             py::arg("shape"), py::arg("requires_grad"),
             "Construct a Tensor of given shape, zero-initialized. "
