@@ -29,6 +29,66 @@ static constexpr std::array<std::size_t, kNumBuckets> kBucketSizes =
 
 static constexpr std::size_t kChunkCount = 64;
 
+
+struct Region {
+   void* ptr;
+   std::size_t region_id;
+   std::size_t size;
+   std::size_t alignment;
+};
+
+
+class RegionManager {
+   /* The region manager is responsible for two main parts of the allocation process.
+ 	* It tracks metadata about region size (these regions are produced by the suballocator),
+ 	* this meta data include ptr (to the beginnign of the alloc region), the total size of the
+	* region and the regions alignment. Provides a mechanism for pointer lookup, for identifying
+ 	* the region a ptr exists in and the specific chunkID of that region that the ptr belongs to.
+	*    */
+    public:
+      RegionManager() = default;
+      ~RegionManager() = default;
+
+    void add_allocated_region(void* ptr, std::size_t region_size, std::size_t alignment) {
+       regions_.emplace_back(Region{ptr, counter_, region_size, alignment});
+       counter_++;
+    }
+
+    Region& find_region_for_ptr(void *ptr) {
+      auto addr = reinterpret_cast<std::byte *>(ptr);
+      for (auto &region : regions_) {
+         auto base = reinterpret_cast<std::byte *>(region.ptr);
+         auto end = base + region.size; // TODO: swap to end ptr
+         if (addr >= base && addr < end) {
+            return region;
+         }
+      }
+      throw std::runtime_error("Failed to find bucket chunk ptr belongs too");
+   };
+
+   ChunkId get_chunkid_from_ptr(void* chunk_ptr) {
+      ChunkId chunk_id = ptr_chunk_map_.at(chunk_ptr);
+      return chunk_id;
+   }
+
+   void set_chunkid(void* chunk_ptr, std::size_t chunk_id) {
+		ptr_chunk_map_.try_emplace(chunk_ptr, chunk_id);
+   }
+
+   void erase_chunk(void* chunk_ptr, std::size_t chunk_id) {
+      // TODO: needed when coalescing
+   }
+
+    private:
+      std::unordered_map<void*, ChunkId> ptr_chunk_map_;
+	  std::vector<Region> regions_;
+      std::size_t counter_ = 0;
+
+
+};
+
+
+
 class PoolAllocator : public IAllocator {
  public:
    PoolAllocator() : sub_allocator_(std::make_unique<CPUSubAllocator>()) {
@@ -73,14 +133,16 @@ class PoolAllocator : public IAllocator {
    void deallocate(void *ptr) override {
       if (!ptr)
          return;
-      Bucket &bucket = find_bucket_for_ptr(ptr);
+      Bucket &bucket = find_bucket_for_ptr(ptr); // TODO: still using ptr arith and assuming
+      											 // static region per bucket
+      ChunkId chunk_id = region_manager_.get_chunkid_from_ptr(ptr);
+
       //        if (!bucket) {
       //           // TODO: err handle?
       //           return;
       //        }
-      ChunkId id = chunk_idx_for_ptr(bucket, ptr);
-      bucket.free_chunks.insert(id);
-      reset_chunk_metadata(chunks_[id]);
+      bucket.free_chunks.insert(chunk_id);
+      reset_chunk_metadata(chunks_[chunk_id]);
    };
 
    std::vector<Chunk> get_chunks_list(std::size_t bucket_size) {
@@ -99,6 +161,7 @@ class PoolAllocator : public IAllocator {
    std::unique_ptr<ISubAllocator> sub_allocator_;
    std::array<Bucket, kBucketSizes.size()> buckets_;
    std::vector<Chunk> chunks_;
+   RegionManager region_manager_;
 
    std::size_t calc_region_size(std::size_t bucket_size,
                                 std::size_t chunk_count) {
@@ -180,6 +243,7 @@ class PoolAllocator : public IAllocator {
          void *chunk_ptr =
              static_cast<void *>(byte_ptr + bucket.bucket_size * i);
          chunk.ptr = chunk_ptr;
+         region_manager_.set_chunkid(chunk_ptr, chunk.chunk_id);
          set_chunk_metadata(bucket, chunk, mem_size);
          chunk_counter++;
       }
@@ -195,6 +259,7 @@ class PoolAllocator : public IAllocator {
 
    void *allocate_bucket_region(std::size_t region, std::size_t alignment) {
       void *ptr = sub_allocator_->allocate_region(alignment, region);
+      region_manager_.add_allocated_region(ptr, region, alignment);
       return ptr;
    };
 };

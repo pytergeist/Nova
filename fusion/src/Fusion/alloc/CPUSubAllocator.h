@@ -42,7 +42,7 @@ class CPUSubAllocator : public ISubAllocator {
       return ptr;
    };
    void deallocate_region(void *ptr) override {
-      // TODO: does this ptr need to be the ptr to the beginning of mem region
+      // TODO: make sure this freing lines up
       std::free(ptr);
    };
 };
