@@ -79,6 +79,9 @@ class RegionManager {
       // TODO: needed when coalescing
    }
 
+   std::vector<Region> regions() {return regions_;};
+   std::vector<Region> regions() const {return regions_;};
+
     private:
       std::unordered_map<void*, ChunkId> ptr_chunk_map_;
 	  std::vector<Region> regions_;
@@ -145,10 +148,8 @@ class PoolAllocator : public IAllocator {
       reset_chunk_metadata(chunks_[chunk_id]);
    };
 
-   std::vector<Chunk> get_chunks_list(std::size_t bucket_size) {
-      std::size_t bucket_index = find_bucket_idx(bucket_size);
-      std::vector<Chunk> chunk_list = chunks_;
-      return chunk_list;
+   std::vector<Chunk> chunks() {
+      return chunks_;
    }
 
    std::set<ChunkId> get_free_chunks(std::size_t bucket_size) {
@@ -243,8 +244,8 @@ class PoolAllocator : public IAllocator {
          void *chunk_ptr =
              static_cast<void *>(byte_ptr + bucket.bucket_size * i);
          chunk.ptr = chunk_ptr;
-         region_manager_.set_chunkid(chunk_ptr, chunk.chunk_id);
          set_chunk_metadata(bucket, chunk, mem_size);
+         region_manager_.set_chunkid(chunk_ptr, chunk.chunk_id);
          chunk_counter++;
       }
    };
