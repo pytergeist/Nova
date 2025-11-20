@@ -63,12 +63,10 @@ struct Bucket {
    // need a customer comparator
    std::size_t bucket_id = 0;
    std::size_t bucket_size = 0;
-   std::size_t region_size = 0;
-   std::size_t first_chunk_idx = -1;
    FreeChunkSet free_chunks;
    bool has_mem_attatched = false;
 
-   Bucket() : bucket_size(0), region_size(0), has_mem_attatched(false) {};
+   Bucket() : bucket_size(0), has_mem_attatched(false) {};
 };
 // NOLINTEND(misc-non-private-member-variables-in-classes)
 

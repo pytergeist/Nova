@@ -29,32 +29,32 @@ static constexpr std::array<std::size_t, kNumBuckets> kBucketSizes =
 
 static constexpr std::size_t kChunkCount = 64;
 
-
 struct Region {
-   void* ptr;
+   void *ptr;
    std::size_t region_id;
    std::size_t size;
    std::size_t alignment;
 };
 
-
 class RegionManager {
-   /* The region manager is responsible for two main parts of the allocation process.
- 	* It tracks metadata about region size (these regions are produced by the suballocator),
- 	* this meta data include ptr (to the beginnign of the alloc region), the total size of the
-	* region and the regions alignment. Provides a mechanism for pointer lookup, for identifying
- 	* the region a ptr exists in and the specific chunkID of that region that the ptr belongs to.
-	*    */
-    public:
-      RegionManager() = default;
-      ~RegionManager() = default;
+   /* The region manager is responsible for two main parts of the allocation
+    * process. It tracks metadata about region size (these regions are produced
+    * by the suballocator), this meta data include ptr (to the beginnign of the
+    * alloc region), the total size of the region and the regions alignment.
+    * Provides a mechanism for pointer lookup, for identifying the region a ptr
+    * exists in and the specific chunkID of that region that the ptr belongs to.
+    *    */
+ public:
+   RegionManager() = default;
+   ~RegionManager() = default;
 
-    void add_allocated_region(void* ptr, std::size_t region_size, std::size_t alignment) {
-       regions_.emplace_back(Region{ptr, counter_, region_size, alignment});
-       counter_++;
-    }
+   void add_allocated_region(void *ptr, std::size_t region_size,
+                             std::size_t alignment) {
+      regions_.emplace_back(Region{ptr, counter_, region_size, alignment});
+      counter_++;
+   }
 
-    Region& find_region_for_ptr(void *ptr) {
+   Region &find_region_for_ptr(void *ptr) {
       auto addr = reinterpret_cast<std::byte *>(ptr);
       for (auto &region : regions_) {
          auto base = reinterpret_cast<std::byte *>(region.ptr);
@@ -66,31 +66,27 @@ class RegionManager {
       throw std::runtime_error("Failed to find bucket chunk ptr belongs too");
    };
 
-   ChunkId get_chunkid_from_ptr(void* chunk_ptr) {
+   ChunkId get_chunkid_from_ptr(void *chunk_ptr) {
       ChunkId chunk_id = ptr_chunk_map_.at(chunk_ptr);
       return chunk_id;
    }
 
-   void set_chunkid(void* chunk_ptr, std::size_t chunk_id) {
-		ptr_chunk_map_.try_emplace(chunk_ptr, chunk_id);
+   void set_chunkid(void *chunk_ptr, std::size_t chunk_id) {
+      ptr_chunk_map_.try_emplace(chunk_ptr, chunk_id);
    }
 
-   void erase_chunk(void* chunk_ptr, std::size_t chunk_id) {
+   void erase_chunk(void *chunk_ptr, std::size_t chunk_id) {
       // TODO: needed when coalescing
    }
 
-   std::vector<Region> regions() {return regions_;};
-   std::vector<Region> regions() const {return regions_;};
+   std::vector<Region> regions() { return regions_; };
+   std::vector<Region> regions() const { return regions_; };
 
-    private:
-      std::unordered_map<void*, ChunkId> ptr_chunk_map_;
-	  std::vector<Region> regions_;
-      std::size_t counter_ = 0;
-
-
+ private:
+   std::unordered_map<void *, ChunkId> ptr_chunk_map_;
+   std::vector<Region> regions_;
+   std::size_t counter_ = 0;
 };
-
-
 
 class PoolAllocator : public IAllocator {
  public:
@@ -111,7 +107,6 @@ class PoolAllocator : public IAllocator {
              calc_region_size(kBucketSizes[bucket_index], kChunkCount);
          void *ptr = allocate_bucket_region(region, alignment);
          bucket.ptr = ptr;
-         bucket.region_size = region;
          bucket.has_mem_attatched = true;
          split_chunks(bucket_index, region / kChunkCount);
       }
@@ -136,21 +131,19 @@ class PoolAllocator : public IAllocator {
    void deallocate(void *ptr) override {
       if (!ptr)
          return;
-      Bucket &bucket = find_bucket_for_ptr(ptr); // TODO: still using ptr arith and assuming
-      											 // static region per bucket
       ChunkId chunk_id = region_manager_.get_chunkid_from_ptr(ptr);
 
       //        if (!bucket) {
       //           // TODO: err handle?
       //           return;
       //        }
+      std::size_t bucket_index = find_bucket_idx(chunks_[chunk_id].size);
+      Bucket &bucket = buckets_[bucket_index];
       bucket.free_chunks.insert(chunk_id);
       reset_chunk_metadata(chunks_[chunk_id]);
    };
 
-   std::vector<Chunk> chunks() {
-      return chunks_;
-   }
+   std::vector<Chunk> chunks() { return chunks_; }
 
    std::set<ChunkId> get_free_chunks(std::size_t bucket_size) {
       std::size_t bucket_index = find_bucket_idx(bucket_size);
@@ -191,31 +184,6 @@ class PoolAllocator : public IAllocator {
       // up in powers of 2
    };
 
-   Bucket &find_bucket_for_ptr(void *ptr) {
-      auto addr = reinterpret_cast<std::byte *>(ptr);
-      for (auto &bucket : buckets_) {
-         if (!bucket.has_mem_attatched)
-            continue;
-         auto base = reinterpret_cast<std::byte *>(bucket.ptr);
-         auto end = base + bucket.region_size; // TODO: swap to end ptr
-         if (addr >= base && addr < end) {
-            return bucket;
-         }
-      }
-      throw std::runtime_error("Failed to find bucket chunk ptr belongs too");
-   };
-
-   // TODO: This is the problematic code | chunk id is no longer just based on
-   // bucket region
-   ChunkId chunk_idx_for_ptr(Bucket &bucket, void *ptr) {
-      auto base = reinterpret_cast<std::byte *>(bucket.ptr);
-      auto addr = reinterpret_cast<std::byte *>(ptr);
-      auto bucket_offset = bucket.bucket_id * kChunkCount;
-      auto offset = addr - base;
-      auto chunk_id = (offset / bucket.bucket_size) + bucket.first_chunk_idx;
-      return chunk_id;
-   }
-
    bool set_next_chunk(std::size_t idx, std::size_t chunk_count) {
       return idx + 1 <= chunk_count - 1;
    }
@@ -237,7 +205,6 @@ class PoolAllocator : public IAllocator {
 
    void split_chunks(std::size_t bucket_index, std::size_t mem_size) {
       Bucket &bucket = buckets_[bucket_index];
-      bucket.first_chunk_idx = chunk_counter;
       std::byte *byte_ptr = static_cast<std::byte *>(bucket.ptr);
       for (std::size_t i = 0; i < kChunkCount; ++i) {
          Chunk chunk;
