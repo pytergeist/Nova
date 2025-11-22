@@ -65,6 +65,7 @@ struct Bucket {
    std::size_t bucket_size = 0;
    FreeChunkSet free_chunks;
    bool has_mem_attatched = false;
+   bool is_full() {return has_mem_attatched && free_chunks.empty();}
 
    Bucket() : bucket_size(0), has_mem_attatched(false) {};
 };
