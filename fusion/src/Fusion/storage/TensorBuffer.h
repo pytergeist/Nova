@@ -76,8 +76,8 @@ class TensorBuffer {
           static_cast<const std::byte *>(ptr_.get()) + byte_off);
    }
 
-   TensorBuffer(const TensorBuffer &) = default;
-   TensorBuffer &operator=(const TensorBuffer &) = default;
+   TensorBuffer(const TensorBuffer &) = delete;
+   TensorBuffer &operator=(const TensorBuffer &) = delete;
    TensorBuffer(TensorBuffer &&) noexcept = default;
    TensorBuffer &operator=(TensorBuffer &&) noexcept = default;
 
