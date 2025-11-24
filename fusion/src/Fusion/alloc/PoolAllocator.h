@@ -10,6 +10,10 @@
 #include "BFCPool.h"
 #include "CPUSubAllocator.h"
 
+/* TODO: The chunk list is becoming fragmented when you split blocks, you need to always follow
+* the doubly linked list when assigning new chunks. The tmp_split method is currently broken.
+ * */
+
 static constexpr std::size_t kMinAllocationSize = 64;
 static constexpr std::size_t kNumBuckets = 30;
 static constexpr std::size_t kMinSplitFactor = 2;
@@ -361,19 +365,6 @@ class PoolAllocator : public IAllocator {
       return get_chunk_from_id(ochunk_id);
    }
 
-   //      std::size_t first_chunk_idx = chunk_counter;
-   //      std::byte *byte_ptr = reinterpret_cast<std::byte *>(ochunk.ptr);
-   //      for (std::size_t i = 0; i < split_factor; ++i) {
-   //         Chunk chunk;
-   //         void *chunk_ptr =
-   //             reinterpret_cast<void *>(byte_ptr + bucket.bucket_size * i);
-   //         chunk.ptr = chunk_ptr;
-   //         set_chunk_metadata(bucket, chunk, bucket.bucket_size);
-   //         region_manager_.set_chunkid(chunk_ptr, chunk.chunk_id);
-   //         chunk_counter++;
-   //      }
-   //      return get_chunk_from_id(first_chunk_idx);
-   //   }
 
    void split_chunks(Bucket &bucket, std::size_t mem_size) {
       std::byte *byte_ptr = static_cast<std::byte *>(bucket.ptr);
