@@ -10,26 +10,9 @@
 #include "BFCPool.h"
 #include "CPUSubAllocator.h"
 
-/* TODO: right now the you're filling up buckets, then coalescing on
- * deallocation and filling entire bucket regions with large contiguous slabs of
- * memory - if a bucket with pirticular bucket_size that is the right size for a
- * chunk is full, you're grabbing a bucket with larger size then on deallocation
- * you're choosing the bucket for a pirticular chunk size but that chunk may
- * very well be in a different bucket - you need to write a mechanism where
- * chunks that have grown in size are assigned to the free list of buckets with
- * that pirticular size. New scheme for splitting should first find best fit
- * chunk, if it can be split and assign mem (split accoring to N**2 sequence
- * sizes) then add both those chunks (one in use one not) back to a bucket,
- * using a comparator to put in order. Additionally merge condition for chunks
- * must be A.ptr + A.size = B.ptr (or vice versa)
- *  */
-
-/* TODO: the below static array of bucket sizes is *fine* for an initialiser,
- * but we want to add new regions on request if necessary. Also need to figure
- * out if we should use dynamic bucket sizes and do coalescing. */
-
-static constexpr std::size_t kNumBuckets = 30;
 static constexpr std::size_t kMinAllocationSize = 64;
+static constexpr std::size_t kNumBuckets = 30;
+static constexpr std::size_t kMinSplitFactor = 2;
 
 constexpr std::array<std::size_t, kNumBuckets> make_bucket_sizes() {
    std::array<std::size_t, kNumBuckets> sizes{};
@@ -157,7 +140,7 @@ class PoolAllocator : public IAllocator {
       Chunk &chunk = find_free_chunk(bucket);
 
       std::size_t split_factor = chunk.size / size;
-      if (split_factor > 1) {
+      if (split_factor > kMinSplitFactor) {
          std::size_t new_bucket_size = chunk.size / split_factor;
          std::size_t bucket_idx = find_bucket_idx(new_bucket_size);
          Bucket &new_bucket = buckets_[bucket_idx];
@@ -351,24 +334,29 @@ class PoolAllocator : public IAllocator {
       chunk.set_end_ptr();
    }
 
+   void allocate_chunk(void *chunk_ptr, ChunkId ochunk_id, std::size_t size,
+                       std::size_t idx) {
+      // TODO: the prev/next logic here makes no sense
+      Chunk chunk;
+      chunk.ptr = chunk_ptr;
+      chunk.chunk_id = chunk_counter;
+      chunk.prev = ChunkId{ochunk_id + idx};
+      chunk.next = ChunkId{ochunk_id + idx + 1};
+      chunk.size = size;
+      chunk.set_end_ptr();
+      region_manager_.set_chunkid(chunk_ptr, chunk.chunk_id);
+      chunks_.push_back(chunk);
+      chunk_counter++;
+   }
+
    Chunk &tmp_split(Bucket &bucket, Chunk &ochunk, std::size_t split_factor) {
       std::size_t osize = ochunk.size;
       std::size_t nsize = osize / split_factor;
       std::size_t ochunk_id = chunk_counter;
       std::byte *byte_ptr = reinterpret_cast<std::byte *>(ochunk.ptr);
       for (std::size_t i = 0; i < split_factor; ++i) {
-         Chunk chunk;
          void *chunk_ptr = reinterpret_cast<void *>(byte_ptr + i * nsize);
-         chunk.ptr = chunk_ptr;
-         // TODO: Evaluate the below - I think this is causing mem frag
-         chunk.prev = ChunkId{ochunk_id + i};
-         chunk.next = ChunkId{ochunk_id + i + 1};
-         chunk.size = nsize;
-         chunk.chunk_id = chunk_counter;
-         region_manager_.set_chunkid(chunk_ptr, chunk.chunk_id);
-         chunks_.push_back(chunk); // TODO: change to emplace_back?
-         chunk.set_end_ptr();
-         chunk_counter++;
+         allocate_chunk(chunk_ptr, ochunk_id, nsize, i);
       }
       return get_chunk_from_id(ochunk_id);
    }
