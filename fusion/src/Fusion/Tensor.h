@@ -22,7 +22,6 @@
 #include "core/Reduce.h"
 #include "cpu/SimdTags.h"
 #include "cpu/SimdTraits.h"
-#include "kernels/Blas.h"
 #include "kernels/Serial.h"
 #include "ops/Comparison.h"
 #include "ops/Ewise.h"
