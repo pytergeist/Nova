@@ -6,8 +6,8 @@
 #include "../Tensor.h"
 #include "../common/Log.h"
 #include "../core/ElementWise.h"
-#include "../kernels/Blas.h"
 #include "Helpers.h"
+#include "../cpu/blas/Gemm.h"
 
 namespace math {
 namespace linalg {
@@ -26,7 +26,7 @@ inline Tensor<T> matmul(const Tensor<T> &x, const Tensor<T> &y) { // TODO: this 
       batch *= shapeA[i];
    }
    std::vector<T> data(batch * m * n);
-   blas_ops::matmul<T>(x, shapeA, y, shapeB, data);
+   blas_ops::gemm<T>(x, shapeA, y, shapeB, data, T(1), T(0));
    return Tensor<T>(std::move(out_shape), std::move(data), x.dtype(), Device::CPU,
                     grad_flow(x, y));
 }
