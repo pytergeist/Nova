@@ -17,7 +17,7 @@ what the next/previous mem region is, the ptr to the curr mem region. */
 using ChunkId = std::size_t;
 using BucketId = std::size_t;
 static constexpr ChunkId kInvalidChunkId = static_cast<ChunkId>(-1);
-static constexpr BucketId kInvalidBucket = static_cast<BucketId>(-1);
+static constexpr BucketId kInvalidBucketId = static_cast<BucketId>(-1);
 
 // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
 struct Chunk {
@@ -60,16 +60,14 @@ struct Chunk {
 
 struct Bucket {
    using FreeChunkSet = std::set<ChunkId>; //, ChunkComparator>;
-   void *ptr = nullptr;                    // base region ptr (used for freeing)
    // below does not have proper ordering yet - once coalescing in impl - will
    // need a customer comparator
    std::size_t bucket_id = 0;
    std::size_t bucket_size = 0;
    FreeChunkSet free_chunks;
-   bool has_mem_attatched = false;
-   bool is_full() { return has_mem_attatched && free_chunks.empty(); }
+   bool is_full() { return free_chunks.empty(); }
 
-   Bucket() : bucket_size(0), has_mem_attatched(false) {};
+   Bucket() : bucket_size(0) {};
 };
 // NOLINTEND(misc-non-private-member-variables-in-classes)
 

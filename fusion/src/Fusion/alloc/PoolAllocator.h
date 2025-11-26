@@ -1,8 +1,15 @@
 #ifndef POOL_ALLOCATOR_H
 #define POOL_ALLOCATOR_H
 
+#include <array>
+#include <bit>
 #include <cstddef>
-#include <iostream>
+#include <limits>
+#include <map>
+#include <set>
+#include <stdexcept>
+#include <unordered_map>
+#include <vector>
 
 #include "../common/Checks.h"
 #include "../common/Log.h"
@@ -10,28 +17,7 @@
 #include "BFCPool.h"
 #include "CPUSubAllocator.h"
 
-/* TODO: The chunk list is becoming fragmented when you split blocks, you need to always follow
-* the doubly linked list when assigning new chunks. The tmp_split method is currently broken.
- * */
-
 static constexpr std::size_t kMinAllocationSize = 64;
-static constexpr std::size_t kNumBuckets = 30;
-static constexpr std::size_t kMinSplitFactor = 2;
-
-constexpr std::array<std::size_t, kNumBuckets> make_bucket_sizes() {
-   std::array<std::size_t, kNumBuckets> sizes{};
-   std::size_t value = kMinAllocationSize;
-   for (std::size_t i = 0; i < kNumBuckets; ++i) {
-      sizes[i] = value;
-      value <<= 1;
-   }
-   return sizes;
-}
-
-static constexpr std::array<std::size_t, kNumBuckets> kBucketSizes =
-    make_bucket_sizes();
-
-static constexpr std::size_t kChunkCount = 64;
 
 struct Region {
    void *ptr;
@@ -41,13 +27,6 @@ struct Region {
 };
 
 class RegionManager {
-   /* The region manager is responsible for two main parts of the allocation
-    * process. It tracks metadata about region size (these regions are produced
-    * by the suballocator), this meta data include ptr (to the beginnign of the
-    * alloc region), the total size of the region and the regions alignment.
-    * Provides a mechanism for pointer lookup, for identifying the region a ptr
-    * exists in and the specific chunkID of that region that the ptr belongs to.
-    *    */
  public:
    RegionManager() = default;
    ~RegionManager() = default;
@@ -62,13 +41,13 @@ class RegionManager {
       auto addr = reinterpret_cast<std::byte *>(ptr);
       for (auto &region : regions_) {
          auto base = reinterpret_cast<std::byte *>(region.ptr);
-         auto end = base + region.size; // TODO: swap to end ptr
+         auto end = base + region.size;
          if (addr >= base && addr < end) {
             return region;
          }
       }
-      throw std::runtime_error("Failed to find bucket chunk ptr belongs too");
-   };
+      throw std::runtime_error("RegionManager: failed to find region for ptr");
+   }
 
    ChunkId get_chunkid_from_ptr(void *chunk_ptr) {
       auto it = ptr_chunk_map_.find(chunk_ptr);
@@ -76,25 +55,24 @@ class RegionManager {
          FUSION_LOGI(false,
                      "PoolAllocator: deallocate called with unknown pointer: ",
                      chunk_ptr, " (double free or foreign pointer)");
-         throw std::runtime_error("Failed to allocate a chunk");
+         throw std::runtime_error(
+             "PoolAllocator: unknown pointer in get_chunkid_from_ptr");
       }
       return it->second;
    }
 
    void set_chunkid(void *chunk_ptr, std::size_t chunk_id) {
-      // NB: Insert or assign needed as we're reusing ptr for different chunkIds
-      // after coalesce
+      // Reuses same ptr for different chunkIds after coalesce / split
       ptr_chunk_map_.insert_or_assign(chunk_ptr, chunk_id);
    }
 
    bool erase_chunk(void *chunk_ptr) {
-      bool success = ptr_chunk_map_.erase(chunk_ptr);
-      // returns 1 if key exists, 0 if not
-      return success;
+      // returns 1 if existed, 0 if not
+      return static_cast<bool>(ptr_chunk_map_.erase(chunk_ptr));
    }
 
-   std::vector<Region> regions() { return regions_; };
-   std::vector<Region> regions() const { return regions_; };
+   std::vector<Region> regions() { return regions_; }
+   std::vector<Region> regions() const { return regions_; }
 
  private:
    std::unordered_map<void *, ChunkId> ptr_chunk_map_;
@@ -104,72 +82,213 @@ class RegionManager {
 
 class PoolAllocator : public IAllocator {
  public:
-   PoolAllocator() : sub_allocator_(std::make_unique<CPUSubAllocator>()) {
-      init_buckets();
-   };
-   ~PoolAllocator() = default;
-   std::size_t chunk_counter = 0;
+   PoolAllocator() : sub_allocator_(std::make_unique<CPUSubAllocator>()) {}
 
-   std::size_t round_bytes(std::size_t n) {
-      if (n <= 1)
-         return 1;
-
-      int bw = std::bit_width(n - 1);
-      if (bw >= int(sizeof(std::size_t) * 8))
-         return std::numeric_limits<std::size_t>::max(); // clamp
-
-      return std::size_t{1} << bw;
-   }
+   ~PoolAllocator() override = default;
 
    void *allocate(std::size_t size, std::size_t alignment) override {
-      if (size > kBucketSizes.back()) {
-         FUSION_LOGI("Trying to allocate size: ", size,
-                     " with largest bucket size ", kBucketSizes.back());
-         throw std::bad_alloc();
-      };
-      size = round_bytes(size);
-      Bucket &bucket = find_free_bucket(size);
-      if (size > kBucketSizes.back()) {
-         FUSION_LOGI("Requested rounded size: ", size);
-         FUSION_LOGI("Max Bucket size: ", kBucketSizes.back());
-         throw std::runtime_error("Trying to allocate more than one bucket");
-      }
-      if (!bucket.has_mem_attatched) {
-         std::size_t region = calc_region_size(bucket.bucket_size, kChunkCount);
-         void *ptr = allocate_bucket_region(region, alignment);
-         bucket.ptr = ptr;
-         bucket.has_mem_attatched = true;
-         split_chunks(bucket, region / kChunkCount);
-      }
-      Chunk &chunk = find_free_chunk(bucket);
-
-      std::size_t split_factor = chunk.size / size;
-      if (split_factor > kMinSplitFactor) {
-         std::size_t new_bucket_size = chunk.size / split_factor;
-         std::size_t bucket_idx = find_bucket_idx(new_bucket_size);
-         Bucket &new_bucket = buckets_[bucket_idx];
-         chunk = tmp_split(new_bucket, chunk, split_factor);
+      if (size == 0) {
+         size = 1;
       }
 
-      void *chunk_ptr = chunk.ptr;
-      chunk.in_use = true;
-      chunk.requested_size = size;
-      //      FUSION_CHECK(size < chunk.size, "Trying to allocate mem size >
-      //      chunk.size");
+      size = round_up_pow2(size);
+
+      ChunkId free_id = find_free_chunk_id_for_size(size);
+
+      if (free_id == kInvalidBucketId) {
+         grow_pool_for_size(size, alignment);
+         free_id = find_free_chunk_id_for_size(size);
+         if (free_id == kInvalidBucketId) {
+            throw std::bad_alloc();
+         }
+      }
+
+      Chunk &chunk = get_chunk_from_id(free_id);
+
+      erase_chunk_from_bucket(chunk);
+
+      Chunk &allocated = split_chunk_for_allocation(chunk, size);
+
+      allocated.in_use = true;
+      allocated.requested_size = size;
+
+      void *chunk_ptr = allocated.ptr;
       if (chunk_ptr != nullptr) {
          return chunk_ptr;
       }
       throw std::bad_alloc();
-   };
+   }
 
-   void reset_chunk_metadata(Chunk &chunk) {
+   void deallocate(void *ptr) override {
+      if (!ptr) {
+         return;
+      }
+
+      ChunkId chunk_id = region_manager_.get_chunkid_from_ptr(ptr);
+      Chunk &chunk = get_chunk_from_id(chunk_id);
+
       chunk.in_use = false;
       chunk.requested_size = 0;
+
+      chunk_id = free_and_maybe_coalesce(chunk_id);
+      Chunk &merged = get_chunk_from_id(chunk_id);
+
+      std::size_t bucket_size = round_down_pow2(merged.size);
+      Bucket &bucket = get_or_create_bucket(bucket_size);
+      bucket.free_chunks.insert(chunk_id);
+   }
+
+   std::vector<Chunk> chunks() { return chunks_; }
+
+   std::set<ChunkId> get_free_chunks(std::size_t bucket_size) {
+      auto it = buckets_by_size_.find(bucket_size);
+      if (it == buckets_by_size_.end()) {
+         return {};
+      }
+      return it->second.free_chunks;
+   }
+
+ private:
+   std::unique_ptr<ISubAllocator> sub_allocator_;
+   std::vector<Chunk> chunks_;
+   RegionManager region_manager_;
+
+   std::map<std::size_t, Bucket> buckets_by_size_;
+
+   std::size_t current_allocation_size_ = kMinAllocationSize;
+   std::size_t chunk_counter_ = 0;
+
+   static std::size_t round_up_pow2(std::size_t n) {
+      if (n <= 1)
+         return 1;
+      int bw = std::bit_width(n - 1);
+      if (bw >= int(sizeof(std::size_t) * 8)) {
+         return std::numeric_limits<std::size_t>::max();
+      }
+      return std::size_t{1} << bw;
+   }
+
+   static std::size_t round_down_pow2(std::size_t n) {
+      if (n <= 1)
+         return 1;
+      int bw = std::bit_width(n);
+      return std::size_t{1} << (bw - 1);
    }
 
    Chunk &get_chunk_from_id(ChunkId chunk_id) {
       FUSION_BOUNDS_CHECK(chunk_id, chunks_.size());
       return chunks_[chunk_id];
+   }
+
+   Bucket &get_or_create_bucket(std::size_t bucket_size) {
+      auto it = buckets_by_size_.find(bucket_size);
+      if (it != buckets_by_size_.end()) {
+         return it->second;
+      }
+
+      Bucket bucket{};
+      bucket.bucket_size = bucket_size;
+      bucket.bucket_id = static_cast<BucketId>(buckets_by_size_.size());
+
+      auto [inserted_it, _] =
+          buckets_by_size_.emplace(bucket_size, std::move(bucket));
+      return inserted_it->second;
+   }
+
+   ChunkId find_free_chunk_id_for_size(std::size_t size) {
+      std::size_t size_class = round_up_pow2(size);
+
+      for (auto it = buckets_by_size_.lower_bound(size_class);
+           it != buckets_by_size_.end(); ++it) {
+         Bucket &bucket = it->second;
+         if (bucket.free_chunks.empty()) {
+            continue;
+         }
+         for (ChunkId id : bucket.free_chunks) {
+            Chunk &c = get_chunk_from_id(id);
+            if (!c.in_use && c.size >= size) {
+               return id;
+            }
+         }
+      }
+      return kInvalidBucketId;
+   }
+
+   void grow_pool_for_size(std::size_t size, std::size_t alignment) {
+      while (current_allocation_size_ < size) {
+         current_allocation_size_ <<= 1;
+      }
+
+      void *ptr = allocate_bucket_region(current_allocation_size_, alignment);
+
+      Chunk chunk;
+      chunk.ptr = ptr;
+      chunk.chunk_id = static_cast<ChunkId>(chunk_counter_++);
+      chunk.prev = kInvalidChunkId;
+      chunk.next = kInvalidChunkId;
+      chunk.size = current_allocation_size_;
+      chunk.in_use = false;
+      chunk.requested_size = 0;
+      chunk.set_end_ptr();
+
+      region_manager_.set_chunkid(ptr, chunk.chunk_id);
+      chunks_.push_back(chunk);
+
+      std::size_t bucket_size = round_down_pow2(chunk.size);
+      Bucket &bucket = get_or_create_bucket(bucket_size);
+      bucket.free_chunks.insert(chunk.chunk_id);
+   }
+
+   void *allocate_bucket_region(std::size_t region, std::size_t alignment) {
+      void *ptr = sub_allocator_->allocate_region(alignment, region);
+      region_manager_.add_allocated_region(ptr, region, alignment);
+      return ptr;
+   }
+
+   Chunk &split_chunk_for_allocation(Chunk &chunk, std::size_t size) {
+      FUSION_CHECK(!chunk.in_use, "split_chunk_for_allocation on in-use chunk");
+
+      if (chunk.size < size) {
+         throw std::runtime_error(
+             "split_chunk_for_allocation: chunk too small");
+      }
+
+      std::size_t remainder_size = chunk.size - size;
+
+      if (remainder_size < kMinAllocationSize) {
+         return chunk;
+      }
+
+      std::byte *base = static_cast<std::byte *>(chunk.ptr);
+      void *rem_ptr = static_cast<void *>(base + size);
+
+      Chunk remainder;
+      remainder.ptr = rem_ptr;
+      remainder.chunk_id = static_cast<ChunkId>(chunk_counter_++);
+      remainder.prev = chunk.chunk_id;
+      remainder.next = chunk.next;
+      remainder.size = remainder_size;
+      remainder.in_use = false;
+      remainder.requested_size = 0;
+      remainder.set_end_ptr();
+
+      if (chunk.next != kInvalidChunkId) {
+         Chunk &next_chunk = get_chunk_from_id(chunk.next);
+         next_chunk.prev = remainder.chunk_id;
+      }
+      chunk.next = remainder.chunk_id;
+
+      chunk.size = size;
+      chunk.set_end_ptr();
+
+      region_manager_.set_chunkid(remainder.ptr, remainder.chunk_id);
+      chunks_.push_back(remainder);
+
+      std::size_t rem_bucket_size = round_down_pow2(remainder.size);
+      Bucket &rem_bucket = get_or_create_bucket(rem_bucket_size);
+      rem_bucket.free_chunks.insert(remainder.chunk_id);
+
+      return chunk;
    }
 
    void delete_chunk(Chunk &chunk) {
@@ -179,10 +298,19 @@ class PoolAllocator : public IAllocator {
       chunk.end_ptr_ = nullptr;
       chunk.prev = kInvalidChunkId;
       chunk.next = kInvalidChunkId;
+      chunk.in_use = false;
    }
 
    void erase_chunk_from_bucket(Chunk &chunk) {
-      Bucket &bucket = buckets_.at(find_bucket_idx(chunk.size));
+      if (chunk.size == 0) {
+         return;
+      }
+      std::size_t bucket_size = round_down_pow2(chunk.size);
+      auto it = buckets_by_size_.find(bucket_size);
+      if (it == buckets_by_size_.end()) {
+         return;
+      }
+      Bucket &bucket = it->second;
       bucket.free_chunks.erase(chunk.chunk_id);
    }
 
@@ -190,28 +318,27 @@ class PoolAllocator : public IAllocator {
       std::byte *lbase = static_cast<std::byte *>(lchunk.ptr);
       std::byte *rbase = static_cast<std::byte *>(rchunk.ptr);
       if (lbase + lchunk.size == rbase) {
-
          region_manager_.erase_chunk(rchunk.ptr);
          erase_chunk_from_bucket(rchunk);
          erase_chunk_from_bucket(lchunk);
+         t
 
-         lchunk.size += rchunk.size;
+             lchunk.size += rchunk.size;
+         lchunk.set_end_ptr();
 
-         // set next for merged chunk to be the next of right chunk
          ChunkId rnext_id = rchunk.next;
          lchunk.next = rnext_id;
-         // here we set the prev of the new next chunk
          if (rnext_id != kInvalidChunkId) {
             Chunk &rnext = get_chunk_from_id(rnext_id);
             rnext.prev = lchunk.chunk_id;
          }
+
          delete_chunk(rchunk);
          return lchunk.chunk_id;
       }
       return rchunk.chunk_id;
    }
 
-   // TODO: use a while loop you dummy
    ChunkId free_and_maybe_coalesce(ChunkId chunk_id) {
       ChunkId current_id = chunk_id;
 
@@ -238,160 +365,6 @@ class PoolAllocator : public IAllocator {
 
       return current_id;
    }
-
-   void deallocate(void *ptr) override {
-      if (!ptr)
-         return;
-      ChunkId chunk_id = region_manager_.get_chunkid_from_ptr(ptr);
-      Chunk &chunk = get_chunk_from_id(chunk_id);
-
-      //      FUSION_CHECK(chunk.in_use,
-      //                   "Trying to deallocate chunk not currently in use!");
-
-      chunk_id = free_and_maybe_coalesce(chunk_id);
-      //        if (!bucket) {
-      //           // TODO: err handle?
-      //           return;
-      //        }
-      //	  FUSION_LOGI("Deallocating chunk: ", chunk.chunk_id, ", with
-      // ptr= ", chunk.ptr);
-      std::size_t bucket_index =
-          find_bucket_idx(round_bytes(chunks_[chunk_id].size));
-      Bucket &bucket = buckets_[bucket_index];
-      bucket.free_chunks.insert(chunk_id);
-      reset_chunk_metadata(chunks_[chunk_id]);
-   };
-
-   std::vector<Chunk> chunks() { return chunks_; }
-
-   std::set<ChunkId> get_free_chunks(std::size_t bucket_size) {
-      std::size_t bucket_index = find_bucket_idx(bucket_size);
-      std::set<ChunkId> free_chunks_set = buckets_[bucket_index].free_chunks;
-      return free_chunks_set;
-   }
-
- private:
-   std::unique_ptr<ISubAllocator> sub_allocator_;
-   std::array<Bucket, kBucketSizes.size()> buckets_;
-   std::vector<Chunk> chunks_;
-   RegionManager region_manager_;
-
-   std::size_t calc_region_size(std::size_t bucket_size,
-                                std::size_t chunk_count) {
-      return chunk_count * bucket_size;
-   }
-
-   Chunk &find_free_chunk(Bucket &bucket) {
-      auto it = bucket.free_chunks.begin();
-      if (it != bucket.free_chunks.end()) {
-         ChunkId chunk_id = *it;
-         bucket.free_chunks.erase(chunk_id);
-         return get_chunk_from_id(chunk_id);
-      } else {
-         throw std::runtime_error("No free chunk found!");
-      }
-   };
-
-   // std::size_t find_bucket_idx(std::size_t size) {
-   std::size_t find_bucket_idx(std::size_t size) {
-      std::size_t min_bin = 0; // TODO: make impl more efficient curr = O(k)
-      for (std::size_t i = 0; i < kBucketSizes.size(); ++i) {
-         min_bin = kBucketSizes[i];
-         if (size <= min_bin) {
-            return i;
-         }
-      }
-      return kBucketSizes.size() -
-             1; // TODO: for below fallback behaviour we want to retry alloc
-      // up in powers of 2
-   };
-
-   Bucket &find_free_bucket(std::size_t size) {
-      std::size_t min_bin = 0; // TODO: make impl more efficient curr = O(k)
-      for (auto &bucket : buckets_) {
-         if (size <= bucket.bucket_size && !bucket.is_full()) {
-            return bucket;
-         }
-      }
-      throw std::runtime_error(
-          "No free buckets left"); // TODO: for below fallback behaviour we want
-                                   // to retry alloc
-      // up in powers of 2
-   };
-
-   bool set_next_chunk(std::size_t idx, std::size_t chunk_count) {
-      return idx + 1 <= chunk_count - 1;
-   }
-   bool set_prev_chunk(std::size_t idx) { return idx > 0; }
-
-   void set_chunk_metadata(Bucket &bucket, Chunk &chunk, std::size_t size) {
-      chunk.chunk_id = ChunkId{chunk_counter};
-      if (set_next_chunk(chunk_counter, kChunkCount)) {
-         chunk.next = ChunkId{chunk_counter + 1};
-      }
-      if (set_prev_chunk(chunk_counter)) {
-         chunk.prev = ChunkId{chunk_counter - 1};
-      }
-      chunk.size = size;
-      bucket.free_chunks.insert(chunk.chunk_id);
-      chunks_.push_back(chunk); // TODO: change to emplace_back?
-      chunk.set_end_ptr();
-   }
-
-   void allocate_chunk(void *chunk_ptr, ChunkId ochunk_id, std::size_t size,
-                       std::size_t idx) {
-      // TODO: the prev/next logic here makes no sense
-      Chunk chunk;
-      chunk.ptr = chunk_ptr;
-      chunk.chunk_id = chunk_counter;
-      chunk.prev = ChunkId{ochunk_id + idx};
-      chunk.next = ChunkId{ochunk_id + idx + 1};
-      chunk.size = size;
-      chunk.set_end_ptr();
-      region_manager_.set_chunkid(chunk_ptr, chunk.chunk_id);
-      chunks_.push_back(chunk);
-      chunk_counter++;
-   }
-
-   Chunk &tmp_split(Bucket &bucket, Chunk &ochunk, std::size_t split_factor) {
-      std::size_t osize = ochunk.size;
-      std::size_t nsize = osize / split_factor;
-      std::size_t ochunk_id = chunk_counter;
-      std::byte *byte_ptr = reinterpret_cast<std::byte *>(ochunk.ptr);
-      for (std::size_t i = 0; i < split_factor; ++i) {
-         void *chunk_ptr = reinterpret_cast<void *>(byte_ptr + i * nsize);
-         allocate_chunk(chunk_ptr, ochunk_id, nsize, i);
-      }
-      return get_chunk_from_id(ochunk_id);
-   }
-
-
-   void split_chunks(Bucket &bucket, std::size_t mem_size) {
-      std::byte *byte_ptr = static_cast<std::byte *>(bucket.ptr);
-      for (std::size_t i = 0; i < kChunkCount; ++i) {
-         Chunk chunk;
-         void *chunk_ptr =
-             static_cast<void *>(byte_ptr + bucket.bucket_size * i);
-         chunk.ptr = chunk_ptr;
-         set_chunk_metadata(bucket, chunk, mem_size);
-         region_manager_.set_chunkid(chunk_ptr, chunk.chunk_id);
-         chunk_counter++;
-      }
-   };
-
-   void init_buckets() {
-      for (std::size_t i = 0; i < kBucketSizes.size(); ++i) {
-         buckets_[i] = Bucket();
-         buckets_[i].bucket_id = i;
-         buckets_[i].bucket_size = kBucketSizes[i];
-      }
-   };
-
-   void *allocate_bucket_region(std::size_t region, std::size_t alignment) {
-      void *ptr = sub_allocator_->allocate_region(alignment, region);
-      region_manager_.add_allocated_region(ptr, region, alignment);
-      return ptr;
-   };
 };
 
 #endif // POOL_ALLOCATOR_H
