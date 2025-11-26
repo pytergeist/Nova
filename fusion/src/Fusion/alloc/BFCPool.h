@@ -15,7 +15,9 @@ chunks store various meta-data, which describes whether a chunk is in use,
 what the next/previous mem region is, the ptr to the curr mem region. */
 
 using ChunkId = std::size_t;
-static const ChunkId kInvalidChunkId = static_cast<ChunkId>(-1);
+using BucketId = std::size_t;
+static constexpr ChunkId kInvalidChunkId = static_cast<ChunkId>(-1);
+static constexpr BucketId kInvalidBucket = static_cast<BucketId>(-1);
 
 // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
 struct Chunk {
@@ -65,7 +67,7 @@ struct Bucket {
    std::size_t bucket_size = 0;
    FreeChunkSet free_chunks;
    bool has_mem_attatched = false;
-   bool is_full() {return has_mem_attatched && free_chunks.empty();}
+   bool is_full() { return has_mem_attatched && free_chunks.empty(); }
 
    Bucket() : bucket_size(0), has_mem_attatched(false) {};
 };
