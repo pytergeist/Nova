@@ -7,12 +7,19 @@
 #include <set>
 #include <utility>
 
-using ChunkId = std::size_t;
-using BucketId = std::size_t;
-static constexpr ChunkId kInvalidChunkId = static_cast<ChunkId>(-1);
-static constexpr BucketId kInvalidBucketId = static_cast<BucketId>(-1);
-
 // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
+struct ChunkID {
+   std::size_t value;
+   operator std::size_t() const noexcept { return value; }
+};
+struct BucketID {
+   std::size_t value;
+   operator std::size_t() const noexcept { return value; }
+};
+
+static constexpr ChunkID kInvalidChunkID = static_cast<ChunkID>(-1);
+static constexpr BucketID kInvalidBucketID = static_cast<BucketID>(-1);
+
 struct Chunk {
    void *ptr = nullptr; // ptr to mem sub region of chunk
    void *end_ptr_ = nullptr;
@@ -20,17 +27,17 @@ struct Chunk {
    std::size_t requested_size = 0; // the client requested size of the buffer
    bool in_use = false;
 
-   ChunkId chunk_id = kInvalidChunkId;
+   ChunkID chunk_id = kInvalidChunkID;
    // next/prev allow iter to prev/next contiguous mem region | CURRENTLY NOT
    // USED (for coalescing later) IMPORTANT NOTE: std::size_t = -1 becomes
    // SIZE_MAX(ALL BYTES = 1) = 18446744073709551615 (so dont be alarmed)
-   ChunkId prev = kInvalidChunkId; // starts at ptr - prev->size
-   ChunkId next = kInvalidChunkId; // starts at ptr + size
+   ChunkID prev = kInvalidChunkID; // starts at ptr - prev->size
+   ChunkID next = kInvalidChunkID; // starts at ptr + size
 
    void set_end_ptr() noexcept {
       assert(ptr != nullptr);
       assert(size != 0);
-      std::byte *byte_end_ptr_ = static_cast<std::byte *>(ptr) + size;
+      std::byte *byte_end_ptr_ = static_cast<std::byte *>(ptr) + size; // NOLINT
       end_ptr_ = static_cast<void *>(byte_end_ptr_);
    }
 };
@@ -38,9 +45,9 @@ struct Chunk {
 struct ChunkComparator {
    const std::vector<Chunk> *chunks;
 
-   bool operator()(ChunkId ca, ChunkId cb) const {
-      const Chunk &a = (*chunks)[ca];
-      const Chunk &b = (*chunks)[cb];
+   bool operator()(ChunkID ca, ChunkID cb) const {
+      const Chunk &a = (*chunks).at(ca);
+      const Chunk &b = (*chunks).at(cb);
       if (a.size != b.size) {
          return a.size < b.size;
       }
@@ -49,14 +56,15 @@ struct ChunkComparator {
 };
 
 struct Bucket {
-   using FreeChunkSet = std::set<ChunkId, ChunkComparator>;
-   BucketId bucket_id = 0;
+   using FreeChunkSet = std::set<ChunkID, ChunkComparator>;
+   BucketID bucket_id = kInvalidBucketID;
    std::size_t bucket_size = 0;
    FreeChunkSet free_chunks;
-   bool is_full() { return free_chunks.empty(); }
+   bool is_full() const { return free_chunks.empty(); }
 
-   Bucket(const std::vector<Chunk> *chunks, std::size_t bsize, std::size_t bid)
-       : bucket_size(bsize), bucket_id(bid), free_chunks(ChunkComparator{chunks}) {}
+   Bucket(const std::vector<Chunk> *chunks, std::size_t bsize, BucketID bid)
+       : bucket_size(bsize), bucket_id(bid),
+         free_chunks(ChunkComparator{chunks}) {}
 };
 // NOLINTEND(misc-non-private-member-variables-in-classes)
 
