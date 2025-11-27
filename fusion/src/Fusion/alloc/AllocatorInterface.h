@@ -3,8 +3,6 @@
 
 #include <memory>
 
-struct Chunk;
-using ChunkId = std::size_t;
 
 class IAllocator {
  public:

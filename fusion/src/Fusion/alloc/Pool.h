@@ -7,13 +7,6 @@
 #include <set>
 #include <utility>
 
-#include "AllocatorInterface.h"
-
-/* This header file includes code for the memory pool used by the pool
-allocator, the pool consists of chunks, which point to mem regions - the
-chunks store various meta-data, which describes whether a chunk is in use,
-what the next/previous mem region is, the ptr to the curr mem region. */
-
 using ChunkId = std::size_t;
 using BucketId = std::size_t;
 static constexpr ChunkId kInvalidChunkId = static_cast<ChunkId>(-1);
@@ -42,32 +35,28 @@ struct Chunk {
    }
 };
 
-// Add back in later - this is for size ordering
-// struct ChunkComparator {
-//   public:
-//     explicit ChunkComparator(IAllocator* allocator) : allocator_(allocator)
-//     {}; bool operator()(const ChunkId& ca, const ChunkId& cb) const {
-//        const Chunk* a = allocator_->ChunkFromId(ca); // TODO: impl
-//        ChunkFromId const Chunk* b = allocator_->ChunkFromId(cb); if (a->size
-//        != b->size) {
-//           return a->size < b->size;
-//        }
-//        return a->ptr < b->ptr;
-//     }
-//   private:
-//     IAllocator* allocator_;
-//};
+struct ChunkComparator {
+   const std::vector<Chunk> *chunks;
+
+   bool operator()(ChunkId ca, ChunkId cb) const {
+      const Chunk &a = (*chunks)[ca];
+      const Chunk &b = (*chunks)[cb];
+      if (a.size != b.size) {
+         return a.size < b.size;
+      }
+      return a.ptr < b.ptr;
+   }
+};
 
 struct Bucket {
-   using FreeChunkSet = std::set<ChunkId>; //, ChunkComparator>;
-   // below does not have proper ordering yet - once coalescing in impl - will
-   // need a customer comparator
-   std::size_t bucket_id = 0;
+   using FreeChunkSet = std::set<ChunkId, ChunkComparator>;
+   BucketId bucket_id = 0;
    std::size_t bucket_size = 0;
    FreeChunkSet free_chunks;
    bool is_full() { return free_chunks.empty(); }
 
-   Bucket() : bucket_size(0) {};
+   Bucket(const std::vector<Chunk> *chunks, std::size_t bsize, std::size_t bid)
+       : bucket_size(bsize), bucket_id(bid), free_chunks(ChunkComparator{chunks}) {}
 };
 // NOLINTEND(misc-non-private-member-variables-in-classes)
 

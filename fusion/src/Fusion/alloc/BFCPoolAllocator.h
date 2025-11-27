@@ -17,6 +17,9 @@
 #include "CPUSubAllocator.h"
 #include "Pool.h"
 
+using ChunkId = std::size_t;
+using BucketId = std::size_t;
+
 static constexpr std::size_t kMinAllocationSize = 64;
 
 struct Region {
@@ -143,13 +146,18 @@ class PoolAllocator : public IAllocator {
 
    std::vector<Chunk> chunks() { return chunks_; }
 
-   std::set<ChunkId> get_free_chunks(std::size_t bucket_size) {
-      auto it = buckets_by_size_.find(bucket_size);
-      if (it == buckets_by_size_.end()) {
-         return {};
-      }
-      return it->second.free_chunks;
-   }
+std::vector<ChunkId> get_free_chunks(std::size_t bucket_size) const {
+    std::vector<ChunkId> result;
+    auto it = buckets_by_size_.find(bucket_size);
+    if (it == buckets_by_size_.end()) {
+        return result;
+    }
+    const Bucket& bucket = it->second;
+    result.insert(result.end(),
+                  bucket.free_chunks.begin(),
+                  bucket.free_chunks.end());
+    return result;
+}
 
  private:
    std::unique_ptr<ISubAllocator> sub_allocator_;
@@ -189,9 +197,8 @@ class PoolAllocator : public IAllocator {
          return it->second;
       }
 
-      Bucket bucket{};
-      bucket.bucket_size = bucket_size;
-      bucket.bucket_id = static_cast<BucketId>(buckets_by_size_.size());
+      Bucket bucket{&chunks_, bucket_size,
+                    static_cast<BucketId>(buckets_by_size_.size())};
 
       auto [inserted_it, _] =
           buckets_by_size_.emplace(bucket_size, std::move(bucket));
