@@ -14,8 +14,8 @@
 #include "../common/Checks.h"
 #include "../common/Log.h"
 #include "AllocatorInterface.h"
-#include "BFCPool.h"
 #include "CPUSubAllocator.h"
+#include "Pool.h"
 
 static constexpr std::size_t kMinAllocationSize = 64;
 
@@ -99,7 +99,8 @@ class PoolAllocator : public IAllocator {
          grow_pool_for_size(size, alignment);
          free_id = find_free_chunk_id_for_size(size);
          if (free_id == kInvalidBucketId) {
-            throw std::bad_alloc();
+            // TODO: change back to bad_alloc
+            throw std::runtime_error("Allocate: free_id is invalid bucket");
          }
       }
 
@@ -107,7 +108,8 @@ class PoolAllocator : public IAllocator {
 
       erase_chunk_from_bucket(chunk);
 
-      Chunk &allocated = split_chunk_for_allocation(chunk, size);
+      ChunkId allocated_id = split_chunk_for_allocation(chunk.chunk_id, size);
+      Chunk &allocated = get_chunk_from_id(allocated_id);
 
       allocated.in_use = true;
       allocated.requested_size = size;
@@ -116,7 +118,8 @@ class PoolAllocator : public IAllocator {
       if (chunk_ptr != nullptr) {
          return chunk_ptr;
       }
-      throw std::bad_alloc();
+      // TODO: change back to bad_alloc
+      throw std::runtime_error("PoolAllocator: Chunk Ptr is null");
    }
 
    void deallocate(void *ptr) override {
@@ -245,8 +248,9 @@ class PoolAllocator : public IAllocator {
       return ptr;
    }
 
-   Chunk &split_chunk_for_allocation(Chunk &chunk, std::size_t size) {
-      FUSION_CHECK(!chunk.in_use, "split_chunk_for_allocation on in-use chunk");
+   ChunkId split_chunk_for_allocation(ChunkId chunk_id, std::size_t size) {
+
+      Chunk &chunk = get_chunk_from_id(chunk_id);
 
       if (chunk.size < size) {
          throw std::runtime_error(
@@ -256,7 +260,7 @@ class PoolAllocator : public IAllocator {
       std::size_t remainder_size = chunk.size - size;
 
       if (remainder_size < kMinAllocationSize) {
-         return chunk;
+         return chunk_id;
       }
 
       std::byte *base = static_cast<std::byte *>(chunk.ptr);
@@ -280,7 +284,6 @@ class PoolAllocator : public IAllocator {
 
       chunk.size = size;
       chunk.set_end_ptr();
-
       region_manager_.set_chunkid(remainder.ptr, remainder.chunk_id);
       chunks_.push_back(remainder);
 
@@ -288,7 +291,7 @@ class PoolAllocator : public IAllocator {
       Bucket &rem_bucket = get_or_create_bucket(rem_bucket_size);
       rem_bucket.free_chunks.insert(remainder.chunk_id);
 
-      return chunk;
+      return chunk_id;
    }
 
    void delete_chunk(Chunk &chunk) {
@@ -321,9 +324,8 @@ class PoolAllocator : public IAllocator {
          region_manager_.erase_chunk(rchunk.ptr);
          erase_chunk_from_bucket(rchunk);
          erase_chunk_from_bucket(lchunk);
-         t
 
-             lchunk.size += rchunk.size;
+         lchunk.size += rchunk.size;
          lchunk.set_end_ptr();
 
          ChunkId rnext_id = rchunk.next;
