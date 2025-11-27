@@ -126,23 +126,6 @@ if (NOVA_BUILD_CLI)
   set_property(TARGET FusionExecutable PROPERTY CXX_CLANG_TIDY "")
 endif()
 
-
-# ------------------------------------------------------------
-# Optional AddressSanitizer (exe only)
-# ------------------------------------------------------------
-option(NOVA_ENABLE_ASAN "Enable AddressSanitizer for the CLI executable" OFF)
-
-function(add_asan target)
-  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
-    target_compile_options(${target} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-    target_link_options(${target} PRIVATE -fsanitize=address)
-    target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:-O1 -g>)
-  endif()
-endfunction()
-
-if (NOVA_ENABLE_ASAN)
-  add_asan(FusionExecutable)   # ASan on CLI only
-endif()
 # ------------------------------------------------------------
 # Benchmarks
 # ------------------------------------------------------------
@@ -166,4 +149,25 @@ if (NOVA_BUILD_TEST)
 
   include(GoogleTest)
   gtest_discover_tests(fusion_test)
+endif()
+
+# ------------------------------------------------------------
+# Optional AddressSanitizer
+# ------------------------------------------------------------
+option(NOVA_ENABLE_ASAN "Enable AddressSanitizer" OFF)
+
+function(add_asan target)
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang|GNU")
+    target_compile_options(${target} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    target_link_options(${target} PRIVATE -fsanitize=address)
+    target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:-O1 -g>)
+  endif()
+endfunction()
+
+if (NOVA_ENABLE_ASAN)
+  foreach(t fusion_core fusion FusionExecutable FusionBenchMark fusion_test)
+    if (TARGET ${t})
+      add_asan(${t})
+    endif()
+  endforeach()
 endif()

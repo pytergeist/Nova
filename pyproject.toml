@@ -12,7 +12,6 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.13"
-numpy = "^2.3.1"
 pybind11 = "^2.13.6"
 
 
@@ -33,6 +32,11 @@ mypy = "^1.15.0"
 pybind11-stubgen = "^2.5.3"
 line-profiler = "^4.2.0"
 cmake = "^4.1.2"
+
+
+
+[tool.poetry.group.bench.dependencies]
+tensorflow = "2.20"
 
 [build-system]
 requires = ["poetry-core"]

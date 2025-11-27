@@ -1,6 +1,7 @@
 #ifndef TENSOR_BUFFER_H
 #define TENSOR_BUFFER_H
 
+
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -8,6 +9,11 @@
 #include <new>
 #include <stdexcept>
 #include <vector>
+
+#include "../alloc/AllocatorInterface.h"
+#include "../alloc/AllocTypes.h"
+#include "../common/Log.h"
+
 
 inline void *aligned_alloc_bytes(size_t alignment, size_t size) {
    if (alignment < alignof(void *) || (alignment & (alignment - 1)) != 0) {
@@ -31,17 +37,20 @@ class TensorBuffer {
  public:
    TensorBuffer() = default;
 
-   static TensorBuffer allocate(size_t size_bytes, size_t alignment = 64) {
+   static TensorBuffer allocate_with(IAllocator *alloc, std::size_t size_bytes,
+                                     Alignment alignment = Alignment{64}) {
       if (size_bytes == 0)
          return {};
-      void *p = aligned_alloc_bytes(alignment, size_bytes);
-      return TensorBuffer(p, size_bytes, alignment);
-   };
+      FUSION_CHECK(alloc != nullptr, "allocate_with: allocator is null");
+      void *p = alloc->allocate(size_bytes, alignment);
+      return TensorBuffer(p, size_bytes, alignment, alloc);
+   }
 
    template <typename T>
-   static TensorBuffer allocate_elements(std::size_t count,
-                                         std::size_t alignment = 64) {
-      return TensorBuffer::allocate(count * sizeof(T), alignment);
+   static TensorBuffer allocate_elements_with(IAllocator *alloc,
+                                              std::size_t count,
+                                              Alignment alignment = Alignment{64}) {
+      return allocate_with(alloc, count * sizeof(T), alignment);
    }
 
    template <typename T> T *data_as(std::size_t byte_off = 0) noexcept {
@@ -55,8 +64,8 @@ class TensorBuffer {
           static_cast<const std::byte *>(ptr_.get()) + byte_off);
    }
 
-   TensorBuffer(const TensorBuffer &) = default;
-   TensorBuffer &operator=(const TensorBuffer &) = default;
+   TensorBuffer(const TensorBuffer &) = delete;
+   TensorBuffer &operator=(const TensorBuffer &) = delete;
    TensorBuffer(TensorBuffer &&) noexcept = default;
    TensorBuffer &operator=(TensorBuffer &&) noexcept = default;
 
@@ -80,11 +89,11 @@ class TensorBuffer {
       return data_as<const T>(elem_off * sizeof(T));
    }
 
-   void swap(TensorBuffer& other) noexcept {
-    std::swap(ptr_, other.ptr_);
-    std::swap(size_, other.size_);
-    std::swap(alignment_, other.alignment_);
-}
+   void swap(TensorBuffer &other) noexcept {
+      std::swap(ptr_, other.ptr_);
+      std::swap(size_, other.size_);
+      std::swap(alignment_, other.alignment_);
+   }
 
    template <typename T> std::size_t size() const noexcept {
       return size_ / sizeof(T);
@@ -125,11 +134,28 @@ class TensorBuffer {
    }
 
  private:
+   struct Deleter {
+      IAllocator *alloc{};
+      size_t size{};
+      size_t alignment{};
+
+      void operator()(void *p) const noexcept {
+         if (!p)
+            return;
+         if (alloc) {
+            alloc->deallocate(p);
+         } else {
+            FUSION_LOGI("Alloc non null"); // TODO: change this, this is a noexcept env (maybe debug dump)
+         }
+      }
+   };
    std::shared_ptr<void> ptr_{};
    size_t size_{0};
    size_t alignment_{alignof(std::max_align_t)};
+   IAllocator *allocator_{nullptr};
 
-   TensorBuffer(void *raw, size_t size, size_t alignment)
-       : ptr_(raw, AlignedFree{}), size_(size), alignment_(alignment) {}
+   TensorBuffer(void *raw, size_t size, size_t alignment, IAllocator *alloc)
+       : ptr_(raw, Deleter{alloc, size, alignment}), size_(size), alignment_(alignment) {};
 };
+
 #endif // TENSOR_BUFFER_H

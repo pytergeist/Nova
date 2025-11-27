@@ -22,7 +22,6 @@
 #include "core/Reduce.h"
 #include "cpu/SimdTags.h"
 #include "cpu/SimdTraits.h"
-#include "kernels/Blas.h"
 #include "kernels/Serial.h"
 #include "ops/Comparison.h"
 #include "ops/Ewise.h"
@@ -35,6 +34,7 @@
 #include "ops/Helpers.h"
 #include "core/Layout.h"
 #include "core/DTypes.h"
+#include "alloc/DefaultAllocator.h"
 
 template <typename T>
 static inline ValueID ensure_handle(Engine<T> &eng, Tensor<T> &t) {
@@ -58,7 +58,7 @@ template <typename T> class Tensor {
    Tensor() : storage_(nullptr), shape_{}, requires_grad_(false) {}
 
    explicit Tensor(std::vector<std::size_t> shape, std::vector<T> data, DType dtype = DType::Float32, // NOLINT
-                   Device device = Device::CPU, bool requires_grad = false)
+                   Device device = Device::CPU, bool requires_grad = false, IAllocator* allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), requires_grad_(std::move(requires_grad)) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
@@ -69,11 +69,11 @@ template <typename T> class Tensor {
          sz *= shape_[i];
       }
       FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
-      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data));
+      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data), &default_allocator());
    }
 
       explicit Tensor(std::vector<size_t> shape, Device device = Device::CPU, DType dtype = DType::Float32,
-                   bool requires_grad = false)
+                   bool requires_grad = false, IAllocator* allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), requires_grad_(std::move(requires_grad)) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
@@ -83,7 +83,7 @@ template <typename T> class Tensor {
          strides_[i] = sz;
          sz *= shape_[i];
       }
-      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, sz);
+      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, sz, &default_allocator());
    }
 
 
@@ -570,6 +570,7 @@ template <typename T> class Tensor {
      DType dtype_;
      ValueID vid_{-1};
      bool requires_grad_;
+     IAllocator* allocator_ = nullptr;
 
 };
 

@@ -1,9 +1,10 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include <memory>
+
 #include "NodeInterface.h"
 #include "Traits.h"
-#include <memory>
 
 static constexpr int16_t kNoNode = -1;
 

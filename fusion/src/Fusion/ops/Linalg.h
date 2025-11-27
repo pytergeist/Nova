@@ -6,27 +6,37 @@
 #include "../Tensor.h"
 #include "../common/Log.h"
 #include "../core/ElementWise.h"
-#include "../kernels/Blas.h"
 #include "Helpers.h"
+#include "../cpu/blas/Gemm.h"
 
 namespace math {
 namespace linalg {
 template <typename T>
 inline Tensor<T> matmul(const Tensor<T> &x, const Tensor<T> &y) { // TODO: this uses vector obj copying and doesn't go through broadcast layer?
    assert((x.dtype_size() == y.dtype_size()) && "binary op: dtype sizes must match" ); // TODO: abstract into macro (change from assert)
-   auto const &shapeA = x.shape();
-   auto const &shapeB = y.shape();
-   size_t rank = shapeA.size();
-   size_t m = shapeA[rank - 2];
-   size_t n = shapeB[rank - 1];
-   std::vector<size_t> out_shape = shapeA;
-   out_shape[rank - 1] = n;
-   size_t batch = 1;
-   for (size_t i = 0; i < rank - 2; ++i) {
-      batch *= shapeA[i];
-   }
-   std::vector<T> data(batch * m * n);
-   blas_ops::matmul<T>(x, shapeA, y, shapeB, data);
+    auto const &shapeA = x.shape();
+    auto const &shapeB = y.shape();
+
+    size_t rank = shapeA.size();
+    int m = int(shapeA[rank - 2]);
+    int k = int(shapeA[rank - 1]);
+    int n = int(shapeB[rank - 1]);
+
+    std::vector<size_t> out_shape = shapeA;
+    out_shape[rank - 1] = n;
+
+    size_t batch = 1;
+    for (size_t i = 0; i < rank - 2; ++i) {
+        batch *= shapeA[i];
+    }
+
+    std::vector<T> data(size_t(batch) * m * n);
+
+    const T* baseA = x.raw_data().template data_as<const T>();
+    const T* baseB = y.raw_data().template data_as<const T>();
+    T*       baseC = data.data();
+
+    blas_ops::batched_gemm<T>(baseA, baseB, baseC, m, n, k, batch, T(1), T(0));
    return Tensor<T>(std::move(out_shape), std::move(data), x.dtype(), Device::CPU,
                     grad_flow(x, y));
 }
