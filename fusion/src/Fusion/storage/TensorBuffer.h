@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "../alloc/AllocatorInterface.h"
+#include "../alloc/AllocTypes.h"
 #include "../common/Log.h"
 
 
@@ -36,21 +37,8 @@ class TensorBuffer {
  public:
    TensorBuffer() = default;
 
-   //   static TensorBuffer allocate(size_t size_bytes, size_t alignment = 64) {
-   //      if (size_bytes == 0)
-   //         return {};
-   //      void *p = aligned_alloc_bytes(alignment, size_bytes);
-   //      return TensorBuffer(p, size_bytes, alignment);
-   //   };
-
-   //   template <typename T>
-   //   static TensorBuffer allocate_elements(std::size_t count,
-   //                                         std::size_t alignment = 64) {
-   //      return TensorBuffer::allocate(count * sizeof(T), alignment);
-   //   }
-
-   static TensorBuffer allocate_with(IAllocator *alloc, size_t size_bytes,
-                                     size_t alignment = 64) {
+   static TensorBuffer allocate_with(IAllocator *alloc, std::size_t size_bytes,
+                                     Alignment alignment = Alignment{64}) {
       if (size_bytes == 0)
          return {};
       FUSION_CHECK(alloc != nullptr, "allocate_with: allocator is null");
@@ -61,7 +49,7 @@ class TensorBuffer {
    template <typename T>
    static TensorBuffer allocate_elements_with(IAllocator *alloc,
                                               std::size_t count,
-                                              std::size_t alignment = 64) {
+                                              Alignment alignment = Alignment{64}) {
       return allocate_with(alloc, count * sizeof(T), alignment);
    }
 
