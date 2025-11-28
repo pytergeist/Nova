@@ -4,11 +4,13 @@
 
 
 #include <string_view>
+
 #include "../../AutodiffMode.h"
 #include "../../Traits.h"
 #include "../../../common/Checks.h"
 #include "../../../kernels/Serial.h"
 #include "../Operation.h"
+#include "../../../ops/OpParams.h"
 
 
 template <typename T> struct SwapAxes {
@@ -22,13 +24,11 @@ template <typename T> struct SwapAxes {
       autodiff::NoGradGuard _;
       FUSION_CHECK(input.size() == 1, "SwapAxes requires exactly one input");
       const auto &x = input[0];
-      int a1 = input.template get_param<int>("axis1");
-      int a2 = input.template get_param<int>("axis2");
-      int aa1 = serial::normalise_axis(a1, x.rank());
-      int aa2 = serial::normalise_axis(a2, x.rank());
-      FUSION_CHECK(aa1 != aa2, "SwapAxes: axes must be different");
-
-      auto y = x.swapaxes(aa1, aa2);
+      const SwapAxesParam &p = std::any_cast<const SwapAxesParam &>(input.op_param);
+      int naxis1 = serial::normalise_axis(p.axis1, x.rank());
+      int naxis2 = serial::normalise_axis(p.axis2, x.rank());
+      FUSION_CHECK(naxis1 != naxis2, "SwapAxes: axes must be different");
+      auto y = x.swapaxes(naxis1, naxis2);
       Out out;
       out.push_back(y);
       return out;
