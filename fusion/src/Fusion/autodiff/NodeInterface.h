@@ -1,10 +1,11 @@
 #ifndef INODE_H
 #define INODE_H
 
-#include "Node.h"
-#include "Traits.h"
 #include <memory>
 #include <utility>
+
+#include "Node.h"
+#include "Traits.h"
 
 template <typename T> class INode {
  public:

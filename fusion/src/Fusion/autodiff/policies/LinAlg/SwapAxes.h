@@ -5,12 +5,12 @@
 
 #include <string_view>
 
-#include "../../AutodiffMode.h"
-#include "../../Traits.h"
-#include "../../../common/Checks.h"
-#include "../../../kernels/Serial.h"
-#include "../Operation.h"
-#include "../../../ops/OpParams.h"
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/policies/Operation.h"
+#include "Fusion/common/Checks.h"
+#include "Fusion/ops/OpParams.h"
+#include "kernels/Serial.h"
 
 
 template <typename T> struct SwapAxes {

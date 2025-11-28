@@ -3,9 +3,10 @@
 #include <pybind11/pytypes.h>
 #include <pybind11/cast.h>
 
-#include "../../autodiff/AutodiffBridge.h"
-#include "../../autodiff/AutodiffMode.h"
-#include "../../autodiff/EngineContext.h"
+#include "Fusion/autodiff/AutodiffBridge.h"
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/EngineContext.h"
+
 #include "factory/BindFactory.h"
 #include "random/BindRandom.h"
 #include "tensor/BindTensor.h"

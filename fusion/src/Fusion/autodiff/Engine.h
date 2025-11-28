@@ -7,8 +7,9 @@
 #include <stdexcept>
 #include <optional>
 
-#include "../TensorFactory.h"
-#include "../common/Checks.h"
+#include "Fusion/TensorFactory.h"
+#include "Fusion/common/Checks.h"
+
 #include "Graph.h"
 #include "Sort.h"
 #include "Traits.h"

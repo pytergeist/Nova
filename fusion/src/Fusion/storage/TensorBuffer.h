@@ -10,9 +10,9 @@
 #include <stdexcept>
 #include <vector>
 
-#include "../alloc/AllocatorInterface.h"
-#include "../alloc/AllocTypes.h"
-#include "../common/Log.h"
+#include "Fusion/alloc/AllocatorInterface.h"
+#include "Fusion/alloc/AllocTypes.h"
+#include "Fusion/common/Log.h"
 
 
 inline void *aligned_alloc_bytes(size_t alignment, size_t size) {

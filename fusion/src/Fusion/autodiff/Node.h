@@ -1,9 +1,10 @@
 #ifndef _NODE_H
 #define _NODE_H
 
+#include <memory>
+
 #include "Traits.h"
 #include "policies/Operation.h"
-#include <memory>
 
 template <typename T, class Op> class Node {
  public:

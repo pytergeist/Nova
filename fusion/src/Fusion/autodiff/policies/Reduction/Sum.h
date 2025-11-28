@@ -3,9 +3,10 @@
 
 #include <string_view>
 #include <vector>
-#include "../../AutodiffMode.h"
-#include "../../Traits.h"
-#include "../Operation.h"
+
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/policies/Operation.h"
 
 template <typename T> struct Sum {
    inline static constexpr std::string_view name = "Sum";

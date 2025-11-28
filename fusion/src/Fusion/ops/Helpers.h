@@ -2,9 +2,10 @@
 #define OP_HELPERS_H
 
 #include <cassert>
-#include "../Tensor.h"
-#include "../core/Device.h"
-#include "../core/EwiseMeta.h"
+
+#include "Fusion/Tensor.h"
+#include "Fusion/core/Device.h"
+#include "Fusion/core/EwiseMeta.h"
 
 template <typename T> bool grad_flow(const Tensor<T> &x, const Tensor<T> &y) {
    return x.requires_grad() || y.requires_grad();

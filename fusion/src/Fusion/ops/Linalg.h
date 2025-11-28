@@ -3,11 +3,13 @@
 
 #include <vector>
 #include <string_view>
-#include "../Tensor.h"
-#include "../common/Log.h"
-#include "../core/ElementWise.h"
+
+#include "Fusion/Tensor.h"
+#include "Fusion/common/Log.h"
+#include "Fusion/core/ElementWise.h"
+#include "Fusion/cpu/blas/Gemm.h"
+
 #include "Helpers.h"
-#include "../cpu/blas/Gemm.h"
 
 namespace math {
 namespace linalg {

@@ -3,10 +3,10 @@
 
 #include <string_view>
 #include <vector>
-#include "../../AutodiffMode.h"
-#include "../../Traits.h"
-#include "../../../common/Checks.h"
-#include "../Operation.h"
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/policies/Operation.h"
+#include "Fusion/common/Checks.h"
 
 template <typename T> struct Add {
    inline static constexpr std::string_view name = "Add";

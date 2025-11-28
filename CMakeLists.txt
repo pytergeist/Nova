@@ -40,6 +40,7 @@ endif()
 # Paths
 # ------------------------------------------------------------
 set(FUSION_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fusion/src/Fusion")
+set(FUSION_INCLUDE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/fusion/src")
 
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
@@ -50,6 +51,7 @@ set_target_properties(fusion_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(fusion_core
         PUBLIC
+        ${FUSION_INCLUDE_ROOT}
         ${FUSION_SRC_DIR}
         ${FUSION_SRC_DIR}/cpu/simd
 )

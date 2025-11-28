@@ -1,10 +1,12 @@
 #ifndef TRANSPOSE_H
 #define TRANSPOSE_H
 
-#include "../../Traits.h"
-#include "../Operation.h"
 #include <string_view>
 #include <vector>
+
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/policies/Operation.h"
 
 template <typename T> struct Transpose {
    inline static constexpr std::string_view name = "Transpose";
@@ -14,6 +16,7 @@ template <typename T> struct Transpose {
    using GradOut = AutodiffMeta<T>;
 
    Out forward(Context<T> &context, const In &input) {
+      autodiff::NoGradGuard _;
       FUSION_CHECK(input.size() >= 1, "Transpose requires one inputs");
       FUSION_BOUNDS_CHECK(0, input.size());
       const auto &a = input[0];
@@ -24,6 +27,7 @@ template <typename T> struct Transpose {
    };
 
    GradIn backward(Context<T> &context, GradOut &grad_out) {
+      autodiff::NoGradGuard _;
       if (grad_out.size() == 0)
          return {};
       FUSION_CHECK(

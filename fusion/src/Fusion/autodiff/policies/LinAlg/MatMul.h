@@ -3,10 +3,11 @@
 
 #include <string_view>
 #include <vector>
-#include "../../AutodiffMode.h"
-#include "../../Traits.h"
-#include "../../../common/Log.h"
-#include "../Operation.h"
+
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/policies/Operation.h"
+#include "Fusion/common/Checks.h"
 
 template <typename T> struct MatMul {
    inline static constexpr std::string_view name = "MatMul";

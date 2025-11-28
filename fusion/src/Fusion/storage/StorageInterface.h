@@ -3,8 +3,10 @@
 
 #include <cstddef>
 #include <vector>
+
+#include "Fusion/core/Device.h"
+
 #include "TensorBuffer.h"
-#include "../core/Device.h"
 
 template <typename T> class ITensorStorage {
  public:

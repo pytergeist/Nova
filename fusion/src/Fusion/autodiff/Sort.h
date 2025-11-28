@@ -1,9 +1,10 @@
 #ifndef SORT_H
 #define SORT_H
 
-#include "Traits.h"
 #include <queue>
 #include <vector>
+
+#include "Traits.h"
 
 template <typename T> class Sort {
  public:

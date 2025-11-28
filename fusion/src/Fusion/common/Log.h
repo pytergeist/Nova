@@ -1,4 +1,3 @@
-// Log.h
 #pragma once
 #include <chrono>
 #include <ctime>

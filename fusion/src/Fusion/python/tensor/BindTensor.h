@@ -8,11 +8,12 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "../../Random.h"
-#include "../../Tensor.h"
-#include "../../TensorFactory.h"
+#include "Fusion/Random.h"
+#include "Fusion/Tensor.h"
+#include "Fusion/TensorFactory.h"
+#include "Fusion/core/DTypes.h"
+
 #include "Helpers.h"
-#include "../../core/DTypes.h"
 
 namespace py = pybind11;
 

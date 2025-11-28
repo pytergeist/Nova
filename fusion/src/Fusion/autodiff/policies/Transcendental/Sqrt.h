@@ -1,11 +1,13 @@
 #ifndef SQRT_H
 #define SQRT_H
 
-#include "../../AutodiffMode.h"
-#include "../../Traits.h"
-#include "../Operation.h"
 #include <string_view>
 #include <vector>
+
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/policies/Operation.h"
+#include "Fusion/common/Checks.h"
 
 template <typename T> struct Sqrt {
    inline static constexpr std::string_view name = "Sqrt";

@@ -12,7 +12,7 @@
 #include <arm_neon.h>
 #endif
 
-#include "../../common/Hints.h"
+#include "Fusion/common/Hints.h"
 
 namespace simd {
 static constexpr std::size_t kNeonVectorBytes = 16;

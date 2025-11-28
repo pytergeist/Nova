@@ -3,11 +3,13 @@
 
 #include <string_view>
 #include <vector>
-#include "../Tensor.h"
-#include "../core/ElementWise.h"
+
+#include "Fusion/Tensor.h"
+#include "Fusion/core/ElementWise.h"
+#include "Fusion/core/Device.h"
+#include "Fusion/core/EwiseMeta.h"
+
 #include "Helpers.h"
-#include "../core/Device.h"
-#include "../core/EwiseMeta.h"
 
 
 namespace math {

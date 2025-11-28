@@ -3,9 +3,9 @@
 
 #include <numeric>
 #include <vector>
-#include "common/Checks.h"
-#include "storage/StorageInterface.h"
-#include "core/DTypes.h"
+#include "Fusion/common/Checks.h"
+#include "Fusion/storage/StorageInterface.h"
+#include "Fusion/core/DTypes.h"
 
 template <typename T>
 class Tensor;

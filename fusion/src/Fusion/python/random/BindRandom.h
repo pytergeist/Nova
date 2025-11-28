@@ -1,10 +1,11 @@
 #ifndef BIND_RANDOM_H
 #define BIND_RANDOM_H
 
-#include "../../Random.h"
 #include <pybind11/pybind11.h>
 #include <string>
 #include <typeinfo>
+
+#include "Fusion/Random.h"
 
 namespace py = pybind11;
 

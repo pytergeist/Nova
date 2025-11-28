@@ -1,9 +1,10 @@
 #ifndef SIMD_TRAITS_H
 #define SIMD_TRAITS_H
 
+#include <cstddef>
+
 #include "SimdTags.h"
 #include "simd/Vec128Neon.h"
-#include <cstddef>
 
 template <class Tag, typename T> struct simd_traits {
    static constexpr bool available = false;
