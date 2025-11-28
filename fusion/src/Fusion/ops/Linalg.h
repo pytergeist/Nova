@@ -54,21 +54,21 @@ std::string shape_str(std::vector<size_t> shape) {
 }
 
 template <typename T>
-inline Tensor<T> swapaxes(const Tensor<T> &x, int axis1, int axis2) {
+inline Tensor<T> swapaxes(const Tensor<T> &x, const int axis1, const int axis2) {
    std::vector<size_t> out_shape = x.shape();
    const int nd = static_cast<int>(out_shape.size());
    if (nd < 2) {
       return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()), x.dtype(),
                        Device::CPU, x.requires_grad());
    }
-   axis1 = serial::normalise_axis(axis1, nd);
-   axis2 = serial::normalise_axis(axis2, nd);
+   const int naxis1 = serial::normalise_axis(axis1, nd);
+   const int naxis2 = serial::normalise_axis(axis2, nd);
    if (axis1 == axis2) {
       return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()), x.dtype(),
                        Device::CPU, x.requires_grad());
    }
-   std::swap(out_shape[axis1], out_shape[axis2]);
-   std::vector<T> out = serial::swapaxes<T>(x, x.shape(), axis1, axis2);
+   std::swap(out_shape[naxis1], out_shape[naxis2]);
+   std::vector<T> out = serial::swapaxes<T>(x, x.shape(), naxis1, naxis2);
    return Tensor<T>(std::move(out_shape), std::move(out), x.dtype(), Device::CPU);
 }
 } // namespace linalg
