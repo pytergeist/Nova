@@ -3,14 +3,15 @@
 
 #include <string_view>
 #include <vector>
-#include "Fusion/autodiff/AutodiffMode.h"
+
 #include "Fusion/TensorFactory.h"
+#include "Fusion/autodiff/AutodiffMode.h"
 #include "Fusion/autodiff/Traits.h"
 #include "Fusion/autodiff/policies/Operation.h"
 #include "Fusion/common/Checks.h"
 
 template <typename T> struct GreaterThan {
-   inline static constexpr std::string_view name = "GreaterThan";
+   static constexpr std::string_view name = "GreaterThan";
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
@@ -20,9 +21,9 @@ template <typename T> struct GreaterThan {
       FUSION_CHECK(input.size() >= 2, "GreaterThan requires two inputs");
       FUSION_BOUNDS_CHECK(0, input.size());
       FUSION_BOUNDS_CHECK(1, input.size());
-      autodiff::NoGradGuard _;
-      const auto &a = input[0];
-      const auto &b = input[1];
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &a = input[0];
+      const Tensor<T> &b = input[1];
       context.save("a", a);
       context.save("b", b);
       FUSION_CHECK(a.size() == b.size(), "GreaterThan: input size mismatch");
@@ -33,15 +34,16 @@ template <typename T> struct GreaterThan {
    };
 
    GradIn backward(Context<T> &context, GradOut &grad_out) {
-      if (grad_out.size() == 0)
+      if (grad_out.empty()) {
          return {};
+      }
       FUSION_CHECK(
           grad_out.size() == 1,
           "GreaterThan::backward expects exactly 1 upstream grad tensor");
-      autodiff::NoGradGuard _;
+      const autodiff::NoGradGuard _;
       const Tensor<T> &a = context.template load<Tensor<T>>("a");
       const Tensor<T> &b = context.template load<Tensor<T>>("b");
-      const auto &g0 = grad_out[0];
+      const Tensor<T> &g0 = grad_out[0];
       FUSION_CHECK(!g0.empty(),
                    "GreaterThan::backward: upstream grad is empty");
       Tensor<T> c = zeros_like(a);
