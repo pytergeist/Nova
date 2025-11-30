@@ -29,18 +29,25 @@ struct static_arity<BinaryType<T>, void>
     : std::integral_constant<std::size_t, 2> {};
 
 template <typename T> struct Context {
-   std::unordered_map<std::string, Tensor<T>> saved_result;
+   using CtxValueType = std::variant<Tensor<T>, int>; //
+   std::unordered_map<std::string, CtxValueType> saved_result;
 
    template <typename U> void save(std::string key, U &&data) {
       saved_result.insert_or_assign(std::move(key), std::move(data));
    }
 
    template <typename U> U &load(std::string &key) {
-      return saved_result.at(key);
+      auto it = saved_result.find(key);
+      if (it == saved_result.end()) {
+         FUSION_CHECK(false, "Context::load: key not found: " + key);
+      }
+      const CtxValueType& v = it->second;
+      FUSION_LOG_INFO("Context::load key=", key, " index=", v.index());
+      return std::get<U>(v);
    }
 
    template <typename U> const U &load(const std::string &key) const {
-      return saved_result.at(key);
+      return  std::get<U>(saved_result.at(key));
    }
 };
 

@@ -10,38 +10,36 @@
 #include "Fusion/common/Checks.h"
 
 template <typename T> struct Sqrt {
-   inline static constexpr std::string_view name = "Sqrt";
+   static constexpr std::string_view name = "Sqrt";
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
    using GradOut = AutodiffMeta<T>;
 
    Out forward(Context<T> &context, const In &input) {
-      FUSION_CHECK(input.size() >= 1, "Sqrt requires one inputs");
-      autodiff::NoGradGuard _;
-      FUSION_BOUNDS_CHECK(0, input.size());
-      const Tensor<T> &a = input[0];
-      context.save("c", a);
-      Tensor<T> c = a.sqrt();
+      FUSION_CHECK(!input.empty(), "Sqrt requires one inputs");
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &x = input.at(0);
+      context.save("x", x);
+      Tensor<T> y = x.sqrt();
       Out out;
-      out.push_back(c);
+      out.push_back(y);
       return out;
    };
 
    GradIn backward(Context<T> &context, GradOut &grad_out) {
-      if (grad_out.size() == 0)
+      if (grad_out.empty()) {
          return {};
+      }
       FUSION_CHECK(grad_out.size() == 1,
                    "Sqrt::backward expects exactly 1 upstream grad tensor");
-      autodiff::NoGradGuard _;
-      const auto &g0 = grad_out[0];
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Sqrt::backward: upstream grad is empty");
-      const Tensor<T> &a = context.template load<Tensor<T>>("c");
-      Tensor<T> ga =
-          g0 / (a.sqrt() *
-                2); // TODO: this is wrong - need 2* (need tensor * scalar)
+      const Tensor<T> &x = context.template load<Tensor<T>>("x");
+      Tensor<T> gx = g0 / (x.sqrt() * 2);
       GradIn g;
-      g.push_back(ga);
+      g.push_back(gx);
       return g;
    }
 };

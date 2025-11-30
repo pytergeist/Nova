@@ -9,35 +9,35 @@
 #include "Fusion/autodiff/policies/Operation.h"
 
 template <typename T> struct Transpose {
-   inline static constexpr std::string_view name = "Transpose";
+   static constexpr std::string_view name = "Transpose";
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
    using GradOut = AutodiffMeta<T>;
 
-   Out forward(Context<T> &context, const In &input) {
-      autodiff::NoGradGuard _;
-      FUSION_CHECK(input.size() >= 1, "Transpose requires one inputs");
-      FUSION_BOUNDS_CHECK(0, input.size());
-      const auto &a = input[0];
-      Tensor<T> c = a.transpose();
+   Out forward(Context<T> &context, const In &input) { // NOLINT
+      FUSION_CHECK(!input.empty(), "Transpose requires one inputs");
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &x = input.at(0);
+      Tensor<T> y = x.transpose();
       Out out;
-      out.push_back(c);
+      out.push_back(y);
       return out;
    };
 
-   GradIn backward(Context<T> &context, GradOut &grad_out) {
-      autodiff::NoGradGuard _;
-      if (grad_out.size() == 0)
+   GradIn backward(Context<T> &context, GradOut &grad_out) { // NOLINT
+      if (grad_out.empty()) {
          return {};
+      }
       FUSION_CHECK(
           grad_out.size() == 1,
           "Transpose::backward expects exactly 1 upstream grad tensor");
-      Tensor<T> g0 = std::move(grad_out[0]);
+      const autodiff::NoGradGuard _;
+      Tensor<T> g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Transpose::backward: upstream grad is empty");
-      Tensor<T> g1 = g0.transpose();
+      Tensor<T> gx = g0.transpose();
       GradIn g;
-      g.push_back(g1);
+      g.push_back(gx);
       return g;
    }
 };
