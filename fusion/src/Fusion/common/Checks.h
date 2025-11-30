@@ -7,7 +7,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
-#include <source_location>  // C++20
+#include <source_location>
 
 namespace fusion::detail {
 

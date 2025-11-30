@@ -1,10 +1,11 @@
 #ifndef UNARY_H
 #define UNARY_H
 
-#include "../Tensor.h"
-#include "../core/ElementWise.h"
 #include <string_view>
 #include <vector>
+
+#include "Fusion/Tensor.h"
+#include "Fusion/core/ElementWise.h"
 
 namespace math {
 

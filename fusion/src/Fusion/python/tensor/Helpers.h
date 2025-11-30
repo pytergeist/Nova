@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "../../Tensor.h"
+#include "Fusion/Tensor.h"
 
 namespace py = pybind11;
 

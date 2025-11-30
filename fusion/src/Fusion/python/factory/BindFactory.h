@@ -1,11 +1,12 @@
 #ifndef BIND_FACTORY_H
 #define BIND_FACTORY_H
 
-#include "../../TensorFactory.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <string>
 #include <typeinfo>
+
+#include "Fusion/TensorFactory.h"
 
 namespace py = pybind11;
 

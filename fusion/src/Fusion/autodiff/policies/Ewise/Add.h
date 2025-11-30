@@ -3,46 +3,45 @@
 
 #include <string_view>
 #include <vector>
-#include "../../AutodiffMode.h"
-#include "../../Traits.h"
-#include "../../../common/Checks.h"
-#include "../Operation.h"
+
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/policies/Operation.h"
+#include "Fusion/common/Checks.h"
 
 template <typename T> struct Add {
-   inline static constexpr std::string_view name = "Add";
+   static constexpr std::string_view name = "Add";
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
    using GradOut = AutodiffMeta<T>;
 
-   Out forward(Context<T> &context, const In &input) {
-      autodiff::NoGradGuard _;
+   Out forward(Context<T> &context, const In &input) { // NOLINT
+      const autodiff::NoGradGuard _;
       FUSION_CHECK(input.size() >= 2, "Add requires two inputs");
-      FUSION_BOUNDS_CHECK(0, input.size());
-      FUSION_BOUNDS_CHECK(1, input.size());
-      const auto &a = input[0];
-      const auto &b = input[1];
-      //        FUSION_ALLOW_SCALAR_BINARY(a, b);
-      Tensor<T> c = a + b;
+      const Tensor<T> &x = input.at(0);
+      const Tensor<T> &y = input.at(1);
+      //      FUSION_ALLOW_SCALAR_BINARY(a, b);
+      Tensor<T> z = x + y;
       Out out;
-      out.push_back(c);
+      out.push_back(z);
       return out;
    };
 
-   GradIn backward(Context<T> &context, GradOut &grad_out) {
-      autodiff::NoGradGuard _;
-      if (grad_out.size() == 0)
-         return {}; // TODO: Make a macro??? or helper func
+   GradIn backward(Context<T> &context, GradOut &grad_out) { // NOLINT
+      if (grad_out.empty()) {
+         return {};
+      }
       FUSION_CHECK(grad_out.size() == 1,
                    "Add::backward expects exactly 1 upstream grad tensor");
-      Tensor<T> &g0 = grad_out[0];
+      Tensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Add::backward: upstream grad is empty");
-      Tensor<T> ga = g0;
-      Tensor<T> gb = g0;
+      const autodiff::NoGradGuard _;
+      Tensor<T> gx = g0;
+      Tensor<T> gy = g0;
       GradIn g;
-      g.data.reserve(2);
-      g.push_back(ga);
-      g.push_back(gb);
+      g.push_back(gx);
+      g.push_back(gy);
       return g;
    }
 };

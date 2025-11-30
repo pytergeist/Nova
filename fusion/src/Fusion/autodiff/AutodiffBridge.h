@@ -1,7 +1,7 @@
 #ifndef AUTODIFF_BRIDGE_H
 #define AUTODIFF_BRIDGE_H
 
-#pragma once
+
 #include "AutodiffMode.h"
 #include "Engine.h"
 #include "EngineContext.h"

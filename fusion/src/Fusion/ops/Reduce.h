@@ -1,15 +1,17 @@
 #ifndef OPS_REDUCE_H
 #define OPS_REDUCE_H
 
-#include "../Tensor.h"
-#include "../core/ElementWise.h"
-#include "../core/Ffunc.h"
-#include "../core/Reduce.h"
-#include "../cpu/SimdTags.h"
-#include "../cpu/SimdTraits.h"
-#include "Helpers.h"
 #include <string_view>
 #include <vector>
+
+#include "Fusion/Tensor.h"
+#include "Fusion/core/ElementWise.h"
+#include "Fusion/core/Ffunc.h"
+#include "Fusion/core/Reduce.h"
+#include "Fusion/cpu/SimdTags.h"
+#include "Fusion/cpu/SimdTraits.h"
+
+#include "Helpers.h"
 
 namespace math {
 

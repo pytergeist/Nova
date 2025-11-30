@@ -2,11 +2,13 @@
 #define DENSE_STORAGE_H
 
 #include <algorithm>
+
+#include "Fusion/common/Log.h"
+#include "Fusion/alloc/AllocatorInterface.h"
+
 #include <cstddef>
 #include "StorageInterface.h"
 #include "TensorBuffer.h"
-#include "common/Log.h"
-#include "../alloc/AllocatorInterface.h"
 
 template <typename T> class NDTensorStorage : public ITensorStorage<T> {
  private:

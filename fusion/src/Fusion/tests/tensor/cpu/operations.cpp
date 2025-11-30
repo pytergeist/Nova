@@ -1,11 +1,12 @@
 // tensor_ops_test.cpp
 
-#include "../../../Tensor.h"
 #include <cmath>
 #include <cstddef>
 #include <gtest/gtest.h>
 #include <stdexcept>
 #include <vector>
+
+#include "Fusion/Tensor.h"
 
 //------------------------------------------------------------------------------
 // Helper: Create a Tensor<T> from vector data and a shape.

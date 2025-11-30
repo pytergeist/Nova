@@ -1,49 +1,50 @@
 #ifndef MULTIPLY_H
 #define MULTIPLY_H
 
-#include "../../AutodiffMode.h"
-#include "../../Traits.h"
-#include "../Operation.h"
 #include <string_view>
 
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/policies/Operation.h"
+#include "Fusion/common/Checks.h"
+
 template <typename T> struct Multiply {
-   inline static constexpr std::string_view name = "Multiply";
+   static constexpr std::string_view name = "Multiply";
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
    using GradOut = AutodiffMeta<T>;
 
    Out forward(Context<T> &context, const In &input) {
-      autodiff::NoGradGuard _;
       FUSION_CHECK(input.size() >= 2, "Multiply::forward requires two inputs");
-      FUSION_BOUNDS_CHECK(0, input.size());
-      FUSION_BOUNDS_CHECK(1, input.size());
-      const auto &a = input[0];
-      const auto &b = input[1];
-      FUSION_ALLOW_SCALAR_BINARY(a, b);
-      context.save("a", input[0]);
-      context.save("b", input[1]);
-      Tensor<T> c = a * b;
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &x = input.at(0);
+      const Tensor<T> &y = input.at(1);
+      FUSION_ALLOW_SCALAR_BINARY(x, y);
+      context.save("x", input[0]);
+      context.save("y", input[1]);
+      Tensor<T> z = x * y;
       Out out;
-      out.push_back(c);
+      out.push_back(z);
       return out;
    };
 
    GradIn backward(Context<T> &context, GradOut &grad_out) {
-      autodiff::NoGradGuard _;
-      if (grad_out.size() == 0)
+      if (grad_out.empty()) {
          return {};
+      }
       FUSION_CHECK(grad_out.size() == 1,
                    "Multiply::backward expects exactly 1 upstream grad tensor");
-      auto &a = context.template load<Tensor<T>>("a");
-      auto &b = context.template load<Tensor<T>>("b");
-      Tensor<T> g0 = std::move(grad_out[0]);
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &x = context.template load<Tensor<T>>("x");
+      const Tensor<T> &y = context.template load<Tensor<T>>("y");
+      Tensor<T> g0 = std::move(grad_out.at(0));
       FUSION_CHECK(!g0.empty(), "Multiply::backward: upstream grad is empty");
-      Tensor<T> ga = g0 * b;
-      Tensor<T> gb = g0 * a;
+      Tensor<T> gx = g0 * y;
+      Tensor<T> gy = g0 * x;
       GradIn g;
-      g.push_back(ga);
-      g.push_back(gb);
+      g.push_back(gx);
+      g.push_back(gy);
       return g;
    }
 };

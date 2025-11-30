@@ -7,40 +7,41 @@
 #include <utility>
 #include <vector>
 
-#include "autodiff/AutodiffMode.h"
-#include "autodiff/Dispatch.h"
-#include "autodiff/Engine.h"
-#include "autodiff/EngineContext.h"
-#include "autodiff/policies/Comparison/Comparison.h"
-#include "autodiff/policies/Ewise/Ewise.h"
-#include "autodiff/policies/LinAlg/LinAlg.h"
-#include "autodiff/policies/Reduction/Reduction.h"
-#include "autodiff/policies/Transcendental/Transcendental.h"
-#include "common/Checks.h"
-#include "core/ElementWise.h"
-#include "core/Ffunc.h"
-#include "core/Reduce.h"
-#include "cpu/SimdTags.h"
-#include "cpu/SimdTraits.h"
-#include "kernels/Serial.h"
-#include "ops/Comparison.h"
-#include "ops/Ewise.h"
-#include "ops/Linalg.h"
-#include "ops/Reduce.h"
-#include "ops/Transcendental.h"
-#include "storage/DenseStorage.h"
-#include "storage/StorageInterface.h"
-#include "storage/TensorView.h"
-#include "ops/Helpers.h"
-#include "core/Layout.h"
-#include "core/DTypes.h"
-#include "alloc/DefaultAllocator.h"
+#include "Fusion/alloc/DefaultAllocator.h"
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Dispatch.h"
+#include "Fusion/autodiff/Engine.h"
+#include "Fusion/autodiff/EngineContext.h"
+#include "Fusion/autodiff/policies/Comparison/Comparison.h"
+#include "Fusion/autodiff/policies/Ewise/Ewise.h"
+#include "Fusion/autodiff/policies/LinAlg/LinAlg.h"
+#include "Fusion/autodiff/policies/Reduction/Reduction.h"
+#include "Fusion/autodiff/policies/Transcendental/Transcendental.h"
+#include "Fusion/common/Checks.h"
+#include "Fusion/core/DTypes.h"
+#include "Fusion/core/ElementWise.h"
+#include "Fusion/core/Ffunc.h"
+#include "Fusion/core/Layout.h"
+#include "Fusion/core/Reduce.h"
+#include "Fusion/cpu/SimdTags.h"
+#include "Fusion/cpu/SimdTraits.h"
+#include "Fusion/kernels/Serial.h"
+#include "Fusion/ops/Comparison.h"
+#include "Fusion/ops/Ewise.h"
+#include "Fusion/ops/Helpers.h"
+#include "Fusion/ops/Linalg.h"
+#include "Fusion/ops/OpParams.h"
+#include "Fusion/ops/Reduce.h"
+#include "Fusion/ops/Transcendental.h"
+#include "Fusion/storage/DenseStorage.h"
+#include "Fusion/storage/StorageInterface.h"
+#include "Fusion/storage/TensorView.h"
 
 template <typename T>
 static inline ValueID ensure_handle(Engine<T> &eng, Tensor<T> &t) {
    if (t.eng_ == &eng && t.vid().idx >= 0) {
       return t.vid();
-      }
+   }
    auto vid = eng.track_input(t);
    t.eng_ = &eng; // TODO: make this a setter
    t.set_vid(vid);
@@ -54,12 +55,14 @@ inline Tensor<T> scalar_tensor(const T scalar, const DType dtype) {
 
 template <typename T> class Tensor {
  public:
-
    Tensor() : storage_(nullptr), shape_{}, requires_grad_(false) {}
 
-   explicit Tensor(std::vector<std::size_t> shape, std::vector<T> data, DType dtype = DType::Float32, // NOLINT
-                   Device device = Device::CPU, bool requires_grad = false, IAllocator* allocator = nullptr)
-       : shape_(std::move(shape)), dtype_(dtype), requires_grad_(std::move(requires_grad)) {
+   explicit Tensor(std::vector<std::size_t> shape, std::vector<T> data,
+                   DType dtype = DType::Float32, // NOLINT
+                   Device device = Device::CPU, bool requires_grad = false,
+                   IAllocator *allocator = nullptr)
+       : shape_(std::move(shape)), dtype_(dtype),
+         requires_grad_(std::move(requires_grad)) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       std::size_t sz = 1;
@@ -69,12 +72,15 @@ template <typename T> class Tensor {
          sz *= shape_[i];
       }
       FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
-      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data), &default_allocator());
+      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data),
+                                                      &default_allocator());
    }
 
-      explicit Tensor(std::vector<size_t> shape, Device device = Device::CPU, DType dtype = DType::Float32,
-                   bool requires_grad = false, IAllocator* allocator = nullptr)
-       : shape_(std::move(shape)), dtype_(dtype), requires_grad_(std::move(requires_grad)) {
+   explicit Tensor(std::vector<size_t> shape, Device device = Device::CPU,
+                   DType dtype = DType::Float32, bool requires_grad = false,
+                   IAllocator *allocator = nullptr)
+       : shape_(std::move(shape)), dtype_(dtype),
+         requires_grad_(std::move(requires_grad)) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       size_t sz = 1;
@@ -83,51 +89,33 @@ template <typename T> class Tensor {
          strides_[i] = sz;
          sz *= shape_[i];
       }
-      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, sz, &default_allocator());
+      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, sz,
+                                                      &default_allocator());
    }
-
 
    inline bool is_contiguous() const noexcept {
       return calc_contiguous(shape_, strides_);
    }
 
-   DType dtype() const noexcept {
-      return dtype_;
-   }
+   DType dtype() const noexcept { return dtype_; }
 
    inline std::size_t dtype_size() const noexcept {
       return get_dtype_size(dtype_);
    }
 
-   ValueID vid() {
-      return vid_;
-   }
+   ValueID vid() { return vid_; }
 
-   ValueID set_vid(ValueID vid) noexcept {
-      return vid_ = vid;
-   }
+   ValueID set_vid(ValueID vid) noexcept { return vid_ = vid; }
 
-   const ValueID vid() const {
-      return vid_;
-   }
+   const ValueID vid() const { return vid_; }
 
-   ITensorStorage<T>* get_storage() {
-      return storage_.get();
-   }
+   ITensorStorage<T> *get_storage() { return storage_.get(); }
 
-   const ITensorStorage<T>* get_storage() const {
-      return storage_.get();
-   }
+   const ITensorStorage<T> *get_storage() const { return storage_.get(); }
 
+   T *get_ptr() { return storage_->data_ptr(); }
 
-
-   T* get_ptr() {
-      return storage_->data_ptr();
-   }
-
-   const T* get_ptr() const {
-      return storage_->data_ptr();
-   }
+   const T *get_ptr() const { return storage_->data_ptr(); }
 
    size_t rank() const { return shape_.size(); }
    size_t ndims() const {
@@ -137,9 +125,8 @@ template <typename T> class Tensor {
    std::vector<size_t> strides() const { return strides_; }
 
    TensorView<T> view() {
-      return TensorView<T>(
-          storage_->data().template data<T>(),
-          this->shape(), this->strides(), this->rank(), this->ndims());
+      return TensorView<T>(storage_->data().template data<T>(), this->shape(),
+                           this->strides(), this->rank(), this->ndims());
    }
 
    bool has_vid() const noexcept { return vid_.idx >= 0; }
@@ -147,7 +134,7 @@ template <typename T> class Tensor {
    ValueID ensure_vid() {
       if (vid_.idx >= 0) {
          return vid_;
-         }
+      }
       auto &eng = EngineContext<T>::get();
       vid_ = eng.track_input(*this);
       return vid_;
@@ -165,76 +152,6 @@ template <typename T> class Tensor {
    bool requires_grad() const noexcept { return requires_grad_; }
    void set_requires_grad(bool v) noexcept { requires_grad_ = v; }
 
-   friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
-      const auto *cpuStorage =
-          dynamic_cast<const NDTensorStorage<T> *>(tensor.get_storage());
-      if (cpuStorage) {
-         const TensorBuffer &buf = cpuStorage->data();
-         const size_t n = cpuStorage->size();
-         const T *p = buf.template data_as<const T>();
-         os << "Tensor(";
-         for (size_t i = 0; i < n; i++) {
-            os << p[i]; // NOLINT TODO: change to use view
-            if (i + 1 < n) {
-               os << ", ";
-               }
-         }
-         os << ")" << std::endl;
-      } else {
-         os << "Tensor(unsupported storage type)";
-      }
-      return os;
-   }
-
-   std::string shape_str() const {
-      std::ostringstream oss;
-      oss << '(';
-      for (size_t i = 0; i < shape_.size(); ++i) {
-         oss << shape_[i];
-         if (i + 1 < shape_.size()) {
-            oss << ',';
-            }
-      }
-      oss << ')';
-      return oss.str();
-   }
-
-   std::string stride_str() const {
-      std::ostringstream oss;
-      oss << '(';
-      for (size_t i = 0; i < strides_.size(); ++i) {
-         oss << strides_[i];
-         if (i + 1 < strides_.size()) {
-            oss << ',';
-            }
-      }
-      oss << ')';
-      return oss.str();
-   }
-
-   //  template <class Callable, class... Ops,
-   //            typename R = std::invoke_result_t<Callable, T, T>>
-   //  Tensor(FFunc<Callable, Ops...> const &ffunc) {
-   //    // 1) pull shape out of the ffunc
-   //    shape_ = ffunc.shape();
-   //    rank_ = shape_.size();
-   //    size_t n = ffunc.flat_size();
-   //
-   //    if constexpr (simd_traits<Callable, T>::available) {
-   //      std::vector<T> data(n);
-   //      // call your SIMD driver
-   //      simd_traits<Callable, T>::execute(ffunc, data.data());
-   //      storage = std::make_unique<NDTensorStorage<T>>(shape_,
-   //      std::move(data));
-   //    } else {
-   //      std::vector<R> data(n);
-   //      for (size_t i = 0; i < n; ++i)
-   //        data[i] = ffunc[i];
-   //      storage = std::make_unique<NDTensorStorage<R>>(shape_,
-   //      std::move(data));
-   //    }
-   //  }
-
    T operator[](int idx) const {
       return storage_->data().template data_as<const T>()[idx];
    }
@@ -246,11 +163,11 @@ template <typename T> class Tensor {
    void clear() noexcept {
       if (!storage_) {
          return;
-         }
+      }
       auto &buf = storage_->data();
       if (buf.size_bytes() == 0) {
          return;
-         }
+      }
       std::memset(buf.data(), 0, buf.size_bytes());
    }
 
@@ -262,7 +179,9 @@ template <typename T> class Tensor {
       }
    };
 
-   bool empty() const noexcept { return !storage_ || storage_->data().empty(); };
+   bool empty() const noexcept {
+      return !storage_ || storage_->data().empty();
+   };
 
    bool is_initialised() const noexcept { return storage_ != nullptr; }
 
@@ -278,18 +197,13 @@ template <typename T> class Tensor {
       eng.backward(this->vid_);
    }
 
-   //  Tensor<T> grad() {
-   //	auto& eng = EngineContext<T>::get();
-   //	return eng.get_grad(get_vid());
-   //  }
-
    const Tensor<T> &grad() const {
-      // Lazy, const-safe allocation of a zero-like grad buffer
       if (grad_ == nullptr) {
          const_cast<Tensor<T> *>(this)->ensure_grad();
-         }
+      }
       return *grad_;
    }
+
    Tensor<T> &mutable_grad() {
       ensure_grad(); // ensures grad_ exists and is zero-like
       return *grad_;
@@ -299,8 +213,8 @@ template <typename T> class Tensor {
    void ensure_grad() {
       if (!has_grad()) {
          std::vector<T> z(size(), T(0));
-         grad_ = std::make_shared<Tensor<T>>(shape_, std::move(z), dtype(), Device::CPU,
-                                             false);
+         grad_ = std::make_shared<Tensor<T>>(shape_, std::move(z), dtype(),
+                                             Device::CPU, false);
       }
    }
 
@@ -375,37 +289,21 @@ template <typename T> class Tensor {
           [](const Tensor &x, const Tensor &y) { return math::sub(x, y); });
    }
 
-  auto& operator-=(const Tensor& other) {
-   BinaryEwiseMeta meta = make_binary_meta(*this, other);
-   Tensor<T> tmp = init_out_from_meta(*this, other, meta);
-   ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
-   if (!meta.out_shape.empty() && meta.out_shape != tmp.shape()) {
-      Tensor<T> corrected(meta.out_shape, Device::CPU, dtype(), grad_flow(*this, other));
-      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, corrected);
-      replace_from_tmp(std::move(corrected));
-   } else {
-      replace_from_tmp(std::move(tmp));
-   }
-   return *this;
-}
-
-   void replace_from_tmp(Tensor<T>&& tmp) {
-      // If autograd is active, you might forbid in-place on leafs or shape-changing ops.
-      // For now: drop grad when shape changes.
-      const bool shape_changed = (shape_ != tmp.shape_);
-      if (shape_changed) {
-         grad_.reset();
+   auto &operator-=(const Tensor &other) {
+      BinaryEwiseMeta meta = make_binary_meta(*this, other);
+      Tensor<T> tmp = init_out_from_meta(*this, other, meta);
+      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
+      if (!meta.out_shape.empty() && meta.out_shape != tmp.shape()) {
+         Tensor<T> corrected(meta.out_shape, Device::CPU, dtype(),
+                             grad_flow(*this, other));
+         ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta,
+                                                  corrected);
+         replace_from_tmp(std::move(corrected));
+      } else {
+         replace_from_tmp(std::move(tmp));
       }
-
-      // Swap storage and metadata
-      storage_.swap(tmp.storage());
-      shape_.swap(tmp.shape_);
-      strides_.swap(tmp.strides_);
-
-      // This tensor’s value changed in-place; invalidate autodiff id.
-      vid_ = ValueID{-1};
+      return *this;
    }
-
 
    auto operator/(const Tensor &other) const {
       using DivOp = Operation<T, Divide<T>>;
@@ -484,14 +382,10 @@ template <typename T> class Tensor {
 
    Tensor<T> swapaxes(const int axis1, const int axis2) const {
       using SwapAxesOp = Operation<T, SwapAxes<T>>;
-      using Param = std::vector<int>;
-      std::vector<int> params;
-      params.reserve(2);
-      params.push_back(axis1);
-      params.push_back(axis2);
-      return autodiff::unary<T, SwapAxesOp, Param>(
-          *this, params, [](const Tensor &x, const int axis1, const int axis2) {
-             return math::linalg::swapaxes(x, axis1, axis2);
+      SwapAxesParam sp{axis1, axis2};
+      return autodiff::unary<T, SwapAxesOp, SwapAxesParam>(
+          *this, sp, [](const Tensor &x, const SwapAxesParam &p) {
+             return math::linalg::swapaxes(x, p.axis1, p.axis2);
           });
    }
 
@@ -535,10 +429,11 @@ template <typename T> class Tensor {
       size_t out_dim = std::floor(arr_size);
       std::vector<size_t> out_shape{out_dim, 1};
       std::vector<T> out = serial::diagonal2D(*this, this->shape_);
-      return Tensor<T>(std::move(out_shape), std::move(out), dtype(), Device::CPU);
+      return Tensor<T>(std::move(out_shape), std::move(out), dtype(),
+                       Device::CPU);
    }
 
-   //
+
    Tensor<T> transpose() const {
       std::vector<size_t> new_shape(shape_.rbegin(), shape_.rend());
 
@@ -547,7 +442,8 @@ template <typename T> class Tensor {
 
       serial::transpose<T>(*this, this->shape_, new_data);
 
-      return Tensor<T>(std::move(new_shape), std::move(new_data), dtype(), Device::CPU);
+      return Tensor<T>(std::move(new_shape), std::move(new_data), dtype(),
+                       Device::CPU);
    }
 
    auto begin() { return storage_->data().template begin<T>(); }
@@ -555,23 +451,80 @@ template <typename T> class Tensor {
    auto begin() const { return storage_->data().template begin<T>(); }
    auto end() const { return storage_->data().template end<T>(); }
 
-   std::shared_ptr<ITensorStorage<T>>& storage() {
+   std::shared_ptr<ITensorStorage<T>> &storage() { return storage_; }
+
+   const std::shared_ptr<ITensorStorage<T>> &storage() const {
       return storage_;
    }
 
-   const std::shared_ptr<ITensorStorage<T>>& storage() const {
-      return storage_;
+   friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
+      const auto *cpuStorage =
+          dynamic_cast<const NDTensorStorage<T> *>(tensor.get_storage());
+      if (cpuStorage) {
+         const TensorBuffer &buf = cpuStorage->data();
+         const size_t n = cpuStorage->size();
+         const T *p = buf.template data_as<const T>();
+         os << "Tensor(";
+         for (size_t i = 0; i < n; i++) {
+            os << p[i]; // NOLINT TODO: change to use view
+            if (i + 1 < n) {
+               os << ", ";
+            }
+         }
+         os << ")" << std::endl;
+      } else {
+         os << "Tensor(unsupported storage type)";
+      }
+      return os;
    }
 
-   private:
-     std::shared_ptr<ITensorStorage<T>> storage_;
-     std::shared_ptr<Tensor<T>> grad_;
-     std::vector<std::size_t> shape_{}, strides_{};
-     DType dtype_;
-     ValueID vid_{-1};
-     bool requires_grad_;
-     IAllocator* allocator_ = nullptr;
+   std::string shape_str() const {
+      std::ostringstream oss;
+      oss << '(';
+      for (size_t i = 0; i < shape_.size(); ++i) {
+         oss << shape_[i];
+         if (i + 1 < shape_.size()) {
+            oss << ',';
+         }
+      }
+      oss << ')';
+      return oss.str();
+   }
 
+   std::string stride_str() const {
+      std::ostringstream oss;
+      oss << '(';
+      for (size_t i = 0; i < strides_.size(); ++i) {
+         oss << strides_[i];
+         if (i + 1 < strides_.size()) {
+            oss << ',';
+         }
+      }
+      oss << ')';
+      return oss.str();
+   }
+
+ private:
+   std::shared_ptr<ITensorStorage<T>> storage_;
+   std::shared_ptr<Tensor<T>> grad_;
+   std::vector<std::size_t> shape_{}, strides_{};
+   DType dtype_;
+   ValueID vid_{-1};
+   bool requires_grad_;
+   IAllocator *allocator_ = nullptr;
+
+   void replace_from_tmp(Tensor<T> &&tmp) {
+      const bool shape_changed = (shape_ != tmp.shape_);
+      if (shape_changed) {
+         grad_.reset();
+      }
+
+      storage_.swap(tmp.storage());
+      shape_.swap(tmp.shape_);
+      strides_.swap(tmp.strides_);
+
+      vid_ = ValueID{-1};
+   }
 };
 
 #endif // TENSOR_H

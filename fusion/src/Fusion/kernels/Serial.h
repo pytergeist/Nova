@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "../common/Log.h"
+#include "Fusion/common/Log.h"
 
 template <typename T> class Tensor;
 

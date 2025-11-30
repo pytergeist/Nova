@@ -6,8 +6,9 @@
 #include <random>
 #include <vector>
 
+#include "Fusion/core/DTypes.h"
+
 #include "Tensor.h"
-#include "core/DTypes.h"
 
 // inline std::mt19937 engine{std::random_device{}()};
 

@@ -30,32 +30,24 @@ inline AutodiffMeta<T> construct_meta(const Tensor<T> &x) {
 }
 
 template <typename T, typename Param> // TODO: make this generic for params
-inline AutodiffMeta<T> construct_meta(const Tensor<T> &x, Param &param) {
+inline AutodiffMeta<T> construct_meta(const Tensor<T> &x, const Param &param) {
    AutodiffMeta<T> meta;
    meta.push_back(x);
-   meta.template set_param<int>("axis1", param[0]);
-   meta.template set_param<int>("axis2", param[1]);
+   meta.op_param = param;
    return meta;
 }
 
 template <typename T, class Op, typename Param, class EagerFn>
-inline Tensor<T> unary(const Tensor<T> &x, Param &params, EagerFn &&eager) {
+inline Tensor<T> unary(const Tensor<T> &x, const Param &params, EagerFn &&eager) {
    if (!should_trace(x)) {
-      int a = params[0];
-      int b = params[1];
-      return eager(x, a, b);
+      return eager(x, params);
    };
    if (!grad_enabled() || !x.requires_grad()) {
-      int a = params[0];
-      int b = params[1];
-      return eager(x, a, b);
+      return eager(x, params);
    }
    auto &eng = EngineContext<T>::get();
    auto vx = const_cast<Tensor<T> &>(x).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, params);
-   int a = meta.template get_param<int>("axis1");
-   int b = meta.template get_param<int>("axis2");
-
    ValueID out = eng.template apply<Op>(meta);
    return eng.materialise(out);
 }

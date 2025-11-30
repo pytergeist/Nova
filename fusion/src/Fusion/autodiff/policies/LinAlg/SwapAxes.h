@@ -2,50 +2,50 @@
 #ifndef SWAPAXES_POLICY_H
 #define SWAPAXES_POLICY_H
 
-
 #include <string_view>
-#include "../../AutodiffMode.h"
-#include "../../Traits.h"
-#include "../../../common/Checks.h"
-#include "../../../kernels/Serial.h"
-#include "../Operation.h"
 
+#include "Fusion/autodiff/AutodiffMode.h"
+#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/policies/Operation.h"
+#include "Fusion/common/Checks.h"
+#include "Fusion/ops/OpParams.h"
 
 template <typename T> struct SwapAxes {
-   inline static constexpr std::string_view name = "SwapAxes";
+   static constexpr std::string_view name = "SwapAxes";
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
    using GradOut = AutodiffMeta<T>;
 
    Out forward(Context<T> &context, In &input) {
-      autodiff::NoGradGuard _;
       FUSION_CHECK(input.size() == 1, "SwapAxes requires exactly one input");
-      const auto &x = input[0];
-      int a1 = input.template get_param<int>("axis1");
-      int a2 = input.template get_param<int>("axis2");
-      int aa1 = serial::normalise_axis(a1, x.rank());
-      int aa2 = serial::normalise_axis(a2, x.rank());
-      FUSION_CHECK(aa1 != aa2, "SwapAxes: axes must be different");
-
-      auto y = x.swapaxes(aa1, aa2);
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &x = input.at(0);
+      const SwapAxesParam &p =
+          std::any_cast<const SwapAxesParam &>(input.op_param);
+      FUSION_CHECK(p.axis1 != p.axis2, "SwapAxes: axes must be different");
+      context.save("axis1", p.axis1);
+      context.save("axis2", p.axis2);
+      auto y = x.swapaxes(p.axis1, p.axis2);
       Out out;
       out.push_back(y);
       return out;
    }
 
    GradIn backward(Context<T> &context, GradOut &grad_out) {
-      autodiff::NoGradGuard _;
-      if (grad_out.size() == 0)
+      if (grad_out.empty()) {
          return {};
+      }
       FUSION_CHECK(grad_out.size() == 1,
                    "SwapAxes::backward expects 1 upstream grad");
-
-      const auto &gy = grad_out[0];
-      FUSION_CHECK(!gy.empty(), "SwapAxes::backward: upstream grad is empty");
-      auto ga = gy.swapaxes(-1, -2);
+      int a1 = context.template load<int>("axis1");
+      int a2 = context.template load<int>("axis2");
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &g0 = grad_out.at(0);
+      FUSION_CHECK(!g0.empty(), "SwapAxes::backward: upstream grad is empty");
+      auto gx = g0.swapaxes(a1, a2);
       GradIn g;
-      g.push_back(ga);
+      g.push_back(gx);
       return g;
    }
 };

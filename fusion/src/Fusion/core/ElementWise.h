@@ -7,11 +7,12 @@
 #include <numeric>
 #include <vector>
 
-#include "../common/Checks.h"
-#include "../cpu/SimdTraits.h"
-#include "Broadcast.h"
-#include "../cpu/simd/Vec128Neon.h"
+#include "Fusion/common/Checks.h"
+#include "Fusion/cpu/SimdTraits.h"
+#include "Fusion/cpu/simd/Vec128Neon.h"
+
 #include "EwiseMeta.h"
+#include "Broadcast.h"
 
 namespace ewise {
 

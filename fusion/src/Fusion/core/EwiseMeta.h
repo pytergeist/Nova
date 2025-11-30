@@ -2,6 +2,7 @@
 #define EWISE_META_H
 
 #include <vector>
+
 #include "Broadcast.h"
 #include "BroadcastIter.h"
 
