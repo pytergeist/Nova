@@ -6,6 +6,11 @@
 #include "Broadcast.h"
 #include "BroadcastIter.h"
 
+#include "TensorBase.h"
+
+template <typename T>
+struct TensorBase;
+
 struct BinaryEwiseMeta {
     bool fastpath;
     std::size_t fast_len;
@@ -23,7 +28,7 @@ struct UnaryEwiseMeta {
 };
 
 template <typename T>
-inline BinaryEwiseMeta make_binary_meta(const Tensor<T>& A, const Tensor<T>& B) {
+inline BinaryEwiseMeta make_binary_meta(const TensorBase<T>& A, const TensorBase<T>& B) {
    BinaryEwiseMeta meta{};
    const bool same = A.shape() == B.shape();
    const bool cont = A.is_contiguous() && B.is_contiguous();
@@ -51,7 +56,7 @@ inline BinaryEwiseMeta make_binary_meta(const Tensor<T>& A, const Tensor<T>& B) 
 
 
 template <typename T>
-inline UnaryEwiseMeta make_binary_meta(const Tensor<T>& A) {
+inline UnaryEwiseMeta make_binary_meta(const TensorBase<T>& A) {
     UnaryEwiseMeta meta{};
     const bool cont = A.is_contiguous();
 

@@ -1,46 +1,55 @@
 #ifndef OPS_LINALG_H
 #define OPS_LINALG_H
 
-#include <vector>
 #include <string_view>
+#include <vector>
 
-#include "Fusion/Tensor.h"
+#include "Fusion/core/TensorBase.h"
 #include "Fusion/common/Log.h"
 #include "Fusion/core/ElementWise.h"
 #include "Fusion/cpu/blas/Gemm.h"
 
 #include "Helpers.h"
 
+namespace fusion {
+
 namespace math {
+
 namespace linalg {
+
 template <typename T>
-inline Tensor<T> matmul(const Tensor<T> &x, const Tensor<T> &y) { // TODO: this uses vector obj copying and doesn't go through broadcast layer?
-   assert((x.dtype_size() == y.dtype_size()) && "binary op: dtype sizes must match" ); // TODO: abstract into macro (change from assert)
-    auto const &shapeA = x.shape();
-    auto const &shapeB = y.shape();
+inline TensorBase<T>
+matmul(const TensorBase<T> &x,
+       const TensorBase<T> &y) { // TODO: this uses vector obj copying and doesn't
+                             // go through broadcast layer?
+   assert((x.dtype_size() == y.dtype_size()) &&
+          "binary op: dtype sizes must match"); // TODO: abstract into macro
+                                                // (change from assert)
+   auto const &shapeA = x.shape();
+   auto const &shapeB = y.shape();
 
-    size_t rank = shapeA.size();
-    int m = int(shapeA[rank - 2]);
-    int k = int(shapeA[rank - 1]);
-    int n = int(shapeB[rank - 1]);
+   size_t rank = shapeA.size();
+   int m = int(shapeA[rank - 2]);
+   int k = int(shapeA[rank - 1]);
+   int n = int(shapeB[rank - 1]);
 
-    std::vector<size_t> out_shape = shapeA;
-    out_shape[rank - 1] = n;
+   std::vector<size_t> out_shape = shapeA;
+   out_shape[rank - 1] = n;
 
-    size_t batch = 1;
-    for (size_t i = 0; i < rank - 2; ++i) {
-        batch *= shapeA[i];
-    }
+   size_t batch = 1;
+   for (size_t i = 0; i < rank - 2; ++i) {
+      batch *= shapeA[i];
+   }
 
-    std::vector<T> data(size_t(batch) * m * n);
+   std::vector<T> data(size_t(batch) * m * n);
 
-    const T* baseA = x.raw_data().template data_as<const T>();
-    const T* baseB = y.raw_data().template data_as<const T>();
-    T*       baseC = data.data();
+   const T *baseA = x.raw_data().template data_as<const T>();
+   const T *baseB = y.raw_data().template data_as<const T>();
+   T *baseC = data.data();
 
-    blas_ops::batched_gemm<T>(baseA, baseB, baseC, m, n, k, batch, T(1), T(0));
-   return Tensor<T>(std::move(out_shape), std::move(data), x.dtype(), Device::CPU,
-                    grad_flow(x, y));
+   blas_ops::batched_gemm<T>(baseA, baseB, baseC, m, n, k, batch, T(1), T(0));
+   return TensorBase<T>(std::move(out_shape), std::move(data), x.dtype(),
+                    Device::CPU);
 }
 
 std::string shape_str(std::vector<size_t> shape) {
@@ -56,25 +65,30 @@ std::string shape_str(std::vector<size_t> shape) {
 }
 
 template <typename T>
-inline Tensor<T> swapaxes(const Tensor<T> &x, const int axis1, const int axis2) {
+inline TensorBase<T> swapaxes(const TensorBase<T> &x, const int axis1,
+                          const int axis2) {
    std::vector<size_t> out_shape = x.shape();
    const int nd = static_cast<int>(out_shape.size());
    if (nd < 2) {
-      return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()), x.dtype(),
-                       Device::CPU, x.requires_grad());
+      return TensorBase<T>(out_shape, std::vector<T>(x.begin(), x.end()), x.dtype(),
+                       Device::CPU);
    }
    const int naxis1 = serial::normalise_axis(axis1, nd);
    const int naxis2 = serial::normalise_axis(axis2, nd);
    if (axis1 == axis2) {
-      return Tensor<T>(out_shape, std::vector<T>(x.begin(), x.end()), x.dtype(),
-                       Device::CPU, x.requires_grad());
+      return TensorBase<T>(out_shape, std::vector<T>(x.begin(), x.end()), x.dtype(),
+                       Device::CPU);
    }
    std::swap(out_shape[naxis1], out_shape[naxis2]);
    std::vector<T> out = serial::swapaxes<T>(x, x.shape(), naxis1, naxis2);
-   return Tensor<T>(std::move(out_shape), std::move(out), x.dtype(), Device::CPU);
+   return TensorBase<T>(std::move(out_shape), std::move(out), x.dtype(),
+                    Device::CPU);
 }
+
 } // namespace linalg
 
 } // namespace math
+
+} // namespace fusion
 
 #endif // OPS_LINALG_H

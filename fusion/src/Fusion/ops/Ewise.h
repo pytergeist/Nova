@@ -4,55 +4,59 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/Tensor.h"
+#include "Fusion/core/TensorBase.h"
 #include "Fusion/core/ElementWise.h"
-#include "Fusion/storage/StorageInterface.h"
 #include "Fusion/core/EwiseMeta.h"
+#include "Fusion/storage/StorageInterface.h"
 
 #include "Helpers.h"
+
+namespace fusion {
 
 namespace math {
 
 template <typename T>
-inline Tensor<T> add(const Tensor<T> &x, const Tensor<T> &y) {
-    BinaryEwiseMeta meta = make_binary_meta(x, y);
-    Tensor<T> out = init_out_from_meta(x, y, meta);
-    ewise::binary_ewise_tag<T, AddSIMD>(x, y, meta, out);
-    return out;
+inline TensorBase<T> add(const TensorBase<T> &x, const TensorBase<T> &y) {
+   BinaryEwiseMeta meta = make_binary_meta(x, y);
+   TensorBase<T> out = init_out_from_meta(x, y, meta);
+   ewise::binary_ewise_tag<T, AddSIMD>(x, y, meta, out);
+   return out;
 }
 
 template <typename T>
-inline Tensor<T> sub(const Tensor<T> &x, const Tensor<T> &y) {
+inline TensorBase<T> sub(const TensorBase<T> &x, const TensorBase<T> &y) {
    BinaryEwiseMeta meta = make_binary_meta(x, y);
-   Tensor<T> out = init_out_from_meta(x, y, meta);
+   TensorBase<T> out = init_out_from_meta(x, y, meta);
    ewise::binary_ewise_tag<T, SubtractSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
-inline Tensor<T> mul(const Tensor<T> &x, const Tensor<T> &y) {
+inline TensorBase<T> mul(const TensorBase<T> &x, const TensorBase<T> &y) {
    BinaryEwiseMeta meta = make_binary_meta(x, y);
-   Tensor<T> out = init_out_from_meta(x, y, meta);
+   TensorBase<T> out = init_out_from_meta(x, y, meta);
    ewise::binary_ewise_tag<T, MultiplySIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
-inline Tensor<T> div(const Tensor<T> &x, const Tensor<T> &y) {
+inline TensorBase<T> div(const TensorBase<T> &x, const TensorBase<T> &y) {
    BinaryEwiseMeta meta = make_binary_meta(x, y);
-   Tensor<T> out = init_out_from_meta(x, y, meta);
+   TensorBase<T> out = init_out_from_meta(x, y, meta);
    ewise::binary_ewise_tag<T, DivideSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
-inline Tensor<T> pow(const Tensor<T> &x, const Tensor<T> &y) {
+inline TensorBase<T> pow(const TensorBase<T> &x, const TensorBase<T> &y) {
    BinaryEwiseMeta meta = make_binary_meta(x, y);
-   Tensor<T> out = init_out_from_meta(x, y, meta);
+   TensorBase<T> out = init_out_from_meta(x, y, meta);
    ewise::binary_ewise_tag<T, PowerSIMD>(x, y, meta, out);
    return out;
 }
 
 } // namespace math
+
+} // namespace fusion
 
 #endif // EWISE_H

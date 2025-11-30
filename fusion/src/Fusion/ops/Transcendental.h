@@ -4,32 +4,36 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/Tensor.h"
+#include "Fusion/core/TensorBase.h"
 #include "Fusion/core/ElementWise.h"
+
+namespace fusion {
 
 namespace math {
 
-template <typename T> inline Tensor<T> sqrt(const Tensor<T> &x) {
+template <typename T> inline TensorBase<T> sqrt(const TensorBase<T> &x) {
    UnaryEwiseMeta meta = make_binary_meta(x);
-   Tensor<T> out = init_out_from_meta(x, meta);
+   TensorBase<T> out = init_out_from_meta(x, meta);
    ewise::unary_ewise_tag<T, SqrtSIMD>(x, meta, out);
    return out;
 }
 
-template <typename T> inline Tensor<T> log(const Tensor<T> &x) {
+template <typename T> inline TensorBase<T> log(const TensorBase<T> &x) {
    UnaryEwiseMeta meta = make_binary_meta(x);
-   Tensor<T> out = init_out_from_meta(x, meta);
+   TensorBase<T> out = init_out_from_meta(x, meta);
    ewise::unary_ewise_tag<T, NaturalLogSIMD>(x, meta, out);
    return out;
 }
 
-template <typename T> inline Tensor<T> exp(const Tensor<T> &x) {
+template <typename T> inline TensorBase<T> exp(const TensorBase<T> &x) {
    UnaryEwiseMeta meta = make_binary_meta(x);
-   Tensor<T> out = init_out_from_meta(x, meta);
+   TensorBase<T> out = init_out_from_meta(x, meta);
    ewise::unary_ewise_tag<T, ExponentialSIMD>(x, meta, out);
    return out;
 }
 
 } // namespace math
+
+} // namespace fusion
 
 #endif // UNARY_H
