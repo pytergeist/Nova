@@ -53,14 +53,22 @@ static inline ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
    return vid;
 }
 
+template <typename T> // TODO: need to either pass in device somehow?
+inline ADTensor<T> ad_scalar_t(const T scalar,
+                               const DType dtype = DType::Float32,
+                               Device device = Device::CPU) {
+   return ADTensor<T>{{1}, {scalar}, dtype, device, false};
+}
+
 template <typename T> class ADTensor : public TensorBase<T> {
  public:
+   static constexpr std::string_view name = "ADTensor";
    using Base = TensorBase<T>;
    using value_type = T;
 
    ADTensor() : Base(), requires_grad_(false) {}
 
-   explicit ADTensor(Base&& base, bool requires_grad = false)
+   explicit ADTensor(Base &&base, bool requires_grad = false)
        : Base(std::move(base)), requires_grad_(requires_grad) {}
 
    explicit ADTensor(std::vector<std::size_t> shape, std::vector<T> data,
@@ -123,6 +131,48 @@ template <typename T> class ADTensor : public TensorBase<T> {
       }
    }
 
+   ADTensor<T> operator+(const T scalar) const {
+      ADTensor<T> other = ad_scalar_t(scalar, this->dtype(), this->device());
+      return apply_binary_op<Add<T>>(
+          other, [](const Base &x, const Base &y) { return x + y; });
+   }
+
+   ADTensor<T> operator-(const T scalar) const {
+      ADTensor<T> other = ad_scalar_t(scalar, this->dtype(), this->device());
+      return apply_binary_op<Subtract<T>>(
+          other, [](const Base &x, const Base &y) { return x - y; });
+   }
+
+   ADTensor<T> operator/(const T scalar) const {
+      ADTensor<T> other = ad_scalar_t(scalar, this->dtype(), this->device());
+      return apply_binary_op<Divide<T>>(
+          other, [](const Base &x, const Base &y) { return x / y; });
+   }
+
+   ADTensor<T> operator*(const T scalar) const {
+      ADTensor<T> other = ad_scalar_t(scalar, this->dtype(), this->device());
+      return apply_binary_op<Multiply<T>>(
+          other, [](const Base &x, const Base &y) { return x * y; });
+   }
+
+   ADTensor<T> operator>=(const T scalar) const {
+      ADTensor<T> other = ad_scalar_t(scalar, this->dtype(), this->device());
+      return apply_binary_op<GreaterThanEqual<T>>(
+          other, [](const Base &x, const Base &y) { return x >= y; });
+   }
+
+   ADTensor<T> maximum(const T scalar) const {
+      ADTensor<T> other = ad_scalar_t(scalar, this->dtype(), this->device());
+      return apply_binary_op<Maximum<T>>(
+          other, [](const Base &x, const Base &y) { return x.maximum(y); });
+   }
+
+   ADTensor<T> pow(const T scalar) const {
+      ADTensor<T> other = ad_scalar_t(scalar, this->dtype(), this->device());
+      return apply_binary_op<Pow<T>>(
+          other, [](const Base &x, const Base &y) { return x.pow(y); });
+   }
+
    ADTensor<T> operator+(const ADTensor &other) const {
       return apply_binary_op<Add<T>>(
           other, [](const Base &x, const Base &y) { return x + y; });
@@ -131,22 +181,6 @@ template <typename T> class ADTensor : public TensorBase<T> {
    ADTensor<T> operator-(const ADTensor &other) const {
       return apply_binary_op<Subtract<T>>(
           other, [](const Base &x, const Base &y) { return x - y; });
-   }
-
-   auto &operator-=(const ADTensor &other) {
-      BinaryEwiseMeta meta = make_binary_meta(*this, other);
-      ADTensor<T> tmp = init_out_from_meta(*this, other, meta);
-      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
-      if (!meta.out_shape.empty() && meta.out_shape != tmp.shape()) {
-         ADTensor<T> corrected(meta.out_shape, Device::CPU, this->dtype(),
-                               grad_flow(*this, other));
-         ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta,
-                                                  corrected);
-         replace_from_tmp(std::move(corrected));
-      } else {
-         replace_from_tmp(std::move(tmp));
-      }
-      return *this;
    }
 
    ADTensor<T> operator/(const ADTensor &other) const {
@@ -174,28 +208,9 @@ template <typename T> class ADTensor : public TensorBase<T> {
           other, [](const Base &x, const Base &y) { return x.maximum(y); });
    }
 
-   auto sqrt() const {
-      return apply_unary_op<Sqrt<T>>(
-          [](const Base &x) { return x.sqrt(); });
-   }
-
-   auto log() const {
-      return apply_unary_op<Log<T>>(
-          [](const Base &x) { return x.log(); });
-   }
-
-   auto exp() const {
-      return apply_unary_op<Exp<T>>(
-          [](const Base &x) { return x.exp(); });
-   }
-
    ADTensor<T> pow(const ADTensor &other) const {
       return apply_binary_op<Pow<T>>(
           other, [](const Base &x, const Base &y) { return x.pow(y); });
-   }
-
-   ADTensor<T> sum() const {
-      return apply_unary_op<Sum<T>>([](const Base &x) { return x.sum(); });
    }
 
    ADTensor<T> matmul(const ADTensor<T> &other) const {
@@ -203,29 +218,72 @@ template <typename T> class ADTensor : public TensorBase<T> {
           other, [](const Base &x, const Base &y) { return x.matmul(y); });
    }
 
-   ADTensor<T> swapaxes(int axis1, int axis2) const {
-      using SwapAxesOp = SwapAxes<T>;
-      SwapAxesParam sp{axis1, axis2};
+   auto sqrt() const {
+      return apply_unary_op<Sqrt<T>>([](const Base &x) { return x.sqrt(); });
+   }
 
-      return apply_unary_op<SwapAxesOp, SwapAxesParam>(
-          sp,
-          [](const Base& x, const SwapAxesParam& p) {
-             return x.swapaxes(p.axis1, p.axis2);
-          });
+   auto log() const {
+      return apply_unary_op<Log<T>>([](const Base &x) { return x.log(); });
+   }
+
+   auto exp() const {
+      return apply_unary_op<Exp<T>>([](const Base &x) { return x.exp(); });
+   }
+
+   ADTensor<T> sum() const {
+      return apply_unary_op<Sum<T>>([](const Base &x) { return x.sum(); });
    }
 
    auto mean() const {
       return apply_unary_op<Mean<T>>([](const Base &x) { return x.mean(); });
    }
 
+   ADTensor<T> swapaxes(int axis1, int axis2) const {
+      using SwapAxesOp = SwapAxes<T>;
+      SwapAxesParam sp{axis1, axis2};
+
+      return apply_unary_op<SwapAxesOp, SwapAxesParam>(
+          sp, [](const Base &x, const SwapAxesParam &p) {
+             return x.swapaxes(p.axis1, p.axis2);
+          });
+   }
+
+   ADTensor<T> &operator-=(const ADTensor<T> &other) {
+      auto old_shape = this->shape();
+      Base::operator-=(static_cast<const Base &>(other));
+
+      if (this->shape() != old_shape) {
+         grad_.reset();
+      }
+
+      requires_grad_ = grad_flow(*this, other);
+      vid_ = ValueID{-1};
+
+      return *this;
+   }
+
+
  private:
    std::shared_ptr<ADTensor<T>> grad_;
    ValueID vid_{-1};
    bool requires_grad_;
 
+   void ad_replace_from(ADTensor<T> &&tmp) {
+      const bool shape_changed = (this->shape() != tmp.shape());
+      if (shape_changed) {
+         grad_.reset();
+      }
+
+      this->storage_.swap(tmp.storage());
+      this->shape_.swap(tmp.shape_);
+      this->strides_.swap(tmp.strides_);
+
+      vid_ = ValueID{-1};
+   }
+
    static bool grad_flow(const ADTensor<T> &x, const ADTensor<T> &y) {
-   return x.requires_grad() || y.requires_grad();
-  };
+      return x.requires_grad() || y.requires_grad();
+   };
 
    template <typename OpTag, typename F>
    auto apply_binary_op(const ADTensor &other, F &&f) const {
@@ -257,28 +315,19 @@ template <typename T> class ADTensor : public TensorBase<T> {
    }
 
    template <typename OpTag, typename Param, typename F>
-   auto apply_unary_op(const Param& p, F&& f) const {
+   auto apply_unary_op(const Param &p, F &&f) const {
       using Op = Operation<T, OpTag>;
-      const ADTensor& self = *this;
+      const ADTensor &self = *this;
 
       return autodiff::unary<T, Op, Param>(
-          self,
-          p,
-          [&](const ADTensor& x, const Param& param) {
-             const Base& xb = static_cast<const Base&>(x);
+          self, p, [&](const ADTensor &x, const Param &param) {
+             const Base &xb = static_cast<const Base &>(x);
              Base out = f(xb, param);
-         	 bool req_grad = x.requires_grad();
-         	 return ADTensor<T>(std::move(out), req_grad);
+             bool req_grad = x.requires_grad();
+             return ADTensor<T>(std::move(out), req_grad);
           });
    }
 
-
-
-   void replace_from_tmp(ADTensor<T> &&tmp) {
-      this->replace_from(std::move(tmp));
-      grad_.reset();
-      vid_ = ValueID{-1};
-   }
 };
 
 #endif // AD_TENSOR_H
