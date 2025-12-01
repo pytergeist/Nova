@@ -36,12 +36,14 @@ inline TensorBase<T> scalar_t(const T scalar,
 
 template <typename T> class TensorBase {
  public:
+
+   static constexpr std::string_view name = "BaseTensor";
    using value_type = T;
 
    TensorBase() : storage_(nullptr), shape_{} {}
 
-   TensorBase(const TensorBase &) = delete;
-   TensorBase &operator=(const TensorBase &) = delete;
+   TensorBase(const TensorBase &) = default;
+   TensorBase &operator=(const TensorBase &) = default;
 
    TensorBase(TensorBase &&) noexcept = default;
    TensorBase &operator=(TensorBase &&) noexcept = default;
@@ -52,7 +54,7 @@ template <typename T> class TensorBase {
                        DType dtype = DType::Float32, // NOLINT
                        Device device = Device::CPU,
                        IAllocator *allocator = nullptr)
-       : shape_(std::move(shape)), dtype_(dtype) {
+       : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       std::size_t sz = set_contiguous_strides();
@@ -64,7 +66,7 @@ template <typename T> class TensorBase {
    explicit TensorBase(std::vector<size_t> shape, Device device = Device::CPU,
                        DType dtype = DType::Float32,
                        IAllocator *allocator = nullptr)
-       : shape_(std::move(shape)), dtype_(dtype) {
+       : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device == Device::CPU, "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       std::size_t sz = set_contiguous_strides();
@@ -150,6 +152,7 @@ template <typename T> class TensorBase {
          storage_->data().assign(other.begin(), other.end());
       }
    };
+
 
    TensorBase<T> operator+(const T scalar) const {
       return fusion::math::add(*this, scalar_t(scalar, dtype(), device()));
@@ -250,7 +253,8 @@ template <typename T> class TensorBase {
                            Device::CPU);
    }
 
-   auto &operator-=(const TensorBase &other) {
+   // TODO: fix this impl
+   TensorBase<T> &operator-=(const TensorBase &other) {
       BinaryEwiseMeta meta = make_binary_meta(*this, other);
       TensorBase<T> tmp = init_out_from_meta(*this, other, meta);
       ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
@@ -304,10 +308,10 @@ template <typename T> class TensorBase {
    std::shared_ptr<ITensorStorage<T>> storage_;
    std::vector<std::size_t> shape_{}, strides_{};
    DType dtype_;
+   Device device_;
    IAllocator *allocator_ = nullptr;
 
    void replace_from(TensorBase<T> &&tmp) {
-      const bool shape_changed = (shape_ != tmp.shape_);
       storage_.swap(tmp.storage());
       shape_.swap(tmp.shape_);
       strides_.swap(tmp.strides_);
