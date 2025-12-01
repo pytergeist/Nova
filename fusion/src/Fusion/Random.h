@@ -8,9 +8,11 @@
 
 #include "Fusion/core/DTypes.h"
 
-#include "Tensor.h"
+#include "Fusion/Tensor.h"
 
 // inline std::mt19937 engine{std::random_device{}()};
+
+
 
 template <typename T> class Random {
    std::mt19937 engine_;

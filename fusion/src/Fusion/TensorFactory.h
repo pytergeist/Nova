@@ -3,12 +3,12 @@
 
 #include <numeric>
 #include <vector>
+
 #include "Fusion/common/Checks.h"
 #include "Fusion/storage/StorageInterface.h"
 #include "Fusion/core/DTypes.h"
 
-template <typename T>
-class Tensor;
+#include "Fusion/Tensor.h"
 
 template <typename T>
 Tensor<T> fill(const std::vector<size_t> &shape, T value) {

@@ -23,8 +23,7 @@ inline TensorBase<T> sum(const TensorBase<T> &x) { // TODO: This bypasses Tensor
    const T *y = x.get_ptr();
    const std::size_t n = x.flat_size();
    T acc = reduce::reduce_tag<T, GlobalSumSIMD>(y, n);
-   return TensorBase<T>({1}, std::vector<T>{acc}, x.dtype(), Device::CPU,
-                    x.requires_grad());
+   return TensorBase<T>({1}, std::vector<T>{acc}, x.dtype(), Device::CPU);
 }
 
 template <typename T> inline TensorBase<T> mean(const TensorBase<T> &x) {
@@ -32,8 +31,7 @@ template <typename T> inline TensorBase<T> mean(const TensorBase<T> &x) {
    const std::size_t n = x.flat_size();
    T acc = reduce::reduce_tag<T, GlobalSumSIMD>(y, n);
    T mean = acc / static_cast<T>(n);
-   return TensorBase<T>({1}, std::vector<T>{acc}, x.dtype(), Device::CPU,
-                    x.requires_grad());
+   return TensorBase<T>({1}, std::vector<T>{acc}, x.dtype(), Device::CPU);
 }
 
 } // namespace math
