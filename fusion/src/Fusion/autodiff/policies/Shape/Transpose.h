@@ -18,8 +18,8 @@ template <typename T> struct Transpose {
    Out forward(Context<T> &context, const In &input) { // NOLINT
       FUSION_CHECK(!input.empty(), "Transpose requires one inputs");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &x = input.at(0);
-      Tensor<T> y = x.transpose();
+      const ADTensor<T> &x = input.at(0);
+      ADTensor<T> y = x.transpose();
       Out out;
       out.push_back(y);
       return out;
@@ -33,9 +33,9 @@ template <typename T> struct Transpose {
           grad_out.size() == 1,
           "Transpose::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
-      Tensor<T> g0 = grad_out.at(0);
+      ADTensor<T> g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Transpose::backward: upstream grad is empty");
-      Tensor<T> gx = g0.transpose();
+      ADTensor<T> gx = g0.transpose();
       GradIn g;
       g.push_back(gx);
       return g;

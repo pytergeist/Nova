@@ -15,7 +15,8 @@
 namespace autodiff {
 
 template <typename T>
-inline AutodiffMeta<T> construct_meta(const Tensor<T> &x, const Tensor<T> &y) {
+inline AutodiffMeta<T> construct_meta(const ADTensor<T> &x,
+                                      const ADTensor<T> &y) {
    AutodiffMeta<T> meta;
    meta.push_back(x);
    meta.push_back(y);
@@ -23,14 +24,15 @@ inline AutodiffMeta<T> construct_meta(const Tensor<T> &x, const Tensor<T> &y) {
 }
 
 template <typename T>
-inline AutodiffMeta<T> construct_meta(const Tensor<T> &x) {
+inline AutodiffMeta<T> construct_meta(const ADTensor<T> &x) {
    AutodiffMeta<T> meta;
    meta.push_back(x);
    return meta;
 }
 
 template <typename T, typename Param> // TODO: make this generic for params
-inline AutodiffMeta<T> construct_meta(const Tensor<T> &x, const Param &param) {
+inline AutodiffMeta<T> construct_meta(const ADTensor<T> &x,
+                                      const Param &param) {
    AutodiffMeta<T> meta;
    meta.push_back(x);
    meta.op_param = param;
@@ -38,7 +40,8 @@ inline AutodiffMeta<T> construct_meta(const Tensor<T> &x, const Param &param) {
 }
 
 template <typename T, class Op, typename Param, class EagerFn>
-inline Tensor<T> unary(const Tensor<T> &x, const Param &params, EagerFn &&eager) {
+inline ADTensor<T> unary(const ADTensor<T> &x, const Param &params,
+                         EagerFn &&eager) {
    if (!should_trace(x)) {
       return eager(x, params);
    };
@@ -46,41 +49,42 @@ inline Tensor<T> unary(const Tensor<T> &x, const Param &params, EagerFn &&eager)
       return eager(x, params);
    }
    auto &eng = EngineContext<T>::get();
-   auto vx = const_cast<Tensor<T> &>(x).ensure_vid();
+   auto vx = const_cast<ADTensor<T> &>(x).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, params);
    ValueID out = eng.template apply<Op>(meta);
    return eng.materialise(out);
 }
 
 template <typename T, class Op, class EagerFn>
-inline Tensor<T> unary(const Tensor<T> &x, EagerFn &&eager) {
+inline ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
    if (!grad_enabled() || !x.requires_grad()) {
       return eager(x);
    }
    if (!should_trace(x))
       return eager(x);
    auto &eng = EngineContext<T>::get();
-   auto vx = const_cast<Tensor<T> &>(x).ensure_vid();
+   auto vx = const_cast<ADTensor<T> &>(x).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x);
    ValueID out = eng.template apply<Op>(meta);
    return eng.materialise(out);
 }
 
 template <typename T, class Op, class EagerFn>
-inline Tensor<T> binary(const Tensor<T> &x, const Tensor<T> &y,
-                        EagerFn &&eager) {
+inline ADTensor<T> binary(const ADTensor<T> &x, const ADTensor<T> &y,
+                          EagerFn &&eager) {
    if (!grad_enabled() || (!x.requires_grad() && !y.requires_grad())) {
       return eager(x, y);
    }
    if (!should_trace(x, y))
       return eager(x, y);
    auto &eng = EngineContext<T>::get();
-   auto vx = const_cast<Tensor<T> &>(x).ensure_vid();
-   auto vy = const_cast<Tensor<T> &>(y).ensure_vid();
+   auto vx = const_cast<ADTensor<T> &>(x).ensure_vid();
+   auto vy = const_cast<ADTensor<T> &>(y).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, y);
    ValueID out = eng.template apply<Op>(meta);
    return eng.materialise(out);
 }
+
 } // namespace autodiff
 
 #endif // DISPATCH_H

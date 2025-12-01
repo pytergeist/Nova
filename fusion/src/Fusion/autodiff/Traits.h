@@ -9,7 +9,7 @@
 
 // TODO: Create fixed size AutodiffMeta for hot paths
 
-template <typename U> class Tensor;
+template <typename U> class ADTensor;
 
 struct ValueID {
    int32_t idx;
@@ -19,12 +19,10 @@ struct NodeID {
 };
 
 template <typename T> struct AutodiffMeta {
-//   using Param = std::variant<int, double, bool>;
-   std::vector<Tensor<T>> data; // TODO: migrate this away from std::vector
-//   std::unordered_map<std::string, Param> params;
+   std::vector<ADTensor<T>> data; // TODO: migrate this away from std::vector
    // NB: in the current impl, params are type erased in meta
    // but must be strongly typed at call site. This means strongtypes
-   // must be defined for each ops param type (curr defined in ops/OpParams.h)
+   // must be defined for each ops param type (curr defs in ops/OpParams.h)
    std::any op_param;
    AutodiffMeta() = default;
 
@@ -35,20 +33,20 @@ template <typename T> struct AutodiffMeta {
    AutodiffMeta(AutodiffMeta &&) noexcept = default;
    AutodiffMeta &operator=(AutodiffMeta &&) noexcept = default;
 
-   void emplace_back(const Tensor<T> &y) {data.emplace_back(y); }
-   void emplace_back(Tensor<T> &y) {data.emplace_back(y); }
+   void emplace_back(const ADTensor<T> &y) {data.emplace_back(y); }
+   void emplace_back(ADTensor<T> &y) {data.emplace_back(y); }
 
-   void push_back(const Tensor<T> &v) { data.emplace_back(v); }
-   void push_back(Tensor<T> &&) = delete;
+   void push_back(const ADTensor<T> &v) { data.emplace_back(v); }
+   void push_back(ADTensor<T> &&) = delete;
 
-   Tensor<T> &at(std::size_t i) { return data.at(i); }
-   const Tensor<T> &at(std::size_t i) const { return data.at(i); }
+   ADTensor<T> &at(std::size_t i) { return data.at(i); }
+   const ADTensor<T> &at(std::size_t i) const { return data.at(i); }
 
    bool empty() const { return data.empty(); }
    std::size_t size() const noexcept { return data.size(); }
 
-   Tensor<T> &operator[](std::size_t i) { return data.at(i); }
-   const Tensor<T> &operator[](std::size_t i) const { return data.at(i); }
+   ADTensor<T> &operator[](std::size_t i) { return data.at(i); }
+   const ADTensor<T> &operator[](std::size_t i) const { return data.at(i); }
 
 //   template <typename V> void set_param(const std::string &key, V value) {
 //      params[key] = value;

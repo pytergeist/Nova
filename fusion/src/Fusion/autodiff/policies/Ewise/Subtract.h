@@ -22,7 +22,7 @@ template <typename T> struct Subtract {
       const auto &y = input.at(1);
       //    FUSION_ALLOW_SCALAR_BINARY(a, b);
       const autodiff::NoGradGuard _;
-      Tensor<T> z = x - y;
+      ADTensor<T> z = x - y;
       Out out;
       out.push_back(z);
       return out;
@@ -34,10 +34,10 @@ template <typename T> struct Subtract {
       }
       FUSION_CHECK(grad_out.size() == 1,
                    "Subtract::backward expects exactly 1 upstream grad tensor");
-      Tensor<T> &g0 = grad_out.at(0);
+      ADTensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Subtract::backward: upstream grad is empty");
       const autodiff::NoGradGuard _;
-      Tensor<T> gx = zeros_like(g0) - g0;
+      ADTensor<T> gx = zeros_like(g0) - g0;
       GradIn g;
       g.push_back(g0);
       g.push_back(gx);

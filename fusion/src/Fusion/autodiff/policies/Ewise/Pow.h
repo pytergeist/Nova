@@ -19,12 +19,12 @@ template <typename T> struct Pow {
    Out forward(Context<T> &context, const In &input) {
       FUSION_CHECK(input.size() >= 2, "Pow requires two inputs");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &x = input.at(0);
-      const Tensor<T> &y = input.at(1);
+      const ADTensor<T> &x = input.at(0);
+      const ADTensor<T> &y = input.at(1);
       FUSION_ALLOW_SCALAR_BINARY(x, y);
       context.save("x", x);
       context.save("y", y);
-      Tensor<T> z = x.pow(y);
+      ADTensor<T> z = x.pow(y);
       Out out;
       out.push_back(z);
       return out;
@@ -37,12 +37,12 @@ template <typename T> struct Pow {
       FUSION_CHECK(grad_out.size() == 1,
                    "Pow::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &x = context.template load<Tensor<T>>("x");
-      const Tensor<T> &y = context.template load<Tensor<T>>("y");
-      const Tensor<T> &g0 = grad_out.at(0);
+      const ADTensor<T> &x = context.template load<ADTensor<T>>("x");
+      const ADTensor<T> &y = context.template load<ADTensor<T>>("y");
+      const ADTensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Pow::backward: upstream grad is empty");
-      Tensor<T> gx = (y * x.pow(y - 1)) * g0;
-      Tensor<T> gy = (x.pow(y) * x.log()) * g0;
+      ADTensor<T> gx = (y * x.pow(y - 1)) * g0;
+      ADTensor<T> gy = (x.pow(y) * x.log()) * g0;
       GradIn g;
       g.push_back(gx);
       g.push_back(gy);

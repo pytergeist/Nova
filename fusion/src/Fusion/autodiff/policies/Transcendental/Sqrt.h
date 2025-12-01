@@ -19,9 +19,9 @@ template <typename T> struct Sqrt {
    Out forward(Context<T> &context, const In &input) {
       FUSION_CHECK(!input.empty(), "Sqrt requires one inputs");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &x = input.at(0);
+      const ADTensor<T> &x = input.at(0);
       context.save("x", x);
-      Tensor<T> y = x.sqrt();
+      ADTensor<T> y = x.sqrt();
       Out out;
       out.push_back(y);
       return out;
@@ -34,10 +34,10 @@ template <typename T> struct Sqrt {
       FUSION_CHECK(grad_out.size() == 1,
                    "Sqrt::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &g0 = grad_out.at(0);
+      const ADTensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Sqrt::backward: upstream grad is empty");
-      const Tensor<T> &x = context.template load<Tensor<T>>("x");
-      Tensor<T> gx = g0 / (x.sqrt() * 2);
+      const ADTensor<T> &x = context.template load<ADTensor<T>>("x");
+      ADTensor<T> gx = g0 / (x.sqrt() * 2);
       GradIn g;
       g.push_back(gx);
       return g;

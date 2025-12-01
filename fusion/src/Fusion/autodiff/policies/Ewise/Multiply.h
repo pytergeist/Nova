@@ -18,12 +18,12 @@ template <typename T> struct Multiply {
    Out forward(Context<T> &context, const In &input) {
       FUSION_CHECK(input.size() >= 2, "Multiply::forward requires two inputs");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &x = input.at(0);
-      const Tensor<T> &y = input.at(1);
+      const ADTensor<T> &x = input.at(0);
+      const ADTensor<T> &y = input.at(1);
       FUSION_ALLOW_SCALAR_BINARY(x, y);
       context.save("x", input[0]);
       context.save("y", input[1]);
-      Tensor<T> z = x * y;
+      ADTensor<T> z = x * y;
       Out out;
       out.push_back(z);
       return out;
@@ -36,12 +36,12 @@ template <typename T> struct Multiply {
       FUSION_CHECK(grad_out.size() == 1,
                    "Multiply::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &x = context.template load<Tensor<T>>("x");
-      const Tensor<T> &y = context.template load<Tensor<T>>("y");
-      Tensor<T> g0 = std::move(grad_out.at(0));
+      const ADTensor<T> &x = context.template load<ADTensor<T>>("x");
+      const ADTensor<T> &y = context.template load<ADTensor<T>>("y");
+      ADTensor<T> g0 = std::move(grad_out.at(0));
       FUSION_CHECK(!g0.empty(), "Multiply::backward: upstream grad is empty");
-      Tensor<T> gx = g0 * y;
-      Tensor<T> gy = g0 * x;
+      ADTensor<T> gx = g0 * y;
+      ADTensor<T> gy = g0 * x;
       GradIn g;
       g.push_back(gx);
       g.push_back(gy);

@@ -83,7 +83,7 @@ template <typename T> class Engine {
       if (retain_graph) throw std::logic_error("retain_graph not implemented");
    }
 
-   ValueID track_input(Tensor<T> &t) {
+   ValueID track_input(ADTensor<T> &t) {
       if (auto known = reuse_known_vid(t)) {
          return *known;
       }
@@ -102,14 +102,14 @@ template <typename T> class Engine {
       return vid;
    }
 
-   Tensor<T> materialise(ValueID vid) {
+   ADTensor<T> materialise(ValueID vid) {
       FUSION_BOUNDS_CHECK(vid.idx, val_buff_.size());
-      Tensor<T> out = val_buff_[vid.idx];
+      ADTensor<T> out = val_buff_[vid.idx];
       out.set_vid(vid);
       return out;
    }
 
-   Tensor<T> get_grad(ValueID vid) {
+   ADTensor<T> get_grad(ValueID vid) {
       FUSION_BOUNDS_CHECK(vid.idx, val_buff_.size());
       return grad_buff_[vid.idx];
    }
@@ -151,9 +151,9 @@ template <typename T> class Engine {
 
  private:
    Graph<T> graph_{};
-   std::vector<Tensor<T>> val_buff_;
-   std::vector<Tensor<T>> grad_buff_;
-   std::unordered_map<int, Tensor<T> *> leaf_map_;
+   std::vector<ADTensor<T>> val_buff_;
+   std::vector<ADTensor<T>> grad_buff_;
+   std::unordered_map<int, ADTensor<T> *> leaf_map_;
    std::unordered_map<const void *, std::unordered_map<std::vector<size_t>,
                                                        ValueID, ShapeHash>>
        import_cache_;
@@ -168,7 +168,7 @@ template <typename T> class Engine {
       return static_cast<size_t>(vid.idx) < graph_.produced_by.size();
    }
 
-   std::optional<ValueID> reuse_known_vid(Tensor<T> &t) {
+   std::optional<ValueID> reuse_known_vid(ADTensor<T> &t) {
       if (!t.has_vid())
          return std::nullopt;
       const ValueID vid = t.get_vid();
@@ -194,7 +194,7 @@ template <typename T> class Engine {
       return std::nullopt;
    }
 
-   ValueID register_fresh_input_from(Tensor<T> &t) {
+   ValueID register_fresh_input_from(ADTensor<T> &t) {
       const ValueID vid = graph_.new_input_value();
       write_val(vid, t);
       t.set_vid(vid);
@@ -207,20 +207,20 @@ template <typename T> class Engine {
       import_cache_[storage_key][shp] = vid;
    }
 
-   void maybe_mark_leaf(ValueID vid, Tensor<T> &t) {
+   void maybe_mark_leaf(ValueID vid, ADTensor<T> &t) {
       if (t.requires_grad()) {
          leaf_map_.try_emplace(vid.idx, &t);
       }
    }
 
-   void write_val(ValueID vid, Tensor<T> &t) {
+   void write_val(ValueID vid, ADTensor<T> &t) {
       ensure_value_capacity(vid);
       if (!val_buff_[vid.idx].is_initialised()) {
          val_buff_[vid.idx] = t;
       }
    }
 
-   ValueID feed_raw(Tensor<T> &data) {
+   ValueID feed_raw(ADTensor<T> &data) {
       ValueID vid = graph_.new_input_value();
       write_val(vid, data);
       return vid;
@@ -268,7 +268,7 @@ template <typename T> class Engine {
    void set_grad_buff_size() { grad_buff_.resize(val_buff_.size()); }
 
    AutodiffMeta<T> grad_init(ValueID vid, size_t out_slot) {
-      Tensor<T> grad = ones_like(val_buff_[vid.idx]);
+      ADTensor<T> grad = ones_like(val_buff_[vid.idx]);
       grad_buff_[vid.idx] = grad;
       AutodiffMeta<T> gradVec;
       gradVec.push_back(grad);
@@ -349,7 +349,7 @@ template <typename T> class Engine {
    }
 
    AutodiffMeta<T> init_seed_grad(ValueID vid) {
-      Tensor<T> grad = ones_like(val_buff_[vid.idx]);
+      ADTensor<T> grad = ones_like(val_buff_[vid.idx]);
       grad_buff_[vid.idx] = grad;
       AutodiffMeta<T> v; v.push_back(grad);
       return v;
