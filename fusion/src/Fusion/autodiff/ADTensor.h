@@ -248,20 +248,27 @@ template <typename T> class ADTensor : public TensorBase<T> {
           });
    }
 
-   ADTensor<T> &operator-=(const ADTensor<T> &other) {
-      auto old_shape = this->shape();
-      Base::operator-=(static_cast<const Base &>(other));
+   ADTensor<T> &operator-=(const ADTensor &other) {
+      const Base &bself = static_cast<const Base &>(*this);
+      const Base &bother = static_cast<const Base &>(other);
 
-      if (this->shape() != old_shape) {
-         grad_.reset();
+      BinaryEwiseMeta meta = make_binary_meta(bself, bother);
+
+      TensorBase<T> tmp_base = init_out_from_meta(bself, bother, meta);
+      ewise::binary_ewise_tag<T, SubtractSIMD>(bself, bother, meta, tmp_base);
+
+      if (!meta.out_shape.empty() && meta.out_shape != tmp_base.shape()) {
+         ADTensor<T> corrected(meta.out_shape, Device::CPU, this->dtype(),
+                               this->requires_grad());
+         ewise::binary_ewise_tag<T, SubtractSIMD>(
+             bself, bother, meta, static_cast<Base &>(corrected));
+         ad_replace_from(std::move(corrected));
+      } else {
+         ADTensor<T> tmp(std::move(tmp_base), this->requires_grad());
+         ad_replace_from(std::move(tmp));
       }
-
-      requires_grad_ = grad_flow(*this, other);
-      vid_ = ValueID{-1};
-
       return *this;
    }
-
 
  private:
    std::shared_ptr<ADTensor<T>> grad_;
@@ -327,7 +334,6 @@ template <typename T> class ADTensor : public TensorBase<T> {
              return ADTensor<T>(std::move(out), req_grad);
           });
    }
-
 };
 
 #endif // AD_TENSOR_H
