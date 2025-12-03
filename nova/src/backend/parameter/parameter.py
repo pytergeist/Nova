@@ -2,9 +2,8 @@ from dataclasses import dataclass
 from typing import Optional
 from uuid import UUID
 
-import numpy as np
-
 from nova.src.backend.core import Tensor
+from nova.src.backend.core.clib import factory_methods as fm
 
 
 @dataclass
@@ -18,10 +17,10 @@ class Parameter:
 
     def __post_init__(self):
         if self.grad is None:
-            self.grad = self.tensor.zeros_like()
+            self.grad = fm.zeros_like(self.tensor)
 
     def zero_grad(self):
         if self.grad is not None:
-            self.grad = self.tensor.zeros_like()
+            self.grad = fm.zeros_like(self.tensor)
         else:
             raise ValueError("Gradient is not initialized.")
