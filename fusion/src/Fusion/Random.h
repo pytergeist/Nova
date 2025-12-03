@@ -10,54 +10,33 @@
 
 #include "Fusion/Tensor.h"
 
-// inline std::mt19937 engine{std::random_device{}()};
 
+template <typename T>
+class Random {
+    std::mt19937 engine_;
 
+public:
+    explicit Random(uint32_t seed = std::random_device{}())
+        : engine_(seed) {}  // FIX: seed the member, not a local var
 
-template <typename T> class Random {
-   std::mt19937 engine_;
+    TensorBase<T> uniform_base(const std::vector<size_t>& shape, T min, T max) {
+        size_t total =
+            std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
+                            std::multiplies<>());
 
- public:
-   explicit Random(const uint32_t seed = std::random_device{}()) {
-      std::mt19937 engine_{seed};
-   }
+        std::vector<T> data;
+        data.reserve(total);
 
-   ~Random() = default;
+        std::uniform_real_distribution<T> dist(min, max);
 
-   Tensor<T> uniform(const std::vector<size_t> &shape, T min, T max) {
-      size_t total =
-          std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
-                          std::multiplies<>());
+        for (size_t i = 0; i < total; ++i) {
+            data.push_back(dist(engine_));
+        }
 
-      std::vector<T> data;
-      data.reserve(total);
-
-      std::uniform_real_distribution<T> dist(min, max);
-
-      for (size_t i = 0; i < total; ++i) {
-         data.push_back(dist(this->engine_));
-      }
-
-      return Tensor<T>(shape, std::move(data), DType::Float32, Device::CPU); // TODO: Pass in dtype/req_grad
-   }
+        return TensorBase<T>(shape, std::move(data),
+                             DType::Float32, Device::CPU);
+    }
 };
 
-// std::mt19937 &engine
 
-// template<typename T>
-// Tensor<T> uniform(const std::vector<size_t> &shape, T min, T max) {
-//     size_t total = std::accumulate(shape.begin(), shape.end(), size_t(1),
-//                                    std::multiplies<>());
-//
-//     std::vector<T> data;
-//     data.reserve(total);
-//
-//     std::uniform_real_distribution<T> dist(min, max);
-//
-//     for (size_t i = 0; i < total; ++i) {
-//         data.push_back(dist(engine));
-//     }
-//
-//     return Tensor<T>(shape, std::move(data), Device::CPU);
-// }
 #endif
