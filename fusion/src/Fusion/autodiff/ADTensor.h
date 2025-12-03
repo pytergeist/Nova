@@ -8,25 +8,18 @@
 #include <utility>
 #include <vector>
 
-#include "Fusion/alloc/DefaultAllocator.h"
-#include "Fusion/autodiff/AutodiffMode.h"
-#include "Fusion/autodiff/Dispatch.h"
-#include "Fusion/autodiff/Engine.h"
-#include "Fusion/autodiff/EngineContext.h"
-#include "Fusion/autodiff/policies/Comparison/Comparison.h"
-#include "Fusion/autodiff/policies/Ewise/Ewise.h"
-#include "Fusion/autodiff/policies/LinAlg/LinAlg.h"
-#include "Fusion/autodiff/policies/Reduction/Reduction.h"
-#include "Fusion/autodiff/policies/Transcendental/Transcendental.h"
 #include "Fusion/common/Checks.h"
-#include "Fusion/core/DTypes.h"
-#include "Fusion/core/ElementWise.h"
-#include "Fusion/core/Ffunc.h"
-#include "Fusion/core/Layout.h"
-#include "Fusion/core/Reduce.h"
-#include "Fusion/cpu/SimdTags.h"
-#include "Fusion/cpu/SimdTraits.h"
-#include "Fusion/kernels/Serial.h"
+
+#include "AutodiffMode.h"
+#include "Dispatch.h"
+#include "Engine.h"
+#include "EngineContext.h"
+#include "policies/Comparison/Comparison.h"
+#include "policies/Ewise/Ewise.h"
+#include "policies/LinAlg/LinAlg.h"
+#include "policies/Reduction/Reduction.h"
+#include "policies/Transcendental/Transcendental.h"
+
 #include "Fusion/ops/Comparison.h"
 #include "Fusion/ops/Ewise.h"
 #include "Fusion/ops/Helpers.h"
@@ -34,11 +27,23 @@
 #include "Fusion/ops/OpParams.h"
 #include "Fusion/ops/Reduce.h"
 #include "Fusion/ops/Transcendental.h"
+
+#include "Fusion/core/DTypes.h"
+#include "Fusion/core/ElementWise.h"
+#include "Fusion/core/Ffunc.h"
+#include "Fusion/core/Layout.h"
+#include "Fusion/core/Reduce.h"
+#include "Fusion/core/TensorBase.h"
+#include "Fusion/cpu/SimdTags.h"
+
 #include "Fusion/storage/DenseStorage.h"
 #include "Fusion/storage/StorageInterface.h"
 #include "Fusion/storage/TensorView.h"
 
-#include "Fusion/core/TensorBase.h"
+#include "Fusion/alloc/DefaultAllocator.h"
+
+
+
 
 template <typename T> struct ADTensor;
 
@@ -47,7 +52,7 @@ static inline ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
    if (t.eng_ == &eng && t.vid().idx >= 0) {
       return t.vid();
    }
-   auto vid = eng.track_input(t);
+   ValueID vid = eng.track_input(t);
    t.eng_ = &eng; // TODO: make this a setter
    t.set_vid(vid);
    return vid;
@@ -71,7 +76,8 @@ template <typename T> class ADTensor : public TensorBase<T> {
    explicit ADTensor(Base &&base, bool requires_grad = false)
        : Base(std::move(base)), requires_grad_(requires_grad) {}
 
-   explicit ADTensor(std::vector<std::size_t> shape, std::vector<T> data,
+   explicit ADTensor(std::vector<std::size_t> shape, // NOLINT
+                     std::vector<T> data,          // NOLINT
                      DType dtype = DType::Float32, // NOLINT
                      Device device = Device::CPU, bool requires_grad = false,
                      IAllocator *allocator = nullptr)
@@ -85,8 +91,9 @@ template <typename T> class ADTensor : public TensorBase<T> {
          requires_grad_(std::move(requires_grad)) {}
 
    ValueID vid() { return vid_; }
+   ValueID vid() const { return vid_; }
+
    ValueID set_vid(ValueID vid) noexcept { return vid_ = vid; }
-   const ValueID vid() const { return vid_; }
 
    bool has_vid() const noexcept { return vid_.idx >= 0; }
 
@@ -94,25 +101,24 @@ template <typename T> class ADTensor : public TensorBase<T> {
       if (vid_.idx >= 0) {
          return vid_;
       }
-      auto &eng = EngineContext<T>::get();
+      Engine<T> &eng = EngineContext<T>::get();
       vid_ = eng.track_input(*this);
       return vid_;
    }
-
-   ValueID get_vid() const noexcept { return vid_; }
 
    bool requires_grad() const noexcept { return requires_grad_; }
    void set_requires_grad(bool v) noexcept { requires_grad_ = v; }
 
    void backward() {
-      auto &eng = EngineContext<T>::get();
+      Engine<T> &eng = EngineContext<T>::get();
       FUSION_CHECK(this->has_vid(), "backward(): ADTensor has no ValueID");
       eng.backward(this->vid_);
    }
 
    const ADTensor<T> &grad() const {
       if (grad_ == nullptr) {
-         const_cast<ADTensor<T> *>(this)->ensure_grad();
+         // TODO: remove const_cast from here
+         const_cast<ADTensor<T> *>(this)->ensure_grad(); // NOLINT
       }
       return *grad_;
    }
@@ -218,15 +224,15 @@ template <typename T> class ADTensor : public TensorBase<T> {
           other, [](const Base &x, const Base &y) { return x.matmul(y); });
    }
 
-   auto sqrt() const {
+   ADTensor<T> sqrt() const {
       return apply_unary_op<Sqrt<T>>([](const Base &x) { return x.sqrt(); });
    }
 
-   auto log() const {
+   ADTensor<T> log() const {
       return apply_unary_op<Log<T>>([](const Base &x) { return x.log(); });
    }
 
-   auto exp() const {
+   ADTensor<T> exp() const {
       return apply_unary_op<Exp<T>>([](const Base &x) { return x.exp(); });
    }
 
@@ -234,13 +240,13 @@ template <typename T> class ADTensor : public TensorBase<T> {
       return apply_unary_op<Sum<T>>([](const Base &x) { return x.sum(); });
    }
 
-   auto mean() const {
+   ADTensor<T> mean() const {
       return apply_unary_op<Mean<T>>([](const Base &x) { return x.mean(); });
    }
 
    ADTensor<T> swapaxes(int axis1, int axis2) const {
       using SwapAxesOp = SwapAxes<T>;
-      SwapAxesParam sp{axis1, axis2};
+      SwapAxesParam sp{.axis1 = axis1, .axis2 = axis2};
 
       return apply_unary_op<SwapAxesOp, SwapAxesParam>(
           sp, [](const Base &x, const SwapAxesParam &p) {
@@ -262,10 +268,10 @@ template <typename T> class ADTensor : public TensorBase<T> {
                                this->requires_grad());
          ewise::binary_ewise_tag<T, SubtractSIMD>(
              bself, bother, meta, static_cast<Base &>(corrected));
-         ad_replace_from(std::move(corrected));
+         ad_replace_from(corrected);
       } else {
          ADTensor<T> tmp(std::move(tmp_base), this->requires_grad());
-         ad_replace_from(std::move(tmp));
+         ad_replace_from(tmp);
       }
       return *this;
    }
@@ -275,7 +281,7 @@ template <typename T> class ADTensor : public TensorBase<T> {
    ValueID vid_{-1};
    bool requires_grad_;
 
-   void ad_replace_from(ADTensor<T> &&tmp) {
+   void ad_replace_from(ADTensor<T> &tmp) {
       const bool shape_changed = (this->shape() != tmp.shape());
       if (shape_changed) {
          grad_.reset();
@@ -293,43 +299,44 @@ template <typename T> class ADTensor : public TensorBase<T> {
    };
 
    template <typename OpTag, typename F>
-   auto apply_binary_op(const ADTensor &other, F &&f) const {
+   ADTensor<T> apply_binary_op(const ADTensor &other, F &&f) const {
       using Op = Operation<T, OpTag>;
       const ADTensor &self = *this;
-
+      F ff = std::forward<F>(f);
       return autodiff::binary<T, Op>(
           self, other, [&](const ADTensor &x, const ADTensor &y) {
              const Base &xb = static_cast<const Base &>(x);
              const Base &yb = static_cast<const Base &>(y);
 
-             Base out = f(xb, yb);
+             Base out = ff(xb, yb);
 
              bool req_grad = grad_flow(x, y);
              return ADTensor<T>(std::move(out), req_grad);
           });
    }
 
-   template <typename OpTag, typename F> auto apply_unary_op(F &&f) const {
+   template <typename OpTag, typename F>
+   ADTensor<T> apply_unary_op(F &&f) const {
       using Op = Operation<T, OpTag>;
       const ADTensor &self = *this;
-
+      F ff = std::forward<F>(f);
       return autodiff::unary<T, Op>(self, [&](const ADTensor &x) {
          const Base &xb = static_cast<const Base &>(x);
-         Base out = f(xb);
+         Base out = ff(xb);
          bool req_grad = x.requires_grad();
          return ADTensor<T>(std::move(out), req_grad);
       });
    }
 
    template <typename OpTag, typename Param, typename F>
-   auto apply_unary_op(const Param &p, F &&f) const {
+   ADTensor<T> apply_unary_op(const Param &p, F &&f) const {
       using Op = Operation<T, OpTag>;
       const ADTensor &self = *this;
-
+      F ff = std::forward<F>(f);
       return autodiff::unary<T, Op, Param>(
           self, p, [&](const ADTensor &x, const Param &param) {
              const Base &xb = static_cast<const Base &>(x);
-             Base out = f(xb, param);
+             Base out = ff(xb, param);
              bool req_grad = x.requires_grad();
              return ADTensor<T>(std::move(out), req_grad);
           });

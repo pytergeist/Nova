@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Fusion/common/Checks.h"
+
 template <typename U> class ADTensor;
 
 template <typename T> struct BinaryType {
@@ -33,7 +35,8 @@ template <typename T> struct Context {
    std::unordered_map<std::string, CtxValueType> saved_result;
 
    template <typename U> void save(std::string key, U &&data) {
-      saved_result.insert_or_assign(std::move(key), std::move(data));
+      U fdata = std::forward<U>(data);
+      saved_result.insert_or_assign(std::move(key), fdata);
    }
 
    template <typename U> U &load(std::string &key) {
@@ -41,13 +44,13 @@ template <typename T> struct Context {
       if (it == saved_result.end()) {
          FUSION_CHECK(false, "Context::load: key not found: " + key);
       }
-      const CtxValueType& v = it->second;
+      const CtxValueType &v = it->second;
       FUSION_LOG_INFO("Context::load key=", key, " index=", v.index());
       return std::get<U>(v);
    }
 
    template <typename U> const U &load(const std::string &key) const {
-      return  std::get<U>(saved_result.at(key));
+      return std::get<U>(saved_result.at(key));
    }
 };
 
@@ -68,7 +71,7 @@ template <typename T, class Op> class Operation {
       return op_.backward(context, grad_out);
    };
 
-   inline static constexpr std::string_view name = Op::name;
+   static constexpr std::string_view name = Op::name;
 
  private:
    Op op_;

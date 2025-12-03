@@ -3,9 +3,9 @@
 
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <stdexcept>
-#include <optional>
 
 #include "Fusion/TensorFactory.h"
 #include "Fusion/common/Checks.h"
@@ -14,16 +14,16 @@
 #include "Sort.h"
 #include "Traits.h"
 
-// TODO: general TODO, move private members of all autodiff classes into private
-
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 inline void hash_combine(std::size_t &seed, std::size_t v) noexcept {
    seed ^= v + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
 }
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
 struct ShapeHash {
    std::size_t
    operator()(const std::vector<std::size_t> &shape) const noexcept {
-      std::size_t seed = 0;
+      std::size_t seed = 0; // NOLINT(misc-const-correctness)
       for (auto s : shape)
          hash_combine(seed, s);
       return seed;
@@ -32,21 +32,24 @@ struct ShapeHash {
 
 template <typename T> class Engine {
  public:
-   Engine() : graph_{}, val_buff_{}, grad_buff_{} {};
+   Engine() = default;
 
    Engine(const Engine &) = delete;
    Engine &operator=(const Engine &) = delete;
+
    Engine(Engine &&) = delete;
    Engine &operator=(Engine &&) = delete;
 
-   template <class Op>
-   ValueID apply(AutodiffMeta<T>& payload) {
+   ~Engine() = default;
+
+   template <class Op> ValueID apply(AutodiffMeta<T> &payload) {
       NodeID nid = create_node_and_bind_inputs<Op>(payload);
 
-      auto& node = graph_.nodes[nid.idx];
+      INode<T> &node = graph_.nodes[nid.idx];
       AutodiffMeta<T> out = run_forward(node, payload);
 
-      FUSION_CHECK(!out.empty(), "Engine::apply: forward produced empty outputs");
+      FUSION_CHECK(!out.empty(),
+                   "Engine::apply: forward produced empty outputs");
 
       ensure_node_outputs_allocated(nid, out.size());
       write_forward_results(nid, out);
@@ -55,8 +58,8 @@ template <typename T> class Engine {
       return node.outputs[0];
    }
 
-
-   void backward(ValueID seed_vid, bool materialise = true, bool retain_graph = false) {
+   void backward(ValueID seed_vid, bool materialise = true,
+                 bool retain_graph = false) {
       prepare_grad_buffers();
 
       auto order = topo_sort_for_backward();
@@ -65,26 +68,32 @@ template <typename T> class Engine {
       static_cast<void>(seed);
 
       for (auto it = order.rbegin(); it != order.rend(); ++it) {
-         INode<T>& n = graph_.nodes[it->idx];
+         INode<T> &n = graph_.nodes[it->idx];
          FUSION_CHECK(!n.outputs.empty(), "node has no outputs in backward()");
 
          const ValueID out_vid = n.outputs[0];
          validate_forward_value_exists(n, out_vid);
          ensure_output_grad_slot(out_vid);
 
-         AutodiffMeta<T> grad_in;  grad_in.push_back(grad_buff_[out_vid.idx]);
-         AutodiffMeta<T> grad_out  = safe_apply_backward(n, grad_in);
+         AutodiffMeta<T> grad_in;
+         grad_in.push_back(grad_buff_[out_vid.idx]);
+         AutodiffMeta<T> grad_out = safe_apply_backward(n, grad_in);
 
-         FUSION_CHECK(grad_out.size() == n.inputs.size(), "backward arity mismatch");
+         FUSION_CHECK(grad_out.size() == n.inputs.size(),
+                      "backward arity mismatch");
          accum_input_grads(n, grad_out);
       }
 
-      if (materialise) materialise_gradient();
-      if (retain_graph) throw std::logic_error("retain_graph not implemented");
+      if (materialise) {
+         materialise_gradient();
+         }
+      if (retain_graph) {
+         throw std::logic_error("retain_graph not implemented");
+         }
    }
 
    ValueID track_input(ADTensor<T> &t) {
-      if (auto known = reuse_known_vid(t)) {
+      if (ValueID known = reuse_known_vid(t)) {
          return *known;
       }
 
@@ -151,12 +160,12 @@ template <typename T> class Engine {
 
  private:
    Graph<T> graph_{};
-   std::vector<ADTensor<T>> val_buff_;
-   std::vector<ADTensor<T>> grad_buff_;
-   std::unordered_map<int, ADTensor<T> *> leaf_map_;
+   std::vector<ADTensor<T>> val_buff_{};
+   std::vector<ADTensor<T>> grad_buff_{};
+   std::unordered_map<int, ADTensor<T> *> leaf_map_{};
    std::unordered_map<const void *, std::unordered_map<std::vector<size_t>,
                                                        ValueID, ShapeHash>>
-       import_cache_;
+   import_cache_{};
 
    void ensure_value_capacity(ValueID vid) {
       if (val_buff_.size() <= static_cast<size_t>(vid.idx)) {
@@ -169,11 +178,13 @@ template <typename T> class Engine {
    }
 
    std::optional<ValueID> reuse_known_vid(ADTensor<T> &t) {
-      if (!t.has_vid())
+      if (!t.has_vid()) {
          return std::nullopt;
-      const ValueID vid = t.get_vid();
-      if (!graph_knows(vid))
+         }
+      const ValueID vid = t.vid();
+      if (!graph_knows(vid)) {
          return std::nullopt;
+        }
 
       write_val(vid, t);
       maybe_mark_leaf(vid, t);
@@ -187,8 +198,9 @@ template <typename T> class Engine {
          auto &inner = it->second;
          if (auto it2 = inner.find(shp); it2 != inner.end()) {
             const ValueID cached = it2->second;
-            if (graph_knows(cached))
-               return cached; // ignore stale
+            if (graph_knows(cached)) {
+               return cached;
+            }
          }
       }
       return std::nullopt;
@@ -227,7 +239,7 @@ template <typename T> class Engine {
    }
 
    void materialise_gradient() {
-      autodiff::NoGradGuard ng;
+      const autodiff::NoGradGuard ng;
       for (auto &[vidx, leaf_ptr] : leaf_map_) {
          if (!leaf_ptr)
             continue;
@@ -267,7 +279,7 @@ template <typename T> class Engine {
 
    void set_grad_buff_size() { grad_buff_.resize(val_buff_.size()); }
 
-   AutodiffMeta<T> grad_init(ValueID vid, size_t out_slot) {
+   AutodiffMeta<T> grad_init(ValueID vid) {
       ADTensor<T> grad = ones_like(val_buff_[vid.idx]);
       grad_buff_[vid.idx] = grad;
       AutodiffMeta<T> gradVec;
@@ -286,32 +298,35 @@ template <typename T> class Engine {
    }
 
    template <class Op>
-   NodeID create_node_and_bind_inputs(AutodiffMeta<T>& payload) {
+   NodeID create_node_and_bind_inputs(AutodiffMeta<T> &payload) {
       for (size_t i = 0; i < payload.size(); ++i) {
-         if (!payload[i].has_vid() || !graph_knows(payload[i].get_vid())) {
+         if (!payload[i].has_vid() || !graph_knows(payload[i].vid())) {
             track_input(payload[i]);
          }
       }
 
       NodeID dst = graph_.template build_node<Op>(payload);
-      auto& node = graph_.nodes[dst.idx];
+      auto &node = graph_.nodes[dst.idx];
 
       for (size_t i = 0; i < payload.size(); ++i) {
-         const ValueID in_vid = payload[i].get_vid();
+         const ValueID in_vid = payload[i].vid();
          FUSION_CHECK(graph_knows(in_vid), "Input not registered");
 
          const NodeID src = graph_.produced_by[in_vid.idx].nid;
          graph_.set_node_input(node, in_vid);
          graph_.append_consumer_table(dst, in_vid, i);
-         if (src.idx != -1) graph_.add_edge(src, dst);
+         if (src.idx != -1) {
+            graph_.add_edge(src, dst);
+         }
       }
       return dst;
    }
 
    void ensure_node_outputs_allocated(NodeID nid, size_t arity) {
-      auto& node = graph_.nodes[nid.idx];
+      auto &node = graph_.nodes[nid.idx];
       if (!node.outputs.empty()) {
-         FUSION_CHECK(node.outputs.size() == arity, "node output size mismatch");
+         FUSION_CHECK(node.outputs.size() == arity,
+                      "node output size mismatch");
          return;
       }
       node.outputs.reserve(arity);
@@ -323,10 +338,11 @@ template <typename T> class Engine {
       }
    }
 
-   void write_forward_results(NodeID nid, const AutodiffMeta<T>& out) {
-      auto& node = graph_.nodes[nid.idx];
+   void write_forward_results(NodeID nid, const AutodiffMeta<T> &out) {
+      auto &node = graph_.nodes[nid.idx];
       FUSION_BOUNDS_CHECK(0, node.outputs.size());
-      FUSION_CHECK(node.outputs.size() == out.size(), "node output size mismatch");
+      FUSION_CHECK(node.outputs.size() == out.size(),
+                   "node output size mismatch");
 
       for (size_t i = 0; i < out.size(); ++i) {
          ValueID vid_i = node.outputs[i];
@@ -337,8 +353,9 @@ template <typename T> class Engine {
 
    void prepare_grad_buffers() {
       set_grad_buff_size();
-      for (auto& g : grad_buff_) {
-         if (g.is_initialised()) g.clear();
+      for (auto &g : grad_buff_) {
+         if (g.is_initialised())
+            g.clear();
       }
    }
 
@@ -351,17 +368,20 @@ template <typename T> class Engine {
    AutodiffMeta<T> init_seed_grad(ValueID vid) {
       ADTensor<T> grad = ones_like(val_buff_[vid.idx]);
       grad_buff_[vid.idx] = grad;
-      AutodiffMeta<T> v; v.push_back(grad);
+      AutodiffMeta<T> v;
+      v.push_back(grad);
       return v;
    }
 
-   void validate_forward_value_exists(const INode<T>& n, ValueID out_vid) const {
+   void validate_forward_value_exists(const INode<T> &n,
+                                      ValueID out_vid) const {
       FUSION_CHECK(static_cast<size_t>(out_vid.idx) < val_buff_.size(),
-                   std::string("val index OOB in backward: ") + std::string(n.name()));
+                   std::string("val index OOB in backward: ") +
+                       std::string(n.name()));
       FUSION_CHECK(val_buff_[out_vid.idx].is_initialised(),
-                   std::string("val missing for node output: ") + std::string(n.name()));
+                   std::string("val missing for node output: ") +
+                       std::string(n.name()));
    }
-
 
    void ensure_output_grad_slot(ValueID out_vid) {
       if (!grad_buff_[out_vid.idx].is_initialised()) {
@@ -369,31 +389,29 @@ template <typename T> class Engine {
       }
    }
 
-
-   AutodiffMeta<T> safe_apply_backward(INode<T>& n, AutodiffMeta<T>& gin) {
+   AutodiffMeta<T> safe_apply_backward(INode<T> &n, AutodiffMeta<T> &gin) {
       try {
          return n.apply_backward(gin);
-      } catch (const std::exception& e) {
-         throw std::runtime_error(std::string("apply_backward threw in op ")
-                                  + std::string(n.name()) + ": " + std::string(e.what()));
+      } catch (const std::exception &e) {
+         throw std::runtime_error(std::string("apply_backward threw in op ") +
+                                  std::string(n.name()) + ": " +
+                                  std::string(e.what()));
       }
    }
 
-
-   void accum_input_grads(const INode<T>& n, const AutodiffMeta<T>& gout) {
+   void accum_input_grads(const INode<T> &n, const AutodiffMeta<T> &gout) {
       for (size_t j = 0; j < n.inputs.size(); ++j) {
          const ValueID in_vid = n.inputs[j];
-         auto& dst = grad_buff_[in_vid.idx];
-         const auto& src = gout.at(j);
+         auto &dst = grad_buff_[in_vid.idx];
+         const auto &src = gout.at(j);
          if (!dst.is_initialised()) {
             dst = src;
          } else {
-            autodiff::NoGradGuard ng;
+            const autodiff::NoGradGuard ng;
             dst = dst + src; // TODO: shape check if needed
          }
       }
    }
-
 };
 
 #endif // ENGINE_H

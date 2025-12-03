@@ -8,12 +8,26 @@
 template <typename T> class ADTensor;
 
 namespace autodiff {
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 inline thread_local bool g_enable_grad = true;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
-struct NoGradGuard {
-   bool prev_;
+class NoGradGuard {
+ public:
    NoGradGuard() : prev_(g_enable_grad) { g_enable_grad = false; }
-   ~NoGradGuard() { g_enable_grad = prev_; }
+
+   NoGradGuard(const NoGradGuard &) = delete;
+   NoGradGuard &operator=(const NoGradGuard &) = delete;
+
+   NoGradGuard(NoGradGuard &&) = delete;
+   NoGradGuard &operator=(NoGradGuard &&) = delete;
+
+   bool prev() const { return prev_; }
+
+   ~NoGradGuard() { g_enable_grad = prev(); }
+
+ private:
+   bool prev_;
 };
 
 inline bool grad_enabled() { return g_enable_grad; }
