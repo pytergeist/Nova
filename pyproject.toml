@@ -38,6 +38,10 @@ cmake = "^4.1.2"
 [tool.poetry.group.bench.dependencies]
 tensorflow = "2.20"
 
+
+[tool.poetry.group.test.dependencies]
+matplotlib = "^3.10.7"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
