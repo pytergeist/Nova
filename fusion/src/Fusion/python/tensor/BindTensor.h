@@ -159,8 +159,9 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
 
        // -- inplace ops --
        .def("__isub__", &PyT::operator-=)
-       // --- Unary / other ops ---
-       .def("sqrt", &PyT::sqrt)
+
+   // --- Unary / other ops ---
+   .def("sqrt", &PyT::sqrt)
        .def("exp", &PyT::exp)
        .def("log", &PyT::log)
        .def("sum", &PyT::sum)
@@ -186,28 +187,6 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
        .def("swapaxes", &PyT::swapaxes, py::arg("axis1"), py::arg("axis2"))
        .def("diag", &PyT::diagonal)
        .def("backward", &PyT::backward)
-       .def("get_grad", &PyT::grad)
+       .def("get_grad", &PyT::grad);
 
-       // -- factory methods bound on the class for now --
-       // TODO: this is temporary - figure out best pattern for handling
-       // ADTensor in factory
-       .def(
-           "zeros_like",
-           [](const PyT &self) {
-              auto shape = self.shape();
-              bool req = self.requires_grad();
-              return PyT(shape, Device::CPU, self.dtype(), req, nullptr);
-           },
-           "Zeros with same shape.")
-       .def(
-           "ones_like",
-           [](const PyT &self) {
-              auto shape = self.shape();
-              bool req = self.requires_grad();
-
-              PyT out(shape, Device::CPU, self.dtype(), req, nullptr);
-              std::fill(out.begin(), out.end(), T(1));
-              return out;
-           },
-           "Ones with same shape.");
 }
