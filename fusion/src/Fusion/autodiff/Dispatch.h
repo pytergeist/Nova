@@ -8,7 +8,7 @@
 
 #include "Engine.h"
 #include "EngineContext.h"
-#include "Traits.h"
+#include "AutodiffMeta.h"
 
 namespace autodiff {
 

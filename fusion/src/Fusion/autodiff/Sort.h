@@ -4,7 +4,7 @@
 #include <queue>
 #include <vector>
 
-#include "Traits.h"
+#include "AutodiffMeta.h"
 
 template <typename T> class Sort {
  public:
@@ -23,7 +23,7 @@ template <typename T> class Sort {
          auto inp = nodes[i].inputs;
          // inspect O(?) for this impl
          for (size_t j = 0; j < inp.size(); j++) {
-            if (produced_by[inp[j].idx].nid.idx != kNoNode) {
+            if (produced_by[inp[j].idx].nid.idx != kNoNode.idx) {
                increment++;
             }
             inDegree[i] = increment;

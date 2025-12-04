@@ -12,7 +12,8 @@
 
 #include "Graph.h"
 #include "Sort.h"
-#include "Traits.h"
+#include "AutodiffMeta.h"
+#include "ADTypes.h"
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 inline void hash_combine(std::size_t &seed, std::size_t v) noexcept {
@@ -45,7 +46,7 @@ template <typename T> class Engine {
    template <class Op> ValueID apply(AutodiffMeta<T> &payload) {
       NodeID nid = create_node_and_bind_inputs<Op>(payload);
 
-      INode<T> &node = graph_.nodes[nid.idx];
+      INode<T> &node = graph_.get_node(nid);
       AutodiffMeta<T> out = run_forward(node, payload);
 
       FUSION_CHECK(!out.empty(),
@@ -62,13 +63,13 @@ template <typename T> class Engine {
                  bool retain_graph = false) {
       prepare_grad_buffers();
 
-      auto order = topo_sort_for_backward();
+      std::vector<NodeID> order = topo_sort_for_backward();
       AutodiffMeta<T> seed = init_seed_grad(seed_vid);
 
       static_cast<void>(seed);
 
       for (auto it = order.rbegin(); it != order.rend(); ++it) {
-         INode<T> &n = graph_.nodes[it->idx];
+         INode<T> &n = graph_.get_node(NodeID{it->idx});
          FUSION_CHECK(!n.outputs.empty(), "node has no outputs in backward()");
 
          const ValueID out_vid = n.outputs[0];
@@ -86,20 +87,20 @@ template <typename T> class Engine {
 
       if (materialise) {
          materialise_gradient();
-         }
+      }
       if (retain_graph) {
          throw std::logic_error("retain_graph not implemented");
-         }
+      }
    }
 
    ValueID track_input(ADTensor<T> &t) {
-      if (ValueID known = reuse_known_vid(t)) {
+      if (std::optional<ValueID> known = reuse_known_vid(t)) {
          return *known;
       }
 
       const void *storage_key = static_cast<const void *>(t.get_storage());
-      const auto &shp = t.shape();
-      if (auto cached = lookup_cached_vid(storage_key, shp)) {
+      const std::vector<std::size_t> &shp = t.shape();
+      if (std::optional<ValueID> cached = lookup_cached_vid(storage_key, shp)) {
          write_val(*cached, t);
          t.set_vid(*cached);
          maybe_mark_leaf(*cached, t);
@@ -124,19 +125,19 @@ template <typename T> class Engine {
    }
 
    void dump_graph(std::ostream &os) const {
-      for (size_t i = 0; i < graph_.nodes.size(); ++i) {
-         const auto &n = graph_.nodes[i];
+      for (size_t i = 0; i < graph_.nodes().size(); ++i) {
+         const INode<T> &n = graph_.get_node(NodeID{static_cast<int32_t>(i)});
          os << "Node " << i << " [" << n.name() << "]\n";
       }
 
-      const size_t n = std::min(grad_buff_.size(), graph_.produced_by.size());
+      const size_t n = std::min(grad_buff_.size(), graph_.produced_by().size());
       for (size_t i = 0; i < n; ++i) {
-         const auto &prod = graph_.produced_by[i];
+         const INode<T> &prod = graph_.get_produced_by(i);
          NodeID nid = prod.nid;
          if (nid.idx >= 0 &&
-             static_cast<size_t>(nid.idx) < graph_.nodes.size()) {
+             static_cast<size_t>(nid.idx) < graph_.nodes().size()) {
             os << "Node idx: " << nid.idx
-               << " Node Op: " << graph_.nodes[nid.idx].name() << " ";
+               << " Node Op: " << graph_.get_node(nid).name() << " ";
             if (val_buff_[i].empty()) {
                os << "[no val]\n";
             } else {
@@ -165,7 +166,7 @@ template <typename T> class Engine {
    std::unordered_map<int, ADTensor<T> *> leaf_map_{};
    std::unordered_map<const void *, std::unordered_map<std::vector<size_t>,
                                                        ValueID, ShapeHash>>
-   import_cache_{};
+       import_cache_{};
 
    void ensure_value_capacity(ValueID vid) {
       if (val_buff_.size() <= static_cast<size_t>(vid.idx)) {
@@ -174,17 +175,17 @@ template <typename T> class Engine {
    }
 
    bool graph_knows(ValueID vid) const noexcept {
-      return static_cast<size_t>(vid.idx) < graph_.produced_by.size();
+      return static_cast<size_t>(vid.idx) < graph_.produced_by().size();
    }
 
    std::optional<ValueID> reuse_known_vid(ADTensor<T> &t) {
       if (!t.has_vid()) {
          return std::nullopt;
-         }
+      }
       const ValueID vid = t.vid();
       if (!graph_knows(vid)) {
          return std::nullopt;
-        }
+      }
 
       write_val(vid, t);
       maybe_mark_leaf(vid, t);
@@ -246,7 +247,7 @@ template <typename T> class Engine {
          if (static_cast<size_t>(vidx) >= grad_buff_.size())
             continue;
 
-         auto &g = grad_buff_[vidx];
+         ADTensor<T> &g = grad_buff_[vidx];
          if (!g.is_initialised() || g.empty())
             continue;
 
@@ -268,7 +269,7 @@ template <typename T> class Engine {
 
    template <class Op> ValueID feed(AutodiffMeta<T> v) {
       NodeID dst_nid = graph_.template build_node<Op>(v);
-      auto &node = graph_.nodes[dst_nid.idx];
+      INode<T> &node = graph_.get_node(dst_nid);
       // Arbitrily set to 0 for single tensor feed
       // TODO: make return type vec<ValueID> to allow for multi output??? Not
       // sure this is needed
@@ -289,7 +290,7 @@ template <typename T> class Engine {
 
    ValueID get_output(std::vector<NodeID> &sorted_nodes, size_t out_slot) {
       std::vector<ValueID> outputs =
-          graph_.nodes[sorted_nodes.back().idx].outputs;
+          graph_.get_node(sorted_nodes.back()).outputs;
       return outputs[out_slot];
    }
 
@@ -305,14 +306,14 @@ template <typename T> class Engine {
          }
       }
 
-      NodeID dst = graph_.template build_node<Op>(payload);
-      auto &node = graph_.nodes[dst.idx];
+      NodeID dst = graph_.template build_node<Op>();
+      INode<T> &node = graph_.get_node(dst);
 
       for (size_t i = 0; i < payload.size(); ++i) {
          const ValueID in_vid = payload[i].vid();
          FUSION_CHECK(graph_knows(in_vid), "Input not registered");
 
-         const NodeID src = graph_.produced_by[in_vid.idx].nid;
+         const NodeID src = graph_.get_produced_by(in_vid).nid;
          graph_.set_node_input(node, in_vid);
          graph_.append_consumer_table(dst, in_vid, i);
          if (src.idx != -1) {
@@ -323,7 +324,7 @@ template <typename T> class Engine {
    }
 
    void ensure_node_outputs_allocated(NodeID nid, size_t arity) {
-      auto &node = graph_.nodes[nid.idx];
+      INode<T> &node = graph_.get_node(nid);
       if (!node.outputs.empty()) {
          FUSION_CHECK(node.outputs.size() == arity,
                       "node output size mismatch");
@@ -339,7 +340,7 @@ template <typename T> class Engine {
    }
 
    void write_forward_results(NodeID nid, const AutodiffMeta<T> &out) {
-      auto &node = graph_.nodes[nid.idx];
+      INode<T> &node = graph_.get_node(nid);
       FUSION_BOUNDS_CHECK(0, node.outputs.size());
       FUSION_CHECK(node.outputs.size() == out.size(),
                    "node output size mismatch");
@@ -360,9 +361,9 @@ template <typename T> class Engine {
    }
 
    std::vector<NodeID> topo_sort_for_backward() {
-      Sort<T> sort_(graph_.nodes.size());
-      return sort_.topological_sort(graph_.nodes, graph_.produced_by,
-                                    graph_.consumed_by, graph_.node_ids);
+      Sort<T> sort_(graph_.nodes().size());
+      return sort_.topological_sort(graph_.nodes(), graph_.produced_by(),
+                                    graph_.consumed_by(), graph_.node_ids());
    }
 
    AutodiffMeta<T> init_seed_grad(ValueID vid) {
@@ -402,8 +403,8 @@ template <typename T> class Engine {
    void accum_input_grads(const INode<T> &n, const AutodiffMeta<T> &gout) {
       for (size_t j = 0; j < n.inputs.size(); ++j) {
          const ValueID in_vid = n.inputs[j];
-         auto &dst = grad_buff_[in_vid.idx];
-         const auto &src = gout.at(j);
+         ADTensor<T> &dst = grad_buff_[in_vid.idx];
+         const ADTensor<T> &src = gout.at(j);
          if (!dst.is_initialised()) {
             dst = src;
          } else {

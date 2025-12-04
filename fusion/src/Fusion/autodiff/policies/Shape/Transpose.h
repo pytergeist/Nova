@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Fusion/autodiff/AutodiffMode.h"
-#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/AutodiffMeta.h"
 #include "Fusion/autodiff/policies/Operation.h"
 
 template <typename T> struct Transpose {

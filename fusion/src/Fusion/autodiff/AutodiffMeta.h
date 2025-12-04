@@ -7,19 +7,14 @@
 #include <variant>
 #include <any>
 
+#include "ADTypes.h"
+
 // TODO: Create fixed size AutodiffMeta for hot paths
 
 template <typename U> class ADTensor;
 
-struct ValueID {
-   int32_t idx;
-};
-struct NodeID {
-   int32_t idx;
-};
-
 template <typename T> struct AutodiffMeta {
-   std::vector<ADTensor<T>> data; // TODO: migrate this away from std::vector
+   std::vector<ADTensor<T>> data;
    // NB: in the current impl, params are type erased in meta
    // but must be strongly typed at call site. This means strongtypes
    // must be defined for each ops param type (curr defs in ops/OpParams.h)

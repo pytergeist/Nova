@@ -3,97 +3,97 @@
 
 #include <memory>
 
+#include "ADTypes.h"
+#include "AutodiffMeta.h"
 #include "NodeInterface.h"
-#include "Traits.h"
 
-static constexpr int16_t kNoNode = -1;
+static constexpr NodeID kNoNode = NodeID{-1};
 
-struct Edge {
-   NodeID src;
-   NodeID dst;
-   Edge(NodeID src = NodeID{-1}, NodeID dst = NodeID{-1})
-       : src(src), dst(dst) {};
-};
-
-struct ProducerInfo {
-   NodeID nid;
-   size_t out_slot;
-};
-
-struct ConsumerInfo {
-   NodeID nid;
-   size_t in_slot;
-};
+template <typename T> class Engine;
 
 template <typename T> class Graph {
  public:
+   friend class Engine<T>;
+
    Graph() = default;
-   std::int32_t node_counter = 0;
-   std::int32_t value_counter = 0;
-   std::vector<INode<T>> nodes;
-   std::vector<NodeID> node_ids;
-   std::vector<Edge> edges;
-   std::vector<ProducerInfo> produced_by;
-   std::vector<std::vector<ConsumerInfo>> consumed_by;
 
    Graph(const Graph &) = delete;
    Graph &operator=(const Graph &) = delete;
+
    Graph(Graph &&) = delete;
    Graph &operator=(Graph &&) = delete;
 
-   void add_edge(NodeID src_nid, NodeID dst_nid) {
-      if (src_nid.idx == kNoNode || dst_nid.idx == kNoNode)
-         return;
-      edges.push_back(Edge{src_nid, dst_nid});
+   ~Graph() = default;
+
+   std::vector<INode<T>> nodes() const { return nodes_; }
+   std::vector<INode<T>> &nodes() { return nodes_; }
+
+   std::vector<NodeID> &node_ids() { return node_ids_; }
+   std::vector<NodeID> node_ids() const { return node_ids_; }
+
+   std::vector<ProducerInfo> &produced_by() { return produced_by_; }
+   std::vector<ProducerInfo> produced_by() const { return produced_by_; }
+
+   std::vector<std::vector<ConsumerInfo>> &consumed_by() {
+      return consumed_by_;
+   }
+   std::vector<std::vector<ConsumerInfo>> consumed_by() const {
+      return consumed_by_;
    }
 
-   ValueID new_intermediate_value() {
-      ValueID vid{value_counter++};
+   INode<T> &get_node(NodeID id) { return nodes_.at(id.idx); }
 
-      if (produced_by.size() <= static_cast<size_t>(vid.idx)) {
-         produced_by.resize(static_cast<size_t>(vid.idx) + 1);
-      }
-      if (consumed_by.size() <= static_cast<size_t>(vid.idx)) {
-         consumed_by.resize(static_cast<size_t>(vid.idx) + 1);
-      }
-      return vid;
+   ProducerInfo get_produced_by(ValueID id) const {
+      return produced_by_.at(id.idx);
    }
 
-   void set_produced_by(ValueID vid, NodeID nid, size_t out_slot) {
-      if (produced_by.size() <= static_cast<size_t>(vid.idx)) {
-         produced_by.resize(static_cast<size_t>(vid.idx) + 1);
-      }
-      produced_by[vid.idx] = ProducerInfo{nid, out_slot};
+   std::vector<ConsumerInfo> get_consumed_by(ValueID id) const {
+      return consumed_by_.at(id.idx);
+   }
+   std::vector<ConsumerInfo> &get_consumed_by(ValueID id) {
+      return consumed_by_.at(id.idx);
    }
 
-   ValueID new_input_value() {
-      ValueID vid{value_counter++};
-      if (produced_by.size() <= static_cast<size_t>(vid.idx)) {
-         produced_by.resize(static_cast<size_t>(vid.idx) + 1);
-      }
-      produced_by[vid.idx] = ProducerInfo{NodeID{kNoNode}, 0};
-      return vid;
-   };
-
+ protected:
    template <typename ConcreteOp> NodeID build_node() {
       auto op = ConcreteOp{};
       INode<T> node(op);
       size_t num_outputs = node.get_static_num_outputs();
-      nodes.emplace_back(std::move(node));
-      auto &stored = nodes.back();
+      nodes_.emplace_back(std::move(node));
+      auto &stored = nodes_.back();
       NodeID nid = make_node_id();
-      this->append_producer_table(stored, nid);
+      append_producer_table(stored, nid);
       return nid;
    }
 
-   template <typename ConcreteOp> NodeID build_node(AutodiffMeta<T> &vec) {
-      auto op = ConcreteOp{};
-      INode<T> node(op);
-      size_t num_outputs = node.get_static_num_outputs();
-      nodes.emplace_back(std::move(node));
-      auto &stored = nodes.back();
-      NodeID nid = make_node_id();
-      this->append_producer_table(stored, nid);
+   void append_consumer_table(NodeID dst_nid, ValueID vid, size_t slot) {
+      if (consumed_by_.size() <= static_cast<size_t>(vid.idx)) {
+         consumed_by_.resize(static_cast<size_t>(vid.idx) + 1);
+      }
+      consumed_by_[vid.idx].push_back(
+          ConsumerInfo{.nid = dst_nid, .in_slot = slot});
+   }
+
+   void set_produced_by(ValueID vid, NodeID nid, size_t out_slot) {
+      if (produced_by_.size() <= static_cast<size_t>(vid.idx)) {
+         produced_by_.resize(static_cast<size_t>(vid.idx) + 1);
+      }
+      produced_by_[vid.idx] = ProducerInfo{.nid = nid, .out_slot = out_slot};
+   }
+
+ private:
+   std::vector<std::vector<ConsumerInfo>> consumed_by_;
+   std::vector<INode<T>> nodes_{};
+   std::vector<NodeID> node_ids_;
+   std::vector<Edge> edges_;
+   std::vector<ProducerInfo> produced_by_;
+   std::int32_t node_counter_ = 0;
+   std::int32_t value_counter_ = 0;
+
+   NodeID make_node_id() {
+      NodeID nid = NodeID{node_counter_};
+      node_ids_.push_back(nid);
+      node_counter_++;
       return nid;
    }
 
@@ -103,32 +103,45 @@ template <typename T> class Graph {
       node.inputs[curr_size] = vid;
    }
 
-   void append_consumer_table(NodeID dst_nid, ValueID vid, size_t slot) {
-      if (consumed_by.size() <= static_cast<size_t>(vid.idx)) {
-         consumed_by.resize(static_cast<size_t>(vid.idx) + 1);
+   ValueID new_input_value() {
+      ValueID vid{value_counter_++};
+      if (produced_by_.size() <= static_cast<std::size_t>(vid.idx)) {
+         produced_by_.resize(static_cast<std::size_t>(vid.idx) + 1);
       }
-      consumed_by[vid.idx].push_back(ConsumerInfo{dst_nid, slot});
+      produced_by_[vid.idx] = ProducerInfo{.nid = kNoNode, .out_slot = 0};
+      return vid;
+   };
+
+   ValueID new_intermediate_value() {
+      ValueID vid{value_counter_++};
+
+      if (produced_by_.size() <= static_cast<std::size_t>(vid.idx)) {
+         produced_by_.resize(static_cast<std::size_t>(vid.idx) + 1);
+      }
+      if (consumed_by_.size() <= static_cast<std::size_t>(vid.idx)) {
+         consumed_by_.resize(static_cast<std::size_t>(vid.idx) + 1);
+      }
+      return vid;
    }
 
- private:
-   NodeID make_node_id() {
-      NodeID nid = NodeID{node_counter};
-      node_ids.push_back(nid);
-      node_counter++;
-      return nid;
+   void add_edge(NodeID src_nid, NodeID dst_nid) {
+      if (src_nid.idx == kNoNode.idx || dst_nid.idx == kNoNode.idx) {
+         return;
+      }
+      edges_.emplace_back(src_nid, dst_nid);
    }
 
    void append_producer_table(INode<T> &node, NodeID nid) {
       size_t num = node.get_static_num_outputs();
       node.outputs.resize(num);
       for (size_t i = 0; i < num; i++) {
-         ValueID vid{value_counter++};
+         ValueID vid{value_counter_++};
          node.outputs[i] = vid;
 
-         if (produced_by.size() <= static_cast<size_t>(vid.idx)) {
-            produced_by.resize(static_cast<size_t>(vid.idx) + 1);
+         if (produced_by_.size() <= static_cast<size_t>(vid.idx)) {
+            produced_by_.resize(static_cast<size_t>(vid.idx) + 1);
          }
-         produced_by[vid.idx] = ProducerInfo{nid, i};
+         produced_by_[vid.idx] = ProducerInfo{.nid = nid, .out_slot = i};
       }
    }
 };
