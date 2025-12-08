@@ -6,15 +6,18 @@
 #include <unordered_map>
 #include <variant>
 
+#include "AutodiffMeta.h"
 #include "Engine.h"
 #include "EngineContext.h"
-#include "AutodiffMeta.h"
+
+// TODO: find a way around using const_cast to remove cv qualifier
 
 namespace autodiff {
 
 template <typename T>
-inline AutodiffMeta<T> construct_meta(const ADTensor<T> &x, // NOLINT(bugprone-easily-swappable-parameters)
-                                      const ADTensor<T> &y) { // NOLINT(bugprone-easily-swappable-parameters)
+inline AutodiffMeta<T> construct_meta(
+    const ADTensor<T> &x,   // NOLINT(bugprone-easily-swappable-parameters)
+    const ADTensor<T> &y) { // NOLINT(bugprone-easily-swappable-parameters)
    AutodiffMeta<T> meta;
    meta.push_back(x);
    meta.push_back(y);
@@ -47,8 +50,8 @@ inline ADTensor<T> unary(const ADTensor<T> &x, const Param &params,
    if (!grad_enabled() || !x.requires_grad()) {
       return eager(x, params);
    }
-   auto &eng = EngineContext<T>::get();
-   auto vx = const_cast<ADTensor<T> &>(x).ensure_vid(); // NOLINT(cppcoreguidelines-pro-type-const-cast)
+   Engine<T> &eng = EngineContext<T>::get();
+   ValueID vx = const_cast<ADTensor<T> &>(x).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, params);
    ValueID out = eng.template apply<Op>(meta);
    return eng.materialise(out);
@@ -62,9 +65,11 @@ inline ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
    }
    if (!should_trace(x)) {
       return feager(x);
-      }
-   auto &eng = EngineContext<T>::get();
-   auto vx = const_cast<ADTensor<T> &>(x).ensure_vid(); // NOLINT(cppcoreguidelines-pro-type-const-cast)
+   }
+   Engine<T> &eng = EngineContext<T>::get();
+   ValueID vx =
+       const_cast<ADTensor<T> &>(x)
+           .ensure_vid(); // NOLINT(cppcoreguidelines-pro-type-const-cast)
    AutodiffMeta<T> meta = construct_meta<T>(x);
    ValueID out = eng.template apply<Op>(meta);
    return eng.materialise(out);
@@ -79,10 +84,10 @@ inline ADTensor<T> binary(const ADTensor<T> &x, const ADTensor<T> &y,
    }
    if (!should_trace(x, y)) {
       return feager(x, y);
-      }
-   auto &eng = EngineContext<T>::get();
-   auto vx = const_cast<ADTensor<T> &>(x).ensure_vid(); // NOLINT(cppcoreguidelines-pro-type-const-cast)
-   auto vy = const_cast<ADTensor<T> &>(y).ensure_vid(); // NOLINT(cppcoreguidelines-pro-type-const-cast)
+   }
+   Engine<T> &eng = EngineContext<T>::get();
+   ValueID vx = const_cast<ADTensor<T> &>(x).ensure_vid();
+   ValueID vy = const_cast<ADTensor<T> &>(y).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, y);
    ValueID out = eng.template apply<Op>(meta);
    return eng.materialise(out);

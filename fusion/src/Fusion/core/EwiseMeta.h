@@ -8,6 +8,10 @@
 
 #include "TensorBase.h"
 
+/* TODO: OPTIMIZE LATER: implament shape caching for broadcast plans, you need to figure out what to cache
+*   and when. This will reduce the amount of plan construction. Unodered_map impl?
+ * Also consider moving to a faster (poss inlined) vec representation  */
+
 template <typename T>
 struct TensorBase;
 

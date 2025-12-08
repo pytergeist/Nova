@@ -31,7 +31,7 @@ struct static_arity<BinaryType<T>, void>
     : std::integral_constant<std::size_t, 2> {};
 
 template <typename T> struct Context {
-   using CtxValueType = std::variant<ADTensor<T>, int>; //
+   using CtxValueType = std::variant<ADTensor<T>, int>;
    std::unordered_map<std::string, CtxValueType> saved_result;
 
    template <typename U> void save(std::string key, U &&data) {
