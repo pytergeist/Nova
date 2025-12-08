@@ -10,10 +10,10 @@
 #include "Fusion/TensorFactory.h"
 #include "Fusion/common/Checks.h"
 
+#include "ADTypes.h"
+#include "AutodiffMeta.h"
 #include "Graph.h"
 #include "Sort.h"
-#include "AutodiffMeta.h"
-#include "ADTypes.h"
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 inline void hash_combine(std::size_t &seed, std::size_t v) noexcept {
@@ -56,7 +56,7 @@ template <typename T> class Engine {
       write_forward_results(nid, out);
 
       // TODO: need to eventually return all outputs? (vector<ValueID>)
-      return node.outputs[0];
+      return node.get_output(0);
    }
 
    void backward(ValueID seed_vid, bool materialise = true,
@@ -70,17 +70,17 @@ template <typename T> class Engine {
 
       for (auto it = order.rbegin(); it != order.rend(); ++it) {
          INode<T> &n = graph_.get_node(NodeID{it->idx});
-         FUSION_CHECK(!n.outputs.empty(), "node has no outputs in backward()");
+         FUSION_CHECK(n.has_outputs(), "node has no outputs in backward()");
 
-         const ValueID out_vid = n.outputs[0];
+         const ValueID out_vid = n.get_output(0);
          validate_forward_value_exists(n, out_vid);
          ensure_output_grad_slot(out_vid);
 
          AutodiffMeta<T> grad_in;
-         grad_in.push_back(grad_buff_[out_vid.idx]);
+         grad_in.push_back(grad_buff_[out_vid]);
          AutodiffMeta<T> grad_out = safe_apply_backward(n, grad_in);
 
-         FUSION_CHECK(grad_out.size() == n.inputs.size(),
+         FUSION_CHECK(grad_out.size() == n.num_inputs(),
                       "backward arity mismatch");
          accum_input_grads(n, grad_out);
       }
@@ -113,15 +113,15 @@ template <typename T> class Engine {
    }
 
    ADTensor<T> materialise(ValueID vid) {
-      FUSION_BOUNDS_CHECK(vid.idx, val_buff_.size());
-      ADTensor<T> out = val_buff_[vid.idx];
+      FUSION_BOUNDS_CHECK(vid, val_buff_.size());
+      ADTensor<T> out = val_buff_[vid];
       out.set_vid(vid);
       return out;
    }
 
    ADTensor<T> get_grad(ValueID vid) {
-      FUSION_BOUNDS_CHECK(vid.idx, val_buff_.size());
-      return grad_buff_[vid.idx];
+      FUSION_BOUNDS_CHECK(vid, val_buff_.size());
+      return grad_buff_[vid];
    }
 
    void dump_graph(std::ostream &os) const {
@@ -134,9 +134,9 @@ template <typename T> class Engine {
       for (size_t i = 0; i < n; ++i) {
          const INode<T> &prod = graph_.get_produced_by(i);
          NodeID nid = prod.nid;
-         if (nid.idx >= 0 &&
-             static_cast<size_t>(nid.idx) < graph_.nodes().size()) {
-            os << "Node idx: " << nid.idx
+         if (nid >= 0 &&
+             static_cast<size_t>(nid) < graph_.nodes().size()) {
+            os << "Node idx: " << nid
                << " Node Op: " << graph_.get_node(nid).name() << " ";
             if (val_buff_[i].empty()) {
                os << "[no val]\n";
@@ -169,13 +169,13 @@ template <typename T> class Engine {
        import_cache_{};
 
    void ensure_value_capacity(ValueID vid) {
-      if (val_buff_.size() <= static_cast<size_t>(vid.idx)) {
-         val_buff_.resize(static_cast<size_t>(vid.idx) + 1);
+      if (val_buff_.size() <= static_cast<size_t>(vid)) {
+         val_buff_.resize(static_cast<size_t>(vid) + 1);
       }
    }
 
    bool graph_knows(ValueID vid) const noexcept {
-      return static_cast<size_t>(vid.idx) < graph_.produced_by().size();
+      return static_cast<size_t>(vid) < graph_.produced_by().size();
    }
 
    std::optional<ValueID> reuse_known_vid(ADTensor<T> &t) {
@@ -222,14 +222,14 @@ template <typename T> class Engine {
 
    void maybe_mark_leaf(ValueID vid, ADTensor<T> &t) {
       if (t.requires_grad()) {
-         leaf_map_.try_emplace(vid.idx, &t);
+         leaf_map_.try_emplace(vid, &t);
       }
    }
 
    void write_val(ValueID vid, ADTensor<T> &t) {
       ensure_value_capacity(vid);
-      if (!val_buff_[vid.idx].is_initialised()) {
-         val_buff_[vid.idx] = t;
+      if (!val_buff_[vid].is_initialised()) {
+         val_buff_[vid] = t;
       }
    }
 
@@ -281,17 +281,11 @@ template <typename T> class Engine {
    void set_grad_buff_size() { grad_buff_.resize(val_buff_.size()); }
 
    AutodiffMeta<T> grad_init(ValueID vid) {
-      ADTensor<T> grad = ones_like(val_buff_[vid.idx]);
-      grad_buff_[vid.idx] = grad;
+      ADTensor<T> grad = ones_like(val_buff_[vid]);
+      grad_buff_[vid] = grad;
       AutodiffMeta<T> gradVec;
       gradVec.push_back(grad);
       return gradVec;
-   }
-
-   ValueID get_output(std::vector<NodeID> &sorted_nodes, size_t out_slot) {
-      std::vector<ValueID> outputs =
-          graph_.get_node(sorted_nodes.back()).outputs;
-      return outputs[out_slot];
    }
 
    AutodiffMeta<T> run_forward(INode<T> &node, AutodiffMeta<T> &vec) {
@@ -316,7 +310,7 @@ template <typename T> class Engine {
          const NodeID src = graph_.get_produced_by(in_vid).nid;
          graph_.set_node_input(node, in_vid);
          graph_.append_consumer_table(dst, in_vid, i);
-         if (src.idx != -1) {
+         if (src != -1) {
             graph_.add_edge(src, dst);
          }
       }
@@ -325,30 +319,28 @@ template <typename T> class Engine {
 
    void ensure_node_outputs_allocated(NodeID nid, size_t arity) {
       INode<T> &node = graph_.get_node(nid);
-      if (!node.outputs.empty()) {
-         FUSION_CHECK(node.outputs.size() == arity,
-                      "node output size mismatch");
+      if (node.has_outputs()) {
+         FUSION_CHECK(node.num_outputs() == arity, "node output size mismatch");
          return;
       }
-      node.outputs.reserve(arity);
       for (size_t i = 0; i < arity; ++i) {
          ValueID vid = graph_.new_intermediate_value();
          graph_.set_produced_by(vid, nid, i);
-         node.outputs.push_back(vid);
+         graph_.set_node_output(node, vid);
          ensure_value_capacity(vid);
       }
    }
 
    void write_forward_results(NodeID nid, const AutodiffMeta<T> &out) {
       INode<T> &node = graph_.get_node(nid);
-      FUSION_BOUNDS_CHECK(0, node.outputs.size());
-      FUSION_CHECK(node.outputs.size() == out.size(),
+      FUSION_BOUNDS_CHECK(0, node.num_outputs());
+      FUSION_CHECK(node.num_outputs() == out.size(),
                    "node output size mismatch");
 
       for (size_t i = 0; i < out.size(); ++i) {
-         ValueID vid_i = node.outputs[i];
+         ValueID vid_i = node.get_output(i);
          ensure_value_capacity(vid_i);
-         val_buff_[vid_i.idx] = out[i];
+         val_buff_[vid_i] = out[i];
       }
    }
 
@@ -367,8 +359,8 @@ template <typename T> class Engine {
    }
 
    AutodiffMeta<T> init_seed_grad(ValueID vid) {
-      ADTensor<T> grad = ones_like(val_buff_[vid.idx]);
-      grad_buff_[vid.idx] = grad;
+      ADTensor<T> grad = ones_like(val_buff_[vid]);
+      grad_buff_[vid] = grad;
       AutodiffMeta<T> v;
       v.push_back(grad);
       return v;
@@ -376,17 +368,17 @@ template <typename T> class Engine {
 
    void validate_forward_value_exists(const INode<T> &n,
                                       ValueID out_vid) const {
-      FUSION_CHECK(static_cast<size_t>(out_vid.idx) < val_buff_.size(),
+      FUSION_CHECK(static_cast<size_t>(out_vid) < val_buff_.size(),
                    std::string("val index OOB in backward: ") +
                        std::string(n.name()));
-      FUSION_CHECK(val_buff_[out_vid.idx].is_initialised(),
+      FUSION_CHECK(val_buff_[out_vid].is_initialised(),
                    std::string("val missing for node output: ") +
                        std::string(n.name()));
    }
 
    void ensure_output_grad_slot(ValueID out_vid) {
-      if (!grad_buff_[out_vid.idx].is_initialised()) {
-         grad_buff_[out_vid.idx] = zeros_like(val_buff_[out_vid.idx]);
+      if (!grad_buff_[out_vid].is_initialised()) {
+         grad_buff_[out_vid] = zeros_like(val_buff_[out_vid]);
       }
    }
 
@@ -401,9 +393,9 @@ template <typename T> class Engine {
    }
 
    void accum_input_grads(const INode<T> &n, const AutodiffMeta<T> &gout) {
-      for (size_t j = 0; j < n.inputs.size(); ++j) {
-         const ValueID in_vid = n.inputs[j];
-         ADTensor<T> &dst = grad_buff_[in_vid.idx];
+      for (size_t j = 0; j < n.num_inputs(); ++j) {
+         const ValueID in_vid = n.get_input(j);
+         ADTensor<T> &dst = grad_buff_[in_vid];
          const ADTensor<T> &src = gout.at(j);
          if (!dst.is_initialised()) {
             dst = src;

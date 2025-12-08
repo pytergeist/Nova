@@ -4,8 +4,13 @@
 #include <memory>
 #include <utility>
 
+#include "AutodiffMeta.h"
 #include "Node.h"
-#include "Traits.h"
+
+/* TODO: Find a way to remove the static arity from the INode interface/Node,
+ * the get_static_output() method here is currently used in Graph<T>, during */
+
+template <typename T> class Graph;
 
 template <typename T> class INode {
  public:
@@ -17,8 +22,17 @@ template <typename T> class INode {
    }
    std::string_view name() const { return self_->name(); }
 
-   std::vector<ValueID> inputs;
-   std::vector<ValueID> outputs;
+   std::vector<ValueID> inputs() const { return inputs_; }
+   std::vector<ValueID> outputs() const { return outputs_; }
+
+   bool has_outputs() const { return !outputs_.empty(); };
+   bool has_inputs() const { return !inputs_.empty(); };
+
+   std::size_t num_inputs() const { return inputs_.size(); }
+   std::size_t num_outputs() const { return outputs_.size(); }
+
+   ValueID get_input(std::size_t idx) const { return inputs_.at(idx); };
+   ValueID get_output(std::size_t idx) const { return outputs_.at(idx); };
 
    template <class Op>
    explicit INode(Op op)
@@ -26,8 +40,11 @@ template <typename T> class INode {
 
    INode(INode &&) noexcept = default;
    INode &operator=(INode &&) noexcept = default;
+
    INode(const INode &) = delete;
    INode &operator=(const INode &) = delete;
+
+   ~INode() = default;
 
    AutodiffMeta<T> forward(AutodiffMeta<T> &input) {
       return self_->forward(input);
@@ -42,8 +59,9 @@ template <typename T> class INode {
    }
 
    AutodiffMeta<T> apply_backward(AutodiffMeta<T> &grad_out) {
-      if (!self_)
+      if (!self_) {
          throw std::runtime_error("INode used after move");
+      }
       AutodiffMeta<T> gin = self_->backward(grad_out);
       return gin;
    }
@@ -56,11 +74,45 @@ template <typename T> class INode {
    };
 
  private:
+   friend Graph<T>;
+
+   std::vector<ValueID> inputs_;
+   std::vector<ValueID> outputs_;
+
+   void set_input(std::size_t idx, ValueID vid) {
+      resize_inputs(idx + 1);
+      inputs_[idx] = vid;
+   };
+
+   void set_output(std::size_t idx, ValueID vid) {
+      resize_outputs(idx + 1);
+      inputs_[idx] = vid;
+   };
+
+   void add_input(ValueID vid) { inputs_.push_back(vid); }
+   void add_output(ValueID vid) { outputs_.push_back(vid); }
+
+   void reserve_inputs(std::size_t n) { inputs_.reserve(n); }
+   void reserve_outputs(std::size_t n) { outputs_.reserve(n); }
+
+   void resize_inputs(std::size_t n) { inputs_.resize(n); }
+   void resize_outputs(std::size_t n) { inputs_.resize(n); }
+
+   // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
    struct NodeConcept {
       std::vector<ValueID> inputs;
       std::vector<ValueID> outputs;
 
+      NodeConcept() = default;
+
+      NodeConcept(const NodeConcept &) = delete;
+      NodeConcept &operator=(const NodeConcept &) = delete;
+
+      NodeConcept(NodeConcept &&) = delete;
+      NodeConcept &operator=(NodeConcept &&) = delete;
+
       virtual ~NodeConcept() = default;
+
       virtual AutodiffMeta<T> forward(AutodiffMeta<T> &input) = 0;
       virtual AutodiffMeta<T> backward(AutodiffMeta<T> &grad_out) = 0;
 
@@ -68,6 +120,7 @@ template <typename T> class INode {
       virtual const std::type_info &out_type() const = 0;
       virtual const std::type_info &grad_in_type() const = 0;
       virtual const std::type_info &grad_out_type() const = 0;
+
       virtual std::string_view name() const = 0;
 
       virtual size_t get_static_num_outputs() const = 0;
@@ -116,6 +169,8 @@ template <typename T> class INode {
 
       Node<T, Op> node_;
    };
+   // NOLINTEND(misc-non-private-member-variables-in-classes)
+
    std::unique_ptr<NodeConcept> self_;
 };
 
