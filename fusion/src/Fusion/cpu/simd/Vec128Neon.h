@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <sleef.h>
+#include <sleef.h> // NOLINT
 
 #if defined(FUSION_ENABLE_NEON) &&                                             \
     (defined(__ARM_NEON) || defined(__ARM_NEON__))

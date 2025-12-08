@@ -1,9 +1,9 @@
-#ifndef _NODE_H
-#define _NODE_H
+#ifndef NODE_H
+#define NODE_H
 
 #include <memory>
 
-#include "Traits.h"
+#include "AutodiffMeta.h"
 #include "policies/Operation.h"
 
 template <typename T, class Op> class Node {
@@ -12,9 +12,6 @@ template <typename T, class Op> class Node {
    using Out = typename Op::Out;
    using GradIn = typename Op::GradIn;
    using GradOut = typename Op::GradOut;
-
-   std::vector<ValueID> inputs;
-   std::vector<ValueID> outputs;
 
    Node() = default;
    Node(Op op) : op_(std::move(op)) {};
@@ -50,4 +47,4 @@ template <typename T, class Op> class Node {
    bool bwd_done_{false};
 };
 
-#endif // _NODE_H
+#endif // NODE_H

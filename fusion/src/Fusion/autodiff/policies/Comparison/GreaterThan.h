@@ -6,7 +6,7 @@
 
 #include "Fusion/TensorFactory.h"
 #include "Fusion/autodiff/AutodiffMode.h"
-#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/AutodiffMeta.h"
 #include "Fusion/autodiff/policies/Operation.h"
 #include "Fusion/common/Checks.h"
 
@@ -20,12 +20,12 @@ template <typename T> struct GreaterThan {
    Out forward(Context<T> &context, const In &input) {
       FUSION_CHECK(input.size() >= 2, "GreaterThan requires two inputs");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &x = input.at(0);
-      const Tensor<T> &y = input.at(1);
+      const ADTensor<T> &x = input.at(0);
+      const ADTensor<T> &y = input.at(1);
       context.save("x", x);
       context.save("y", y);
       FUSION_CHECK(x.size() == y.size(), "GreaterThan: input size mismatch");
-      Tensor<T> z = x > y;
+      ADTensor<T> z = x > y;
       Out out;
       out.push_back(z);
       return out;
@@ -39,13 +39,13 @@ template <typename T> struct GreaterThan {
           grad_out.size() == 1,
           "GreaterThan::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &x = context.template load<Tensor<T>>("x");
-      const Tensor<T> &y = context.template load<Tensor<T>>("y");
-      const Tensor<T> &g0 = grad_out.at(0);
+      const ADTensor<T> &x = context.template load<ADTensor<T>>("x");
+      const ADTensor<T> &y = context.template load<ADTensor<T>>("y");
+      const ADTensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(),
                    "GreaterThan::backward: upstream grad is empty");
-      Tensor<T> gx = zeros_like(x);
-      Tensor<T> gy = zeros_like(y);
+      ADTensor<T> gx = zeros_like(x);
+      ADTensor<T> gy = zeros_like(y);
       GradIn g;
       g.push_back(gx);
       g.push_back(gy);

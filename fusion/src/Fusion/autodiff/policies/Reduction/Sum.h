@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Fusion/autodiff/AutodiffMode.h"
-#include "Fusion/autodiff/Traits.h"
+#include "Fusion/autodiff/AutodiffMeta.h"
 #include "Fusion/autodiff/policies/Operation.h"
 
 template <typename T> struct Sum {
@@ -18,9 +18,9 @@ template <typename T> struct Sum {
    Out forward(Context<T> &context, const In &input) {
       FUSION_CHECK(!input.empty(), "Sum requires one inputs");
       const autodiff::NoGradGuard _;
-      const Tensor<T> &x = input.at(0);
+      const ADTensor<T> &x = input.at(0);
       context.save("x", x);
-      Tensor<T> y = x.sum();
+      ADTensor<T> y = x.sum();
       Out out;
       out.push_back(y);
       return out;
@@ -33,12 +33,12 @@ template <typename T> struct Sum {
       FUSION_CHECK(grad_out.size() == 1,
                    "Sum::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
-      Tensor<T> g0 = grad_out.at(0);
+      ADTensor<T> g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Sum::backward: upstream grad is empty");
-      const Tensor<T> &x = context.template load<Tensor<T>>("x");
-      Tensor<T> gx;
+      const ADTensor<T> &x = context.template load<ADTensor<T>>("x");
+      ADTensor<T> gx;
       if (g0.flat_size() == 1) {
-         gx = ones_like<T>(x) * g0;
+         gx = ones_like(x) * g0;
       } else {
          gx = g0;
       }

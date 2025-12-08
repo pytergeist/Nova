@@ -12,8 +12,6 @@
 #include <cblas.h>
 #endif
 
-template <typename T> class Tensor;
-
 /* TODO: The current GeMM kernel below does not go through dispatch and therefore does not have
  *   contiguous hot path optimisation - therefore it is slower in the bench marks */
 

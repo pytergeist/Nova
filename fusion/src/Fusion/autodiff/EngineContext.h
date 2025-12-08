@@ -25,19 +25,20 @@ template <typename T> class EngineContext {
 };
 
 template <typename T> struct EngineScope {
-   Engine<T> eng_;
-   bool active_{false};
 
    EngineScope() = default;
-   ~EngineScope() {
-      if (active_)
-         exit();
-   }
 
    EngineScope(const EngineScope &) = delete;
    EngineScope &operator=(const EngineScope &) = delete;
+
    EngineScope(EngineScope &&) = delete;
    EngineScope &operator=(EngineScope &&) = delete;
+
+   ~EngineScope() {
+      if (active_) {
+         exit();
+      }
+   }
 
    void enter() {
       EngineContext<T>::set(&eng_);
@@ -47,6 +48,13 @@ template <typename T> struct EngineScope {
       EngineContext<T>::set(nullptr);
       active_ = false;
    }
+
+   Engine<T> eng() { return eng_; }
+   bool active() const { return active_; }
+
+ private:
+   Engine<T> eng_;
+   bool active_{false};
 };
 
 #endif // ENGINE_CONTEXT_H

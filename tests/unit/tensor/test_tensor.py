@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from nova.src.backend.core import Tensor
+from nova.src.backend.core.clib import factory_methods as fm
 from tests.integration.gradient import set_grad_tape
 
 
@@ -172,7 +173,7 @@ def test_tensor_sum_backward(data):
     s = a.sum()
     s.backward()
 
-    expected_grad = a.ones_like().to_numpy()
+    expected_grad = fm.ones_like(a).to_numpy()
     np.testing.assert_array_almost_equal(a.grad.to_numpy(), expected_grad, decimal=5)
 
 
@@ -194,10 +195,10 @@ def test_tensor_matmul_backward():
     s = c.sum()
     s.backward()
 
-    expected_grad_a = c.ones_like().to_numpy() @ B.T
+    expected_grad_a = fm.ones_like(c).to_numpy() @ B.T
     np.testing.assert_array_almost_equal(a.grad.to_numpy(), expected_grad_a, decimal=5)
 
-    expected_grad_b = A.T @ c.ones_like().to_numpy()
+    expected_grad_b = A.T @ fm.ones_like(c).to_numpy()
     np.testing.assert_array_almost_equal(b.grad.to_numpy(), expected_grad_b, decimal=5)
 
 

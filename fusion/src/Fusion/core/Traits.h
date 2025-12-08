@@ -3,13 +3,13 @@
 
 #include <type_traits>
 
-template <typename U> class Tensor;
+template <typename U> class TensorBase;
 
 template <class T> struct is_tensor {
    static constexpr bool value = false;
 };
 
-template <class T> struct is_tensor<Tensor<T>> {
+template <class T> struct is_tensor<TensorBase<T>> {
    static constexpr bool value = true;
 };
 

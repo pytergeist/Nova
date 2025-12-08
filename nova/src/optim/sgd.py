@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, List, Optional
 
+from nova.src.backend.core.clib import factory_methods as fm
 from nova.src.optim.optimiser import Optimiser
 
 if TYPE_CHECKING:
@@ -16,7 +17,7 @@ class SGD(
         self.velocities: Optional = None
 
     def build(self):
-        self.velocities = [p.tensor.zeros_like() for p in self.parameters]
+        self.velocities = [fm.zeros_like(p.tensor) for p in self.parameters]
 
     def step(self):
         for idx, p in enumerate(self.parameters):
@@ -31,6 +32,6 @@ class SGD(
                 p.tensor -= (g_t + v_t) * self.lr
 
             else:
-                p.tensor -= self.lr * g_t
+                p.tensor -= p.tensor - self.lr * g_t
 
             p.zero_grad()
