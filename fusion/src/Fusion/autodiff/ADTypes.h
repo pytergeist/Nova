@@ -1,35 +1,36 @@
-#ifndef _AD_TYPES_H
-#define _AD_TYPES_H
+#ifndef AD_TYPES_H_
+#define AD_TYPES_H_
 
 #include <cstdint>
 
 struct ValueID {
-    int32_t idx;
+   std::int64_t idx;
+   operator std::int64_t() const noexcept { return idx; }
 };
 struct NodeID {
-    int32_t idx;
+   std::int64_t idx;
+   operator std::int64_t() const noexcept { return idx; }
 };
-
 
 // NOLINTBEGIN(misc-non-private-member-variables-in-classes,
 // bugprone-easily-swappable-parameters)
 struct Edge {
-    NodeID src;
-    NodeID dst;
-    Edge(NodeID src = NodeID{-1}, NodeID dst = NodeID{-1})
-        : src(src), dst(dst) {};
+   NodeID src;
+   NodeID dst;
+   Edge(NodeID src = NodeID{-1}, NodeID dst = NodeID{-1})
+       : src(src), dst(dst) {};
 };
 // NOLINTEND(misc-non-private-member-variables-in-classes,
 // bugprone-easily-swappable-parameters)
 
 struct ProducerInfo {
-    NodeID nid;
-    size_t out_slot;
+   NodeID nid;
+   size_t out_slot;
 };
 
 struct ConsumerInfo {
-    NodeID nid;
-    size_t in_slot;
+   NodeID nid;
+   size_t in_slot;
 };
 
-#endif // _AD_TYPES_H
+#endif // AD_TYPES_H_
