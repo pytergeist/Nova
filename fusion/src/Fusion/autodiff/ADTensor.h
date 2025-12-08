@@ -42,14 +42,11 @@
 
 #include "Fusion/alloc/DefaultAllocator.h"
 
-
-
-
 template <typename T> struct ADTensor;
 
 template <typename T>
 static inline ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
-   if (t.eng_ == &eng && t.vid().idx >= 0) {
+   if (t.eng_ == &eng && t.vid() >= 0) {
       return t.vid();
    }
    ValueID vid = eng.track_input(t);
@@ -77,8 +74,8 @@ template <typename T> class ADTensor : public TensorBase<T> {
        : Base(std::move(base)), requires_grad_(requires_grad) {}
 
    explicit ADTensor(std::vector<std::size_t> shape, // NOLINT
-                     std::vector<T> data,          // NOLINT
-                     DType dtype = DType::Float32, // NOLINT
+                     std::vector<T> data,            // NOLINT
+                     DType dtype = DType::Float32,   // NOLINT
                      Device device = Device::CPU, bool requires_grad = false,
                      IAllocator *allocator = nullptr)
        : Base(std::move(shape), std::move(data), dtype, device, allocator),
@@ -95,10 +92,10 @@ template <typename T> class ADTensor : public TensorBase<T> {
 
    ValueID set_vid(ValueID vid) noexcept { return vid_ = vid; }
 
-   bool has_vid() const noexcept { return vid_.idx >= 0; }
+   bool has_vid() const noexcept { return vid_ >= 0; }
 
    ValueID ensure_vid() {
-      if (vid_.idx >= 0) {
+      if (vid_ >= 0) {
          return vid_;
       }
       Engine<T> &eng = EngineContext<T>::get();
