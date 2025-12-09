@@ -137,7 +137,12 @@ class Block(ABC):
 
         if self.kernel is not None:
             *batch_dims, _ = input_shape
-            self.output_shape = (self.kernel.shape[0],)
+            units = self.kernel.shape[0]
+
+            if batch_dims:
+                self.output_shape = (*batch_dims, units)
+            else:
+                self.output_shape = (units,)
 
         elif self.output_shape is None:
             raise RuntimeError(
