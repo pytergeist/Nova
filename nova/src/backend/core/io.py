@@ -2,6 +2,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from nova.src.backend.core import clib
+from nova.src.backend.core.device import parse_device
 from nova.src.backend.core.dtypes import as_dtype
 
 from ._tensor import Tensor
@@ -64,3 +66,9 @@ def as_variable(data: np.ndarray, dtype: "DType" = "float32", role=None) -> Vari
     dtype = as_dtype(dtype)
     array = np.array(data, dtype=dtype)
     return Variable(data=array, requires_grad=True, dtype=dtype, role=role)
+
+
+def _get_cpp_device(device_spec: str) -> clib.CppDevice:
+    pydev = parse_device(device_spec)
+    cpp_dev_type = clib.CppDeviceType(pydev.type.value)
+    return clib.CppDevice(cpp_dev_type, pydev.index)

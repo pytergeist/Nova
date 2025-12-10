@@ -15,6 +15,7 @@
 #include "Fusion/core/Ffunc.h"
 #include "Fusion/core/Layout.h"
 #include "Fusion/core/Reduce.h"
+#include "Fusion/device/Device.h"
 #include "Fusion/kernels/Serial.h"
 #include "Fusion/ops/Comparison.h"
 #include "Fusion/ops/Ewise.h"
@@ -30,7 +31,7 @@
 template <typename T> // TODO: need to either pass in device somehow?
 inline TensorBase<T> scalar_t(const T scalar,
                               const DType dtype = DType::Float32,
-                              Device device = Device::CPU) {
+                              Device device = Device{DeviceType::CPU, 0}) {
    return TensorBase<T>{{1}, {scalar}, dtype, device};
 }
 
@@ -39,7 +40,8 @@ template <typename T> class TensorBase {
    static constexpr std::string_view name = "TensorBase";
    using value_type = T;
 
-   TensorBase() : storage_(nullptr), shape_{} {}
+   TensorBase()
+       : storage_(nullptr), device_(Device{DeviceType::CPU, 0}), shape_{} {}
 
    TensorBase(const TensorBase &) = default;
    TensorBase &operator=(const TensorBase &) = default;
@@ -51,25 +53,25 @@ template <typename T> class TensorBase {
 
    explicit TensorBase(std::vector<std::size_t> shape, std::vector<T> data,
                        DType dtype = DType::Float32, // NOLINT
-                       Device device = Device::CPU,
+                       Device device = Device{DeviceType::CPU, 0},
                        IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
-      FUSION_CHECK(device == Device::CPU, "Unsupported device type");
+      FUSION_CHECK(device.is_cpu(), "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       std::size_t sz = set_contiguous_strides();
       FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
-      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, std::move(data),
-                                                      &default_allocator());
+      storage_ = std::make_shared<NDTensorStorage<T>>(
+          shape_, std::move(data), device_, &default_allocator());
    }
 
-   explicit TensorBase(std::vector<size_t> shape, Device device = Device::CPU,
-                       DType dtype = DType::Float32,
+   explicit TensorBase(std::vector<size_t> shape, DType dtype = DType::Float32,
+                       Device device = Device{DeviceType::CPU, 0},
                        IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
-      FUSION_CHECK(device == Device::CPU, "Unsupported device type");
+      FUSION_CHECK(device.is_cpu(), "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       std::size_t sz = set_contiguous_strides();
-      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, sz,
+      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, sz, device_,
                                                       &default_allocator());
    }
 
@@ -80,7 +82,7 @@ template <typename T> class TensorBase {
    size_t ndims() const { return shape_.size(); }
    std::vector<size_t> shape() const { return shape_; }
    std::vector<size_t> strides() const { return strides_; }
-   Device device() const noexcept { return Device(Device::CPU); }
+   Device device() const noexcept { return device_; }
 
    bool is_contiguous() const noexcept {
       return calc_contiguous(shape_, strides_);
@@ -236,7 +238,7 @@ template <typename T> class TensorBase {
       serial::transpose<T>(*this, this->shape_, new_data);
 
       return TensorBase(std::move(new_shape), std::move(new_data), dtype(),
-                        Device::CPU);
+                        device_);
    }
 
    // TODO: fix this impl -> pipe through ops/kernel layer
@@ -247,8 +249,7 @@ template <typename T> class TensorBase {
       size_t out_dim = std::floor(arr_size);
       std::vector<size_t> out_shape{out_dim, 1};
       std::vector<T> out = serial::diagonal2D(*this, this->shape_);
-      return TensorBase(std::move(out_shape), std::move(out), dtype(),
-                        Device::CPU);
+      return TensorBase(std::move(out_shape), std::move(out), dtype(), device_);
    }
 
    // TODO: fix this impl
@@ -257,7 +258,7 @@ template <typename T> class TensorBase {
       TensorBase tmp = init_out_from_meta(*this, other, meta);
       ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
       if (!meta.out_shape.empty() && meta.out_shape != tmp.shape()) {
-         TensorBase corrected(meta.out_shape, Device::CPU, dtype());
+         TensorBase corrected(meta.out_shape, device_, dtype());
          ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta,
                                                   corrected);
          replace_from(std::move(corrected));

@@ -24,34 +24,33 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
    py::class_<PyT>(m, name)
        // --- constructor(shape[, requires_grad=False]) → zero-initialized
        // tensor ---
-       .def(py::init([](const std::vector<size_t> &shape, bool requires_grad) {
+       .def(py::init([](const std::vector<size_t> &shape, const Device device,
+                        bool requires_grad) {
                size_t total = std::accumulate(shape.begin(), shape.end(),
                                               static_cast<size_t>(1),
                                               std::multiplies<size_t>());
-               return new PyT(
-                   shape, std::vector<T>(total), DType::Float32,
-                   Device::CPU, // TODO: pass in dtype from python layer
-                   requires_grad, /*allocator_*/ nullptr);
+               return new PyT(shape, std::vector<T>(total), DType::Float32,
+                              device, requires_grad, /*allocator_*/ nullptr);
             }),
-            py::arg("shape"), py::arg("requires_grad"),
+            py::arg("shape"), py::arg("device"), py::arg("requires_grad"),
             "Construct a Tensor of given shape, zero-initialized. "
             "Optionally set requires_grad.")
 
        // --- constructor(shape, flat_data[, requires_grad=False]) ---
        .def(py::init([](const std::vector<size_t> &shape,
-                        const std::vector<T> &data, bool requires_grad) {
+                        const std::vector<T> &data, const Device device,
+                        bool requires_grad) {
                size_t total = std::accumulate(shape.begin(), shape.end(),
                                               static_cast<size_t>(1),
                                               std::multiplies<size_t>());
                if (data.size() != total) {
                   throw std::invalid_argument("shape* must equal data.size()");
                }
-               return new PyT(
-                   shape, data, DType::Float32, Device::CPU,
-                   requires_grad); // TODO: pass dtype in from python layer,
-               // TODO: setup dtype policies inside the python layer
+               return new PyT(shape, data, DType::Float32, device,
+                              requires_grad);
             }),
-            py::arg("shape"), py::arg("data"), py::arg("requires_grad"),
+            py::arg("shape"), py::arg("data"), py::arg("device"),
+            py::arg("requires_grad"),
             "Construct a Tensor from a shape list and a flat data list. "
             "Optionally set requires_grad.")
 
@@ -160,8 +159,8 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
        // -- inplace ops --
        .def("__isub__", &PyT::operator-=)
 
-   // --- Unary / other ops ---
-   .def("sqrt", &PyT::sqrt)
+       // --- Unary / other ops ---
+       .def("sqrt", &PyT::sqrt)
        .def("exp", &PyT::exp)
        .def("log", &PyT::log)
        .def("sum", &PyT::sum)
@@ -188,5 +187,4 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
        .def("diag", &PyT::diagonal)
        .def("backward", &PyT::backward)
        .def("get_grad", &PyT::grad);
-
 }

@@ -35,7 +35,8 @@ void for_each(const BroadcastPlan &plan,
    walk(0);
 }
 
-inline std::vector<std::int64_t> contig_elem_strides(const std::vector<std::size_t> &shape) {
+inline std::vector<std::int64_t>
+contig_elem_strides(const std::vector<std::size_t> &shape) {
    std::vector<std::int64_t> st(shape.size());
    std::int64_t r = 1;
    for (int i = (int)shape.size() - 1; i >= 0; --i) {
@@ -45,7 +46,6 @@ inline std::vector<std::int64_t> contig_elem_strides(const std::vector<std::size
    return st;
 }
 
-
 template <typename T>
 inline TensorDescription make_desc(const std::vector<std::size_t> &shape,
                                    const int64_t *strides_elems) {
@@ -54,15 +54,13 @@ inline TensorDescription make_desc(const std::vector<std::size_t> &shape,
    std::vector<std::size_t> sz(shape.begin(), shape.end());
    std::vector<std::int64_t> st;
    if (strides_elems) {
-      st.assign(strides_elems, strides_elems + static_cast<int64_t>(shape.size()));
-      }
-   else {
+      st.assign(strides_elems,
+                strides_elems + static_cast<int64_t>(shape.size()));
+   } else {
       st = contig_elem_strides(shape);
-      }
-   return TensorDescription{static_cast<std::size_t>(shape.size()), std::move(sz),
-                            std::move(st), sizeof(T)};
+   }
+   return TensorDescription{static_cast<std::size_t>(shape.size()),
+                            std::move(sz), std::move(st), sizeof(T)};
 }
-
-
 
 #endif // BROADCAST_ITER_H

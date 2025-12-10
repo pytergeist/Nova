@@ -13,8 +13,9 @@ template <typename T> class Sort {
       std::vector<bool> visited(numNodes, false);
    };
 
-   std::vector<std::size_t> calc_indegree(std::vector<INode<T>> &nodes,
-                                     std::vector<ProducerInfo> &produced_by) {
+   std::vector<std::size_t>
+   calc_indegree(std::vector<INode<T>> &nodes,
+                 std::vector<ProducerInfo> &produced_by) {
       // This belongs in the graph??? not in the sort - also iteratively update
       // this do not calculate on method exe
       std::vector<size_t> inDegree(numNodes_);

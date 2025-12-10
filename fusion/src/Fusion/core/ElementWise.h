@@ -11,28 +11,29 @@
 #include "Fusion/cpu/SimdTraits.h"
 #include "Fusion/cpu/simd/Vec128Neon.h"
 
-#include "EwiseMeta.h"
 #include "Broadcast.h"
+#include "EwiseMeta.h"
 
 namespace ewise {
 
 template <std::size_t N, class InnerFn>
-inline void walk(int dim, const int inn, const BroadcastPlan &plan, std::array<uint8_t *, N>& ptr, InnerFn &&inner) {
-      if (dim == inn) {
-         const auto &ld = plan.loop[inn];
-         std::vector<int64_t> s = ld.stride_bytes;
-         inner(ptr, ld.size, s);
-         return;
-      }
-      const auto &ld = plan.loop[dim];
-      for (int64_t i = 0; i < ld.size; ++i) {
-         walk(dim + 1,  inn, plan, ptr, inner);
-         for (int k = 0; k < plan.num_operands; ++k)
-            ptr[k] += ld.stride_bytes[k];
-      }
+inline void walk(int dim, const int inn, const BroadcastPlan &plan,
+                 std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
+   if (dim == inn) {
+      const auto &ld = plan.loop[inn];
+      std::vector<int64_t> s = ld.stride_bytes;
+      inner(ptr, ld.size, s);
+      return;
+   }
+   const auto &ld = plan.loop[dim];
+   for (int64_t i = 0; i < ld.size; ++i) {
+      walk(dim + 1, inn, plan, ptr, inner);
       for (int k = 0; k < plan.num_operands; ++k)
-         ptr[k] -= ld.stride_bytes[k] * ld.size;
-   };
+         ptr[k] += ld.stride_bytes[k];
+   }
+   for (int k = 0; k < plan.num_operands; ++k)
+      ptr[k] -= ld.stride_bytes[k] * ld.size;
+};
 
 template <std::size_t N, typename FnInnermost>
 inline void for_each_outer_then_inner(const BroadcastPlan &plan,
@@ -57,20 +58,21 @@ inline void for_each_outer_then_inner(const BroadcastPlan &plan,
 }
 
 template <typename T, class Tag>
-inline void tag_fallback(T* o, const T* a, const T* b, const int64_t& so, const int64_t& sa, const int64_t& sb, const std::size_t len) {
-          Tag tag{};
-          for (int64_t i = 0; i < len; ++i)
-             o[i * so] = tag(a[i * sa], b[i * sb]);
+inline void tag_fallback(T *o, const T *a, const T *b, const int64_t &so,
+                         const int64_t &sa, const int64_t &sb,
+                         const std::size_t len) {
+   Tag tag{};
+   for (int64_t i = 0; i < len; ++i)
+      o[i * so] = tag(a[i * sa], b[i * sb]);
 }
-
 
 template <typename T, class Tag>
-inline void tag_fallback_unary(T* o, const T* a, const int64_t& so, const int64_t& sa, const std::size_t len) {
-          Tag tag{};
-          for (int64_t i = 0; i < len; ++i)
-             o[i * so] = tag(a[i * sa]);
+inline void tag_fallback_unary(T *o, const T *a, const int64_t &so,
+                               const int64_t &sa, const std::size_t len) {
+   Tag tag{};
+   for (int64_t i = 0; i < len; ++i)
+      o[i * so] = tag(a[i * sa]);
 }
-
 
 // ############################################# //
 // New impl test with empty buff for out_data    //
@@ -78,29 +80,28 @@ inline void tag_fallback_unary(T* o, const T* a, const int64_t& so, const int64_
 
 template <typename T, class Tag, class TensorT>
 void binary_ewise_tag(const TensorT &A, const TensorT &B,
-                      const BinaryEwiseMeta& meta,
-                      TensorT &out) {
+                      const BinaryEwiseMeta &meta, TensorT &out) {
 
    FUSION_CHECK(A.is_initialised(), "binary ewise: LHS uninitialised");
    FUSION_CHECK(B.is_initialised(), "binary ewise: RHS uninitialised");
-   FUSION_CHECK(A.is_initialised() && B.is_initialised(), "uninitialised tensor");
+   FUSION_CHECK(A.is_initialised() && B.is_initialised(),
+                "uninitialised tensor");
    std::array<uint8_t *, 3> base = {
-        reinterpret_cast<uint8_t *>(const_cast<T *>(out.get_ptr())),
-        reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
-        reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr()))
-        };
+       reinterpret_cast<uint8_t *>(const_cast<T *>(out.get_ptr())),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr()))};
 
    if (meta.fastpath) {
-    auto *o = reinterpret_cast<T *>(base[0]);
-    const auto *a = reinterpret_cast<const T *>(base[1]);
-    const auto *b = reinterpret_cast<const T *>(base[2]);
-    const size_t len = meta.fast_len;
-    if constexpr (simd_traits<Tag, T>::available) {
-      simd_traits<Tag, T>::execute_contiguous(a, b, o, len, false, false);
-    } else {
-    tag_fallback<T, Tag>(o, a, b, 1, 1, 1, len);
-    }
-    return;
+      auto *o = reinterpret_cast<T *>(base[0]);
+      const auto *a = reinterpret_cast<const T *>(base[1]);
+      const auto *b = reinterpret_cast<const T *>(base[2]);
+      const size_t len = meta.fast_len;
+      if constexpr (simd_traits<Tag, T>::available) {
+         simd_traits<Tag, T>::execute_contiguous(a, b, o, len, false, false);
+      } else {
+         tag_fallback<T, Tag>(o, a, b, 1, 1, 1, len);
+      }
+      return;
    }
 
    for_each_outer_then_inner<3>(
@@ -156,26 +157,25 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
 
 // Tag = ExponentialSIMD / NaturalLogSIMD / ...
 template <typename T, class Tag, class TensorT>
-void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta& meta,
+void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
                      TensorT &out_data) {
 
-      std::array<uint8_t *, 2> base = {
-  		 reinterpret_cast<uint8_t *>(out_data.get_ptr()),
-	     reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
-	};
+   std::array<uint8_t *, 2> base = {
+       reinterpret_cast<uint8_t *>(out_data.get_ptr()),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
+   };
 
-
-    if (meta.fastpath) { // TODO: is contig check correct here?
-   	 auto *o = reinterpret_cast<T *>(base[0]);
-   	 const auto *a = reinterpret_cast<const T *>(base[1]);
-     const size_t len = meta.fast_len;
-     if constexpr (simd_traits<Tag, T>::available) {
-   	 	simd_traits<Tag, T>::execute_contiguous(a, o, len, false);
-   	 	} else {
-   	     tag_fallback_unary<T, Tag>(o, a, 1, 1, len);
-         }
-   	 return;
-   	}
+   if (meta.fastpath) { // TODO: is contig check correct here?
+      auto *o = reinterpret_cast<T *>(base[0]);
+      const auto *a = reinterpret_cast<const T *>(base[1]);
+      const size_t len = meta.fast_len;
+      if constexpr (simd_traits<Tag, T>::available) {
+         simd_traits<Tag, T>::execute_contiguous(a, o, len, false);
+      } else {
+         tag_fallback_unary<T, Tag>(o, a, 1, 1, len);
+      }
+      return;
+   }
 
    for_each_outer_then_inner<2>(
        meta.plan, base,

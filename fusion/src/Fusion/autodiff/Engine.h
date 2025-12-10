@@ -134,8 +134,7 @@ template <typename T> class Engine {
       for (size_t i = 0; i < n; ++i) {
          const INode<T> &prod = graph_.get_produced_by(i);
          NodeID nid = prod.nid;
-         if (nid >= 0 &&
-             static_cast<size_t>(nid) < graph_.nodes().size()) {
+         if (nid >= 0 && static_cast<size_t>(nid) < graph_.nodes().size()) {
             os << "Node idx: " << nid
                << " Node Op: " << graph_.get_node(nid).name() << " ";
             if (val_buff_[i].empty()) {

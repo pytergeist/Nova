@@ -8,17 +8,56 @@ import typing
 from . import autodiff
 from . import factory
 
-__all__ = ["Random", "Tensor", "autodiff", "factory", "grad_tape"]
+__all__ = [
+    "CppDevice",
+    "CppDeviceType",
+    "Random",
+    "Tensor",
+    "autodiff",
+    "factory",
+    "grad_tape",
+]
+
+class CppDevice:
+    def __init__(self, type: DeviceType, index: int = -1) -> None: ...
+
+class CppDeviceType:
+    """
+    Members:
+
+      CPU
+
+      CUDA
+
+      METAL
+    """
+
+    CPU: typing.ClassVar[CppDeviceType]  # value = <CppDeviceType.CPU: 0>
+    CUDA: typing.ClassVar[CppDeviceType]  # value = <CppDeviceType.CUDA: 1>
+    METAL: typing.ClassVar[CppDeviceType]  # value = <CppDeviceType.METAL: 2>
+    __members__: typing.ClassVar[
+        dict[str, CppDeviceType]
+    ]  # value = {'CPU': <CppDeviceType.CPU: 0>, 'CUDA': <CppDeviceType.CUDA: 1>, 'METAL': <CppDeviceType.METAL: 2>}
+    def __eq__(self, other: typing.Any) -> bool: ...
+    def __getstate__(self) -> int: ...
+    def __hash__(self) -> int: ...
+    def __index__(self) -> int: ...
+    def __init__(self, value: int) -> None: ...
+    def __int__(self) -> int: ...
+    def __ne__(self, other: typing.Any) -> bool: ...
+    def __repr__(self) -> str: ...
+    def __setstate__(self, state: int) -> None: ...
+    def __str__(self) -> str: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def value(self) -> int: ...
 
 class Random:
-    @typing.overload
-    def __init__(self, arg0: int) -> None: ...
-    @typing.overload
-    def __init__(self) -> None: ...
-    def uniform_cpp(self, shape: list[int], min: float, max: float) -> Tensor:
-        """
-        Create a uniform distribution of a shape between min and max values
-        """
+    def __init__(self, seed: int = 747707614) -> None: ...
+    def uniform_cpp(
+        self, shape: list[int], min: float, max: float, device: Device
+    ) -> Tensor: ...
 
 class Tensor:
     @typing.overload
@@ -31,14 +70,14 @@ class Tensor:
     def __ge__(self, arg0: float) -> Tensor: ...
     def __gt__(self, arg0: Tensor) -> Tensor: ...
     @typing.overload
-    def __init__(self, shape: list[int], requires_grad: bool) -> None:
+    def __init__(self, shape: list[int], device: Device, requires_grad: bool) -> None:
         """
         Construct a Tensor of given shape, zero-initialized. Optionally set requires_grad.
         """
 
     @typing.overload
     def __init__(
-        self, shape: list[int], data: list[float], requires_grad: bool
+        self, shape: list[int], data: list[float], device: Device, requires_grad: bool
     ) -> None:
         """
         Construct a Tensor from a shape list and a flat data list. Optionally set requires_grad.
@@ -73,7 +112,7 @@ class Tensor:
     @typing.overload
     def __truediv__(self, arg0: float) -> Tensor: ...
     def backward(self) -> None: ...
-    def diag(self) -> Tensor: ...
+    def diag(self) -> ...: ...
     def exp(self) -> Tensor: ...
     def get_grad(self) -> Tensor: ...
     def log(self) -> Tensor: ...
@@ -84,11 +123,6 @@ class Tensor:
     def mean(self) -> Tensor:
         """
         Return the global mean of the Tensor.
-        """
-
-    def ones_like(self) -> Tensor:
-        """
-        Ones with same shape.
         """
 
     def set_values(self, values: list[float]) -> None:
@@ -104,20 +138,21 @@ class Tensor:
         Return a NumPy array view of the Tensor’s contents.
         """
 
-    def transpose(self) -> Tensor:
+    def transpose(self) -> ...:
         """
         Return the transpose.
-        """
-
-    def zeros_like(self) -> Tensor:
-        """
-        Zeros with same shape.
         """
 
     @property
     def dtype(self) -> numpy.dtype[typing.Any]:
         """
         NumPy dtype of the tensor.
+        """
+
+    @property
+    def name(self) -> str:
+        """
+        Returns the name of the Tensor
         """
 
     @property

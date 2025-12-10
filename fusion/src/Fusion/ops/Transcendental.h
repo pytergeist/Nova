@@ -4,8 +4,8 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/TensorBase.h"
 #include "Fusion/core/ElementWise.h"
+#include "Fusion/core/TensorBase.h"
 
 namespace fusion {
 

@@ -3,6 +3,8 @@ import numpy as np
 from nova.src.backend.factory import factory
 from nova.src.initialisers.initialiser import Initialiser
 
+# TODO: why are we using numpy here?
+
 
 class Constant(Initialiser):
     def __init__(self, value: float) -> None:
@@ -10,7 +12,7 @@ class Constant(Initialiser):
         super().__init__()
 
     def __call__(self, shape, dtype, **kwargs) -> np.ndarray:  # TODO: Add dtype here?
-        return self.value * factory.ones(shape).to_numpy()
+        return self.value * np.ones(shape)
 
     def get_config(self):
         return {"value": self.value}
@@ -28,7 +30,7 @@ class Zeros(Initialiser):
         return {}
 
     def __call__(self, shape, dtype, **kwargs) -> np.ndarray:
-        return factory.zeros(shape).to_numpy()
+        return np.zeros(shape)
 
 
 class Ones(Initialiser):
@@ -39,4 +41,4 @@ class Ones(Initialiser):
         return {}
 
     def __call__(self, shape, dtype, **kwargs) -> np.ndarray:
-        return factory.ones(shape).to_numpy()
+        return np.ones(shape)

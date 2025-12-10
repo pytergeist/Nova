@@ -58,7 +58,7 @@ static inline ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
 template <typename T> // TODO: need to either pass in device somehow?
 inline ADTensor<T> ad_scalar_t(const T scalar,
                                const DType dtype = DType::Float32,
-                               Device device = Device::CPU) {
+                               Device device = Device{DeviceType::CPU, 0}) {
    return ADTensor<T>{{1}, {scalar}, dtype, device, false};
 }
 
@@ -76,15 +76,17 @@ template <typename T> class ADTensor : public TensorBase<T> {
    explicit ADTensor(std::vector<std::size_t> shape, // NOLINT
                      std::vector<T> data,            // NOLINT
                      DType dtype = DType::Float32,   // NOLINT
-                     Device device = Device::CPU, bool requires_grad = false,
+                     Device device = Device{DeviceType::CPU, 0},
+                     bool requires_grad = false,
                      IAllocator *allocator = nullptr)
        : Base(std::move(shape), std::move(data), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}
 
-   explicit ADTensor(std::vector<size_t> shape, Device device = Device::CPU,
+   explicit ADTensor(std::vector<size_t> shape,
+                     Device device = Device{DeviceType::CPU, 0},
                      DType dtype = DType::Float32, bool requires_grad = false,
                      IAllocator *allocator = nullptr)
-       : Base(std::move(shape), device, dtype, allocator),
+       : Base(std::move(shape), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}
 
    ValueID vid() { return vid_; }
@@ -129,8 +131,8 @@ template <typename T> class ADTensor : public TensorBase<T> {
    void ensure_grad() {
       if (!has_grad()) {
          std::vector<T> z(this->size(), T(0));
-         grad_ = std::make_shared<ADTensor>(this->shape(), std::move(z),
-                                            this->dtype(), Device::CPU, false);
+         grad_ = std::make_shared<ADTensor>(
+             this->shape(), std::move(z), this->dtype(), this->device(), false);
       }
    }
 
@@ -261,7 +263,7 @@ template <typename T> class ADTensor : public TensorBase<T> {
       ewise::binary_ewise_tag<T, SubtractSIMD>(bself, bother, meta, tmp_base);
 
       if (!meta.out_shape.empty() && meta.out_shape != tmp_base.shape()) {
-         ADTensor corrected(meta.out_shape, Device::CPU, this->dtype(),
+         ADTensor corrected(meta.out_shape, this->device(), this->dtype(),
                             this->requires_grad());
          ewise::binary_ewise_tag<T, SubtractSIMD>(
              bself, bother, meta, static_cast<Base &>(corrected));

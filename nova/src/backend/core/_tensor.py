@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Literal, Optional, Sequence, Union
 import numpy as np
 
 from nova.src.backend.autodiff import Engine, Node
-from nova.src.backend.core import clib
+from nova.src.backend.core import clib, io
 
 if TYPE_CHECKING:
     from nova.src.backend.core.dtypes import DType
@@ -32,6 +32,7 @@ class Tensor(clib.Tensor):
         requires_grad: bool = True,
         dtype: "DType" = np.float64,
         role: Optional[Literal["kernel", "bias"]] = None,
+        device: Literal["CPU", "GPU", "CUDA", "METAL"] = "CPU",
     ):
         arr = np.array(data, dtype=dtype)
         shape = list(arr.shape)
@@ -40,7 +41,8 @@ class Tensor(clib.Tensor):
         flat = arr.ravel().tolist()
         if not isinstance(flat, list):
             flat = [flat]
-        super().__init__(shape, flat, requires_grad)
+        cpp_device = io._get_cpp_device(device)
+        super().__init__(shape, flat, cpp_device, requires_grad)
 
     @property
     def data(self) -> np.ndarray:
@@ -61,7 +63,7 @@ class Tensor(clib.Tensor):
         """
         return self.get_grad()
 
-    @grad.setter
+    @grad.setter  # TODO: fix this infinite recursion bug
     def grad(self, new_grad: np.ndarray):
         """Grad (gradient) property setter.
 

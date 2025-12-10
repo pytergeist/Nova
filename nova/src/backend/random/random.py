@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 
 from nova.src.backend.core import clib, io
 
@@ -17,7 +17,11 @@ class Random:
         shape: tuple[int, ...],
         min: float = 0.0,
         max: float = 1.0,
+        device: Literal["CPU", "GPU", "CUDA", "METAL"] = "CPU",
     ) -> "Tensor":
+        cpp_device = io._get_cpp_device(device)
         return io.as_tensor(
-            self._rng.uniform_cpp(shape=shape, min=min, max=max).to_numpy()
+            self._rng.uniform_cpp(
+                shape=shape, min=min, max=max, device=cpp_device
+            ).to_numpy()
         )  # TODO: we're passing data in and out of c-layer to numpy with this

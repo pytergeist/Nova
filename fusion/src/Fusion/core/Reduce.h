@@ -1,7 +1,6 @@
 #ifndef CORE_REDUCE_H
 #define CORE_REDUCE_H
 
-
 #include "Fusion/cpu/SimdTraits.h"
 
 namespace reduce {
