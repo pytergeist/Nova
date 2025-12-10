@@ -29,6 +29,13 @@ PYBIND11_MODULE(fusion, m_ten) {
        .value("CUDA", DeviceType::CUDA)
        .value("METAL", DeviceType::METAL);
 
+   py::enum_<DType>(m_ten, "CppDType")
+       .value("FLOAT32", DType::FLOAT32)
+       .value("FLOAT64", DType::FLOAT64)
+       .value("INT32", DType::INT32)
+       .value("INT64", DType::INT64)
+       .value("BOOL", DType::BOOL);
+
    py::class_<EngineScope<float>>(m_ten, "grad_tape")
        .def(py::init<>())
        .def(

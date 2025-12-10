@@ -18,10 +18,10 @@ namespace math {
 namespace linalg {
 
 template <typename T>
-inline TensorBase<T> matmul(
-    const TensorBase<T> &x,
-    const TensorBase<T> &y) { // TODO: this uses vector obj copying and doesn't
-                              // go through broadcast layer?
+inline TensorBase<T>
+matmul(const TensorBase<T> &x,
+       const TensorBase<T> &y) { // TODO: this uses vector obj copying and
+                                 // doesn't go through broadcast layer?
    assert((x.dtype_size() == y.dtype_size()) &&
           "binary op: dtype sizes must match"); // TODO: abstract into macro
                                                 // (change from assert)

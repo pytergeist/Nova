@@ -4,14 +4,14 @@
 #include <cstddef>
 #include <memory>
 
-#include "Fusion/core/DTypes.h"
+#include "Fusion/core/DType.h"
 #include "Fusion/core/Layout.h"
 
 template <typename T> class TensorView {
  public:
    TensorView() = default;
    TensorView(T *data, std::vector<size_t> shape, std::vector<size_t> strides,
-              std::size_t rank, std::size_t ndims, DType dtype = DType::Float32)
+              std::size_t rank, std::size_t ndims, DType dtype = DType::FLOAT32)
        : data_(data), shape_(shape), strides_(strides), rank_(rank),
          ndims_(ndims), dtype_(dtype) {};
 

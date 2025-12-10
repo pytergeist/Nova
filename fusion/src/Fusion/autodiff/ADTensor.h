@@ -28,7 +28,7 @@
 #include "Fusion/ops/Reduce.h"
 #include "Fusion/ops/Transcendental.h"
 
-#include "Fusion/core/DTypes.h"
+#include "Fusion/core/DType.h"
 #include "Fusion/core/ElementWise.h"
 #include "Fusion/core/Ffunc.h"
 #include "Fusion/core/Layout.h"
@@ -56,9 +56,8 @@ static inline ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
 }
 
 template <typename T> // TODO: need to either pass in device somehow?
-inline ADTensor<T> ad_scalar_t(const T scalar,
-                               const DType dtype = DType::Float32,
-                               Device device = Device{DeviceType::CPU, 0}) {
+inline ADTensor<T> ad_scalar_t(const T scalar, const DType dtype,
+                               Device device) {
    return ADTensor<T>{{1}, {scalar}, dtype, device, false};
 }
 
@@ -75,16 +74,13 @@ template <typename T> class ADTensor : public TensorBase<T> {
 
    explicit ADTensor(std::vector<std::size_t> shape, // NOLINT
                      std::vector<T> data,            // NOLINT
-                     DType dtype = DType::Float32,   // NOLINT
-                     Device device = Device{DeviceType::CPU, 0},
-                     bool requires_grad = false,
+                     DType dtype, Device device, bool requires_grad = false,
                      IAllocator *allocator = nullptr)
        : Base(std::move(shape), std::move(data), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}
 
-   explicit ADTensor(std::vector<size_t> shape,
-                     Device device = Device{DeviceType::CPU, 0},
-                     DType dtype = DType::Float32, bool requires_grad = false,
+   explicit ADTensor(std::vector<size_t> shape, Device device, DType dtype,
+                     bool requires_grad = false,
                      IAllocator *allocator = nullptr)
        : Base(std::move(shape), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}

@@ -10,7 +10,7 @@
 
 #include "Fusion/alloc/DefaultAllocator.h"
 #include "Fusion/common/Checks.h"
-#include "Fusion/core/DTypes.h"
+#include "Fusion/core/DType.h"
 #include "Fusion/core/ElementWise.h"
 #include "Fusion/core/Ffunc.h"
 #include "Fusion/core/Layout.h"
@@ -30,7 +30,7 @@
 
 template <typename T> // TODO: need to either pass in device somehow?
 inline TensorBase<T> scalar_t(const T scalar,
-                              const DType dtype = DType::Float32,
+                              const DType dtype = DType::FLOAT32,
                               Device device = Device{DeviceType::CPU, 0}) {
    return TensorBase<T>{{1}, {scalar}, dtype, device};
 }
@@ -52,8 +52,7 @@ template <typename T> class TensorBase {
    ~TensorBase() = default;
 
    explicit TensorBase(std::vector<std::size_t> shape, std::vector<T> data,
-                       DType dtype = DType::Float32, // NOLINT
-                       Device device = Device{DeviceType::CPU, 0},
+                       DType dtype, Device device,
                        IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device.is_cpu(), "Unsupported device type");
@@ -64,8 +63,7 @@ template <typename T> class TensorBase {
           shape_, std::move(data), device_, &default_allocator());
    }
 
-   explicit TensorBase(std::vector<size_t> shape, DType dtype = DType::Float32,
-                       Device device = Device{DeviceType::CPU, 0},
+   explicit TensorBase(std::vector<size_t> shape, DType dtype, Device device,
                        IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device.is_cpu(), "Unsupported device type");

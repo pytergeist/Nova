@@ -31,8 +31,10 @@ int main() {
 
       std::vector<std::size_t> shape = {size, size};
 
-      TensorBase<float> t1(shape, v1);
-      TensorBase<float> t2(shape, v1);
+      TensorBase<float> t1(shape, v1, DType::FLOAT32,
+                           Device{DeviceType::CPU, 0});
+      TensorBase<float> t2(shape, v1, DType::FLOAT32,
+                           Device{DeviceType::CPU, 0});
 
       bench.minEpochIterations(epoch_iterations)
           .minEpochTime(std::chrono::milliseconds(milisecs))

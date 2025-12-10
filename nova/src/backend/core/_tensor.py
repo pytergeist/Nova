@@ -4,6 +4,9 @@ import numpy as np
 
 from nova.src.backend.autodiff import Engine, Node
 from nova.src.backend.core import clib, io
+from nova.src.backend.core.dtypes import (
+    float32,  # TODO: dtypes need to come through nv.type
+)
 
 if TYPE_CHECKING:
     from nova.src.backend.core.dtypes import DType
@@ -30,7 +33,7 @@ class Tensor(clib.Tensor):
         self,
         data: Union[Sequence, np.ndarray, float, int],
         requires_grad: bool = True,
-        dtype: "DType" = np.float64,
+        dtype: "DType" = float32,
         role: Optional[Literal["kernel", "bias"]] = None,
         device: Literal["CPU", "GPU", "CUDA", "METAL"] = "CPU",
     ):
@@ -42,7 +45,7 @@ class Tensor(clib.Tensor):
         if not isinstance(flat, list):
             flat = [flat]
         cpp_device = io._get_cpp_device(device)
-        super().__init__(shape, flat, cpp_device, requires_grad)
+        super().__init__(shape, flat, dtype.cpp_type(), cpp_device, requires_grad)
 
     @property
     def data(self) -> np.ndarray:

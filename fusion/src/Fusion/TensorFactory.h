@@ -6,7 +6,7 @@
 
 #include "Fusion/Tensor.h"
 #include "Fusion/common/Checks.h"
-#include "Fusion/core/DTypes.h"
+#include "Fusion/core/DType.h"
 #include "Fusion/device/Device.h"
 #include "Fusion/storage/StorageInterface.h"
 
@@ -15,7 +15,7 @@ Tensor<T> fill(const std::vector<size_t> &shape, T value, Device device) {
    size_t n = std::accumulate(shape.begin(), shape.end(), size_t{1},
                               std::multiplies<size_t>());
    std::vector<T> data(n, value);
-   return ADTensor<T>(Tensor<T>(shape, std::move(data), DType::Float32, device),
+   return ADTensor<T>(Tensor<T>(shape, std::move(data), DType::FLOAT32, device),
                       false);
 }
 

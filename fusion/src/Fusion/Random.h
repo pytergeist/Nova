@@ -6,7 +6,7 @@
 #include <random>
 #include <vector>
 
-#include "Fusion/core/DTypes.h"
+#include "Fusion/core/DType.h"
 
 #include "Fusion/Tensor.h"
 
@@ -32,7 +32,7 @@ template <typename T> class Random {
          data.push_back(dist(engine_));
       }
 
-      return TensorBase<T>(shape, std::move(data), DType::Float32, device);
+      return TensorBase<T>(shape, std::move(data), DType::FLOAT32, device);
    }
 };
 

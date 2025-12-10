@@ -1,4 +1,4 @@
-from .fusion import CppDevice, CppDeviceType, Random, Tensor, autodiff
+from .fusion import CppDevice, CppDeviceType, CppDType, Random, Tensor, autodiff
 from .fusion import factory as factory_methods
 from .fusion import grad_tape
 
@@ -10,4 +10,5 @@ __all__ = [
     "autodiff",
     "CppDevice",
     "CppDeviceType",
+    "CppDType",
 ]
