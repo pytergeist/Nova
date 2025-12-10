@@ -1,16 +1,17 @@
-#include <iostream>
-#include <stdexcept>
-#include <vector>
-#include <cstdint>
-#include <utility>
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
+#include <iostream>
+#include <stdexcept>
+#include <utility>
+#include <vector>
 
 #include "Broadcast.h"
 
 using value_type = std::ptrdiff_t;
 
-auto make_broadcast_plan(const std::vector<TensorDescription> &descs) -> BroadcastPlan {
+auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
+    -> BroadcastPlan {
    // Set Broadcast plan struct info (from Broadcast.h)
    BroadcastPlan plan;
    plan.num_operands = descs.size();
@@ -95,8 +96,11 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs) -> Broadca
       loop_dim.stride_bytes.resize(plan.num_operands);
       for (std::size_t op = 0; op < plan.num_operands; ++op) {
          loop_dim.stride_bytes[op] =
-             (sizes[op][dim] == 1) ? value_type{0} : static_cast<value_type>(static_cast<long long>(strides[op][dim]) *
-                               static_cast<long long>(plan.itemsize));
+             (sizes[op][dim] == 1)
+                 ? value_type{0}
+                 : static_cast<value_type>(
+                       static_cast<long long>(strides[op][dim]) *
+                       static_cast<long long>(plan.itemsize));
       }
       plan.loop[dim] = std::move(loop_dim);
    }

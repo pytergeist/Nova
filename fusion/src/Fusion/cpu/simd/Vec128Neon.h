@@ -24,7 +24,6 @@ static constexpr std::size_t kBlock = kUnroll * kF32Lanes; // 16
 static constexpr std::size_t kStepVec = kBlock;
 static constexpr std::size_t kStep = kUnroll;
 
-
 #if defined(FUSION_ENABLE_NEON) &&                                             \
     (defined(__ARM_NEON) || defined(__ARM_NEON__))
 // =========================
@@ -32,7 +31,8 @@ static constexpr std::size_t kStep = kUnroll;
 // =========================
 // All assume: a, b, dst are contiguous float buffers of length n.
 
-inline void sum_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
+inline void sum_f32_neon(float *__restrict dst, const float *__restrict a,
+                         std::size_t n) {
 #if defined(FUSION_ENABLE_NEON) &&                                             \
     (defined(__ARM_NEON) || defined(__ARM_NEON__))
    std::size_t i = 0;
@@ -80,126 +80,142 @@ inline void sum_f32_neon(float* __restrict dst, const float* __restrict a, std::
 #endif
 }
 
-inline void sqrt_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
+inline void sqrt_f32_neon(float *__restrict dst, const float *__restrict a,
+                          std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
-   float * __restrict pd = dst;
+   const float *__restrict pa = a;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
 
       va.val[0] = Sleef_sqrtf4_u05(va.val[0]);
       va.val[1] = Sleef_sqrtf4_u05(va.val[1]);
       va.val[2] = Sleef_sqrtf4_u05(va.val[2]);
       va.val[3] = Sleef_sqrtf4_u05(va.val[3]);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      vst1q_f32(pd, Sleef_sqrtf4_u05(va)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      vst1q_f32(pd, Sleef_sqrtf4_u05(va));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = std::sqrt(*pa++);
 }
 
-
-inline void exp_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
+inline void exp_f32_neon(float *__restrict dst, const float *__restrict a,
+                         std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
-   float * __restrict pd = dst;
+   const float *__restrict pa = a;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
 
       va.val[0] = Sleef_expf4_u10(va.val[0]);
       va.val[1] = Sleef_expf4_u10(va.val[1]);
       va.val[2] = Sleef_expf4_u10(va.val[2]);
       va.val[3] = Sleef_expf4_u10(va.val[3]);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      vst1q_f32(pd, Sleef_expf4_u10(va)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      vst1q_f32(pd, Sleef_expf4_u10(va));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = std::exp(*pa++);
 }
 
-inline void log_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
+inline void log_f32_neon(float *__restrict dst, const float *__restrict a,
+                         std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
-   float * __restrict pd = dst;
+   const float *__restrict pa = a;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
 
       va.val[0] = Sleef_logf4_u10(va.val[0]);
       va.val[1] = Sleef_logf4_u10(va.val[1]);
       va.val[2] = Sleef_logf4_u10(va.val[2]);
       va.val[3] = Sleef_logf4_u10(va.val[3]);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      vst1q_f32(pd, Sleef_logf4_u10(va)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      vst1q_f32(pd, Sleef_logf4_u10(va));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = std::log(*pa++);
 }
 
-inline void pow_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                         std::size_t n) {
+inline void pow_f32_neon(float *__restrict dst, const float *__restrict a,
+                         const float *__restrict b, std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
-   const float * __restrict pb = b;
-   float * __restrict pd = dst;
+   const float *__restrict pa = a;
+   const float *__restrict pb = b;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
-   	  float32x4x4_t vb = vld1q_f32_x4(pb); pb += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
+      float32x4x4_t vb = vld1q_f32_x4(pb);
+      pb += kBlock;
 
       va.val[0] = Sleef_powf4_u10(va.val[0], vb.val[0]);
       va.val[1] = Sleef_powf4_u10(va.val[1], vb.val[1]);
       va.val[2] = Sleef_powf4_u10(va.val[2], vb.val[2]);
       va.val[3] = Sleef_powf4_u10(va.val[3], vb.val[3]);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      float32x4_t vb = vld1q_f32(pb); pb += kStep;
-      vst1q_f32(pd, Sleef_powf4_u10(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      float32x4_t vb = vld1q_f32(pb);
+      pb += kStep;
+      vst1q_f32(pd, Sleef_powf4_u10(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = std::pow(*pa++, *pb++);
 }
 
-inline void maximum_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                             std::size_t n) {
+inline void maximum_f32_neon(float *__restrict dst, const float *__restrict a,
+                             const float *__restrict b, std::size_t n) {
    std::size_t i = 0;
 
    for (; i + kBlock <= n; i += kBlock) {
@@ -227,8 +243,9 @@ inline void maximum_f32_neon(float* __restrict dst, const float* __restrict a, c
       dst[i] = a[i] > b[i] ? a[i] : b[i];
 }
 
-inline void greater_than_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                                  std::size_t n) {
+inline void greater_than_f32_neon(float *__restrict dst,
+                                  const float *__restrict a,
+                                  const float *__restrict b, std::size_t n) {
    std::size_t i = 0;
 
    for (; i + kBlock <= n; i += kBlock) {
@@ -266,8 +283,10 @@ inline void greater_than_f32_neon(float* __restrict dst, const float* __restrict
       dst[i] = a[i] > b[i];
 }
 
-inline void greater_than_equal_f32_neon(float* __restrict dst, const float* __restrict a,
-                                        const float* __restrict b, std::size_t n) {
+inline void greater_than_equal_f32_neon(float *__restrict dst,
+                                        const float *__restrict a,
+                                        const float *__restrict b,
+                                        std::size_t n) {
    std::size_t i = 0;
 
    for (; i + kBlock <= n; i += kBlock) {
@@ -305,133 +324,153 @@ inline void greater_than_equal_f32_neon(float* __restrict dst, const float* __re
       dst[i] = a[i] >= b[i];
 }
 
-inline void add_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                         std::size_t n) {
+inline void add_f32_neon(float *__restrict dst, const float *__restrict a,
+                         const float *__restrict b, std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
-   const float * __restrict pb = b;
-   float * __restrict pd = dst;
+   const float *__restrict pa = a;
+   const float *__restrict pb = b;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
-   	  float32x4x4_t vb = vld1q_f32_x4(pb); pb += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
+      float32x4x4_t vb = vld1q_f32_x4(pb);
+      pb += kBlock;
 
       va.val[0] = vaddq_f32(va.val[0], vb.val[0]);
       va.val[1] = vaddq_f32(va.val[1], vb.val[1]);
       va.val[2] = vaddq_f32(va.val[2], vb.val[2]);
       va.val[3] = vaddq_f32(va.val[3], vb.val[3]);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      float32x4_t vb = vld1q_f32(pb); pb += kStep;
-      vst1q_f32(pd, vaddq_f32(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      float32x4_t vb = vld1q_f32(pb);
+      pb += kStep;
+      vst1q_f32(pd, vaddq_f32(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = *pa++ + *pb++;
 }
 
-inline void sub_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                         std::size_t n) {
+inline void sub_f32_neon(float *__restrict dst, const float *__restrict a,
+                         const float *__restrict b, std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
-   const float * __restrict pb = b;
-   float * __restrict pd = dst;
+   const float *__restrict pa = a;
+   const float *__restrict pb = b;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
-   	  float32x4x4_t vb = vld1q_f32_x4(pb); pb += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
+      float32x4x4_t vb = vld1q_f32_x4(pb);
+      pb += kBlock;
 
       va.val[0] = vsubq_f32(va.val[0], vb.val[0]);
       va.val[1] = vsubq_f32(va.val[1], vb.val[1]);
       va.val[2] = vsubq_f32(va.val[2], vb.val[2]);
       va.val[3] = vsubq_f32(va.val[3], vb.val[3]);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      float32x4_t vb = vld1q_f32(pb); pb += kStep;
-      vst1q_f32(pd, vsubq_f32(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      float32x4_t vb = vld1q_f32(pb);
+      pb += kStep;
+      vst1q_f32(pd, vsubq_f32(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = *pa++ - *pb++;
 }
 
-inline void mul_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                         std::size_t n) {
+inline void mul_f32_neon(float *__restrict dst, const float *__restrict a,
+                         const float *__restrict b, std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
-   const float * __restrict pb = b;
-   float * __restrict pd = dst;
+   const float *__restrict pa = a;
+   const float *__restrict pb = b;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
-   	  float32x4x4_t vb = vld1q_f32_x4(pb); pb += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
+      float32x4x4_t vb = vld1q_f32_x4(pb);
+      pb += kBlock;
 
       va.val[0] = vmulq_f32(va.val[0], vb.val[0]);
       va.val[1] = vmulq_f32(va.val[1], vb.val[1]);
       va.val[2] = vmulq_f32(va.val[2], vb.val[2]);
       va.val[3] = vmulq_f32(va.val[3], vb.val[3]);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      float32x4_t vb = vld1q_f32(pb); pb += kStep;
-      vst1q_f32(pd, vmulq_f32(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      float32x4_t vb = vld1q_f32(pb);
+      pb += kStep;
+      vst1q_f32(pd, vmulq_f32(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = *pa++ * *pb++;
 }
 
-inline void div_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                         std::size_t n) {
+inline void div_f32_neon(float *__restrict dst, const float *__restrict a,
+                         const float *__restrict b, std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
-   const float * __restrict pb = b;
-   float * __restrict pd = dst;
+   const float *__restrict pa = a;
+   const float *__restrict pb = b;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
-   	  float32x4x4_t vb = vld1q_f32_x4(pb); pb += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
+      float32x4x4_t vb = vld1q_f32_x4(pb);
+      pb += kBlock;
 
       va.val[0] = vdivq_f32(va.val[0], vb.val[0]);
       va.val[1] = vdivq_f32(va.val[1], vb.val[1]);
       va.val[2] = vdivq_f32(va.val[2], vb.val[2]);
       va.val[3] = vdivq_f32(va.val[3], vb.val[3]);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      float32x4_t vb = vld1q_f32(pb); pb += kStep;
-      vst1q_f32(pd, vdivq_f32(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      float32x4_t vb = vld1q_f32(pb);
+      pb += kStep;
+      vst1q_f32(pd, vdivq_f32(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = *pa++ / *pb++;
@@ -444,7 +483,8 @@ inline void div_f32_neon(float* __restrict dst, const float* __restrict a, const
 // If LHS is the scalar instead, you can either add "scalar_lhs" variants
 // or just swap operands in the caller for commutative ops.
 
-inline void greater_than_f32_neon_scalar(float* __restrict dst, const float* __restrict a,
+inline void greater_than_f32_neon_scalar(float *__restrict dst,
+                                         const float *__restrict a,
                                          const float b, std::size_t n) {
    std::size_t i = 0;
 
@@ -479,7 +519,8 @@ inline void greater_than_f32_neon_scalar(float* __restrict dst, const float* __r
       dst[i] = a[i] > b;
 }
 
-inline void greater_than_equal_f32_neon_scalar(float* __restrict dst, const float* __restrict a,
+inline void greater_than_equal_f32_neon_scalar(float *__restrict dst,
+                                               const float *__restrict a,
                                                const float b, std::size_t n) {
    std::size_t i = 0;
 
@@ -514,37 +555,42 @@ inline void greater_than_equal_f32_neon_scalar(float* __restrict dst, const floa
       dst[i] = a[i] >= b;
 }
 
-inline void pow_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, const float b,
+inline void pow_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, const float b,
                                     std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
+   const float *__restrict pa = a;
    float32x4_t vb = vdupq_n_f32(b);
-   float * __restrict pd = dst;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
 
       va.val[0] = Sleef_powf4_u10(va.val[0], vb);
       va.val[1] = Sleef_powf4_u10(va.val[1], vb);
       va.val[2] = Sleef_powf4_u10(va.val[2], vb);
       va.val[3] = Sleef_powf4_u10(va.val[3], vb);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      vst1q_f32(pd, Sleef_powf4_u10(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      vst1q_f32(pd, Sleef_powf4_u10(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = std::pow(*pa++, b);
-  }
+}
 
-inline void maximum_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void maximum_f32_neon_scalar_rhs(float *__restrict dst,
+                                        const float *__restrict a, float b,
                                         std::size_t n) {
    float32x4_t vb = vdupq_n_f32(b);
    std::size_t i = 0;
@@ -566,141 +612,161 @@ inline void maximum_f32_neon_scalar_rhs(float* __restrict dst, const float* __re
       dst[i] = a[i] > b ? a[i] : b;
 }
 
-inline void add_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void add_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, float b,
                                     std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
+   const float *__restrict pa = a;
    float32x4_t vb = vdupq_n_f32(b);
-   float * __restrict pd = dst;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
 
       va.val[0] = vaddq_f32(va.val[0], vb);
       va.val[1] = vaddq_f32(va.val[1], vb);
       va.val[2] = vaddq_f32(va.val[2], vb);
       va.val[3] = vaddq_f32(va.val[3], vb);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      vst1q_f32(pd, vaddq_f32(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      vst1q_f32(pd, vaddq_f32(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = *pa++ + b;
-  }
+}
 
-inline void sub_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void sub_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, float b,
                                     std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
+   const float *__restrict pa = a;
    float32x4_t vb = vdupq_n_f32(b);
-   float * __restrict pd = dst;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
 
       va.val[0] = vsubq_f32(va.val[0], vb);
       va.val[1] = vsubq_f32(va.val[1], vb);
       va.val[2] = vsubq_f32(va.val[2], vb);
       va.val[3] = vsubq_f32(va.val[3], vb);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      vst1q_f32(pd, vsubq_f32(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      vst1q_f32(pd, vsubq_f32(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = *pa++ - b;
-  }
+}
 
-inline void mul_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void mul_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, float b,
                                     std::size_t n) {
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
+   const float *__restrict pa = a;
    float32x4_t vb = vdupq_n_f32(b);
-   float * __restrict pd = dst;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
 
       va.val[0] = vmulq_f32(va.val[0], vb);
       va.val[1] = vmulq_f32(va.val[1], vb);
       va.val[2] = vmulq_f32(va.val[2], vb);
       va.val[3] = vmulq_f32(va.val[3], vb);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      vst1q_f32(pd, vmulq_f32(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      vst1q_f32(pd, vmulq_f32(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = *pa++ * b;
-  }
+}
 
-inline void div_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void div_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, float b,
                                     std::size_t n) {
 
    std::size_t i = 0;
 
-   const float * __restrict pa = a;
+   const float *__restrict pa = a;
    float32x4_t vb = vdupq_n_f32(b);
-   float * __restrict pd = dst;
+   float *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
    FUSION_ASSUME_ALIGNED(float, pd, 64);
 
    for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa); pa += kBlock;
+      float32x4x4_t va = vld1q_f32_x4(pa);
+      pa += kBlock;
 
       va.val[0] = vdivq_f32(va.val[0], vb);
       va.val[1] = vdivq_f32(va.val[1], vb);
       va.val[2] = vdivq_f32(va.val[2], vb);
       va.val[3] = vdivq_f32(va.val[3], vb);
 
-      vst1q_f32_x4(pd, va); pd += kBlock;
-
+      vst1q_f32_x4(pd, va);
+      pd += kBlock;
    }
    for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa); pa += kStep;
-      vst1q_f32(pd, vdivq_f32(va, vb)); pd += kStep;
+      float32x4_t va = vld1q_f32(pa);
+      pa += kStep;
+      vst1q_f32(pd, vdivq_f32(va, vb));
+      pd += kStep;
    }
    for (; i < n; ++i)
       *pd++ = *pa++ / b;
-  }
+}
 #else // --------- Fallback (non-NEON builds) ---------
 
-inline void greater_than_equal_f32_neon(float* __restrict dst, const float* __restrict a,
-                                        const float* __restrict b, std::size_t n) {
+inline void greater_than_equal_f32_neon(float *__restrict dst,
+                                        const float *__restrict a,
+                                        const float *__restrict b,
+                                        std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] >= b[i];
 }
 
-inline void greater_than_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                                  std::size_t n) {
+inline void greater_than_f32_neon(float *__restrict dst,
+                                  const float *__restrict a,
+                                  const float *__restrict b, std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] > b[i];
 }
 
-inline void greater_than_f32_neon_scalar(float* __restrict dst, const float* __restrict a, float b,
+inline void greater_than_f32_neon_scalar(float *__restrict dst,
+                                         const float *__restrict a, float b,
                                          std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] > b;
@@ -712,94 +778,104 @@ inline void sum_f32_neon(float *dst, const float *a, std::size_t n) {
       acc += a[i];
    *dst = acc;
 }
-inline void sqrt_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
+inline void sqrt_f32_neon(float *__restrict dst, const float *__restrict a,
+                          std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = std::sqrt(a[i]);
 }
 
-inline void log_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
+inline void log_f32_neon(float *__restrict dst, const float *__restrict a,
+                         std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = std::log(a[i]);
 }
 
-inline void exp_f32_neon(float* __restrict dst, const float* __restrict a, std::size_t n) {
+inline void exp_f32_neon(float *__restrict dst, const float *__restrict a,
+                         std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = std::exp(a[i]);
 }
 
-inline void pow_f32_neon(float* __restrict__ dst, const float* __restrict__ a, const float *b,
-                         std::size_t n) {
+inline void pow_f32_neon(float *__restrict__ dst, const float *__restrict__ a,
+                         const float *b, std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = std::pow(a[i], b[i]);
 }
 
-inline void maximum_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                             std::size_t n) {
+inline void maximum_f32_neon(float *__restrict dst, const float *__restrict a,
+                             const float *__restrict b, std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] > b[i] ? a[i] : b[i];
 }
 
-inline void add_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                         std::size_t n) {
+inline void add_f32_neon(float *__restrict dst, const float *__restrict a,
+                         const float *__restrict b, std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] + b[i];
 }
 
-inline void sub_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                         std::size_t n) {
+inline void sub_f32_neon(float *__restrict dst, const float *__restrict a,
+                         const float *__restrict b, std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] - b[i];
 }
 
-inline void mul_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                         std::size_t n) {
+inline void mul_f32_neon(float *__restrict dst, const float *__restrict a,
+                         const float *__restrict b, std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] * b[i];
 }
 
-inline void div_f32_neon(float* __restrict dst, const float* __restrict a, const float* __restrict b,
-                         std::size_t n) {
+inline void div_f32_neon(float *__restrict dst, const float *__restrict a,
+                         const float *__restrict b, std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] / b[i];
 }
 
-inline void greater_than_equal_f32_neon_scalar(float* __restrict dst, const float* __restrict a,
+inline void greater_than_equal_f32_neon_scalar(float *__restrict dst,
+                                               const float *__restrict a,
                                                float b, std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] >= b;
 }
 
-inline void pow_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void pow_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, float b,
                                     std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = std::pow(a[i], b);
 }
 
-inline void add_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void add_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, float b,
                                     std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] + b;
 }
 
-inline void sub_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void sub_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, float b,
                                     std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] - b;
 }
 
-inline void mul_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void mul_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, float b,
                                     std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] * b;
 }
 
-inline void div_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a, float b,
+inline void div_f32_neon_scalar_rhs(float *__restrict dst,
+                                    const float *__restrict a, float b,
                                     std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] / b;
 }
 
-inline void maximum_f32_neon_scalar_rhs(float* __restrict dst, const float* __restrict a,
+inline void maximum_f32_neon_scalar_rhs(float *__restrict dst,
+                                        const float *__restrict a,
                                         const float b, std::size_t n) {
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] > b ? a[i] : b;

@@ -12,16 +12,16 @@
 #include <cblas.h>
 #endif
 
-/* TODO: The current GeMM kernel below does not go through dispatch and therefore does not have
- *   contiguous hot path optimisation - therefore it is slower in the bench marks */
+/* TODO: The current GeMM kernel below does not go through dispatch and
+ * therefore does not have contiguous hot path optimisation - therefore it is
+ * slower in the bench marks */
 
 namespace blas_ops {
 
 template <typename T>
-void batched_gemm(const T* baseA, const T* baseB,
-                  T* baseC, int m, int n, int k,
-                  const std::size_t batch,
-                  const T alpha = 1, const T beta = 0) {
+void batched_gemm(const T *baseA, const T *baseB, T *baseC, int m, int n, int k,
+                  const std::size_t batch, const T alpha = 1,
+                  const T beta = 0) {
 
    for (size_t b = 0; b < batch; ++b) {
       const T *A = baseA + b * (size_t(m) * k);

@@ -4,9 +4,9 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/TensorBase.h"
 #include "Fusion/core/ElementWise.h"
 #include "Fusion/core/EwiseMeta.h"
+#include "Fusion/core/TensorBase.h"
 #include "Fusion/storage/StorageInterface.h"
 
 #include "Helpers.h"

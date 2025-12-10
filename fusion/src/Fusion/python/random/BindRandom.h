@@ -18,11 +18,12 @@ template <typename T> void bind_random(py::module_ &m_ten, const char *name) {
        .def(py::init<uint32_t>(), py::arg("seed") = std::random_device{}())
        .def(
            "uniform_cpp",
-           [](RNG &self, const std::vector<size_t> &shape, T min, T max) {
-              Base b = self.uniform_base(shape, min, max);
+           [](RNG &self, const std::vector<size_t> &shape, T min, T max,
+              Device device) {
+              Base b = self.uniform_base(shape, min, max, device);
               return ADT(std::move(b), false);
            },
-           py::arg("shape"), py::arg("min"), py::arg("max") );
+           py::arg("shape"), py::arg("min"), py::arg("max"), py::arg("device"));
 }
 
 #endif // BIND_RANDOM_H

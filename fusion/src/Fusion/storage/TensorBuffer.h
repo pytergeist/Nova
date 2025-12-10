@@ -1,7 +1,6 @@
 #ifndef TENSOR_BUFFER_H
 #define TENSOR_BUFFER_H
 
-
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -10,10 +9,9 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Fusion/alloc/AllocatorInterface.h"
 #include "Fusion/alloc/AllocTypes.h"
+#include "Fusion/alloc/AllocatorInterface.h"
 #include "Fusion/common/Log.h"
-
 
 inline void *aligned_alloc_bytes(size_t alignment, size_t size) {
    if (alignment < alignof(void *) || (alignment & (alignment - 1)) != 0) {
@@ -47,9 +45,9 @@ class TensorBuffer {
    }
 
    template <typename T>
-   static TensorBuffer allocate_elements_with(IAllocator *alloc,
-                                              std::size_t count,
-                                              Alignment alignment = Alignment{64}) {
+   static TensorBuffer
+   allocate_elements_with(IAllocator *alloc, std::size_t count,
+                          Alignment alignment = Alignment{64}) {
       return allocate_with(alloc, count * sizeof(T), alignment);
    }
 
@@ -145,7 +143,8 @@ class TensorBuffer {
          if (alloc) {
             alloc->deallocate(p);
          } else {
-            FUSION_LOGI("Alloc non null"); // TODO: change this, this is a noexcept env (maybe debug dump)
+            FUSION_LOGI("Alloc non null"); // TODO: change this, this is a
+                                           // noexcept env (maybe debug dump)
          }
       }
    };
@@ -155,7 +154,8 @@ class TensorBuffer {
    IAllocator *allocator_{nullptr};
 
    TensorBuffer(void *raw, size_t size, size_t alignment, IAllocator *alloc)
-       : ptr_(raw, Deleter{alloc, size, alignment}), size_(size), alignment_(alignment) {};
+       : ptr_(raw, Deleter{alloc, size, alignment}), size_(size),
+         alignment_(alignment) {};
 };
 
 #endif // TENSOR_BUFFER_H

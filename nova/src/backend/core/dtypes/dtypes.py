@@ -2,13 +2,45 @@ from enum import Enum
 
 import numpy as np
 
+from nova.src.backend.core.clib import CppDType
+
 
 class DType(Enum):
-    FLOAT32 = np.float32
-    FLOAT64 = np.float64
-    INT32 = np.int32
-    INT64 = np.int64
-    BOOL = np.bool_
+    FLOAT32 = 0
+    FLOAT64 = 1
+    INT32 = 2
+    INT64 = 3
+    BOOL = 4
+
+
+class Float32:
+    @staticmethod
+    def cpp_type():
+        return CppDType(DType.FLOAT32.value)
+
+
+class Float64:
+    @staticmethod
+    def cpp_type():
+        return CppDType(DType.FLOAT64.value)
+
+
+class Int32:
+    @staticmethod
+    def cpp_type():
+        return CppDType(DType.INT32.value)
+
+
+class Int64:
+    @staticmethod
+    def cpp_type():
+        return CppDType(DType.INT64.value)
+
+
+class Bool:
+    @staticmethod
+    def cpp_type():
+        return CppDType(DType.Bool.value)
 
 
 def as_dtype(dtype: DType) -> np.dtype:

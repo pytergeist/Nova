@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Fusion/autodiff/ADTensor.h"
 #include "Fusion/Tensor.h"
+#include "Fusion/autodiff/ADTensor.h"
 
 namespace py = pybind11;
 

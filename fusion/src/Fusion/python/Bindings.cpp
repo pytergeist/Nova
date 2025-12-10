@@ -1,7 +1,7 @@
-#include <pybind11/pybind11.h>
-#include <pybind11/detail/common.h>
-#include <pybind11/pytypes.h>
 #include <pybind11/cast.h>
+#include <pybind11/detail/common.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/pytypes.h>
 
 #include "Fusion/autodiff/AutodiffBridge.h"
 #include "Fusion/autodiff/AutodiffMode.h"
@@ -11,14 +11,30 @@
 #include "random/BindRandom.h"
 #include "tensor/BindTensor.h"
 
-
 namespace py = pybind11;
 
 PYBIND11_MODULE(fusion, m_ten) {
-   m_ten.doc() = "Fusion Tensor module exposing Tensor<float> (for composition)";
+   m_ten.doc() =
+       "Fusion Tensor module exposing Tensor<float> (for composition)";
    bind_tensor<float>(m_ten, "Tensor");
    bind_factory<float>(m_ten, "factory");
    bind_random<float>(m_ten, "Random");
+
+   py::class_<Device>(m_ten, "CppDevice")
+       .def(py::init<DeviceType, DeviceIdx>(), py::arg("type"),
+            py::arg("index") = -1);
+
+   py::enum_<DeviceType>(m_ten, "CppDeviceType")
+       .value("CPU", DeviceType::CPU)
+       .value("CUDA", DeviceType::CUDA)
+       .value("METAL", DeviceType::METAL);
+
+   py::enum_<DType>(m_ten, "CppDType")
+       .value("FLOAT32", DType::FLOAT32)
+       .value("FLOAT64", DType::FLOAT64)
+       .value("INT32", DType::INT32)
+       .value("INT64", DType::INT64)
+       .value("BOOL", DType::BOOL);
 
    py::class_<EngineScope<float>>(m_ten, "grad_tape")
        .def(py::init<>())
@@ -30,7 +46,8 @@ PYBIND11_MODULE(fusion, m_ten) {
            },
            py::return_value_policy::reference)
        .def("__exit__",
-            [](EngineScope<float> &self, const py::object&, const py::object&, const py::object&) -> bool {
+            [](EngineScope<float> &self, const py::object &, const py::object &,
+               const py::object &) -> bool {
                self.exit();
                return false;
             });

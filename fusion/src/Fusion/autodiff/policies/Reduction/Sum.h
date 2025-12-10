@@ -4,8 +4,8 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/autodiff/AutodiffMode.h"
 #include "Fusion/autodiff/AutodiffMeta.h"
+#include "Fusion/autodiff/AutodiffMode.h"
 #include "Fusion/autodiff/policies/Operation.h"
 
 template <typename T> struct Sum {
@@ -29,7 +29,7 @@ template <typename T> struct Sum {
    GradIn backward(Context<T> &context, GradOut &grad_out) {
       if (grad_out.empty()) {
          return {};
-         }
+      }
       FUSION_CHECK(grad_out.size() == 1,
                    "Sum::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
