@@ -9,7 +9,7 @@
 #include "Fusion/core/TensorBase.h"
 #include "Fusion/storage/StorageInterface.h"
 
-#include "Helpers.h"
+#include "Helpers.hpp"
 
 namespace fusion {
 

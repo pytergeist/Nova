@@ -8,7 +8,7 @@
 #include "Fusion/core/EwiseMeta.h"
 #include "Fusion/core/TensorBase.h"
 
-#include "Helpers.h"
+#include "Helpers.hpp"
 
 namespace fusion {
 

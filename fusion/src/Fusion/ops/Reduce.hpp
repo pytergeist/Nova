@@ -11,7 +11,7 @@
 #include "Fusion/cpu/SimdTags.hpp"
 #include "Fusion/cpu/SimdTraits.hpp"
 
-#include "Helpers.h"
+#include "Helpers.hpp"
 
 namespace fusion {
 
