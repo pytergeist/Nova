@@ -3,8 +3,8 @@
 
 #include <cstddef>
 
-#include "SimdTags.h"
-#include "simd/Vec128Neon.h"
+#include "SimdTags.hpp"
+#include "simd/Vec128Neon.hpp"
 
 template <class Tag, typename T> struct simd_traits {
    static constexpr bool available = false;

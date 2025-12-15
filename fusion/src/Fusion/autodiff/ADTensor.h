@@ -34,7 +34,7 @@
 #include "Fusion/core/Layout.h"
 #include "Fusion/core/Reduce.h"
 #include "Fusion/core/TensorBase.h"
-#include "Fusion/cpu/SimdTags.h"
+#include "Fusion/cpu/SimdTags.hpp"
 
 #include "Fusion/storage/DenseStorage.h"
 #include "Fusion/storage/StorageInterface.h"

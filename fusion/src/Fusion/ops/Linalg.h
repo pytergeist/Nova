@@ -7,7 +7,7 @@
 #include "Fusion/common/Log.h"
 #include "Fusion/core/ElementWise.h"
 #include "Fusion/core/TensorBase.h"
-#include "Fusion/cpu/blas/Gemm.h"
+#include "Fusion/cpu/blas/Gemm.hpp"
 
 #include "Helpers.h"
 

@@ -8,8 +8,8 @@
 #include "Fusion/core/Ffunc.h"
 #include "Fusion/core/Reduce.h"
 #include "Fusion/core/TensorBase.h"
-#include "Fusion/cpu/SimdTags.h"
-#include "Fusion/cpu/SimdTraits.h"
+#include "Fusion/cpu/SimdTags.hpp"
+#include "Fusion/cpu/SimdTraits.hpp"
 
 #include "Helpers.h"
 

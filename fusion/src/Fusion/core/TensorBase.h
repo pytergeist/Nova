@@ -15,7 +15,7 @@
 #include "Fusion/core/Ffunc.h"
 #include "Fusion/core/Layout.h"
 #include "Fusion/core/Reduce.h"
-#include "Fusion/device/Device.h"
+#include "Fusion/device/Device.hpp"
 #include "Fusion/kernels/Serial.h"
 #include "Fusion/ops/Comparison.h"
 #include "Fusion/ops/Ewise.h"

@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "Fusion/common/Checks.h"
-#include "Fusion/cpu/SimdTraits.h"
-#include "Fusion/cpu/simd/Vec128Neon.h"
+#include "Fusion/cpu/SimdTraits.hpp"
+#include "Fusion/cpu/simd/Vec128Neon.hpp"
 
 #include "Broadcast.h"
 #include "EwiseMeta.h"

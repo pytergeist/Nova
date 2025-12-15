@@ -1,7 +1,7 @@
 #ifndef CORE_REDUCE_H
 #define CORE_REDUCE_H
 
-#include "Fusion/cpu/SimdTraits.h"
+#include "Fusion/cpu/SimdTraits.hpp"
 
 namespace reduce {
 template <typename T, class Tag> T reduce_tag(const T *x, std::size_t n) {
