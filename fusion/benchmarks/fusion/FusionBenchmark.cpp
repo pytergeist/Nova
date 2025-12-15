@@ -4,7 +4,7 @@
 #include <random>
 #include <vector>
 
-#include "Fusion/core/TensorBase.h"
+#include "Fusion/core/TensorBase.hpp"
 
 std::vector<float> make_random_float_vector(std::size_t N, unsigned seed,
                                             float min = 0, float max = 100) {

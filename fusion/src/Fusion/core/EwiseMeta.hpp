@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "Broadcast.h"
-#include "BroadcastIter.h"
+#include "BroadcastIter.hpp"
 
-#include "TensorBase.h"
+#include "TensorBase.hpp"
 
 /* TODO: OPTIMIZE LATER: implament shape caching for broadcast plans, you need
  * to figure out what to cache and when. This will reduce the amount of plan

@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "Fusion/common/Log.h"
-#include "Fusion/core/ElementWise.h"
-#include "Fusion/core/TensorBase.h"
+#include "Fusion/core/ElementWise.hpp"
+#include "Fusion/core/TensorBase.hpp"
 #include "Fusion/cpu/blas/Gemm.hpp"
 
 #include "Helpers.hpp"

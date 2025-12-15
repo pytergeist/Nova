@@ -4,7 +4,7 @@
 #include <cassert>
 
 #include "Fusion/Tensor.h"
-#include "Fusion/core/EwiseMeta.h"
+#include "Fusion/core/EwiseMeta.hpp"
 
 template <typename T>
 inline TensorBase<T> init_out_from_meta(const TensorBase<T> &x,

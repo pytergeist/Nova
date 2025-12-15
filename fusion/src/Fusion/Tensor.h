@@ -2,7 +2,7 @@
 #define TENSOR_H
 
 #include "Fusion/autodiff/AutodiffMode.h"
-#include "Fusion/core/TensorBase.h"
+#include "Fusion/core/TensorBase.hpp"
 
 template <typename T> using Tensor = ADTensor<T>;
 template <typename T> using RawTensor = TensorBase<T>;

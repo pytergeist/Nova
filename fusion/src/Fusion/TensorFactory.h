@@ -6,7 +6,7 @@
 
 #include "Fusion/Tensor.h"
 #include "Fusion/common/Checks.h"
-#include "Fusion/core/DType.h"
+#include "Fusion/core/DType.hpp"
 #include "Fusion/storage/StorageInterface.h"
 
 template <typename T>

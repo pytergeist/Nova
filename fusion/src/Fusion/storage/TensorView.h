@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <memory>
 
-#include "Fusion/core/DType.h"
-#include "Fusion/core/Layout.h"
+#include "Fusion/core/DType.hpp"
+#include "Fusion/core/Layout.hpp"
 
 template <typename T> class TensorView {
  public:

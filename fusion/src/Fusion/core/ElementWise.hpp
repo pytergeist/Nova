@@ -12,7 +12,7 @@
 #include "Fusion/cpu/simd/Vec128Neon.hpp"
 
 #include "Broadcast.h"
-#include "EwiseMeta.h"
+#include "EwiseMeta.hpp"
 
 namespace ewise {
 
