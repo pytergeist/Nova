@@ -4,8 +4,8 @@
 #include <cstdint>
 
 #include "DeviceType.hpp"
-#include "Fusion/common/Checks.h"
-#include "Fusion/common/Log.h"
+#include "Fusion/common/Checks.hpp"
+#include "Fusion/common/Log.hpp"
 
 struct Device final {
    Device(DeviceType type, DeviceIdx index = -1) : type_(type), index_(index) {

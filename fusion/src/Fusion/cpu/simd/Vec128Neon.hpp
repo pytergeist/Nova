@@ -1,4 +1,3 @@
-#pragma once
 #ifndef FUSION_VEC128_NEON_H
 #define FUSION_VEC128_NEON_H
 
@@ -12,7 +11,7 @@
 #include <arm_neon.h>
 #endif
 
-#include "Fusion/common/Hints.h"
+#include "Fusion/common/Hints.hpp"
 
 namespace simd {
 static constexpr std::size_t kNeonVectorBytes = 16;

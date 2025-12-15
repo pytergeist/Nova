@@ -7,7 +7,7 @@
 #include "Fusion/autodiff/AutodiffMeta.h"
 #include "Fusion/autodiff/AutodiffMode.h"
 #include "Fusion/autodiff/policies/Operation.h"
-#include "Fusion/common/Checks.h"
+#include "Fusion/common/Checks.hpp"
 
 template <typename T> struct Add {
    static constexpr std::string_view name = "Add";

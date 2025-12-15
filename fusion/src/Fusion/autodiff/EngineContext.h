@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "Fusion/common/Checks.h"
+#include "Fusion/common/Checks.hpp"
 
 template <typename T> class Engine;
 

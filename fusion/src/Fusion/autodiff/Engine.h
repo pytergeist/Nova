@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 #include "Fusion/TensorFactory.h"
-#include "Fusion/common/Checks.h"
+#include "Fusion/common/Checks.hpp"
 
 #include "ADTypes.h"
 #include "AutodiffMeta.h"

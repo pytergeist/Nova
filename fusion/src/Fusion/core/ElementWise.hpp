@@ -1,13 +1,12 @@
 #ifndef ELEMENT_WISE_H
 #define ELEMENT_WISE_H
 
-#pragma once
 #include <cstdint>
 #include <functional>
 #include <numeric>
 #include <vector>
 
-#include "Fusion/common/Checks.h"
+#include "Fusion/common/Checks.hpp"
 #include "Fusion/cpu/SimdTraits.hpp"
 #include "Fusion/cpu/simd/Vec128Neon.hpp"
 

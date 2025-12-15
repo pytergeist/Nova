@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/common/Log.h"
+#include "Fusion/common/Log.hpp"
 #include "Fusion/core/ElementWise.hpp"
 #include "Fusion/core/TensorBase.hpp"
 #include "Fusion/cpu/blas/Gemm.hpp"

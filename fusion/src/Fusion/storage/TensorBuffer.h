@@ -11,7 +11,7 @@
 
 #include "Fusion/alloc/AllocTypes.h"
 #include "Fusion/alloc/AllocatorInterface.h"
-#include "Fusion/common/Log.h"
+#include "Fusion/common/Log.hpp"
 
 inline void *aligned_alloc_bytes(size_t alignment, size_t size) {
    if (alignment < alignof(void *) || (alignment & (alignment - 1)) != 0) {

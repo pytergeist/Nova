@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-#include "Fusion/common/Checks.h"
+#include "Fusion/common/Checks.hpp"
 
 #include "AutodiffMode.h"
 #include "Dispatch.h"

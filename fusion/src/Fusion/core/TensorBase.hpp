@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Fusion/alloc/DefaultAllocator.h"
-#include "Fusion/common/Checks.h"
+#include "Fusion/common/Checks.hpp"
 #include "Fusion/core/DType.hpp"
 #include "Fusion/core/ElementWise.hpp"
 #include "Fusion/core/Layout.hpp"

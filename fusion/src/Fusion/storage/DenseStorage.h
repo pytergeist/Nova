@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include "Fusion/alloc/AllocatorInterface.h"
-#include "Fusion/common/Log.h"
+#include "Fusion/common/Log.hpp"
 
 #include "StorageInterface.h"
 #include "TensorBuffer.h"

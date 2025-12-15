@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Fusion/common/Log.h"
+#include "Fusion/common/Log.hpp"
 
 template <typename U> class TensorBase;
 
