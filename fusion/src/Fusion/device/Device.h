@@ -1,11 +1,11 @@
-#ifndef DEVICE_H_
-#define DEVICE_H_
+#ifndef DEVICE_HPP
+#define DEVICE_HPP
 
 #include <cstdint>
 
 #include "DeviceType.h"
-#include "Fusion/common/Checks.h"
-#include "Fusion/common/Log.h"
+#include "Fusion/common/Checks.hpp"
+#include "Fusion/common/Log.hpp"
 
 struct Device final {
    Device(DeviceType type, DeviceIdx index = -1) : type_(type), index_(index) {
@@ -20,6 +20,7 @@ struct Device final {
    }
 
    bool is_cpu() const { return type_ == DeviceType::CPU; }
+   bool is_gpu() const { return type_ == DeviceType::CUDA; }
    bool is_cuda() const { return type_ == DeviceType::CUDA; }
    bool is_meta() const { return type_ == DeviceType::METAL; }
 
@@ -32,4 +33,4 @@ struct Device final {
    }
 };
 
-#endif // DEVICE_H_
+#endif // DEVICE_HPP

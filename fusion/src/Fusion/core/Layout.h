@@ -1,5 +1,5 @@
-#ifndef LAYOUT_H
-#define LAYOUT_H
+#ifndef LAYOUT_HPP
+#define LAYOUT_HPP
 
 #include <vector>
 
@@ -20,4 +20,4 @@ inline bool calc_contiguous(const std::vector<std::size_t> &shape,
    return true;
 }
 
-#endif // LAYOUT_H
+#endif // LAYOUT_HPP

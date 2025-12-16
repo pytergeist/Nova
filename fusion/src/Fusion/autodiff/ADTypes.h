@@ -2,6 +2,7 @@
 #define AD_TYPES_H_
 
 #include <cstdint>
+#include <cstddef>
 
 struct ValueID {
    std::int64_t idx;
@@ -25,12 +26,12 @@ struct Edge {
 
 struct ProducerInfo {
    NodeID nid;
-   size_t out_slot;
+   std::size_t out_slot;
 };
 
 struct ConsumerInfo {
    NodeID nid;
-   size_t in_slot;
+   std::size_t in_slot;
 };
 
 #endif // AD_TYPES_H_

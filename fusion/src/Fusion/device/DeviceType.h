@@ -1,5 +1,5 @@
-#ifndef DEVICE_TYPE_H
-#define DEVICE_TYPE_H
+#ifndef DEVICE_TYPE_HPP
+#define DEVICE_TYPE_HPP
 
 #include <cstdint>
 
@@ -15,4 +15,4 @@ constexpr DeviceType kCPU = DeviceType::CPU;
 constexpr DeviceType kCUDA = DeviceType::CUDA;
 constexpr DeviceType kMETAL = DeviceType::METAL;
 
-#endif // DEVICE_TYPE_H
+#endif // DEVICE_TYPE_HPP

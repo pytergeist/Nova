@@ -1,5 +1,5 @@
-#ifndef DTYPE_H
-#define DTYPE_H
+#ifndef DTYPE_HPP
+#define DTYPE_HPP
 
 #include <cstddef>
 
@@ -33,4 +33,4 @@ inline std::size_t get_dtype_size(DType dtype) {
    throw std::runtime_error("Unknown DType");
 };
 
-#endif // DTYPE_H
+#endif // DTYPE_HPP
