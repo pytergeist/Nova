@@ -84,6 +84,14 @@ template <typename T> class ADTensor : public TensorBase<T> {
        : Base(std::move(shape), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}
 
+   const TensorBase<T> &base() const noexcept {
+      return static_cast<const TensorBase<T> &>(*this);
+   }
+
+   TensorBase<T> &base() noexcept {
+      return static_cast<TensorBase<T> &>(*this);
+   }
+
    ValueID vid() { return vid_; }
    ValueID vid() const { return vid_; }
 
