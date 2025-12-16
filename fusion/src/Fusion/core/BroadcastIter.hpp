@@ -11,7 +11,7 @@ template <typename Fn>
 void for_each(const BroadcastPlan &plan,
               const std::vector<uint8_t *> &base_ptrs, Fn &&fn) {
    const auto &loop = plan.loop;
-   const int ndim = (int)loop.size();
+   const int ndim = static_cast<int>(loop.size());
 
    std::vector<uint8_t *> ptr = base_ptrs;
 

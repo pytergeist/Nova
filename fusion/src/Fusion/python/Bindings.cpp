@@ -3,9 +3,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/pytypes.h>
 
-#include "Fusion/autodiff/AutodiffBridge.h"
-#include "Fusion/autodiff/AutodiffMode.h"
-#include "Fusion/autodiff/EngineContext.h"
+#include "Fusion/autodiff/AutodiffBridge.hpp"
+#include "Fusion/autodiff/AutodiffMode.hpp"
+#include "Fusion/autodiff/EngineContext.hpp"
 
 #include "factory/BindFactory.h"
 #include "random/BindRandom.h"
