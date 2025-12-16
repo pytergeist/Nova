@@ -1,5 +1,5 @@
-#ifndef NODE_H
-#define NODE_H
+#ifndef NODE_HPP
+#define NODE_HPP
 
 #include <memory>
 
@@ -47,4 +47,4 @@ template <typename T, class Op> class Node {
    bool bwd_done_{false};
 };
 
-#endif // NODE_H
+#endif // NODE_HPP

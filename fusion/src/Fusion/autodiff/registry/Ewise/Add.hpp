@@ -1,5 +1,5 @@
-#ifndef ADD_H
-#define ADD_H
+#ifndef ADD_HPP
+#define ADD_HPP
 
 #include <string_view>
 #include <vector>
@@ -46,4 +46,4 @@ template <typename T> struct Add {
    }
 };
 
-#endif // ADD_H
+#endif // ADD_HPP

@@ -1,6 +1,5 @@
-// SwapAxes.h
-#ifndef SWAPAXES_POLICY_H
-#define SWAPAXES_POLICY_H
+#ifndef SWAPAXES_POLICY_HPP
+#define SWAPAXES_POLICY_HPP
 
 #include <string_view>
 
@@ -50,4 +49,4 @@ template <typename T> struct SwapAxes {
    }
 };
 
-#endif // SWAPAXES_POLICY_H
+#endif // SWAPAXES_POLICY_HPP

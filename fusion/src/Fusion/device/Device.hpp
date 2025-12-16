@@ -1,5 +1,5 @@
-#ifndef DEVICE_H_
-#define DEVICE_H_
+#ifndef DEVICE_HPP
+#define DEVICE_HPP
 
 #include <cstdint>
 
@@ -32,4 +32,4 @@ struct Device final {
    }
 };
 
-#endif // DEVICE_H_
+#endif // DEVICE_HPP

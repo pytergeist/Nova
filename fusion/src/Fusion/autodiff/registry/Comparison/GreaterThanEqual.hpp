@@ -1,5 +1,5 @@
-#ifndef GREATER_THAN_EQUAL_H
-#define GREATER_THAN_EQUAL_H
+#ifndef GREATER_THAN_EQUAL_HPP
+#define GREATER_THAN_EQUAL_HPP
 
 #include <string_view>
 #include <vector>
@@ -53,4 +53,4 @@ template <typename T> struct GreaterThanEqual {
    }
 };
 
-#endif // GREATER_THAN_EQUAL_H
+#endif // GREATER_THAN_EQUAL_HPP

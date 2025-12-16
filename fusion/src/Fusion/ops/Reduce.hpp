@@ -1,5 +1,5 @@
-#ifndef OPS_REDUCE_H
-#define OPS_REDUCE_H
+#ifndef OPS_REDUCE_HPP
+#define OPS_REDUCE_HPP
 
 #include <string_view>
 #include <vector>
@@ -37,4 +37,4 @@ template <typename T> inline TensorBase<T> mean(const TensorBase<T> &x) {
 
 } // namespace fusion
 
-#endif // OPS_REDUCE_H
+#endif // OPS_REDUCE_HPP

@@ -1,5 +1,5 @@
-#ifndef SIMD_TRAITS_H
-#define SIMD_TRAITS_H
+#ifndef SIMD_TRAITS_HPP
+#define SIMD_TRAITS_HPP
 
 #include <cstddef>
 
@@ -181,4 +181,4 @@ template <> struct simd_traits<GlobalSumSIMD, float> {
       return acc;
    }
 };
-#endif // SIMD_TRAITS_H
+#endif // SIMD_TRAITS_HPP

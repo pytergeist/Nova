@@ -1,5 +1,5 @@
-#ifndef SORT_H
-#define SORT_H
+#ifndef SORT_HPP
+#define SORT_HPP
 
 #include <queue>
 #include <vector>
@@ -77,4 +77,4 @@ template <typename T> class Sort {
    std::size_t numNodes_;
 };
 
-#endif // SORT_H
+#endif // SORT_HPP

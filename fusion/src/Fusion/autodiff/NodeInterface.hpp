@@ -1,5 +1,5 @@
-#ifndef INODE_H
-#define INODE_H
+#ifndef INODE_HPP
+#define INODE_HPP
 
 #include <memory>
 #include <utility>
@@ -174,4 +174,4 @@ template <typename T> class INode {
    std::unique_ptr<NodeConcept> self_;
 };
 
-#endif // INODE_H
+#endif // INODE_HPP

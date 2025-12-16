@@ -1,5 +1,5 @@
-#ifndef ELEMENT_WISE_H
-#define ELEMENT_WISE_H
+#ifndef ELEMENT_WISE_HPP
+#define ELEMENT_WISE_HPP
 
 #include <cstdint>
 #include <functional>
@@ -220,4 +220,4 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
 }
 } // namespace ewise
 
-#endif // ELEMENT_WISE_H
+#endif // ELEMENT_WISE_HPP

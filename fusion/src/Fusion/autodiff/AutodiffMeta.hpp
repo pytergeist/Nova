@@ -1,5 +1,5 @@
-#ifndef TRAITS_H
-#define TRAITS_H
+#ifndef AUTODIFF_META_HPP
+#define AUTODIFF_META_HPP
 
 #include <any>
 #include <cstdint>
@@ -54,4 +54,4 @@ template <typename T> struct AutodiffMeta {
 };
 // NOLINTEND(misc-non-private-member-variables-in-classes)
 
-#endif // TRAITS_H
+#endif // AUTODIFF_META_HPP

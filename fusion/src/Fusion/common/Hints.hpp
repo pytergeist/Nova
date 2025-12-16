@@ -1,5 +1,5 @@
-#ifndef HINTS_H
-#define HINTS_H
+#ifndef HINTS_HPP
+#define HINTS_HPP
 #pragma once
 
 #include <cstddef>
@@ -33,4 +33,4 @@ template <typename T, std::size_t Align> inline T *assume_aligned(T *ptr) {
 #define FUSION_CONST_ASSUME_ALIGNED(type, ptr, align)                          \
    (ptr = ::fusion::detail::const_assume_aligned<type, align>(ptr))
 
-#endif // HINTS_H
+#endif // HINTS_HPP

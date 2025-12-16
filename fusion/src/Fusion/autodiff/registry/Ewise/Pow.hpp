@@ -1,5 +1,5 @@
-#ifndef POW_H
-#define POW_H
+#ifndef POW_HPP
+#define POW_HPP
 
 #include <string_view>
 #include <vector>
@@ -50,4 +50,4 @@ template <typename T> struct Pow {
    }
 };
 
-#endif // POW_H
+#endif // POW_HPP

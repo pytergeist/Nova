@@ -1,5 +1,5 @@
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef ENGINE_HPP
+#define ENGINE_HPP
 
 #include <iostream>
 #include <memory>
@@ -406,4 +406,4 @@ template <typename T> class Engine {
    }
 };
 
-#endif // ENGINE_H
+#endif // ENGINE_HPP

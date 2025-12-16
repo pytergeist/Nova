@@ -1,5 +1,5 @@
-#ifndef TRANSPOSE_H
-#define TRANSPOSE_H
+#ifndef TRANSPOSE_HPP
+#define TRANSPOSE_HPP
 
 #include <string_view>
 #include <vector>
@@ -42,4 +42,4 @@ template <typename T> struct Transpose {
    }
 };
 
-#endif // TRANSPOSE_H
+#endif // TRANSPOSE_HPP

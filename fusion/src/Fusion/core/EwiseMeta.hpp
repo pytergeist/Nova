@@ -1,5 +1,5 @@
-#ifndef EWISE_META_H
-#define EWISE_META_H
+#ifndef EWISE_META_HPP
+#define EWISE_META_HPP
 
 #include <vector>
 
@@ -81,4 +81,4 @@ inline UnaryEwiseMeta make_binary_meta(const TensorBase<T> &A) {
    return meta;
 };
 
-#endif // EWISE_META_H
+#endif // EWISE_META_HPP

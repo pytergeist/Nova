@@ -1,5 +1,5 @@
-#ifndef FUSION_VEC128_NEON_H
-#define FUSION_VEC128_NEON_H
+#ifndef FUSION_VEC128_NEON_HPP
+#define FUSION_VEC128_NEON_HPP
 
 #include <cmath>
 #include <cstddef>
@@ -883,4 +883,4 @@ inline void maximum_f32_neon_scalar_rhs(float *__restrict dst,
 #endif
 } // namespace simd
 
-#endif // FUSION_VEC128_NEON_H
+#endif // FUSION_VEC128_NEON_HPP

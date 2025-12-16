@@ -1,5 +1,5 @@
-#ifndef OPS_COMPARISON_H
-#define OPS_COMPARISON_H
+#ifndef OPS_COMPARISON_HPP
+#define OPS_COMPARISON_HPP
 
 #include <string_view>
 #include <vector>
@@ -43,4 +43,4 @@ inline TensorBase<T> maximum(const TensorBase<T> &x, const TensorBase<T> &y) {
 
 } // namespace fusion
 
-#endif // OPS_COMPARISON_H
+#endif // OPS_COMPARISON_HPP

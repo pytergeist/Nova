@@ -1,5 +1,5 @@
-#ifndef OPS_LINALG_H
-#define OPS_LINALG_H
+#ifndef OPS_LINALG_HPP
+#define OPS_LINALG_HPP
 
 #include <string_view>
 #include <vector>
@@ -91,4 +91,4 @@ inline TensorBase<T> swapaxes(const TensorBase<T> &x, const int axis1,
 
 } // namespace fusion
 
-#endif // OPS_LINALG_H
+#endif // OPS_LINALG_HPP

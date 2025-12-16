@@ -1,5 +1,5 @@
-#ifndef OPERATION_H
-#define OPERATION_H
+#ifndef OPERATION_HPP
+#define OPERATION_HPP
 
 #include <any>
 #include <string>
@@ -61,4 +61,4 @@ template <typename T, class Op> class Operation {
    Op op_;
 };
 
-#endif // OPERATION_H
+#endif // OPERATION_HPP

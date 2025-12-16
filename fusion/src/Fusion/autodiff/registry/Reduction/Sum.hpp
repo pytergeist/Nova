@@ -1,5 +1,5 @@
-#ifndef REDUCTION_H
-#define REDUCTION_H
+#ifndef SUM_HPP
+#define SUM_HPP
 
 #include <string_view>
 #include <vector>
@@ -48,4 +48,4 @@ template <typename T> struct Sum {
    }
 };
 
-#endif // REDUCTION_H
+#endif // SUM_HPP

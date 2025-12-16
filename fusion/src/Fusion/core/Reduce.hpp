@@ -1,5 +1,5 @@
-#ifndef CORE_REDUCE_H
-#define CORE_REDUCE_H
+#ifndef CORE_REDUCE_HPP
+#define CORE_REDUCE_HPP
 
 #include "Fusion/cpu/SimdTraits.hpp"
 
@@ -16,4 +16,4 @@ template <typename T, class Tag> T reduce_tag(const T *x, std::size_t n) {
 }
 } // namespace reduce
 
-#endif // CORE_REDUCE_H
+#endif // CORE_REDUCE_HPP

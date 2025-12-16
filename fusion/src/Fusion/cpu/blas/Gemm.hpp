@@ -1,5 +1,5 @@
-#ifndef _GEMM_H
-#define _GEMM_H
+#ifndef GEMM_HPP
+#define GEMM_HPP
 
 #include <vector>
 
@@ -39,4 +39,4 @@ void batched_gemm(const T *baseA, const T *baseB, T *baseC, int m, int n, int k,
 }
 } // namespace blas_ops
 
-#endif // _GEMM_H
+#endif // GEMM_HPP

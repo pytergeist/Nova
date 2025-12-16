@@ -1,5 +1,5 @@
-#ifndef OP_HELPERS_H
-#define OP_HELPERS_H
+#ifndef OP_HELPERS_HPP
+#define OP_HELPERS_HPP
 
 #include <cassert>
 
@@ -21,4 +21,4 @@ inline TensorBase<T> init_out_from_meta(const TensorBase<T> &x,
    return TensorBase<T>(m.out_shape, x.dtype(), x.device());
 }
 
-#endif // OP_HELPERS_H
+#endif // OP_HELPERS_HPP

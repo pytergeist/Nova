@@ -1,5 +1,5 @@
-#ifndef MAXIMUM_H
-#define MAXIMUM_H
+#ifndef MAXIMUM_HPP
+#define MAXIMUM_HPP
 
 #include <string_view>
 #include <vector>
@@ -51,4 +51,4 @@ template <typename T> struct Maximum {
    }
 };
 
-#endif // MAXIMUM_H
+#endif // MAXIMUM_HPP

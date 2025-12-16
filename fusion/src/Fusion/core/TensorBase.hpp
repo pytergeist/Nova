@@ -1,5 +1,5 @@
-#ifndef TENSOR_BASE_H
-#define TENSOR_BASE_H
+#ifndef TENSOR_BASE_HPP
+#define TENSOR_BASE_HPP
 
 #include <cstring>
 #include <memory>
@@ -313,4 +313,4 @@ template <typename T> class TensorBase {
    }
 };
 
-#endif // TENSOR_BASE_H
+#endif // TENSOR_BASE_HPP

@@ -1,5 +1,5 @@
-#ifndef MULTIPLY_H
-#define MULTIPLY_H
+#ifndef MULTIPLY_HPP
+#define MULTIPLY_HPP
 
 #include <string_view>
 
@@ -49,4 +49,4 @@ template <typename T> struct Multiply {
    }
 };
 
-#endif // MULTIPLY_H
+#endif // MULTIPLY_HPP

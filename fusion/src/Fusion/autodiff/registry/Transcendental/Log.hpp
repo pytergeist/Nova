@@ -1,5 +1,5 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef LOG_HPP
+#define LOG_HPP
 
 #include <string_view>
 #include <vector>
@@ -44,4 +44,4 @@ template <typename T> struct Log {
    }
 };
 
-#endif // LOG_H
+#endif // LOG_HPP

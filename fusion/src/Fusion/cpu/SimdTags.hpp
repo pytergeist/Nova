@@ -1,5 +1,5 @@
-#ifndef SIMD_TAGS_H
-#define SIMD_TAGS_H
+#ifndef SIMD_TAGS_HPP
+#define SIMD_TAGS_HPP
 
 #include <cmath>
 #include <type_traits>
@@ -78,4 +78,4 @@ struct GlobalSumSIMD {
    }
 };
 
-#endif // SIMD_TAGS_H
+#endif // SIMD_TAGS_HPP

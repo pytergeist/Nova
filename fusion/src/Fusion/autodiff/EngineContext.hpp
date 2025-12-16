@@ -1,5 +1,5 @@
-#ifndef ENGINE_CONTEXT_H
-#define ENGINE_CONTEXT_H
+#ifndef ENGINE_CONTEXT_HPP
+#define ENGINE_CONTEXT_HPP
 
 #include <iostream>
 
@@ -57,4 +57,4 @@ template <typename T> struct EngineScope {
    bool active_{false};
 };
 
-#endif // ENGINE_CONTEXT_H
+#endif // ENGINE_CONTEXT_HPP

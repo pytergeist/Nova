@@ -1,7 +1,7 @@
-#ifndef _LINALG_H
-#define _LINALG_H
+#ifndef LINALG_H
+#define LINALG_H
 
 #include "MatMul.hpp"
 #include "SwapAxes.hpp"
 
-#endif // _LINALG_H
+#endif // LINALG_H

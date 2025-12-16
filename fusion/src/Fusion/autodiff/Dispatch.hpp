@@ -1,5 +1,5 @@
-#ifndef DISPATCH_H
-#define DISPATCH_H
+#ifndef DISPATCH_HPP
+#define DISPATCH_HPP
 
 #include <memory>
 #include <string>
@@ -95,4 +95,4 @@ inline ADTensor<T> binary(const ADTensor<T> &x, const ADTensor<T> &y,
 
 } // namespace autodiff
 
-#endif // DISPATCH_H
+#endif // DISPATCH_HPP

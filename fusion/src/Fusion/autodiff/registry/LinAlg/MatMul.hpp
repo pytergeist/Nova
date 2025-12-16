@@ -1,5 +1,5 @@
-#ifndef MATMUL_H
-#define MATMUL_H
+#ifndef MATMUL_HPP
+#define MATMUL_HPP
 
 #include <string_view>
 #include <vector>
@@ -53,4 +53,4 @@ template <typename T> struct MatMul {
    }
 };
 
-#endif // MATMUL_H
+#endif // MATMUL_HPP

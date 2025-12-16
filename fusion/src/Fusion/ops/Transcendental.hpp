@@ -1,5 +1,5 @@
-#ifndef UNARY_H
-#define UNARY_H
+#ifndef OPS_TRANSCENENTAL_HPP
+#define OPS_TRANSCENENTAL_HPP
 
 #include <string_view>
 #include <vector>
@@ -36,4 +36,4 @@ template <typename T> inline TensorBase<T> exp(const TensorBase<T> &x) {
 
 } // namespace fusion
 
-#endif // UNARY_H
+#endif // OPS_TRANSCENENTAL_HPP

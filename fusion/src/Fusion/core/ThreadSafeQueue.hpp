@@ -1,5 +1,5 @@
-#ifndef THREAD_SAFE_QUEUE_H
-#define THREAD_SAFE_QUEUE_H
+#ifndef THREAD_SAFE_QUEUE_HPP
+#define THREAD_SAFE_QUEUE_HPP
 
 #include <condition_variable>
 #include <mutex>
@@ -54,4 +54,4 @@ template <typename T> class ThreadSafeQueue {
    }
 };
 
-#endif // THREAD_SAFE_QUEUE_H
+#endif // THREAD_SAFE_QUEUE_HPP

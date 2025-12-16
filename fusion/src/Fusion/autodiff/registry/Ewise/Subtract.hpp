@@ -1,5 +1,5 @@
-#ifndef SUBTRACT_H
-#define SUBTRACT_H
+#ifndef SUBTRACT_HPP
+#define SUBTRACT_HPP
 
 #include <string_view>
 #include <vector>
@@ -45,4 +45,4 @@ template <typename T> struct Subtract {
    }
 };
 
-#endif // SUBTRACT_H
+#endif // SUBTRACT_HPP

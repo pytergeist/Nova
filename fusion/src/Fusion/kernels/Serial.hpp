@@ -1,5 +1,5 @@
-#ifndef _SERIAL_H
-#define _SERIAL_H
+#ifndef SERIAL_HPP
+#define SERIAL_HPP
 
 #include <cmath>
 #include <numeric>
@@ -148,4 +148,4 @@ std::vector<T> diagonal2D(const TensorBase<T> &a,
 
 } // namespace serial
 
-#endif // _SERIAL_H
+#endif // SERIAL_HPP

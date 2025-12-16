@@ -1,5 +1,5 @@
-#ifndef BROADCAST_ITER_H
-#define BROADCAST_ITER_H
+#ifndef BROADCAST_ITER_HPP
+#define BROADCAST_ITER_HPP
 
 #include <cstdint>
 #include <functional>
@@ -63,4 +63,4 @@ inline TensorDescription make_desc(const std::vector<std::size_t> &shape,
                             std::move(sz), std::move(st), sizeof(T)};
 }
 
-#endif // BROADCAST_ITER_H
+#endif // BROADCAST_ITER_HPP

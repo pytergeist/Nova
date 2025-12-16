@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FUSION_LOG_HPP
+#define FUSION_LOG_HPP
+
 #include <chrono>
 #include <ctime>
 #include <iomanip>
@@ -114,3 +116,5 @@ inline void log_line(Level L, const char *file, int line, Args &&...args) {
 #define FUSION_LOGD(...)                                                       \
    ::fusionlog::log_line(::fusionlog::Level::kDebug, __FILE__, __LINE__,       \
                          __VA_ARGS__)
+
+#endif // FUSION_LOG_HPP

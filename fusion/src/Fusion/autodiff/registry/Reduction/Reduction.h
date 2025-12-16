@@ -1,7 +1,7 @@
-#ifndef _REDUCTIONS_H
-#define _REDUCTIONS_H
+#ifndef REDUCTION_H
+#define REDUCTION_H
 
 #include "Mean.hpp"
 #include "Sum.hpp"
 
-#endif // _REDUCTIONS_H
+#endif // REDUCTION_H

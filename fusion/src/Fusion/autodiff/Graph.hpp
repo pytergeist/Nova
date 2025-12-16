@@ -1,5 +1,5 @@
-#ifndef GRAPH_H
-#define GRAPH_H
+#ifndef GRAPH_HPP
+#define GRAPH_HPP
 
 #include <memory>
 
@@ -141,4 +141,4 @@ template <typename T> class Graph {
    }
 };
 
-#endif // GRAPH_H
+#endif // GRAPH_HPP

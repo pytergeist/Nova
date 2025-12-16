@@ -1,5 +1,5 @@
-#ifndef AUTODIFF_MODE_H
-#define AUTODIFF_MODE_H
+#ifndef AUTODIFF_MODE_HPP
+#define AUTODIFF_MODE_HPP
 
 #include <memory>
 
@@ -43,4 +43,4 @@ inline bool should_trace(const ADTensor<T> &x, const ADTensor<T> &y) {
 }
 } // namespace autodiff
 
-#endif // AUTODIFF_MODE_H
+#endif // AUTODIFF_MODE_HPP

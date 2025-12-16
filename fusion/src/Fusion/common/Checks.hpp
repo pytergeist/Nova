@@ -1,6 +1,5 @@
-#ifndef CHECKS_H
-#define CHECKS_H
-#pragma once
+#ifndef CHECKS_HPP
+#define CHECKS_HPP
 
 #include <source_location>
 #include <sstream>
@@ -79,4 +78,4 @@ inline void allow_scalar_binary(
 #define FUSION_ALLOW_SCALAR_BINARY(t1, t2)                                     \
    ::fusion::detail::allow_scalar_binary((t1), (t2))
 
-#endif // CHECKS_H
+#endif // CHECKS_HPP

@@ -1,5 +1,5 @@
-#ifndef AD_TENSOR_H
-#define AD_TENSOR_H
+#ifndef AD_TENSOR_HPP
+#define AD_TENSOR_HPP
 
 #include <cstring>
 #include <memory>
@@ -336,4 +336,4 @@ template <typename T> class ADTensor : public TensorBase<T> {
    }
 };
 
-#endif // AD_TENSOR_H
+#endif // AD_TENSOR_HPP

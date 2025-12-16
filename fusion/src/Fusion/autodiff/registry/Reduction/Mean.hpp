@@ -1,5 +1,5 @@
-#ifndef SUM_H
-#define SUM_H
+#ifndef MEAN_HPP
+#define MEAN_HPP
 
 #include <string_view>
 #include <vector>
@@ -50,4 +50,4 @@ template <typename T> struct Mean {
    }
 };
 
-#endif // SUM_H
+#endif // MEAN_HPP

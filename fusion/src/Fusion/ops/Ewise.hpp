@@ -1,5 +1,5 @@
-#ifndef EWISE_H
-#define EWISE_H
+#ifndef EWISE_HPP
+#define EWISE_HPP
 
 #include <string_view>
 #include <vector>

@@ -1,5 +1,5 @@
-#ifndef EXP_H
-#define EXP_H
+#ifndef EXP_HPP
+#define EXP_HPP
 
 #include <string_view>
 #include <vector>
@@ -44,4 +44,4 @@ template <typename T> struct Exp {
    }
 };
 
-#endif // EXP_H
+#endif // EXP_HPP

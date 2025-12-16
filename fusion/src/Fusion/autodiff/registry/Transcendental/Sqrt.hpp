@@ -1,5 +1,5 @@
-#ifndef SQRT_H
-#define SQRT_H
+#ifndef SQRT_HPP
+#define SQRT_HPP
 
 #include <string_view>
 #include <vector>
@@ -44,4 +44,4 @@ template <typename T> struct Sqrt {
    }
 };
 
-#endif // SQRT_H
+#endif // SQRT_HPP

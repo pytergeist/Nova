@@ -1,5 +1,5 @@
-#ifndef DIVIDE_H
-#define DIVIDE_H
+#ifndef DIVIDE_HPP
+#define DIVIDE_HPP
 
 #include <string_view>
 #include <vector>
@@ -50,4 +50,4 @@ template <typename T> struct Divide {
    }
 };
 
-#endif // DIVIDE_H
+#endif // DIVIDE_HPP
