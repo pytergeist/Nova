@@ -48,6 +48,8 @@ set(FUSION_INCLUDE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/fusion/src")
 # Layered Architecture
 # ============================================================
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # ------------------------------------------------------------
 # allocation layer
 # ------------------------------------------------------------
@@ -62,19 +64,13 @@ target_include_directories(fusion_alloc PUBLIC ${FUSION_INCLUDE_ROOT})
 # device abstraction layer
 # ------------------------------------------------------------
 add_library(fusion_device INTERFACE)
-
 target_include_directories(fusion_device INTERFACE ${FUSION_INCLUDE_ROOT})
-target_link_libraries(fusion_device INTERFACE fusion_alloc)
 
 # ------------------------------------------------------------
 # storage abstraction layer
 # ------------------------------------------------------------
 add_library(fusion_storage INTERFACE)
-
-target_include_directories(fusion_storage
-        INTERFACE ${FUSION_INCLUDE_ROOT}
-)
-
+target_include_directories(fusion_storage INTERFACE ${FUSION_INCLUDE_ROOT})
 target_link_libraries(fusion_storage INTERFACE
         fusion_alloc
         fusion_device
@@ -120,7 +116,7 @@ target_include_directories(fusion_ops INTERFACE ${FUSION_INCLUDE_ROOT})
 target_link_libraries(fusion_ops INTERFACE fusion_core)
 
 # ------------------------------------------------------------
-# autodiff (header-only)
+# autodiff
 # ------------------------------------------------------------
 add_library(fusion_autodiff INTERFACE)
 
@@ -157,6 +153,7 @@ set_target_properties(fusion PROPERTIES
         PREFIX ""
         LIBRARY_OUTPUT_DIRECTORY ${PY_EXT_INSTALL_DIR}
 )
+
 
 install(TARGETS fusion LIBRARY DESTINATION ${PY_EXT_INSTALL_DIR})
 
@@ -207,7 +204,7 @@ function(add_asan target)
 endfunction()
 
 if(NOVA_ENABLE_ASAN)
-  foreach(t fusion_alloc fusion_storage fusion_core fusion fusion_test)
+  foreach(t fusion_alloc fusion_core fusion fusion_test)
     if(TARGET ${t})
       add_asan(${t})
     endif()
