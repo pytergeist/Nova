@@ -7,9 +7,9 @@
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/EngineContext.hpp"
 
-#include "factory/BindFactory.h"
-#include "random/BindRandom.h"
-#include "tensor/BindTensor.h"
+#include "factory/BindFactory.hpp"
+#include "random/BindRandom.hpp"
+#include "tensor/BindTensor.hpp"
 
 namespace py = pybind11;
 

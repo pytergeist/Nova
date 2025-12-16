@@ -1,5 +1,5 @@
-// BindTensor.h
-#pragma once
+#ifndef BIND_TENSOR_HPP
+#define BIND_TENSOR_HPP
 
 #include <numeric>
 #include <pybind11/operators.h>
@@ -8,12 +8,12 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "Fusion/Random.h"
+#include "Fusion/Random.hpp"
 #include "Fusion/Tensor.h"
-#include "Fusion/TensorFactory.h"
+#include "Fusion/TensorFactory.hpp"
 #include "Fusion/core/DType.h"
 
-#include "Helpers.h"
+#include "Helpers.hpp"
 
 namespace py = pybind11;
 
@@ -91,7 +91,7 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                      &PyT::set_requires_grad, "Requires grad flag")
 
        // --- convert to NumPy array ---
-       .def("to_numpy", &tensor_py_helpers::tensor_to_numpy,
+       .def("to_numpy", &tensor_py_helpers::tensor_to_numpy<T>,
             "Return a NumPy array view of the Tensor’s contents.")
 
        // --- repr for debugging ---
@@ -188,3 +188,5 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
        .def("backward", &PyT::backward)
        .def("get_grad", &PyT::grad);
 }
+
+#endif // BIND_TENSOR_HPP

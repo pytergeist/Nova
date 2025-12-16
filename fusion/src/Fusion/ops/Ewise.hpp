@@ -7,7 +7,6 @@
 #include "Fusion/core/ElementWise.hpp"
 #include "Fusion/core/EwiseMeta.hpp"
 #include "Fusion/core/TensorBase.hpp"
-#include "Fusion/storage/StorageInterface.h"
 
 #include "Helpers.hpp"
 

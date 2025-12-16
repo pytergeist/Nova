@@ -23,9 +23,9 @@
 #include "Fusion/ops/OpParams.hpp"
 #include "Fusion/ops/Reduce.hpp"
 #include "Fusion/ops/Transcendental.hpp"
-#include "Fusion/storage/DenseStorage.h"
-#include "Fusion/storage/StorageInterface.h"
-#include "Fusion/storage/TensorView.h"
+#include "Fusion/storage/DenseStorage.hpp"
+#include "Fusion/storage/StorageInterface.hpp"
+#include "Fusion/storage/TensorView.hpp"
 
 template <typename T> // TODO: need to either pass in device somehow?
 inline TensorBase<T> scalar_t(const T scalar,

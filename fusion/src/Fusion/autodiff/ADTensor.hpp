@@ -35,9 +35,9 @@
 #include "Fusion/core/TensorBase.hpp"
 #include "Fusion/cpu/SimdTags.hpp"
 
-#include "Fusion/storage/DenseStorage.h"
-#include "Fusion/storage/StorageInterface.h"
-#include "Fusion/storage/TensorView.h"
+#include "Fusion/storage/DenseStorage.hpp"
+#include "Fusion/storage/StorageInterface.hpp"
+#include "Fusion/storage/TensorView.hpp"
 
 #include "Fusion/alloc/DefaultAllocator.h"
 

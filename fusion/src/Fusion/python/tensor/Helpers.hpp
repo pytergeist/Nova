@@ -1,5 +1,5 @@
-// Helpers.h
-#pragma once
+#ifndef TENSOR_HELPERS_H
+#define TENSOR_HELPERS_H
 
 #include <pybind11/numpy.h>
 #include <stdexcept>
@@ -11,7 +11,7 @@
 namespace py = pybind11;
 
 namespace tensor_py_helpers {
-
+template<typename T>
 inline py::array_t<float> tensor_to_numpy(const Tensor<float> &t) {
    // Grab the shape vector
    const auto &shape = t.shape();
@@ -44,3 +44,5 @@ inline py::array_t<float> tensor_to_numpy(const Tensor<float> &t) {
 }
 
 } // namespace tensor_py_helpers
+
+#endif // TENSOR_HELPERS_H

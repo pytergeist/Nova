@@ -7,7 +7,7 @@
 #include "Fusion/Tensor.h"
 #include "Fusion/common/Checks.hpp"
 #include "Fusion/core/DType.h"
-#include "Fusion/storage/StorageInterface.h"
+#include "Fusion/storage/StorageInterface.hpp"
 
 template <typename T>
 Tensor<T> fill(const std::vector<size_t> &shape, T value, Device device) {

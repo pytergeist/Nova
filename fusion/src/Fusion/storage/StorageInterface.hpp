@@ -6,7 +6,7 @@
 
 #include "Fusion/device/Device.h"
 
-#include "TensorBuffer.h"
+#include "TensorBuffer.hpp"
 
 template <typename T> class ITensorStorage {
  public:

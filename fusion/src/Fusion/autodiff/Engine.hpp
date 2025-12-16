@@ -7,7 +7,7 @@
 #include <ostream>
 #include <stdexcept>
 
-#include "Fusion/TensorFactory.h"
+#include "Fusion/TensorFactory.hpp"
 #include "Fusion/common/Checks.hpp"
 
 #include "ADTypes.h"

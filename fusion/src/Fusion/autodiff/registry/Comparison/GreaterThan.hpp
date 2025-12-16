@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/TensorFactory.h"
+#include "Fusion/TensorFactory.hpp"
 #include "Fusion/autodiff/AutodiffMeta.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"

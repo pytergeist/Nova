@@ -1,11 +1,11 @@
-#ifndef BIND_RANDOM_H
-#define BIND_RANDOM_H
+#ifndef BIND_RANDOM_HPP
+#define BIND_RANDOM_HPP
 
 #include <pybind11/pybind11.h>
 #include <string>
 #include <typeinfo>
 
-#include "Fusion/Random.h"
+#include "Fusion/Random.hpp"
 
 namespace py = pybind11;
 
@@ -26,4 +26,4 @@ template <typename T> void bind_random(py::module_ &m_ten, const char *name) {
            py::arg("shape"), py::arg("min"), py::arg("max"), py::arg("device"));
 }
 
-#endif // BIND_RANDOM_H
+#endif // BIND_RANDOM_HPP

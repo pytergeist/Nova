@@ -3,11 +3,13 @@
 
 #include <algorithm>
 
-#include "Fusion/alloc/AllocatorInterface.h"
 #include "Fusion/common/Log.hpp"
 
-#include "StorageInterface.h"
-#include "TensorBuffer.h"
+#include "StorageInterface.hpp"
+#include "TensorBuffer.hpp"
+
+#include "Fusion/alloc/AllocatorInterface.h"
+
 #include <cstddef>
 
 template <typename T> class NDTensorStorage : public ITensorStorage<T> {

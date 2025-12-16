@@ -1,12 +1,12 @@
-#ifndef BIND_FACTORY_H
-#define BIND_FACTORY_H
+#ifndef BIND_FACTORY_HPP
+#define BIND_FACTORY_HPP
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <string>
 #include <typeinfo>
 
-#include "Fusion/TensorFactory.h"
+#include "Fusion/TensorFactory.hpp"
 
 namespace py = pybind11;
 
@@ -35,4 +35,4 @@ template <typename T> void bind_factory(py::module_ &m, const char *name) {
               py::arg("other"));
 }
 
-#endif // BIND_FACTORY_H
+#endif // BIND_FACTORY_HPP
