@@ -31,7 +31,7 @@ model = Model(inputs=[inp], outputs=[out])
 
 params = model.parameters()
 
-N, D = 20487, 10 # TODO: Batch size currently failing at 40 step for N=1000: dynamic batch size fix
+N, D = 20480, 10 # TODO: Batch size currently failing at 40 step for N=1000: dynamic batch size fix
 X = np.random.randn(N, D).astype(np.float32)
 Y = 2 * X + 1 + 0.1 * np.random.randn(N, D).astype(np.float32)
 X = (X - X.mean(axis=0)) / (X.std(axis=0) + 1e-6)

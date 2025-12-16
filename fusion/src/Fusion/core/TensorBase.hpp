@@ -58,8 +58,8 @@ template <typename T> class TensorBase {
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       std::size_t sz = set_contiguous_strides();
       FUSION_CHECK(data.size() == sz, "Tensor: data size != product(shape)");
-      storage_ = std::make_shared<NDTensorStorage<T>>(
-          shape_, std::move(data), device_, &default_allocator());
+      auto *alloc = allocator ? allocator : &default_allocator();
+      storage_ = make_storage_with_data(shape_, data, device_, alloc);
    }
 
    explicit TensorBase(std::vector<size_t> shape, DType dtype, Device device,
@@ -68,8 +68,8 @@ template <typename T> class TensorBase {
       FUSION_CHECK(device.is_cpu(), "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
       std::size_t sz = set_contiguous_strides();
-      storage_ = std::make_shared<NDTensorStorage<T>>(shape_, sz, device_,
-                                                      &default_allocator());
+      auto *alloc = allocator ? allocator : &default_allocator();
+      storage_ = make_storage(shape_, sz, device_, alloc);
    }
 
    DType dtype() const noexcept { return dtype_; }
@@ -310,6 +310,33 @@ template <typename T> class TensorBase {
       storage_.swap(tmp.storage());
       shape_.swap(tmp.shape_);
       strides_.swap(tmp.strides_);
+   }
+
+   std::shared_ptr<ITensorStorage<T>>
+   make_storage(const std::vector<size_t> &shape, std::size_t count,
+                Device device, IAllocator *alloc) {
+      if (device.is_cpu()) {
+         return std::make_shared<NDTensorStorage<T>>(shape, count, device,
+                                                     alloc);
+      } else if (device.is_gpu() || device.is_cuda()) {
+         throw std::runtime_error("GPU is not supported yes");
+      } else {
+         throw std::runtime_error("Unsupported device");
+      }
+   }
+
+   std::shared_ptr<ITensorStorage<T>>
+   make_storage_with_data(const std::vector<size_t> &shape,
+                          std::vector<T> &data, Device device,
+                          IAllocator *alloc) {
+      if (device.is_cpu()) {
+         return std::make_shared<NDTensorStorage<T>>(shape, std::move(data),
+                                                     device, alloc);
+      } else if (device.is_gpu() || device.is_cuda()) {
+         throw std::runtime_error("GPU is not supported yes");
+      } else {
+         throw std::runtime_error("Unsupported device");
+      }
    }
 };
 

@@ -20,6 +20,7 @@ struct Device final {
    }
 
    bool is_cpu() const { return type_ == DeviceType::CPU; }
+   bool is_gpu() const { return type_ == DeviceType::CUDA; }
    bool is_cuda() const { return type_ == DeviceType::CUDA; }
    bool is_meta() const { return type_ == DeviceType::METAL; }
 
