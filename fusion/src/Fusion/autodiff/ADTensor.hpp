@@ -41,6 +41,14 @@
 
 #include "Fusion/alloc/DefaultAllocator.h"
 
+/* TODO: evaluate whether explicitly passing ADTensor around the engine is the optimal
+ *   pattern, another option would be that the engine only knows about ValueIDs and
+ * we use an abstract TensorHandle or ValueHandle to pass around the graph? I did attempt this but
+* it meant recasting the ops, would need to figure out object lifetimes and were to do that casting
+* maybe relevant. This might become important later for registering physics ops as they'll need to
+ * be orhtogonal to autodiff, e.g. they can't rely on the AD layer and would need to be registered
+ * elsewhere, most likely using TensorBase*/
+
 template <typename T> struct ADTensor;
 
 template <typename T>
