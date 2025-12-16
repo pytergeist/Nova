@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <vector>
 
-#include "Fusion/device/Device.hpp"
+#include "Fusion/device/Device.h"
 
 #include "TensorBuffer.h"
 

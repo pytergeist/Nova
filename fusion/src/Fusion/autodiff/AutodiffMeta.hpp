@@ -7,7 +7,7 @@
 #include <variant>
 #include <vector>
 
-#include "ADTypes.hpp"
+#include "ADTypes.h"
 
 // TODO: Create fixed size AutodiffMeta for hot paths
 

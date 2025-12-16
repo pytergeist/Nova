@@ -10,7 +10,7 @@
 #include "Fusion/TensorFactory.h"
 #include "Fusion/common/Checks.hpp"
 
-#include "ADTypes.hpp"
+#include "ADTypes.h"
 #include "AutodiffMeta.hpp"
 #include "Graph.hpp"
 #include "Sort.hpp"

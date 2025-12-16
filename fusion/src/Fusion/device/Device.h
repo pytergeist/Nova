@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "DeviceType.hpp"
+#include "DeviceType.h"
 #include "Fusion/common/Checks.hpp"
 #include "Fusion/common/Log.hpp"
 

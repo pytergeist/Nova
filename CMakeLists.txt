@@ -45,6 +45,8 @@ set(FUSION_INCLUDE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/fusion/src")
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
         ${FUSION_SRC_DIR}/core/Broadcast.cpp
+        ${FUSION_SRC_DIR}/alloc/BFCPoolAllocator.cpp
+        ${FUSION_SRC_DIR}/alloc/CPUSubAllocator.cpp
 )
 
 set_target_properties(fusion_core PROPERTIES POSITION_INDEPENDENT_CODE ON)

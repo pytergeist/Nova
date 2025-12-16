@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "ADTypes.hpp"
+#include "ADTypes.h"
 #include "AutodiffMeta.hpp"
 #include "NodeInterface.hpp"
 

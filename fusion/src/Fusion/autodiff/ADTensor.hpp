@@ -28,9 +28,9 @@
 #include "Fusion/ops/Reduce.hpp"
 #include "Fusion/ops/Transcendental.hpp"
 
-#include "Fusion/core/DType.hpp"
+#include "Fusion/core/DType.h"
 #include "Fusion/core/ElementWise.hpp"
-#include "Fusion/core/Layout.hpp"
+#include "Fusion/core/Layout.h"
 #include "Fusion/core/Reduce.hpp"
 #include "Fusion/core/TensorBase.hpp"
 #include "Fusion/cpu/SimdTags.hpp"

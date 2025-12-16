@@ -1,5 +1,5 @@
-#ifndef AD_TYPES_HPP_
-#define AD_TYPES_HPP_
+#ifndef AD_TYPES_H_
+#define AD_TYPES_H_
 
 #include <cstdint>
 #include <cstddef>
@@ -34,4 +34,4 @@ struct ConsumerInfo {
    std::size_t in_slot;
 };
 
-#endif // AD_TYPES_HPP_
+#endif // AD_TYPES_H_

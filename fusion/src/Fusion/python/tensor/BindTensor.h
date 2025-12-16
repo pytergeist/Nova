@@ -11,7 +11,7 @@
 #include "Fusion/Random.h"
 #include "Fusion/Tensor.h"
 #include "Fusion/TensorFactory.h"
-#include "Fusion/core/DType.hpp"
+#include "Fusion/core/DType.h"
 
 #include "Helpers.h"
 
