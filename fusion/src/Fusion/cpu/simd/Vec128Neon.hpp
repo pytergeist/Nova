@@ -12,6 +12,8 @@
 #endif
 
 #include "Fusion/common/Hints.hpp"
+#include "vec/Vec128NeonBackend.hpp"
+#include "vec/VecLoop.hpp"
 
 namespace simd {
 static constexpr std::size_t kNeonVectorBytes = 16;
@@ -325,154 +327,42 @@ inline void greater_than_equal_f32_neon(float *__restrict dst,
 
 inline void add_f32_neon(float *__restrict dst, const float *__restrict a,
                          const float *__restrict b, std::size_t n) {
-   std::size_t i = 0;
 
-   const float *__restrict pa = a;
-   const float *__restrict pb = b;
-   float *__restrict pd = dst;
-
-   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
-   FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
-   FUSION_ASSUME_ALIGNED(float, pd, 64);
-
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa);
-      pa += kBlock;
-      float32x4x4_t vb = vld1q_f32_x4(pb);
-      pb += kBlock;
-
-      va.val[0] = vaddq_f32(va.val[0], vb.val[0]);
-      va.val[1] = vaddq_f32(va.val[1], vb.val[1]);
-      va.val[2] = vaddq_f32(va.val[2], vb.val[2]);
-      va.val[3] = vaddq_f32(va.val[3], vb.val[3]);
-
-      vst1q_f32_x4(pd, va);
-      pd += kBlock;
-   }
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa);
-      pa += kStep;
-      float32x4_t vb = vld1q_f32(pb);
-      pb += kStep;
-      vst1q_f32(pd, vaddq_f32(va, vb));
-      pd += kStep;
-   }
-   for (; i < n; ++i)
-      *pd++ = *pa++ + *pb++;
+   using B = Neon128<float>;
+   return simd::detail::binary_contiguous_apply<float, B>(
+       dst, a, b, n,
+       [](B::vec vx, B::vec vy) -> B::vec { return B::add(vx, vy); },
+       [](float x, float y) -> float { return x + y; });
 }
 
 inline void sub_f32_neon(float *__restrict dst, const float *__restrict a,
                          const float *__restrict b, std::size_t n) {
-   std::size_t i = 0;
 
-   const float *__restrict pa = a;
-   const float *__restrict pb = b;
-   float *__restrict pd = dst;
-
-   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
-   FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
-   FUSION_ASSUME_ALIGNED(float, pd, 64);
-
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa);
-      pa += kBlock;
-      float32x4x4_t vb = vld1q_f32_x4(pb);
-      pb += kBlock;
-
-      va.val[0] = vsubq_f32(va.val[0], vb.val[0]);
-      va.val[1] = vsubq_f32(va.val[1], vb.val[1]);
-      va.val[2] = vsubq_f32(va.val[2], vb.val[2]);
-      va.val[3] = vsubq_f32(va.val[3], vb.val[3]);
-
-      vst1q_f32_x4(pd, va);
-      pd += kBlock;
-   }
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa);
-      pa += kStep;
-      float32x4_t vb = vld1q_f32(pb);
-      pb += kStep;
-      vst1q_f32(pd, vsubq_f32(va, vb));
-      pd += kStep;
-   }
-   for (; i < n; ++i)
-      *pd++ = *pa++ - *pb++;
+   using B = Neon128<float>;
+   return simd::detail::binary_contiguous_apply<float, B>(
+       dst, a, b, n,
+       [](B::vec vx, B::vec vy) -> B::vec { return B::sub(vx, vy); },
+       [](float x, float y) -> float { return x - y; });
 }
 
 inline void mul_f32_neon(float *__restrict dst, const float *__restrict a,
                          const float *__restrict b, std::size_t n) {
-   std::size_t i = 0;
 
-   const float *__restrict pa = a;
-   const float *__restrict pb = b;
-   float *__restrict pd = dst;
-
-   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
-   FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
-   FUSION_ASSUME_ALIGNED(float, pd, 64);
-
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa);
-      pa += kBlock;
-      float32x4x4_t vb = vld1q_f32_x4(pb);
-      pb += kBlock;
-
-      va.val[0] = vmulq_f32(va.val[0], vb.val[0]);
-      va.val[1] = vmulq_f32(va.val[1], vb.val[1]);
-      va.val[2] = vmulq_f32(va.val[2], vb.val[2]);
-      va.val[3] = vmulq_f32(va.val[3], vb.val[3]);
-
-      vst1q_f32_x4(pd, va);
-      pd += kBlock;
-   }
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa);
-      pa += kStep;
-      float32x4_t vb = vld1q_f32(pb);
-      pb += kStep;
-      vst1q_f32(pd, vmulq_f32(va, vb));
-      pd += kStep;
-   }
-   for (; i < n; ++i)
-      *pd++ = *pa++ * *pb++;
+   using B = Neon128<float>;
+   return simd::detail::binary_contiguous_apply<float, B>(
+       dst, a, b, n,
+       [](B::vec vx, B::vec vy) -> B::vec { return B::mul(vx, vy); },
+       [](float x, float y) -> float { return x * y; });
 }
 
 inline void div_f32_neon(float *__restrict dst, const float *__restrict a,
                          const float *__restrict b, std::size_t n) {
-   std::size_t i = 0;
 
-   const float *__restrict pa = a;
-   const float *__restrict pb = b;
-   float *__restrict pd = dst;
-
-   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
-   FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
-   FUSION_ASSUME_ALIGNED(float, pd, 64);
-
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa);
-      pa += kBlock;
-      float32x4x4_t vb = vld1q_f32_x4(pb);
-      pb += kBlock;
-
-      va.val[0] = vdivq_f32(va.val[0], vb.val[0]);
-      va.val[1] = vdivq_f32(va.val[1], vb.val[1]);
-      va.val[2] = vdivq_f32(va.val[2], vb.val[2]);
-      va.val[3] = vdivq_f32(va.val[3], vb.val[3]);
-
-      vst1q_f32_x4(pd, va);
-      pd += kBlock;
-   }
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa);
-      pa += kStep;
-      float32x4_t vb = vld1q_f32(pb);
-      pb += kStep;
-      vst1q_f32(pd, vdivq_f32(va, vb));
-      pd += kStep;
-   }
-   for (; i < n; ++i)
-      *pd++ = *pa++ / *pb++;
+   using B = Neon128<float>;
+   return simd::detail::binary_contiguous_apply<float, B>(
+       dst, a, b, n,
+       [](B::vec vx, B::vec vy) -> B::vec { return B::div(vx, vy); },
+       [](float x, float y) -> float { return x / y; });
 }
 
 // =========================

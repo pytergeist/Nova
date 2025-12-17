@@ -1,0 +1,38 @@
+#ifndef VEC_128_NEON_HPP
+#define VEC_128_NEON_HPP
+
+#include <cstddef>
+
+#if defined(FUSION_ENABLE_NEON) &&                                             \
+    (defined(__ARM_NEON) || defined(__ARM_NEON__))
+#include <arm_neon.h>
+#endif
+
+template <typename T> struct Neon128;
+
+template <> struct Neon128<float> {
+   using U = float;
+   using vec = float32x4_t;
+   using wide_vec = float32x4x4_t;
+
+   static constexpr std::size_t kVectorBytes = 16;
+   static constexpr std::size_t kLanes = kVectorBytes / sizeof(U);
+   static constexpr std::size_t kUnroll = 4;
+   static constexpr std::size_t kBlock = kUnroll * kLanes; // 16
+
+   static constexpr std::size_t kStepVec = kBlock;
+   static constexpr std::size_t kStep = kUnroll;
+
+   static wide_vec wide_load(const U *x) { return vld1q_f32_x4(x); }
+   static vec load(const U *x) { return vld1q_f32(x); }
+
+   static void wide_store(U *dst, wide_vec x) { vst1q_f32_x4(dst, x); }
+   static void store(U *dst, vec x) { vst1q_f32(dst, x); }
+
+   static vec add(vec x, vec y) { return vaddq_f32(x, y); }
+   static vec sub(vec x, vec y) { return vsubq_f32(x, y); }
+   static vec mul(vec x, vec y) { return vmulq_f32(x, y); }
+   static vec div(vec x, vec y) { return vdivq_f32(x, y); }
+};
+
+#endif // VEC_128_NEON_HPP
