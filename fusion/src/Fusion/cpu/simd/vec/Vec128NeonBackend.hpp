@@ -34,11 +34,12 @@ template <> struct Neon128<float> {
    static vec mul(vec x, vec y) { return vmulq_f32(x, y); }
    static vec div(vec x, vec y) { return vdivq_f32(x, y); }
 
+   static vec maximum(vec x, vec y) { return vmaxq_f32(x, y); }
+   static vec pow(vec x, vec y) { return Sleef_powf4_u10(x, y); }
+
    static vec sqrt(vec x) { return vsqrtq_f32(x); }
    static vec log(vec x) { return Sleef_logf4_u10(x); }
    static vec exp(vec x) { return Sleef_expf4_u10(x); }
-
-
 };
 
 #endif // VEC_128_NEON_HPP

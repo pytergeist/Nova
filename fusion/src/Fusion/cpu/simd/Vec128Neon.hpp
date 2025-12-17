@@ -81,100 +81,51 @@ inline void sum_f32_neon(float *__restrict dst, const float *__restrict a,
 #endif
 }
 
-inline void sqrt_f32_neon(float *__restrict dst, const float *__restrict a,  std::size_t n) {
+inline void sqrt_f32_neon(float *__restrict dst, const float *__restrict a,
+                          std::size_t n) {
 
    using B = Neon128<float>;
    return simd::detail::unary_contiguous_apply<float, B>(
-       dst, a, n,
-       [](B::vec vx) -> B::vec { return B::sqrt(vx); },
+       dst, a, n, [](B::vec vx) -> B::vec { return B::sqrt(vx); },
        [](float x) -> float { return std::sqrt(x); });
 }
 
-inline void exp_f32_neon(float *__restrict dst, const float *__restrict a,  std::size_t n) {
+inline void exp_f32_neon(float *__restrict dst, const float *__restrict a,
+                         std::size_t n) {
 
    using B = Neon128<float>;
    return simd::detail::unary_contiguous_apply<float, B>(
-       dst, a, n,
-       [](B::vec vx) -> B::vec { return B::exp(vx); },
+       dst, a, n, [](B::vec vx) -> B::vec { return B::exp(vx); },
        [](float x) -> float { return std::exp(x); });
 }
 
-
-inline void log_f32_neon(float *__restrict dst, const float *__restrict a,  std::size_t n) {
+inline void log_f32_neon(float *__restrict dst, const float *__restrict a,
+                         std::size_t n) {
 
    using B = Neon128<float>;
    return simd::detail::unary_contiguous_apply<float, B>(
-       dst, a, n,
-       [](B::vec vx) -> B::vec { return B::log(vx); },
+       dst, a, n, [](B::vec vx) -> B::vec { return B::log(vx); },
        [](float x) -> float { return std::log(x); });
 }
 
-
 inline void pow_f32_neon(float *__restrict dst, const float *__restrict a,
                          const float *__restrict b, std::size_t n) {
-   std::size_t i = 0;
 
-   const float *__restrict pa = a;
-   const float *__restrict pb = b;
-   float *__restrict pd = dst;
-
-   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
-   FUSION_CONST_ASSUME_ALIGNED(float, pb, 64);
-   FUSION_ASSUME_ALIGNED(float, pd, 64);
-
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa);
-      pa += kBlock;
-      float32x4x4_t vb = vld1q_f32_x4(pb);
-      pb += kBlock;
-
-      va.val[0] = Sleef_powf4_u10(va.val[0], vb.val[0]);
-      va.val[1] = Sleef_powf4_u10(va.val[1], vb.val[1]);
-      va.val[2] = Sleef_powf4_u10(va.val[2], vb.val[2]);
-      va.val[3] = Sleef_powf4_u10(va.val[3], vb.val[3]);
-
-      vst1q_f32_x4(pd, va);
-      pd += kBlock;
-   }
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa);
-      pa += kStep;
-      float32x4_t vb = vld1q_f32(pb);
-      pb += kStep;
-      vst1q_f32(pd, Sleef_powf4_u10(va, vb));
-      pd += kStep;
-   }
-   for (; i < n; ++i)
-      *pd++ = std::pow(*pa++, *pb++);
+   using B = Neon128<float>;
+   return simd::detail::binary_contiguous_apply<float, B>(
+       dst, a, b, n,
+       [](B::vec vx, B::vec vy) -> B::vec { return B::pow(vx, vy); },
+       [](float x, float y) -> float { return std::pow(x, y); });
 }
 
 inline void maximum_f32_neon(float *__restrict dst, const float *__restrict a,
                              const float *__restrict b, std::size_t n) {
-   std::size_t i = 0;
 
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t a0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t a1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t a2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t a3 = vld1q_f32(a + i + 3 * kF32Lanes);
-
-      float32x4_t b0 = vld1q_f32(b + i + 0 * kF32Lanes);
-      float32x4_t b1 = vld1q_f32(b + i + 1 * kF32Lanes);
-      float32x4_t b2 = vld1q_f32(b + i + 2 * kF32Lanes);
-      float32x4_t b3 = vld1q_f32(b + i + 3 * kF32Lanes);
-
-      vst1q_f32(dst + i + 0 * kF32Lanes, vmaxq_f32(a0, b0));
-      vst1q_f32(dst + i + 1 * kF32Lanes, vmaxq_f32(a1, b1));
-      vst1q_f32(dst + i + 2 * kF32Lanes, vmaxq_f32(a2, b2));
-      vst1q_f32(dst + i + 3 * kF32Lanes, vmaxq_f32(a3, b3));
-   }
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(a + i);
-      float32x4_t vb = vld1q_f32(b + i);
-      vst1q_f32(dst + i, vmaxq_f32(va, vb));
-   }
-   for (; i < n; ++i)
-      dst[i] = a[i] > b[i] ? a[i] : b[i];
+   using B = Neon128<float>;
+   return simd::detail::binary_contiguous_apply<float, B>(
+       dst, a, b, n,
+       [](B::vec vx, B::vec vy) -> B::vec { return B::maximum(vx, vy); },
+       [](float x, float y) -> float { return x > y ? x : y; });
 }
 
 inline void greater_than_f32_neon(float *__restrict dst,
