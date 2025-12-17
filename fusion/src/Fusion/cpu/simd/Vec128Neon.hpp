@@ -81,101 +81,34 @@ inline void sum_f32_neon(float *__restrict dst, const float *__restrict a,
 #endif
 }
 
-inline void sqrt_f32_neon(float *__restrict dst, const float *__restrict a,
-                          std::size_t n) {
-   std::size_t i = 0;
+inline void sqrt_f32_neon(float *__restrict dst, const float *__restrict a,  std::size_t n) {
 
-   const float *__restrict pa = a;
-   float *__restrict pd = dst;
-
-   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
-   FUSION_ASSUME_ALIGNED(float, pd, 64);
-
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa);
-      pa += kBlock;
-
-      va.val[0] = Sleef_sqrtf4_u05(va.val[0]);
-      va.val[1] = Sleef_sqrtf4_u05(va.val[1]);
-      va.val[2] = Sleef_sqrtf4_u05(va.val[2]);
-      va.val[3] = Sleef_sqrtf4_u05(va.val[3]);
-
-      vst1q_f32_x4(pd, va);
-      pd += kBlock;
-   }
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa);
-      pa += kStep;
-      vst1q_f32(pd, Sleef_sqrtf4_u05(va));
-      pd += kStep;
-   }
-   for (; i < n; ++i)
-      *pd++ = std::sqrt(*pa++);
+   using B = Neon128<float>;
+   return simd::detail::unary_contiguous_apply<float, B>(
+       dst, a, n,
+       [](B::vec vx) -> B::vec { return B::sqrt(vx); },
+       [](float x) -> float { return std::sqrt(x); });
 }
 
-inline void exp_f32_neon(float *__restrict dst, const float *__restrict a,
-                         std::size_t n) {
-   std::size_t i = 0;
+inline void exp_f32_neon(float *__restrict dst, const float *__restrict a,  std::size_t n) {
 
-   const float *__restrict pa = a;
-   float *__restrict pd = dst;
-
-   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
-   FUSION_ASSUME_ALIGNED(float, pd, 64);
-
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa);
-      pa += kBlock;
-
-      va.val[0] = Sleef_expf4_u10(va.val[0]);
-      va.val[1] = Sleef_expf4_u10(va.val[1]);
-      va.val[2] = Sleef_expf4_u10(va.val[2]);
-      va.val[3] = Sleef_expf4_u10(va.val[3]);
-
-      vst1q_f32_x4(pd, va);
-      pd += kBlock;
-   }
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa);
-      pa += kStep;
-      vst1q_f32(pd, Sleef_expf4_u10(va));
-      pd += kStep;
-   }
-   for (; i < n; ++i)
-      *pd++ = std::exp(*pa++);
+   using B = Neon128<float>;
+   return simd::detail::unary_contiguous_apply<float, B>(
+       dst, a, n,
+       [](B::vec vx) -> B::vec { return B::exp(vx); },
+       [](float x) -> float { return std::exp(x); });
 }
 
-inline void log_f32_neon(float *__restrict dst, const float *__restrict a,
-                         std::size_t n) {
-   std::size_t i = 0;
 
-   const float *__restrict pa = a;
-   float *__restrict pd = dst;
+inline void log_f32_neon(float *__restrict dst, const float *__restrict a,  std::size_t n) {
 
-   FUSION_CONST_ASSUME_ALIGNED(float, pa, 64);
-   FUSION_ASSUME_ALIGNED(float, pd, 64);
-
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4x4_t va = vld1q_f32_x4(pa);
-      pa += kBlock;
-
-      va.val[0] = Sleef_logf4_u10(va.val[0]);
-      va.val[1] = Sleef_logf4_u10(va.val[1]);
-      va.val[2] = Sleef_logf4_u10(va.val[2]);
-      va.val[3] = Sleef_logf4_u10(va.val[3]);
-
-      vst1q_f32_x4(pd, va);
-      pd += kBlock;
-   }
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t va = vld1q_f32(pa);
-      pa += kStep;
-      vst1q_f32(pd, Sleef_logf4_u10(va));
-      pd += kStep;
-   }
-   for (; i < n; ++i)
-      *pd++ = std::log(*pa++);
+   using B = Neon128<float>;
+   return simd::detail::unary_contiguous_apply<float, B>(
+       dst, a, n,
+       [](B::vec vx) -> B::vec { return B::log(vx); },
+       [](float x) -> float { return std::log(x); });
 }
+
 
 inline void pow_f32_neon(float *__restrict dst, const float *__restrict a,
                          const float *__restrict b, std::size_t n) {
