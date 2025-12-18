@@ -6,6 +6,8 @@
 #include "SimdTags.hpp"
 #include "simd/Vec128Neon.hpp"
 
+/* TODO: evaluate the use of neon_scalar for non-commutative operations */
+
 template <class Tag, typename T> struct simd_traits {
    static constexpr bool available = false;
 };
@@ -19,9 +21,9 @@ template <> struct simd_traits<AddSIMD, float> {
    static void execute_contiguous(const float *a, const float *b, float *out,
                                   std::size_t n, bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::add_f32_neon_scalar_rhs(out, a, *b, n);
+         simd::add_f32_neon_scalar(out, a, *b, n);
       } else if (a_scalar) {
-         simd::add_f32_neon_scalar_rhs(out, b, *a, n);
+         simd::add_f32_neon_scalar(out, b, *a, n);
       } else {
          simd::add_f32_neon(out, a, b, n);
       }
@@ -35,9 +37,9 @@ template <> struct simd_traits<SubtractSIMD, float> {
    static void execute_contiguous(const float *a, const float *b, float *out,
                                   std::size_t n, bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::sub_f32_neon_scalar_rhs(out, a, *b, n);
+         simd::sub_f32_neon_scalar(out, a, *b, n);
       } else if (a_scalar) {
-         simd::sub_f32_neon_scalar_rhs(out, b, *a, n);
+         simd::sub_f32_neon_scalar(out, b, *a, n);
       } else {
          simd::sub_f32_neon(out, a, b, n);
       }
@@ -51,9 +53,9 @@ template <> struct simd_traits<DivideSIMD, float> {
    static void execute_contiguous(const float *a, const float *b, float *out,
                                   std::size_t n, bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::div_f32_neon_scalar_rhs(out, a, *b, n);
+         simd::div_f32_neon_scalar(out, a, *b, n);
       } else if (a_scalar) {
-         simd::div_f32_neon_scalar_rhs(out, b, *a, n);
+         simd::div_f32_neon_scalar(out, b, *a, n);
       } else {
          simd::div_f32_neon(out, a, b, n);
       }
@@ -67,9 +69,9 @@ template <> struct simd_traits<MultiplySIMD, float> {
    static void execute_contiguous(const float *a, const float *b, float *out,
                                   std::size_t n, bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::mul_f32_neon_scalar_rhs(out, a, *b, n);
+         simd::mul_f32_neon_scalar(out, a, *b, n);
       } else if (a_scalar) {
-         simd::mul_f32_neon_scalar_rhs(out, b, *a, n);
+         simd::mul_f32_neon_scalar(out, b, *a, n);
       } else {
          simd::mul_f32_neon(out, a, b, n);
       }
@@ -83,10 +85,9 @@ template <> struct simd_traits<MaximumSIMD, float> {
    static void execute_contiguous(const float *a, const float *b, float *out,
                                   std::size_t n, bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::maximum_f32_neon_scalar_rhs(out, a, *b, n);
+         simd::maximum_f32_neon_scalar(out, a, *b, n);
       } else if (a_scalar) {
-         simd::maximum_f32_neon_scalar_rhs(out, b, *a,
-                                           n); // TODO: rename from rhs
+         simd::maximum_f32_neon_scalar(out, b, *a, n);
       } else {
          simd::maximum_f32_neon(out, a, b, n);
       }
@@ -100,9 +101,9 @@ template <> struct simd_traits<PowerSIMD, float> {
    static void execute_contiguous(const float *a, const float *b, float *out,
                                   std::size_t n, bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::pow_f32_neon_scalar_rhs(out, a, *b, n);
+         simd::pow_f32_neon_scalar(out, a, *b, n);
       } else if (a_scalar) {
-         simd::pow_f32_neon_scalar_rhs(out, b, *a, n);
+         simd::pow_f32_neon_scalar(out, b, *a, n);
       } else {
          simd::pow_f32_neon(out, a, b, n);
       }
