@@ -1,5 +1,5 @@
-#ifndef VEC_LOOP_HPP
-#define VEC_LOOP_HPP
+#ifndef FUSION_CPU_VEC_LOOP_HPP
+#define FUSION_CPU_VEC_LOOP_HPP
 
 #include <cstddef>
 
@@ -148,4 +148,4 @@ void unary_contiguous_apply(T *__restrict dst, const T *__restrict a,
 
 } // namespace simd
 
-#endif // VEC_LOOP_HPP
+#endif // FUSION_CPU_VEC_LOOP_HPP

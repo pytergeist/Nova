@@ -1,5 +1,5 @@
-#ifndef NEW_VEC_128_NEON_HPP
-#define NEW_VEC_128_NEON_HPP
+#ifndef FUSION_CPU_NEON128_BACKEND_HPP
+#define FUSION_CPU_NEON128_BACKEND_HPP
 
 #include <cstddef>
 
@@ -55,4 +55,4 @@ template <> struct Neon128<float> {
    static vec exp(vec x) { return Sleef_expf4_u10(x); }
 };
 
-#endif // NEW_VEC_128_NEON_HPP
+#endif // FUSION_CPU_NEON128_BACKEND_HPP

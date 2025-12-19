@@ -1,10 +1,8 @@
-#ifndef SIMD_TAGS_HPP
-#define SIMD_TAGS_HPP
+#ifndef FUSION_CPU_SIMD_TAGS_HPP
+#define FUSION_CPU_SIMD_TAGS_HPP
 
 #include <cmath>
 #include <type_traits>
-
-#pragma once
 
 struct AddSIMD {
    template <typename U> constexpr U operator()(U a, U b) const noexcept {
@@ -78,4 +76,4 @@ struct GlobalSumSIMD {
    }
 };
 
-#endif // SIMD_TAGS_HPP
+#endif // FUSION_CPU_SIMD_TAGS_HPP

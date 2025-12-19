@@ -1,19 +1,19 @@
-#ifndef FUSION_VEC128_NEON_HPP
-#define FUSION_VEC128_NEON_HPP
+#ifndef FUSION_CPU_VEC_NEON128_HPP
+#define FUSION_CPU_VEC_NEON128_HPP
 
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <sleef.h> // NOLINT
 
-#if defined(FUSION_ENABLE_NEON) &&                                             \
-    (defined(__ARM_NEON) || defined(__ARM_NEON__))
-#include <arm_neon.h>
+#if defined(FUSION_ENABLE_contiguous) &&                                       \
+    (defined(__ARM_contiguous) || defined(__ARM_contiguous__))
+#include <arm_contiguous.h>
 #endif
 
 #include "Fusion/common/Hints.hpp"
-#include "vec/Vec128NeonBackend.hpp"
-#include "vec/VecLoop.hpp"
+#include "backend/Neon128Backend.hpp"
+#include "backend/VecLoop.hpp"
 
 namespace simd {
 // TODO: remove once sum fixed
@@ -29,18 +29,18 @@ static constexpr std::size_t kStep = kUnroll;
 // TODO: we DO NOT support lhs side scalar operations - MAKE SURE you deal with
 // non-commutative OPS!
 
-#if defined(FUSION_ENABLE_NEON) &&                                             \
-    (defined(__ARM_NEON) || defined(__ARM_NEON__))
+#if defined(FUSION_ENABLE_contiguous) &&                                       \
+    (defined(__ARM_contiguous) || defined(__ARM_contiguous__))
 // =========================
 // Core contiguous kernels
 // =========================
 // All assume: a, b, dst are contiguous T buffers of length n.
 
 template <typename T> // TODO: fix this impl
-inline void sum_f32_neon(T *__restrict dst, const T *__restrict a,
-                         std::size_t n) {
-#if defined(FUSION_ENABLE_NEON) &&                                             \
-    (defined(__ARM_NEON) || defined(__ARM_NEON__))
+inline void sum_contiguous(T *__restrict dst, const T *__restrict a,
+                           std::size_t n) {
+#if defined(FUSION_ENABLE_contiguous) &&                                       \
+    (defined(__ARM_contiguous) || defined(__ARM_contiguous__))
    std::size_t i = 0;
    float32x4_t acc0 = vdupq_n_f32(0.0f);
    float32x4_t acc1 = vdupq_n_f32(0.0f);
@@ -87,8 +87,8 @@ inline void sum_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void sqrt_f32_neon(T *__restrict dst, const T *__restrict a,
-                          std::size_t n) {
+inline void sqrt_contiguous(T *__restrict dst, const T *__restrict a,
+                            std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::unary_contiguous_apply<T, B>(
@@ -97,8 +97,8 @@ inline void sqrt_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void exp_f32_neon(T *__restrict dst, const T *__restrict a,
-                         std::size_t n) {
+inline void exp_contiguous(T *__restrict dst, const T *__restrict a,
+                           std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::unary_contiguous_apply<T, B>(
@@ -107,8 +107,8 @@ inline void exp_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void log_f32_neon(T *__restrict dst, const T *__restrict a,
-                         std::size_t n) {
+inline void log_contiguous(T *__restrict dst, const T *__restrict a,
+                           std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::unary_contiguous_apply<T, B>(
@@ -117,8 +117,8 @@ inline void log_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void pow_f32_neon(T *__restrict dst, const T *__restrict a,
-                         const T *__restrict b, std::size_t n) {
+inline void pow_contiguous(T *__restrict dst, const T *__restrict a,
+                           const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_apply<T, B>(
@@ -128,8 +128,8 @@ inline void pow_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void maximum_f32_neon(T *__restrict dst, const T *__restrict a,
-                             const T *__restrict b, std::size_t n) {
+inline void maximum_contiguous(T *__restrict dst, const T *__restrict a,
+                               const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_apply<T, B>(
@@ -139,8 +139,8 @@ inline void maximum_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void greater_than_f32_neon(T *__restrict dst, const T *__restrict a,
-                                  const T *__restrict b, std::size_t n) {
+inline void greater_than_contiguous(T *__restrict dst, const T *__restrict a,
+                                    const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_apply<T, B>(
@@ -153,9 +153,9 @@ inline void greater_than_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void greater_than_equal_f32_neon(T *__restrict dst,
-                                        const T *__restrict a,
-                                        const T *__restrict b, std::size_t n) {
+inline void
+greater_than_equal_contiguous(T *__restrict dst, const T *__restrict a,
+                              const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_apply<T, B>(
@@ -168,8 +168,8 @@ inline void greater_than_equal_f32_neon(T *__restrict dst,
 }
 
 template <typename T>
-inline void add_f32_neon(T *__restrict dst, const T *__restrict a,
-                         const T *__restrict b, std::size_t n) {
+inline void add_contiguous(T *__restrict dst, const T *__restrict a,
+                           const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_apply<T, B>(
@@ -179,8 +179,8 @@ inline void add_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void sub_f32_neon(T *__restrict dst, const T *__restrict a,
-                         const T *__restrict b, std::size_t n) {
+inline void sub_contiguous(T *__restrict dst, const T *__restrict a,
+                           const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_apply<T, B>(
@@ -190,8 +190,8 @@ inline void sub_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void mul_f32_neon(T *__restrict dst, const T *__restrict a,
-                         const T *__restrict b, std::size_t n) {
+inline void mul_contiguous(T *__restrict dst, const T *__restrict a,
+                           const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_apply<T, B>(
@@ -201,8 +201,8 @@ inline void mul_f32_neon(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void div_f32_neon(T *__restrict dst, const T *__restrict a,
-                         const T *__restrict b, std::size_t n) {
+inline void div_contiguous(T *__restrict dst, const T *__restrict a,
+                           const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_apply<T, B>(
@@ -219,9 +219,9 @@ inline void div_f32_neon(T *__restrict dst, const T *__restrict a,
 // or just swap operands in the caller for commutative ops.
 
 template <typename T>
-inline void greater_than_f32_neon_scalar(T *__restrict dst,
-                                         const T *__restrict a, const T b,
-                                         std::size_t n) {
+inline void greater_than_contiguous_scalar(T *__restrict dst,
+                                           const T *__restrict a, const T b,
+                                           std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_scalar_apply<T, B>(
@@ -234,9 +234,9 @@ inline void greater_than_f32_neon_scalar(T *__restrict dst,
 }
 
 template <typename T>
-inline void greater_than_equal_f32_neon_scalar(T *__restrict dst,
-                                               const T *__restrict a, const T b,
-                                               std::size_t n) {
+inline void greater_than_equal_contiguous_scalar(T *__restrict dst,
+                                                 const T *__restrict a,
+                                                 const T b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_scalar_apply<T, B>(
@@ -249,8 +249,8 @@ inline void greater_than_equal_f32_neon_scalar(T *__restrict dst,
 }
 
 template <typename T>
-inline void pow_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
-                                const T b, std::size_t n) {
+inline void pow_contiguous_scalar(T *__restrict dst, const T *__restrict a,
+                                  const T b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_scalar_apply<T, B>(
@@ -260,8 +260,8 @@ inline void pow_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void maximum_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
-                                    const T b, std::size_t n) {
+inline void maximum_contiguous_scalar(T *__restrict dst, const T *__restrict a,
+                                      const T b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_scalar_apply<T, B>(
@@ -274,8 +274,8 @@ inline void maximum_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void add_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
-                                const T b, std::size_t n) {
+inline void add_contiguous_scalar(T *__restrict dst, const T *__restrict a,
+                                  const T b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_scalar_apply<T, B>(
@@ -285,8 +285,8 @@ inline void add_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void sub_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
-                                const T b, std::size_t n) {
+inline void sub_contiguous_scalar(T *__restrict dst, const T *__restrict a,
+                                  const T b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_scalar_apply<T, B>(
@@ -296,8 +296,8 @@ inline void sub_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void mul_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
-                                const T b, std::size_t n) {
+inline void mul_contiguous_scalar(T *__restrict dst, const T *__restrict a,
+                                  const T b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_scalar_apply<T, B>(
@@ -307,8 +307,8 @@ inline void mul_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
 }
 
 template <typename T>
-inline void div_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
-                                const T b, std::size_t n) {
+inline void div_contiguous_scalar(T *__restrict dst, const T *__restrict a,
+                                  const T b, std::size_t n) {
 
    using B = Neon128<T>;
    return simd::detail::binary_contiguous_scalar_apply<T, B>(
@@ -323,4 +323,4 @@ inline void div_f32_neon_scalar(T *__restrict dst, const T *__restrict a,
 #endif
 } // namespace simd
 
-#endif // FUSION_VEC128_NEON_HPP
+#endif // FUSION_CPU_VEC_NEON128_HPP
