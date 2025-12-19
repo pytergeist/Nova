@@ -70,7 +70,7 @@ void binary_contiguous_scalar_apply(T *__restrict dst, const T *__restrict a,
    constexpr std::size_t kStep = B::kStep;
 
    const T *__restrict pa = a;
-   vec vb = vdupq_n_f32(b);
+   vec vb = B::duplicate(b);
    T *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(T, pa, 64);
