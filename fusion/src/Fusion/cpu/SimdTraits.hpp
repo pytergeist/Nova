@@ -21,11 +21,11 @@ template <typename T> struct simd_traits<AddSIMD, T> {
    static void execute_contiguous(const T *a, const T *b, T *out, std::size_t n,
                                   bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::add_neon_scalar<T>(out, a, *b, n);
+         simd::add_contiguous_scalar<T>(out, a, *b, n);
       } else if (a_scalar) {
-         simd::add_neon_scalar<T>(out, b, *a, n);
+         simd::add_contiguous_scalar<T>(out, b, *a, n);
       } else {
-         simd::add_neon<T>(out, a, b, n);
+         simd::add_contiguous<T>(out, a, b, n);
       }
    }
 };
@@ -37,11 +37,11 @@ template <typename T> struct simd_traits<SubtractSIMD, T> {
    static void execute_contiguous(const T *a, const T *b, T *out, std::size_t n,
                                   bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::sub_neon_scalar<T>(out, a, *b, n);
+         simd::sub_contiguous_scalar<T>(out, a, *b, n);
       } else if (a_scalar) {
-         simd::sub_neon_scalar<T>(out, b, *a, n);
+         simd::sub_contiguous_scalar<T>(out, b, *a, n);
       } else {
-         simd::sub_neon<T>(out, a, b, n);
+         simd::sub_contiguous<T>(out, a, b, n);
       }
    }
 };
@@ -53,11 +53,11 @@ template <typename T> struct simd_traits<DivideSIMD, T> {
    static void execute_contiguous(const T *a, const T *b, T *out, std::size_t n,
                                   bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::div_neon_scalar<T>(out, a, *b, n);
+         simd::div_contiguous_scalar<T>(out, a, *b, n);
       } else if (a_scalar) {
-         simd::div_neon_scalar<T>(out, b, *a, n);
+         simd::div_contiguous_scalar<T>(out, b, *a, n);
       } else {
-         simd::div_neon<T>(out, a, b, n);
+         simd::div_contiguous<T>(out, a, b, n);
       }
    }
 };
@@ -69,11 +69,11 @@ template <typename T> struct simd_traits<MultiplySIMD, T> {
    static void execute_contiguous(const T *a, const T *b, T *out, std::size_t n,
                                   bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::mul_neon_scalar<T>(out, a, *b, n);
+         simd::mul_contiguous_scalar<T>(out, a, *b, n);
       } else if (a_scalar) {
-         simd::mul_neon_scalar<T>(out, b, *a, n);
+         simd::mul_contiguous_scalar<T>(out, b, *a, n);
       } else {
-         simd::mul_neon<T>(out, a, b, n);
+         simd::mul_contiguous<T>(out, a, b, n);
       }
    }
 };
@@ -85,11 +85,11 @@ template <typename T> struct simd_traits<MaximumSIMD, T> {
    static void execute_contiguous(const T *a, const T *b, T *out, std::size_t n,
                                   bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::maximum_neon_scalar<T>(out, a, *b, n);
+         simd::maximum_contiguous_scalar<T>(out, a, *b, n);
       } else if (a_scalar) {
-         simd::maximum_neon_scalar<T>(out, b, *a, n);
+         simd::maximum_contiguous_scalar<T>(out, b, *a, n);
       } else {
-         simd::maximum_neon<T>(out, a, b, n);
+         simd::maximum_contiguous<T>(out, a, b, n);
       }
    }
 };
@@ -101,11 +101,11 @@ template <typename T> struct simd_traits<PowerSIMD, T> {
    static void execute_contiguous(const T *a, const T *b, T *out, std::size_t n,
                                   bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::pow_neon_scalar<T>(out, a, *b, n);
+         simd::pow_contiguous_scalar<T>(out, a, *b, n);
       } else if (a_scalar) {
-         simd::pow_neon_scalar<T>(out, b, *a, n);
+         simd::pow_contiguous_scalar<T>(out, b, *a, n);
       } else {
-         simd::pow_neon<T>(out, a, b, n);
+         simd::pow_contiguous<T>(out, a, b, n);
       }
    }
 };
@@ -117,11 +117,11 @@ template <typename T> struct simd_traits<GreaterThanEqualSIMD, T> {
    static void execute_contiguous(const T *a, const T *b, T *out, std::size_t n,
                                   bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::greater_than_equal_neon_scalar<T>(out, a, *b, n);
+         simd::greater_than_equal_contiguous_scalar<T>(out, a, *b, n);
       } else if (a_scalar) {
-         simd::greater_than_equal_neon_scalar<T>(out, b, *a, n);
+         simd::greater_than_equal_contiguous_scalar<T>(out, b, *a, n);
       } else {
-         simd::greater_than_equal_neon<T>(out, a, b, n);
+         simd::greater_than_equal_contiguous<T>(out, a, b, n);
       }
    }
 };
@@ -133,11 +133,11 @@ template <typename T> struct simd_traits<GreaterThanSIMD, T> {
    static void execute_contiguous(const T *a, const T *b, T *out, std::size_t n,
                                   bool a_scalar, bool b_scalar) {
       if (b_scalar) {
-         simd::greater_than_neon_scalar<T>(out, a, *b, n);
+         simd::greater_than_contiguous_scalar<T>(out, a, *b, n);
       } else if (a_scalar) {
-         simd::greater_than_neon_scalar<T>(out, b, *a, n);
+         simd::greater_than_contiguous_scalar<T>(out, b, *a, n);
       } else {
-         simd::greater_than_neon<T>(out, a, b, n);
+         simd::greater_than_contiguous<T>(out, a, b, n);
       }
    }
 };
@@ -148,7 +148,7 @@ template <typename T> struct simd_traits<ExponentialSIMD, T> {
 
    static void execute_contiguous(const T *a, T *out, std::size_t n,
                                   bool a_scalar) {
-      simd::exp_neon<T>(out, a, n);
+      simd::exp_contiguous<T>(out, a, n);
    }
 };
 
@@ -158,7 +158,7 @@ template <typename T> struct simd_traits<NaturalLogSIMD, T> {
 
    static void execute_contiguous(const T *a, T *out, std::size_t n,
                                   bool a_scalar) {
-      simd::log_neon<T>(out, a, n);
+      simd::log_contiguous<T>(out, a, n);
    }
 };
 
@@ -168,7 +168,7 @@ template <typename T> struct simd_traits<SqrtSIMD, T> {
 
    static void execute_contiguous(const T *a, T *out, std::size_t n,
                                   bool a_scalar) {
-      simd::sqrt_neon<T>(out, a, n);
+      simd::sqrt_contiguous<T>(out, a, n);
    }
 };
 
@@ -178,7 +178,7 @@ template <typename T> struct simd_traits<GlobalSumSIMD, T> {
 
    static T reduce(const T *a, std::size_t n) {
       T acc = T(0.0);
-      simd::sum_neon<T>(&acc, a, n);
+      simd::sum_contiguous<T>(&acc, a, n);
       return acc;
    }
 };

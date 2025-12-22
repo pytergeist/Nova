@@ -6,9 +6,9 @@
 #include <cstdint>
 #include <sleef.h> // NOLINT
 
-#if defined(FUSION_ENABLE_contiguous) &&                                       \
-    (defined(__ARM_contiguous) || defined(__ARM_contiguous__))
-#include <arm_contiguous.h>
+#if defined(FUSION_ENABLE_NEON) &&                                             \
+    (defined(__ARM_NEON) || defined(__ARM_NEON__))
+#include <arm_neon.h>
 #endif
 
 #include "Fusion/common/Hints.hpp"
@@ -29,8 +29,8 @@ static constexpr std::size_t kStep = kUnroll;
 // TODO: we DO NOT support lhs side scalar operations - MAKE SURE you deal with
 // non-commutative OPS!
 
-#if defined(FUSION_ENABLE_contiguous) &&                                       \
-    (defined(__ARM_contiguous) || defined(__ARM_contiguous__))
+#if defined(FUSION_ENABLE_NEON) &&                                             \
+    (defined(__ARM_NEON) || defined(__ARM_NEON__))
 // =========================
 // Core contiguous kernels
 // =========================
@@ -39,8 +39,8 @@ static constexpr std::size_t kStep = kUnroll;
 template <typename T> // TODO: fix this impl
 inline void sum_contiguous(T *__restrict dst, const T *__restrict a,
                            std::size_t n) {
-#if defined(FUSION_ENABLE_contiguous) &&                                       \
-    (defined(__ARM_contiguous) || defined(__ARM_contiguous__))
+#if defined(FUSION_ENABLE_NEON) &&                                             \
+    (defined(__ARM_NEON) || defined(__ARM_NEON__))
    std::size_t i = 0;
    float32x4_t acc0 = vdupq_n_f32(0.0f);
    float32x4_t acc1 = vdupq_n_f32(0.0f);
