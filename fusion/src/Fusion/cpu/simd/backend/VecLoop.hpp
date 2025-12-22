@@ -3,11 +3,13 @@
 
 #include <cstddef>
 
+#include "BackendConcept.hpp"
+
 namespace simd {
 
 namespace detail {
 
-template <typename T, class Backend, class BinaryVecOp, class BinaryScalarOp>
+template <typename T, BackendConcept Backend, class BinaryVecOp, class BinaryScalarOp>
 void binary_contiguous_apply(T *__restrict dst, const T *__restrict a,
                              const T *__restrict b, std::size_t n,
                              BinaryVecOp vec_op, BinaryScalarOp scalar_op) {
@@ -56,7 +58,7 @@ void binary_contiguous_apply(T *__restrict dst, const T *__restrict a,
       *pd++ = scalar_op(*pa++, *pb++);
 };
 
-template <typename T, class Backend, class BinaryVecOp, class BinaryScalarOp>
+template <typename T, BackendConcept Backend, class BinaryVecOp, class BinaryScalarOp>
 void binary_contiguous_scalar_apply(T *__restrict dst, const T *__restrict a,
                                     const T b, std::size_t n,
                                     BinaryVecOp vec_op,
@@ -101,7 +103,7 @@ void binary_contiguous_scalar_apply(T *__restrict dst, const T *__restrict a,
       *pd++ = scalar_op(*pa++, b);
 };
 
-template <typename T, class Backend, class BinaryVecOp, class BinaryScalarOp>
+template <typename T, BackendConcept Backend, class BinaryVecOp, class BinaryScalarOp>
 void unary_contiguous_apply(T *__restrict dst, const T *__restrict a,
                             std::size_t n, BinaryVecOp vec_op,
                             BinaryScalarOp scalar_op) {
