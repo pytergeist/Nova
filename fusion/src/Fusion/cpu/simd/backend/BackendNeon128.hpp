@@ -53,6 +53,16 @@ template <> struct Neon128<float> {
    static vec sqrt(vec x) { return vsqrtq_f32(x); }
    static vec log(vec x) { return Sleef_logf4_u10(x); }
    static vec exp(vec x) { return Sleef_expf4_u10(x); }
+
+   static float horizontal_add(vec x) {
+#if defined(__aarch64__)
+      return vaddvq_f32(x);
+#else
+      float32x2_t s2 = vadd_f32(vget_low_f32(x), vget_high_f32(x));
+      s2 = vpadd_f32(s2, s2);
+      return vget_lane_f32(s2, 0);
+#endif
+   }
 };
 
 #endif // FUSION_CPU_NEON128_BACKEND_HPP

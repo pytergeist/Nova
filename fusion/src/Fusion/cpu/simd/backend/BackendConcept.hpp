@@ -61,8 +61,13 @@ concept BackendTranscendental = requires(typename B::vec v) {
 };
 
 template <typename B>
+concept BackendReduction = requires(typename B::vec v) {
+   { B::horizontal_add(v) } -> std::same_as<typename B::U>;
+};
+
+template <typename B>
 concept BackendConcept =
     BackendCore<B> && BackendLoadStore<B> && BackendComparison<B> &&
-    BackendArithmetic<B> && BackendTranscendental<B>;
+    BackendArithmetic<B> && BackendTranscendental<B> && BackendReduction<B>;
 
 #endif // FUSION_CPU_BACKEND_CONCEPT_HPP

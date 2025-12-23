@@ -12,7 +12,7 @@
 #endif
 
 #include "Fusion/common/Hints.hpp"
-#include "backend/Neon128Backend.hpp"
+#include "backend/BackendNeon128.hpp"
 #include "backend/VecLoop.hpp"
 
 namespace simd {
@@ -32,58 +32,19 @@ static constexpr std::size_t kStep = kUnroll;
 #if defined(FUSION_ENABLE_NEON) &&                                             \
     (defined(__ARM_NEON) || defined(__ARM_NEON__))
 // =========================
-// Core contiguous kernels
+// Core contiguous kernels - Current alignment in fixed 64 // TODO: Fix alignment criteria?
 // =========================
 // All assume: a, b, dst are contiguous T buffers of length n.
 
-template <typename T> // TODO: fix this impl
+template <typename T>
 inline void sum_contiguous(T *__restrict dst, const T *__restrict a,
                            std::size_t n) {
-#if defined(FUSION_ENABLE_NEON) &&                                             \
-    (defined(__ARM_NEON) || defined(__ARM_NEON__))
-   std::size_t i = 0;
-   float32x4_t acc0 = vdupq_n_f32(0.0f);
-   float32x4_t acc1 = vdupq_n_f32(0.0f);
-   float32x4_t acc2 = vdupq_n_f32(0.0f);
-   float32x4_t acc3 = vdupq_n_f32(0.0f);
 
-   for (; i + kBlock <= n; i += kBlock) {
-      float32x4_t v0 = vld1q_f32(a + i + 0 * kF32Lanes);
-      float32x4_t v1 = vld1q_f32(a + i + 1 * kF32Lanes);
-      float32x4_t v2 = vld1q_f32(a + i + 2 * kF32Lanes);
-      float32x4_t v3 = vld1q_f32(a + i + 3 * kF32Lanes);
-      acc0 = vaddq_f32(acc0, v0);
-      acc1 = vaddq_f32(acc1, v1);
-      acc2 = vaddq_f32(acc2, v2);
-      acc3 = vaddq_f32(acc3, v3);
-   }
-
-   float32x4_t acc = vaddq_f32(vaddq_f32(acc0, acc1), vaddq_f32(acc2, acc3));
-
-   for (; i + kStep <= n; i += kStep) {
-      float32x4_t v = vld1q_f32(a + i);
-      acc = vaddq_f32(acc, v);
-   }
-
-   T sum;
-#if defined(__aarch64__)
-   sum = vaddvq_f32(acc); // horizontal add (AArch64)
-#else
-   float32x2_t s2 = vadd_f32(vget_low_f32(acc), vget_high_f32(acc));
-   s2 = vpadd_f32(s2, s2);
-   sum = vget_lane_f32(s2, 0);
-#endif
-
-   for (; i < n; ++i)
-      sum += a[i];
-
-   *dst = sum;
-#else
-   T sum = 0.0f;
-   for (std::size_t i = 0; i < n; ++i)
-      sum += a[i];
-   *dst = sum;
-#endif
+   using B = Neon128<T>;
+   return simd::detail::reduce_contiguous_apply<T, B>(
+       dst, a, n, [](B::vec vx, B::vec vy) -> B::vec { return B::add(vx, vy); },
+       [](B::vec vx) -> T { return B::horizontal_add(vx); },
+       [](T acc, T x) -> T { return acc + x; });
 }
 
 template <typename T>
