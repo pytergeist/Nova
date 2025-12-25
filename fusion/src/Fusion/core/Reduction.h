@@ -21,4 +21,7 @@ struct ReductionPlan {
     std::size_t itemsize;
 };
 
+
+ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &descs);
+
 #endif // REDUCTION_H
