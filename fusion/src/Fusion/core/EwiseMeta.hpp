@@ -50,7 +50,7 @@ inline BinaryEwiseMeta make_binary_meta(const TensorBase<T> &A,
    auto plan_in = make_broadcast_plan({dA, dB});
 
    meta.fastpath = false;
-   meta.out_shape.assign(plan_in.out_sizes.begin(), plan_in.out_sizes.end());
+   meta.out_shape.assign(plan_in.out_shape.begin(), plan_in.out_shape.end());
    meta.dOut = make_desc<T>(meta.out_shape, nullptr);
    meta.dA = std::move(dA);
    meta.dB = std::move(dB);
@@ -74,7 +74,7 @@ inline UnaryEwiseMeta make_binary_meta(const TensorBase<T> &A) {
    auto plan_in = make_broadcast_plan({dA});
 
    meta.fastpath = false;
-   meta.out_shape.assign(plan_in.out_sizes.begin(), plan_in.out_sizes.end());
+   meta.out_shape.assign(plan_in.out_shape.begin(), plan_in.out_shape.end());
    meta.dOut = make_desc<T>(meta.out_shape, nullptr);
    meta.dA = std::move(dA);
    meta.plan = make_broadcast_plan({meta.dOut, meta.dA});
