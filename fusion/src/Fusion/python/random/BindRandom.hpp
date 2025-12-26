@@ -11,7 +11,7 @@ namespace py = pybind11;
 
 template <typename T> void bind_random(py::module_ &m_ten, const char *name) {
    using ADT = ADTensor<T>;
-   using Base = TensorBase<T>;
+   using Base = RawTensor<T>;
    using RNG = Random<T>;
 
    py::class_<RNG>(m_ten, name)

@@ -6,14 +6,14 @@
 #include "Broadcast.h"
 #include "BroadcastIter.hpp"
 
-#include "TensorBase.hpp"
+#include "RawTensor.hpp"
 
 /* TODO: OPTIMIZE LATER: implament shape caching for broadcast plans, you need
  * to figure out what to cache and when. This will reduce the amount of plan
  * construction. Unodered_map impl? Also consider moving to a faster (poss
  * inlined) vec representation  */
 
-template <typename T> struct TensorBase;
+template <typename T> struct RawTensor;
 
 struct BinaryEwiseMeta {
    bool fastpath;
@@ -32,8 +32,8 @@ struct UnaryEwiseMeta {
 };
 
 template <typename T>
-inline BinaryEwiseMeta make_binary_meta(const TensorBase<T> &A,
-                                        const TensorBase<T> &B) {
+inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
+                                        const RawTensor<T> &B) {
    BinaryEwiseMeta meta{};
    const bool same = A.shape() == B.shape();
    const bool cont = A.is_contiguous() && B.is_contiguous();
@@ -59,7 +59,7 @@ inline BinaryEwiseMeta make_binary_meta(const TensorBase<T> &A,
 };
 
 template <typename T>
-inline UnaryEwiseMeta make_binary_meta(const TensorBase<T> &A) {
+inline UnaryEwiseMeta make_binary_meta(const RawTensor<T> &A) {
    UnaryEwiseMeta meta{};
    const bool cont = A.is_contiguous();
 

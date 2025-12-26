@@ -28,29 +28,29 @@
 #include "Fusion/storage/TensorView.hpp"
 
 template <typename T> // TODO: need to either pass in device somehow?
-inline TensorBase<T> scalar_t(const T scalar,
+inline RawTensor<T> scalar_t(const T scalar,
                               const DType dtype = DType::FLOAT32,
                               Device device = Device{DeviceType::CPU, 0}) {
-   return TensorBase<T>{{1}, {scalar}, dtype, device};
+   return RawTensor<T>{{1}, {scalar}, dtype, device};
 }
 
-template <typename T> class TensorBase {
+template <typename T> class RawTensor {
  public:
-   static constexpr std::string_view name = "TensorBase";
+   static constexpr std::string_view name = "RawTensor";
    using value_type = T;
 
-   TensorBase()
+   RawTensor()
        : storage_(nullptr), device_(Device{DeviceType::CPU, 0}), shape_{} {}
 
-   TensorBase(const TensorBase &) = default;
-   TensorBase &operator=(const TensorBase &) = default;
+   RawTensor(const RawTensor &) = default;
+   RawTensor &operator=(const RawTensor &) = default;
 
-   TensorBase(TensorBase &&) noexcept = default;
-   TensorBase &operator=(TensorBase &&) noexcept = default;
+   RawTensor(RawTensor &&) noexcept = default;
+   RawTensor &operator=(RawTensor &&) noexcept = default;
 
-   ~TensorBase() = default;
+   ~RawTensor() = default;
 
-   explicit TensorBase(std::vector<std::size_t> shape, std::vector<T> data,
+   explicit RawTensor(std::vector<std::size_t> shape, std::vector<T> data,
                        DType dtype, Device device,
                        IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
@@ -62,7 +62,7 @@ template <typename T> class TensorBase {
       storage_ = make_storage_with_data(shape_, data, device_, alloc);
    }
 
-   explicit TensorBase(std::vector<size_t> shape, DType dtype, Device device,
+   explicit RawTensor(std::vector<size_t> shape, DType dtype, Device device,
                        IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device.is_cpu(), "Unsupported device type");
@@ -143,7 +143,7 @@ template <typename T> class TensorBase {
       std::memset(buf.data(), 0, buf.size_bytes());
    }
 
-   void assign(const TensorBase &other) {
+   void assign(const RawTensor &other) {
       if (!storage_) {
          *this = other;
       } else {
@@ -151,82 +151,82 @@ template <typename T> class TensorBase {
       }
    };
 
-   TensorBase operator+(const T scalar) const {
+   RawTensor operator+(const T scalar) const {
       return fusion::math::add(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   TensorBase operator-(const T scalar) const {
+   RawTensor operator-(const T scalar) const {
       return fusion::math::sub(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   TensorBase operator*(const T scalar) const {
+   RawTensor operator*(const T scalar) const {
       return fusion::math::mul(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   TensorBase operator/(const T scalar) const {
+   RawTensor operator/(const T scalar) const {
       return fusion::math::div(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   TensorBase operator>=(const T scalar) const {
+   RawTensor operator>=(const T scalar) const {
       return fusion::math::greater(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   TensorBase maximum(const T scalar) const {
+   RawTensor maximum(const T scalar) const {
       return fusion::math::maximum(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   TensorBase pow(const T scalar) const {
+   RawTensor pow(const T scalar) const {
       return fusion::math::pow(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   TensorBase operator+(const TensorBase &other) const {
+   RawTensor operator+(const RawTensor &other) const {
       return fusion::math::add(*this, other);
    }
 
-   TensorBase operator-(const TensorBase &other) const {
+   RawTensor operator-(const RawTensor &other) const {
       return fusion::math::sub(*this, other);
    }
 
-   TensorBase operator*(const TensorBase &other) const {
+   RawTensor operator*(const RawTensor &other) const {
       return fusion::math::mul(*this, other);
    }
 
-   TensorBase operator/(const TensorBase &other) const {
+   RawTensor operator/(const RawTensor &other) const {
       return fusion::math::div(*this, other);
    }
 
-   TensorBase operator>(const TensorBase &other) const {
+   RawTensor operator>(const RawTensor &other) const {
       return fusion::math::greater(*this, other);
    }
 
-   TensorBase operator>=(const TensorBase &other) const {
+   RawTensor operator>=(const RawTensor &other) const {
       return fusion::math::greater(*this, other);
    }
 
-   TensorBase matmul(const TensorBase &other) const {
+   RawTensor matmul(const RawTensor &other) const {
       return fusion::math::linalg::matmul(*this, other);
    }
 
-   TensorBase maximum(const TensorBase &other) const {
+   RawTensor maximum(const RawTensor &other) const {
       return fusion::math::maximum(*this, other);
    }
 
-   TensorBase pow(const TensorBase &other) const {
+   RawTensor pow(const RawTensor &other) const {
       return fusion::math::pow(*this, other);
    }
 
-   TensorBase sqrt() const { return fusion::math::sqrt(*this); }
-   TensorBase log() const { return fusion::math::log(*this); }
-   TensorBase exp() const { return fusion::math::exp(*this); }
-   TensorBase sum() const { return fusion::math::sum(*this); }
-   TensorBase mean() const { return fusion::math::mean(*this); };
+   RawTensor sqrt() const { return fusion::math::sqrt(*this); }
+   RawTensor log() const { return fusion::math::log(*this); }
+   RawTensor exp() const { return fusion::math::exp(*this); }
+   RawTensor sum() const { return fusion::math::sum(*this); }
+   RawTensor mean() const { return fusion::math::mean(*this); };
 
-   TensorBase swapaxes(const int axis1, const int axis2) const {
+   RawTensor swapaxes(const int axis1, const int axis2) const {
       return fusion::math::linalg::swapaxes(*this, axis1, axis2);
    }
 
    // TODO: fix this impl -> pipe through ops/kernel layer
-   TensorBase transpose() const {
+   RawTensor transpose() const {
       std::vector<size_t> new_shape(shape_.rbegin(), shape_.rend());
 
       size_t size = flat_size();
@@ -234,28 +234,28 @@ template <typename T> class TensorBase {
 
       serial::transpose<T>(*this, this->shape_, new_data);
 
-      return TensorBase(std::move(new_shape), std::move(new_data), dtype(),
+      return RawTensor(std::move(new_shape), std::move(new_data), dtype(),
                         device_);
    }
 
    // TODO: fix this impl -> pipe through ops/kernel layer
-   TensorBase diagonal() {
+   RawTensor diagonal() {
       size_t arr_size =
           std::sqrt(std::accumulate(this->shape_.begin(), this->shape_.end(),
                                     int64_t{1}, std::multiplies<int>()));
       size_t out_dim = std::floor(arr_size);
       std::vector<size_t> out_shape{out_dim, 1};
       std::vector<T> out = serial::diagonal2D(*this, this->shape_);
-      return TensorBase(std::move(out_shape), std::move(out), dtype(), device_);
+      return RawTensor(std::move(out_shape), std::move(out), dtype(), device_);
    }
 
    // TODO: fix this impl
-   TensorBase &operator-=(const TensorBase &other) {
+   RawTensor &operator-=(const RawTensor &other) {
       BinaryEwiseMeta meta = make_binary_meta(*this, other);
-      TensorBase tmp = init_out_from_meta(*this, other, meta);
+      RawTensor tmp = init_out_from_meta(*this, other, meta);
       ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
       if (!meta.out_shape.empty() && meta.out_shape != tmp.shape()) {
-         TensorBase corrected(meta.out_shape, device_, dtype());
+         RawTensor corrected(meta.out_shape, device_, dtype());
          ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta,
                                                   corrected);
          replace_from(std::move(corrected));
@@ -265,7 +265,7 @@ template <typename T> class TensorBase {
       return *this;
    }
 
-   friend std::ostream &operator<<(std::ostream &os, const TensorBase &tensor) {
+   friend std::ostream &operator<<(std::ostream &os, const RawTensor &tensor) {
       const auto *cpuStorage =
           dynamic_cast<const NDTensorStorage<T> *>(tensor.get_storage());
       if (cpuStorage) {
@@ -306,7 +306,7 @@ template <typename T> class TensorBase {
    Device device_;
    IAllocator *allocator_ = nullptr;
 
-   void replace_from(TensorBase &&tmp) {
+   void replace_from(RawTensor &&tmp) {
       storage_.swap(tmp.storage());
       shape_.swap(tmp.shape_);
       strides_.swap(tmp.strides_);

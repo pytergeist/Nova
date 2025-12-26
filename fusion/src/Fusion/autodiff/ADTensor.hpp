@@ -32,7 +32,7 @@
 #include "Fusion/core/ElementWise.hpp"
 #include "Fusion/core/Layout.h"
 #include "Fusion/core/Reduce.hpp"
-#include "Fusion/core/TensorBase.hpp"
+#include "Fusion/core/RawTensor.hpp"
 #include "Fusion/cpu/SimdTags.hpp"
 
 #include "Fusion/storage/DenseStorage.hpp"
@@ -47,7 +47,7 @@
 * it meant recasting the ops, would need to figure out object lifetimes and were to do that casting
 * maybe relevant. This might become important later for registering physics ops as they'll need to
  * be orhtogonal to autodiff, e.g. they can't rely on the AD layer and would need to be registered
- * elsewhere, most likely using TensorBase*/
+ * elsewhere, most likely using RawTensor*/
 
 template <typename T> struct ADTensor;
 
@@ -68,10 +68,10 @@ inline ADTensor<T> ad_scalar_t(const T scalar, const DType dtype,
    return ADTensor<T>{{1}, {scalar}, dtype, device, false};
 }
 
-template <typename T> class ADTensor : public TensorBase<T> {
+template <typename T> class ADTensor : public RawTensor<T> {
  public:
    static constexpr std::string_view name = "ADTensor";
-   using Base = TensorBase<T>;
+   using Base = RawTensor<T>;
    using value_type = T;
 
    ADTensor() : Base(), requires_grad_(false) {}
@@ -92,12 +92,12 @@ template <typename T> class ADTensor : public TensorBase<T> {
        : Base(std::move(shape), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}
 
-   const TensorBase<T> &base() const noexcept {
-      return static_cast<const TensorBase<T> &>(*this);
+   const RawTensor<T> &base() const noexcept {
+      return static_cast<const RawTensor<T> &>(*this);
    }
 
-   TensorBase<T> &base() noexcept {
-      return static_cast<TensorBase<T> &>(*this);
+   RawTensor<T> &base() noexcept {
+      return static_cast<RawTensor<T> &>(*this);
    }
 
    ValueID vid() { return vid_; }
@@ -270,7 +270,7 @@ template <typename T> class ADTensor : public TensorBase<T> {
 
       BinaryEwiseMeta meta = make_binary_meta(bself, bother);
 
-      TensorBase<T> tmp_base = init_out_from_meta(bself, bother, meta);
+      RawTensor<T> tmp_base = init_out_from_meta(bself, bother, meta);
       ewise::binary_ewise_tag<T, SubtractSIMD>(bself, bother, meta, tmp_base);
 
       if (!meta.out_shape.empty() && meta.out_shape != tmp_base.shape()) {
