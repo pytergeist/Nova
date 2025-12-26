@@ -59,7 +59,7 @@ inline BinaryEwiseMeta make_binary_meta(const TensorBase<T> &A,
 };
 
 template <typename T>
-inline UnaryEwiseMeta make_binary_meta(const TensorBase<T> &A) {
+inline UnaryEwiseMeta make_unary_meta(const TensorBase<T> &A) {
    UnaryEwiseMeta meta{};
    const bool cont = A.is_contiguous();
 

@@ -35,8 +35,8 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
    // stride = 0, meaning the same element will get used as the broadcast
    // element for this axis.
    //**************************
-   // If we begin with operand size vectors s1 = (1, 1, 7) and s2 = (4, 7).
-   // max_ndims = 7 and the resultant size vector post the below operation will
+   // If we begin with operand shape vectors s1 = (1, 1, 7) and s2 = (4, 7).
+   // max_ndims = 7 and the resultant shape vector post the below operation will
    // be s1 =  (1, 1, 7), s2 = (1, 4, 7) NB: This broadcasting is based on right
    // alignment, the below code will asses whether two operand axis are
    // broadcastable starting with the right most axes and incramenting left.
@@ -46,6 +46,7 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
    std::vector<std::vector<std::int64_t>> strides(descs.size());
 
    for (std::size_t op = 0; op < descs.size(); ++op) {
+      // left pad the axes with 1's (e.g. right axes aligment)
       auto pad = max_ndims - descs[op].ndims;
       shape[op].resize(max_ndims);
       strides[op].resize(max_ndims);
@@ -69,8 +70,11 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
    for (std::size_t dim = 0; dim < max_ndims; ++dim) {
       std::size_t out_dim = 1;
       for (std::size_t op = 0; op < plan.num_operands; ++op) {
-         auto new_dim = shape[op][dim];
-         if (new_dim != 1) {
+         std::size_t new_dim = shape[op][dim];
+         if (new_dim != 1) { // TODO: this is where the problem lies - we're setting the
+            // out dim to 7 here (the correct new dim) but we have a cached 64 from previous
+            // loop iterations - is this a loop cycle? because 7 is set to the out dim
+            // and then on next iteration we pull 64 for the new dim? need to lop the tensor descs
             if (out_dim != 1 && out_dim != new_dim) {
                std::cout << "out dim: " << out_dim << " new_dim: " << new_dim
                          << '\n';
@@ -88,8 +92,7 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
    // and the stride_bytes is resized to the number of operands.
    // The operands are then looped over and stride_bytes are set per operand
    // with 0 stride for broadcastin if size == 0 and strides * itemsize if not.
-   plan.loop.resize(max_ndims); // TODO: is this correct? shouldn't this be
-                                // looping over the output axes?
+   plan.loop.resize(max_ndims);
    for (std::size_t dim = 0; dim < max_ndims; ++dim) {
       LoopDim loop_dim;
       loop_dim.size = plan.out_shape[dim];
