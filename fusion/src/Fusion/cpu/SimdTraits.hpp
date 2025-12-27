@@ -4,7 +4,12 @@
 #include <cstddef>
 
 #include "SimdTags.hpp"
-#include "simd/VecNeon128.hpp"
+
+#if defined(FUSION_ENABLE_NEON) && defined(__ARM_NEON)
+  #include "simd/VecNeon128.hpp"
+#else
+  #include "simd/VecFallback.hpp"
+#endif
 
 /* TODO: evaluate the use of neon_scalar for non-commutative operations */
 

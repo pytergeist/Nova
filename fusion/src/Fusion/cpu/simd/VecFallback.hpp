@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <cstdint>
 
+namespace simd {
+
 template <typename T>
 inline void
 greater_than_equal_contiguous(T *__restrict dst, const T *__restrict a,
@@ -148,5 +150,7 @@ inline void maximum_contiguous_scalar(T *__restrict dst, const T *__restrict a,
    for (std::size_t i = 0; i < n; ++i)
       dst[i] = a[i] > b ? a[i] : b;
 }
+
+} // namespace simd
 
 #endif // FUSION_CPU_VEC_FALLBACK_HPP

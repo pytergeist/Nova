@@ -4,12 +4,12 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <sleef.h> // NOLINT
 
 #if defined(FUSION_ENABLE_NEON) &&                                             \
     (defined(__ARM_NEON) || defined(__ARM_NEON__))
+
 #include <arm_neon.h>
-#endif
+#include <sleef.h>
 
 #include "Fusion/common/Hints.hpp"
 #include "backend/BackendNeon128.hpp"
@@ -29,8 +29,6 @@ static constexpr std::size_t kStep = kUnroll;
 // TODO: we DO NOT support lhs side scalar operations - MAKE SURE you deal with
 // non-commutative OPS!
 
-#if defined(FUSION_ENABLE_NEON) &&                                             \
-    (defined(__ARM_NEON) || defined(__ARM_NEON__))
 // =========================
 // Core contiguous kernels - Current alignment in fixed 64 // TODO: Fix alignment criteria?
 // =========================
@@ -277,11 +275,12 @@ inline void div_contiguous_scalar(T *__restrict dst, const T *__restrict a,
        [](B::vec vx, B::vec vy) -> B::vec { return B::div(vx, vy); },
        [](T x, T y) -> T { return x / y; });
 }
+
+} // namespace simd
 #else // --------- Fallback (non-NEON builds) ---------
 
 #include "VecFallback.hpp"
 
 #endif
-} // namespace simd
 
 #endif // FUSION_CPU_VEC_NEON128_HPP

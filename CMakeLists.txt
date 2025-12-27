@@ -111,6 +111,7 @@ set_target_properties(fusion_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(fusion_core
         PUBLIC
         ${FUSION_INCLUDE_ROOT}
+        PRIVATE
         ${FUSION_SRC_DIR}/cpu/simd
 )
 
@@ -123,12 +124,13 @@ target_link_libraries(fusion_core PUBLIC
 )
 
 if(TARGET sleef::sleef)
-  target_link_libraries(fusion_core PUBLIC sleef::sleef)
+  target_link_libraries(fusion_core PRIVATE sleef::sleef)
 endif()
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
-  target_compile_definitions(fusion_core PUBLIC FUSION_ENABLE_NEON=1)
+  target_compile_definitions(fusion_core PRIVATE FUSION_ENABLE_NEON=1)
 endif()
+
 
 # ------------------------------------------------------------
 # ops
