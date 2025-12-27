@@ -1,7 +1,5 @@
 #include "BFCPoolAllocator.h"
 
-
-
 void RegionManager::add_allocated_region(void *ptr, std::size_t region_size,
                                          Alignment alignment) {
    regions_.emplace_back(Region{.ptr = ptr,

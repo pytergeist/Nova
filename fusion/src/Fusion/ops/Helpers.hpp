@@ -8,8 +8,8 @@
 
 template <typename T>
 inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
-                                        const RawTensor<T> &y,
-                                        const BinaryEwiseMeta &m) {
+                                       const RawTensor<T> &y,
+                                       const BinaryEwiseMeta &m) {
    FUSION_CHECK(x.dtype() == y.dtype(), "dtypes do not match!");
    FUSION_CHECK(x.device() == y.device(), "devices do not match!");
    return RawTensor<T>(m.out_shape, x.dtype(), x.device());
@@ -17,7 +17,7 @@ inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
 
 template <typename T>
 inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
-                                        const UnaryEwiseMeta &m) {
+                                       const UnaryEwiseMeta &m) {
    return RawTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 

@@ -151,13 +151,19 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
        .def(
            "__neg__",
            [](const PyT &t) {
-              auto z = zeros_like(t);
-              return z - t;
+              auto z = zeros_like(t.raw());
+              return z - t.raw();
            },
            py::is_operator())
 
        // -- inplace ops --
-       .def("__isub__", &PyT::operator-=)
+       .def(
+           "__isub__",
+           [](PyT &a, const PyT &b) -> PyT & {
+              a.raw() -= b.raw();
+              return a;
+           },
+           py::is_operator())
 
        // --- Unary / other ops ---
        .def("sqrt", &PyT::sqrt)
@@ -182,11 +188,11 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
            "maximum", [](const PyT &a, T b) { return a.maximum(b); },
            py::is_operator())
        .def("mean", &PyT::mean, "Return the global mean of the Tensor.")
-       .def("transpose", &PyT::transpose, "Return the transpose.")
        .def("swapaxes", &PyT::swapaxes, py::arg("axis1"), py::arg("axis2"))
-       .def("diag", &PyT::diagonal)
        .def("backward", &PyT::backward)
-       .def("get_grad", &PyT::grad);
+       .def("backward", &PyT::backward)
+       .def("get_grad", &PyT::grad)
+       .def("rank", &PyT::rank);
 }
 
 #endif // BIND_TENSOR_HPP

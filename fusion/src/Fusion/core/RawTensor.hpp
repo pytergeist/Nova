@@ -27,10 +27,11 @@
 #include "Fusion/storage/StorageInterface.hpp"
 #include "Fusion/storage/TensorView.hpp"
 
+#include "Fusion/common/Log.hpp"
+
 template <typename T> // TODO: need to either pass in device somehow?
-inline RawTensor<T> scalar_t(const T scalar,
-                              const DType dtype = DType::FLOAT32,
-                              Device device = Device{DeviceType::CPU, 0}) {
+inline RawTensor<T> scalar_t(const T scalar, const DType dtype = DType::FLOAT32,
+                             Device device = Device{DeviceType::CPU, 0}) {
    return RawTensor<T>{{1}, {scalar}, dtype, device};
 }
 
@@ -51,8 +52,8 @@ template <typename T> class RawTensor {
    ~RawTensor() = default;
 
    explicit RawTensor(std::vector<std::size_t> shape, std::vector<T> data,
-                       DType dtype, Device device,
-                       IAllocator *allocator = nullptr)
+                      DType dtype, Device device,
+                      IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device.is_cpu(), "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
@@ -63,7 +64,7 @@ template <typename T> class RawTensor {
    }
 
    explicit RawTensor(std::vector<size_t> shape, DType dtype, Device device,
-                       IAllocator *allocator = nullptr)
+                      IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device.is_cpu(), "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
@@ -75,10 +76,10 @@ template <typename T> class RawTensor {
    DType dtype() const noexcept { return dtype_; }
    std::size_t dtype_size() const noexcept { return get_dtype_size(dtype_); }
 
-   size_t rank() const { return shape_.size(); }
-   size_t ndims() const { return shape_.size(); }
-   std::vector<size_t> shape() const { return shape_; }
-   std::vector<size_t> strides() const { return strides_; }
+   std::size_t rank() const { return shape_.size(); }
+   std::size_t ndims() const { return shape_.size(); }
+   std::vector<std::size_t> shape() const { return shape_; }
+   std::vector<std::size_t> strides() const { return strides_; }
    Device device() const noexcept { return device_; }
 
    bool is_contiguous() const noexcept {
@@ -225,37 +226,13 @@ template <typename T> class RawTensor {
       return fusion::math::linalg::swapaxes(*this, axis1, axis2);
    }
 
-   // TODO: fix this impl -> pipe through ops/kernel layer
-   RawTensor transpose() const {
-      std::vector<size_t> new_shape(shape_.rbegin(), shape_.rend());
-
-      size_t size = flat_size();
-      std::vector<T> new_data(size);
-
-      serial::transpose<T>(*this, this->shape_, new_data);
-
-      return RawTensor(std::move(new_shape), std::move(new_data), dtype(),
-                        device_);
-   }
-
-   // TODO: fix this impl -> pipe through ops/kernel layer
-   RawTensor diagonal() {
-      size_t arr_size =
-          std::sqrt(std::accumulate(this->shape_.begin(), this->shape_.end(),
-                                    int64_t{1}, std::multiplies<int>()));
-      size_t out_dim = std::floor(arr_size);
-      std::vector<size_t> out_shape{out_dim, 1};
-      std::vector<T> out = serial::diagonal2D(*this, this->shape_);
-      return RawTensor(std::move(out_shape), std::move(out), dtype(), device_);
-   }
-
    // TODO: fix this impl
    RawTensor &operator-=(const RawTensor &other) {
       BinaryEwiseMeta meta = make_binary_meta(*this, other);
       RawTensor tmp = init_out_from_meta(*this, other, meta);
       ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
       if (!meta.out_shape.empty() && meta.out_shape != tmp.shape()) {
-         RawTensor corrected(meta.out_shape, device_, dtype());
+         RawTensor corrected(meta.out_shape, dtype_, device_);
          ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta,
                                                   corrected);
          replace_from(std::move(corrected));

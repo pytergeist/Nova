@@ -88,8 +88,8 @@ size_t coord_to_linear(std::vector<size_t> &coords,
 }
 
 template <typename T>
-std::vector<T> swapaxes(const RawTensor<T> &a,
-                        const std::vector<size_t> &shape, int a1, int a2) {
+std::vector<T> swapaxes(const RawTensor<T> &a, const std::vector<size_t> &shape,
+                        int a1, int a2) {
    const size_t nd = shape.size();
 
    if (nd < 2) {

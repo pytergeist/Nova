@@ -92,7 +92,10 @@ class Tensor(clib.Tensor):
     def T(self):
         if self.ndim < 2:
             return self
-        return self.swapaxes(-1, -2)
+        a1 = self.ndim - 1
+        a2 = self.ndim - 2
+
+        return self.swapaxes(a1, a2)
 
 
 def get_cpp(t: Tensor) -> clib.Tensor:
