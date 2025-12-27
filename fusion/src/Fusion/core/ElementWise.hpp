@@ -8,7 +8,7 @@
 
 #include "Fusion/common/Checks.hpp"
 #include "Fusion/cpu/SimdTraits.hpp"
-#include "Fusion/cpu/simd/Vec128Neon.hpp"
+#include "Fusion/cpu/simd/VecNeon128.hpp"
 
 #include "Broadcast.h"
 #include "EwiseMeta.hpp"

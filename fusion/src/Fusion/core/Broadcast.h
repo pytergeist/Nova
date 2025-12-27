@@ -7,7 +7,7 @@
 
 struct TensorDescription {
    std::size_t ndims;
-   std::vector<std::size_t> sizes;
+   std::vector<std::size_t> shape;
    std::vector<std::int64_t> strides;
    std::size_t itemsize;
 };
@@ -20,7 +20,7 @@ struct LoopDim {
 struct BroadcastPlan {
    std::size_t num_operands;
    std::size_t out_ndim;
-   std::vector<std::size_t> out_sizes;
+   std::vector<std::size_t> out_shape;
    std::vector<LoopDim> loop;
 
    bool all_contiguous_like{false};

@@ -7,6 +7,13 @@ if TYPE_CHECKING:
     from nova.src.backend.parameter import Parameter
 
 
+# TODO: inplace ops are currently broken for optimiser parameters as the -= inplace op
+# is mutating the parameter state. e.g. the bias value is mutating to have the batch
+# dimension is the first axis. The curr fix for this is to not use inplace ops - but the
+# real fix is to separate concerns between TensorBase (maybe rename to RawTensor and ADTensor).
+# everything mutable (e.g. physics sims and optimisers).
+
+
 class SGD(
     Optimiser
 ):  # TODO: figure out more user friendly way to add velocity in op base class
