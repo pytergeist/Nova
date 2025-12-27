@@ -8,6 +8,7 @@
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"
 #include "Fusion/common/Checks.hpp"
+#include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Log {
    static constexpr std::string_view name = "Log";
@@ -19,9 +20,9 @@ template <typename T> struct Log {
    Out forward(Context<T> &context, const In &input) {
       FUSION_CHECK(!input.empty(), "Log requires one inputs");
       const autodiff::NoGradGuard _;
-      const ADTensor<T> &x = input.at(0);
+      const RawTensor<T> &x = input.at(0);
       context.save("x", x);
-      ADTensor<T> y = x.log();
+      RawTensor<T> y = x.log();
       Out out;
       out.push_back(y);
       return out;
@@ -34,10 +35,10 @@ template <typename T> struct Log {
       FUSION_CHECK(grad_out.size() == 1,
                    "Log::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
-      ADTensor<T> g0 = grad_out.at(0);
+      RawTensor<T> g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Log::backward: upstream grad is empty");
-      const ADTensor<T> &x = context.template load<ADTensor<T>>("x");
-      ADTensor<T> gx = g0 / x;
+      const RawTensor<T> &x = context.template load<RawTensor<T>>("x");
+      RawTensor<T> gx = g0 / x;
       GradIn g;
       g.push_back(gx);
       return g;

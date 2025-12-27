@@ -7,15 +7,15 @@
 #include <vector>
 
 #include "Fusion/common/Checks.hpp"
+#include "Fusion/core/RawTensor.hpp"
 
-template <typename U> class ADTensor;
+template <typename U> class RawTensor;
 
 template <typename T, typename Enable = void>
 struct static_arity : std::integral_constant<std::size_t, 0> {};
 
-
 template <typename T> struct Context {
-   using CtxValueType = std::variant<ADTensor<T>, int>;
+   using CtxValueType = std::variant<RawTensor<T>, int>;
    std::unordered_map<std::string, CtxValueType> saved_result;
 
    template <typename U> void save(std::string key, U &&data) {
