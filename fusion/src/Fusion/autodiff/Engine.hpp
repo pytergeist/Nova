@@ -6,12 +6,14 @@
 #include <optional>
 #include <ostream>
 #include <stdexcept>
+#include <unordered_set>
 
 #include "Fusion/TensorFactory.hpp"
 #include "Fusion/common/Checks.hpp"
 
 #include "ADTypes.h"
 #include "AutodiffMeta.hpp"
+#include "BackwardResult.hpp"
 #include "Graph.hpp"
 #include "Sort.hpp"
 
@@ -43,8 +45,9 @@ template <typename T> class Engine {
 
    ~Engine() = default;
 
-   template <class Op> ValueID apply(AutodiffMeta<T> &payload) {
-      NodeID nid = create_node_and_bind_inputs<Op>(payload);
+   template <class Op>
+   ValueID apply(AutodiffMeta<T> &payload, std::vector<ValueID> &vids) {
+      NodeID nid = create_node_and_bind_inputs<Op>(payload, vids);
 
       INode<T> &node = graph_.get_node(nid);
       AutodiffMeta<T> out = run_forward(node, payload);
@@ -59,8 +62,8 @@ template <typename T> class Engine {
       return node.get_output(0);
    }
 
-   void backward(ValueID seed_vid, bool materialise = true,
-                 bool retain_graph = false) {
+   BackwardResult<T> backward(ValueID seed_vid, bool materialise = true,
+                              bool retain_graph = false) {
       prepare_grad_buffers();
 
       std::vector<NodeID> order = topo_sort_for_backward();
@@ -85,43 +88,71 @@ template <typename T> class Engine {
          accum_input_grads(n, grad_out);
       }
 
+      BackwardResult<T> result;
+
       if (materialise) {
-         materialise_gradient();
+         result = materialise_leaf_grads();
+         return result;
       }
+
       if (retain_graph) {
          throw std::logic_error("retain_graph not implemented");
       }
+      return result;
    }
 
-   ValueID track_input(ADTensor<T> &t) {
-      if (std::optional<ValueID> known = reuse_known_vid(t)) {
-         return *known;
+   void maybe_mark_leaf(ValueID vid, const bool requires_grad) {
+      if (graph_.get_produced_by(vid).nid == -1 && requires_grad) {
+         requires_grad_set_.insert(vid);
       }
+   }
 
-      const void *storage_key = static_cast<const void *>(t.get_storage());
-      const std::vector<std::size_t> &shp = t.shape();
-      if (std::optional<ValueID> cached = lookup_cached_vid(storage_key, shp)) {
-         write_val(*cached, t);
-         t.set_vid(*cached);
-         maybe_mark_leaf(*cached, t);
-         return *cached;
+   BackwardResult<T> materialise_leaf_grads() {
+      BackwardResult<T> result;
+      for (std::int64_t vid : requires_grad_set_) {
+         result.grads.try_emplace(vid, grad_buff_[vid]);
       }
+      FUSION_CHECK(!result.empty(),
+                   "backward result is empty - no gradients to attatch");
+      return result;
+   }
 
-      ValueID vid = register_fresh_input_from(t);
-      cache_import(storage_key, shp, vid);
+   ValueID track_input(const RawTensor<T> &raw, const bool requires_grad) {
+      const ValueID vid = graph_.new_input_value();
+      ensure_value_capacity(vid);
+      val_buff_[vid] = raw;
+      maybe_mark_leaf(vid, requires_grad);
       return vid;
    }
 
-   ADTensor<T> materialise(ValueID vid) {
-      FUSION_BOUNDS_CHECK(vid, val_buff_.size());
-      ADTensor<T> out = val_buff_[vid];
-      out.set_vid(vid);
-      return out;
+   RawTensor<T> materialise(ValueID vid) {
+      const RawTensor<T> &src = val_buff_[vid];
+
+      std::vector<T> data(src.begin(), src.end());
+      return RawTensor<T>(src.shape(), std::move(data), src.dtype(),
+                          src.device());
    }
 
-   ADTensor<T> get_grad(ValueID vid) {
+   RawTensor<T> get_grad(ValueID vid) {
       FUSION_BOUNDS_CHECK(vid, val_buff_.size());
       return grad_buff_[vid];
+   }
+
+   bool has_value(ValueID vid) const noexcept {
+      if (vid < 0) {
+         return false;
+      }
+      const auto idx = static_cast<std::size_t>(vid);
+      if (idx >= val_buff_.size()) {
+         return false;
+      }
+      if (!graph_knows(vid)) {
+         return false;
+      }
+      if (!val_buff_[idx].is_initialised()) {
+         return false;
+      }
+      return true;
    }
 
    void dump_graph(std::ostream &os) const {
@@ -160,12 +191,10 @@ template <typename T> class Engine {
 
  private:
    Graph<T> graph_{};
-   std::vector<ADTensor<T>> val_buff_{};
-   std::vector<ADTensor<T>> grad_buff_{};
-   std::unordered_map<int, ADTensor<T> *> leaf_map_{};
-   std::unordered_map<const void *, std::unordered_map<std::vector<size_t>,
-                                                       ValueID, ShapeHash>>
-       import_cache_{};
+   std::vector<RawTensor<T>> val_buff_{};
+   std::vector<RawTensor<T>> grad_buff_{};
+   // TODO: make ValueID hashable so it can be used in the below unordered_set
+   std::unordered_set<std::int64_t> requires_grad_set_{};
 
    void ensure_value_capacity(ValueID vid) {
       if (val_buff_.size() <= static_cast<size_t>(vid)) {
@@ -177,93 +206,9 @@ template <typename T> class Engine {
       return static_cast<size_t>(vid) < graph_.produced_by().size();
    }
 
-   std::optional<ValueID> reuse_known_vid(ADTensor<T> &t) {
-      if (!t.has_vid()) {
-         return std::nullopt;
-      }
-      const ValueID vid = t.vid();
-      if (!graph_knows(vid)) {
-         return std::nullopt;
-      }
-
-      write_val(vid, t);
-      maybe_mark_leaf(vid, t);
-      return vid;
-   }
-
-   std::optional<ValueID> lookup_cached_vid(const void *storage_key,
-                                            const std::vector<size_t> &shp) {
-      if (auto it = import_cache_.find(storage_key);
-          it != import_cache_.end()) {
-         auto &inner = it->second;
-         if (auto it2 = inner.find(shp); it2 != inner.end()) {
-            const ValueID cached = it2->second;
-            if (graph_knows(cached)) {
-               return cached;
-            }
-         }
-      }
-      return std::nullopt;
-   }
-
-   ValueID register_fresh_input_from(ADTensor<T> &t) {
-      const ValueID vid = graph_.new_input_value();
-      write_val(vid, t);
-      t.set_vid(vid);
-      maybe_mark_leaf(vid, t);
-      return vid;
-   }
-
-   void cache_import(const void *storage_key, const std::vector<size_t> &shp,
-                     ValueID vid) {
-      import_cache_[storage_key][shp] = vid;
-   }
-
-   void maybe_mark_leaf(ValueID vid, ADTensor<T> &t) {
-      if (t.requires_grad()) {
-         leaf_map_.try_emplace(vid, &t);
-      }
-   }
-
-   void write_val(ValueID vid, ADTensor<T> &t) {
-      ensure_value_capacity(vid);
-      if (!val_buff_[vid].is_initialised()) {
-         val_buff_[vid] = t;
-      }
-   }
-
-   ValueID feed_raw(ADTensor<T> &data) {
-      ValueID vid = graph_.new_input_value();
-      write_val(vid, data);
-      return vid;
-   }
-
-   void materialise_gradient() {
-      const autodiff::NoGradGuard ng;
-      for (auto &[vidx, leaf_ptr] : leaf_map_) {
-         if (!leaf_ptr)
-            continue;
-         if (static_cast<size_t>(vidx) >= grad_buff_.size())
-            continue;
-
-         ADTensor<T> &g = grad_buff_[vidx];
-         if (!g.is_initialised() || g.empty())
-            continue;
-
-         const bool storage_matches =
-             val_buff_.size() > static_cast<size_t>(vidx) &&
-             val_buff_[vidx].is_initialised() && leaf_ptr->is_initialised() &&
-             leaf_ptr->storage() && val_buff_[vidx].storage() &&
-             (leaf_ptr->get_storage() == val_buff_[vidx].get_storage());
-
-         if (storage_matches) {
-            leaf_ptr->ensure_grad();
-            leaf_ptr->mutable_grad() = g;
-         } else {
-            val_buff_[vidx].ensure_grad();
-            val_buff_[vidx].mutable_grad() = g;
-         }
-      }
+   const RawTensor<T> &grad(ValueID vid) const {
+      FUSION_BOUNDS_CHECK(vid, grad_buff_.size());
+      return grad_buff_[vid];
    }
 
    template <class Op> ValueID feed(AutodiffMeta<T> v) {
@@ -279,36 +224,22 @@ template <typename T> class Engine {
 
    void set_grad_buff_size() { grad_buff_.resize(val_buff_.size()); }
 
-   AutodiffMeta<T> grad_init(ValueID vid) {
-      ADTensor<T> grad = ones_like(val_buff_[vid]);
-      grad_buff_[vid] = grad;
-      AutodiffMeta<T> gradVec;
-      gradVec.push_back(grad);
-      return gradVec;
-   }
-
    AutodiffMeta<T> run_forward(INode<T> &node, AutodiffMeta<T> &vec) {
       return node.apply_forward(vec);
    }
 
    template <class Op>
-   NodeID create_node_and_bind_inputs(AutodiffMeta<T> &payload) {
-      for (size_t i = 0; i < payload.size(); ++i) {
-         if (!payload[i].has_vid() || !graph_knows(payload[i].vid())) {
-            track_input(payload[i]);
-         }
-      }
-
+   NodeID create_node_and_bind_inputs(AutodiffMeta<T> &payload,
+                                      std::vector<ValueID> &input_vids) {
       NodeID dst = graph_.template build_node<Op>();
       INode<T> &node = graph_.get_node(dst);
 
       for (size_t i = 0; i < payload.size(); ++i) {
-         const ValueID in_vid = payload[i].vid();
-         FUSION_CHECK(graph_knows(in_vid), "Input not registered");
+         ValueID vid = input_vids[i];
+         graph_.set_node_input(node, vid);
+         graph_.append_consumer_table(dst, vid, i);
 
-         const NodeID src = graph_.get_produced_by(in_vid).nid;
-         graph_.set_node_input(node, in_vid);
-         graph_.append_consumer_table(dst, in_vid, i);
+         const NodeID src = graph_.get_produced_by(vid).nid;
          if (src != -1) {
             graph_.add_edge(src, dst);
          }
@@ -358,10 +289,9 @@ template <typename T> class Engine {
    }
 
    AutodiffMeta<T> init_seed_grad(ValueID vid) {
-      ADTensor<T> grad = ones_like(val_buff_[vid]);
-      grad_buff_[vid] = grad;
+      grad_buff_[vid] = ones_like(val_buff_[vid]);
       AutodiffMeta<T> v;
-      v.push_back(grad);
+      v.push_back(grad_buff_[vid]);
       return v;
    }
 
@@ -394,13 +324,13 @@ template <typename T> class Engine {
    void accum_input_grads(const INode<T> &n, const AutodiffMeta<T> &gout) {
       for (size_t j = 0; j < n.num_inputs(); ++j) {
          const ValueID in_vid = n.get_input(j);
-         ADTensor<T> &dst = grad_buff_[in_vid];
-         const ADTensor<T> &src = gout.at(j);
+         RawTensor<T> &dst = grad_buff_[in_vid];
+         const RawTensor<T> &src = gout[j];
+
          if (!dst.is_initialised()) {
             dst = src;
          } else {
-            const autodiff::NoGradGuard ng;
-            dst = dst + src; // TODO: shape check if needed
+            dst = dst + src;
          }
       }
    }

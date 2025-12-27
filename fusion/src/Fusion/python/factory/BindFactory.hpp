@@ -27,12 +27,13 @@ template <typename T> void bind_factory(py::module_ &m, const char *name) {
               py::arg("device"));
    submod.def("ones", &ones<T>, "Create a tensor of ones", py::arg("shape"),
               py::arg("device"));
-   submod.def("zeros_like", &zeros_like<T>,
-              "Create a zeros tensor with the same shape as another",
-              py::arg("other"));
-   submod.def("ones_like", &ones_like<T>,
-              "Create a ones tensor with the same shape as another",
-              py::arg("other"));
+   submod.def(
+       "zeros_like", [](const ADTensor<T> &t) { return ad_zeros_like<T>(t); },
+       py::arg("other"));
+
+   submod.def(
+       "ones_like", [](const ADTensor<T> &t) { return ad_ones_like<T>(t); },
+       py::arg("other"));
 }
 
 #endif // BIND_FACTORY_HPP

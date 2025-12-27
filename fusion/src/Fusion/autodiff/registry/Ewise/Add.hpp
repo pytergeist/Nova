@@ -8,6 +8,7 @@
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"
 #include "Fusion/common/Checks.hpp"
+#include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Add {
    static constexpr std::string_view name = "Add";
@@ -19,10 +20,10 @@ template <typename T> struct Add {
    Out forward(Context<T> &context, const In &input) { // NOLINT
       const autodiff::NoGradGuard _;
       FUSION_CHECK(input.size() >= 2, "Add requires two inputs");
-      const ADTensor<T> &x = input.at(0);
-      const ADTensor<T> &y = input.at(1);
+      const RawTensor<T> &x = input.at(0);
+      const RawTensor<T> &y = input.at(1);
       //      FUSION_ALLOW_SCALAR_BINARY(a, b);
-      ADTensor<T> z = x + y;
+      RawTensor<T> z = x + y;
       Out out;
       out.push_back(z);
       return out;
@@ -34,11 +35,11 @@ template <typename T> struct Add {
       }
       FUSION_CHECK(grad_out.size() == 1,
                    "Add::backward expects exactly 1 upstream grad tensor");
-      ADTensor<T> &g0 = grad_out.at(0);
+      RawTensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Add::backward: upstream grad is empty");
       const autodiff::NoGradGuard _;
-      ADTensor<T> gx = g0;
-      ADTensor<T> gy = g0;
+      RawTensor<T> gx = g0;
+      RawTensor<T> gy = g0;
       GradIn g;
       g.push_back(gx);
       g.push_back(gy);

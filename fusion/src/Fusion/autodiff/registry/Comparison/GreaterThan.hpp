@@ -20,12 +20,12 @@ template <typename T> struct GreaterThan {
    Out forward(Context<T> &context, const In &input) {
       FUSION_CHECK(input.size() >= 2, "GreaterThan requires two inputs");
       const autodiff::NoGradGuard _;
-      const ADTensor<T> &x = input.at(0);
-      const ADTensor<T> &y = input.at(1);
+      const RawTensor<T> &x = input.at(0);
+      const RawTensor<T> &y = input.at(1);
       context.save("x", x);
       context.save("y", y);
       FUSION_CHECK(x.size() == y.size(), "GreaterThan: input size mismatch");
-      ADTensor<T> z = x > y;
+      RawTensor<T> z = x > y;
       Out out;
       out.push_back(z);
       return out;
@@ -39,13 +39,13 @@ template <typename T> struct GreaterThan {
           grad_out.size() == 1,
           "GreaterThan::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
-      const ADTensor<T> &x = context.template load<ADTensor<T>>("x");
-      const ADTensor<T> &y = context.template load<ADTensor<T>>("y");
-      const ADTensor<T> &g0 = grad_out.at(0);
+      const RawTensor<T> &x = context.template load<RawTensor<T>>("x");
+      const RawTensor<T> &y = context.template load<RawTensor<T>>("y");
+      const RawTensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(),
                    "GreaterThan::backward: upstream grad is empty");
-      ADTensor<T> gx = zeros_like(x);
-      ADTensor<T> gy = zeros_like(y);
+      RawTensor<T> gx = zeros_like(x);
+      RawTensor<T> gy = zeros_like(y);
       GradIn g;
       g.push_back(gx);
       g.push_back(gy);

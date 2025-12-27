@@ -1,13 +1,14 @@
 #ifndef AD_TYPES_H_
 #define AD_TYPES_H_
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 struct ValueID {
    std::int64_t idx;
    operator std::int64_t() const noexcept { return idx; }
 };
+
 struct NodeID {
    std::int64_t idx;
    operator std::int64_t() const noexcept { return idx; }

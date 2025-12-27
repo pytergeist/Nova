@@ -7,6 +7,8 @@
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"
 #include "Fusion/common/Checks.hpp"
+#include "Fusion/common/Log.hpp"
+#include "Fusion/core/RawTensor.hpp"
 #include "Fusion/ops/OpParams.hpp"
 
 template <typename T> struct SwapAxes {
@@ -19,13 +21,13 @@ template <typename T> struct SwapAxes {
    Out forward(Context<T> &context, In &input) {
       FUSION_CHECK(input.size() == 1, "SwapAxes requires exactly one input");
       const autodiff::NoGradGuard _;
-      const ADTensor<T> &x = input.at(0);
+      const RawTensor<T> &x = input.at(0);
       const SwapAxesParam &p =
           std::any_cast<const SwapAxesParam &>(input.op_param);
       FUSION_CHECK(p.axis1 != p.axis2, "SwapAxes: axes must be different");
       context.save("axis1", p.axis1);
       context.save("axis2", p.axis2);
-      auto y = x.swapaxes(p.axis1, p.axis2);
+      RawTensor<T> y = x.swapaxes(p.axis1, p.axis2);
       Out out;
       out.push_back(y);
       return out;
@@ -40,9 +42,9 @@ template <typename T> struct SwapAxes {
       int a1 = context.template load<int>("axis1");
       int a2 = context.template load<int>("axis2");
       const autodiff::NoGradGuard _;
-      const ADTensor<T> &g0 = grad_out.at(0);
+      const RawTensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "SwapAxes::backward: upstream grad is empty");
-      auto gx = g0.swapaxes(a1, a2);
+      RawTensor<T> gx = g0.swapaxes(a1, a2);
       GradIn g;
       g.push_back(gx);
       return g;

@@ -6,7 +6,7 @@
 
 #include "Fusion/common/Log.hpp"
 #include "Fusion/core/ElementWise.hpp"
-#include "Fusion/core/TensorBase.hpp"
+#include "Fusion/core/RawTensor.hpp"
 #include "Fusion/cpu/blas/Gemm.hpp"
 
 #include "Helpers.hpp"
@@ -18,10 +18,10 @@ namespace math {
 namespace linalg {
 
 template <typename T>
-inline TensorBase<T>
-matmul(const TensorBase<T> &x,
-       const TensorBase<T> &y) { // TODO: this uses vector obj copying and
-                                 // doesn't go through broadcast layer?
+inline RawTensor<T>
+matmul(const RawTensor<T> &x,
+       const RawTensor<T> &y) { // TODO: this uses vector obj copying and
+                                // doesn't go through broadcast layer?
    assert((x.dtype_size() == y.dtype_size()) &&
           "binary op: dtype sizes must match"); // TODO: abstract into macro
                                                 // (change from assert)
@@ -48,8 +48,8 @@ matmul(const TensorBase<T> &x,
    T *baseC = data.data();
 
    blas_ops::batched_gemm<T>(baseA, baseB, baseC, m, n, k, batch, T(1), T(0));
-   return TensorBase<T>(std::move(out_shape), std::move(data), x.dtype(),
-                        x.device());
+   return RawTensor<T>(std::move(out_shape), std::move(data), x.dtype(),
+                       x.device());
 }
 
 std::string shape_str(std::vector<size_t> shape) {
@@ -65,24 +65,24 @@ std::string shape_str(std::vector<size_t> shape) {
 }
 
 template <typename T>
-inline TensorBase<T> swapaxes(const TensorBase<T> &x, const int axis1,
-                              const int axis2) {
+inline RawTensor<T> swapaxes(const RawTensor<T> &x, const int axis1,
+                             const int axis2) {
    std::vector<size_t> out_shape = x.shape();
    const int nd = static_cast<int>(out_shape.size());
    if (nd < 2) {
-      return TensorBase<T>(out_shape, std::vector<T>(x.begin(), x.end()),
-                           x.dtype(), x.device());
+      return RawTensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
+                          x.dtype(), x.device());
    }
    const int naxis1 = serial::normalise_axis(axis1, nd);
    const int naxis2 = serial::normalise_axis(axis2, nd);
-   if (axis1 == axis2) {
-      return TensorBase<T>(out_shape, std::vector<T>(x.begin(), x.end()),
-                           x.dtype(), x.device());
+   if (naxis1 == naxis2) {
+      return RawTensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
+                          x.dtype(), x.device());
    }
    std::swap(out_shape[naxis1], out_shape[naxis2]);
    std::vector<T> out = serial::swapaxes<T>(x, x.shape(), naxis1, naxis2);
-   return TensorBase<T>(std::move(out_shape), std::move(out), x.dtype(),
-                        x.device());
+   return RawTensor<T>(std::move(out_shape), std::move(out), x.dtype(),
+                       x.device());
 }
 
 } // namespace linalg
