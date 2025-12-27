@@ -9,11 +9,11 @@
 
 #include "Fusion/common/Log.hpp"
 
-template <typename U> class TensorBase;
+template <typename U> class RawTensor;
 
 namespace serial {
 template <typename T>
-void transpose(const TensorBase<T> &t1, const std::vector<size_t> &shape,
+void transpose(const RawTensor<T> &t1, const std::vector<size_t> &shape,
                std::vector<T> &res) {
    for (std::size_t i = 0; i < shape[0]; i++) {
       for (std::size_t j = 0; j < shape[1]; j++) {
@@ -88,8 +88,8 @@ size_t coord_to_linear(std::vector<size_t> &coords,
 }
 
 template <typename T>
-std::vector<T> swapaxes(const TensorBase<T> &a,
-                        const std::vector<size_t> &shape, int a1, int a2) {
+std::vector<T> swapaxes(const RawTensor<T> &a, const std::vector<size_t> &shape,
+                        int a1, int a2) {
    const size_t nd = shape.size();
 
    if (nd < 2) {
@@ -123,7 +123,7 @@ std::vector<T> swapaxes(const TensorBase<T> &a,
 }
 
 template <typename T>
-std::vector<T> diagonal2D(const TensorBase<T> &a,
+std::vector<T> diagonal2D(const RawTensor<T> &a,
                           const std::vector<size_t> &shape) {
    // Row-major: flat index (r, c) is r*cols + c for diag
    if (shape.size() != 2) {

@@ -12,6 +12,29 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ------------------------------------------------------------
+# ASAN build
+# ------------------------------------------------------------
+option(NOVA_ENABLE_ASAN "Enable AddressSanitizer" OFF)
+
+if(NOVA_ENABLE_ASAN)
+  message(STATUS "ASAN enabled")
+
+  # REQUIRED: ASAN + LTO do not mix on macOS
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+
+  add_compile_options(
+          -fsanitize=address
+          -fno-omit-frame-pointer
+          -g
+  )
+
+  add_link_options(
+          -fsanitize=address
+  )
+endif()
+
+
+# ------------------------------------------------------------
 # Python / pybind11
 # ------------------------------------------------------------
 set(PYBIND11_FINDPYTHON ON)
@@ -191,22 +214,4 @@ if(NOVA_BUILD_TEST)
   )
   include(GoogleTest)
   gtest_discover_tests(fusion_test)
-endif()
-
-# ============================================================
-# ASAN
-# ============================================================
-option(NOVA_ENABLE_ASAN "Enable AddressSanitizer" OFF)
-
-function(add_asan target)
-  target_compile_options(${target} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-  target_link_options(${target} PRIVATE -fsanitize=address)
-endfunction()
-
-if(NOVA_ENABLE_ASAN)
-  foreach(t fusion_alloc fusion_core fusion fusion_test)
-    if(TARGET ${t})
-      add_asan(${t})
-    endif()
-  endforeach()
 endif()

@@ -32,6 +32,6 @@ class SGD(
                 p.tensor -= (g_t + v_t) * self.lr
 
             else:
-                p.tensor -= p.tensor - self.lr * g_t
+                p.tensor -= g_t * self.lr
 
             p.zero_grad()

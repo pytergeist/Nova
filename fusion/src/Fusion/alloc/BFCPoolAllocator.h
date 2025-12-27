@@ -11,8 +11,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Fusion/common/Log.hpp"
 #include "Fusion/common/Checks.hpp"
+#include "Fusion/common/Log.hpp"
 
 #include "AllocTypes.h"
 #include "AllocatorInterface.h"

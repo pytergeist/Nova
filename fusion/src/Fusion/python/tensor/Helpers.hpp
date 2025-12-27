@@ -11,12 +11,12 @@
 namespace py = pybind11;
 
 namespace tensor_py_helpers {
-template<typename T>
+template <typename T>
 inline py::array_t<float> tensor_to_numpy(const Tensor<float> &t) {
    // Grab the shape vector
    const auto &shape = t.shape();
    size_t ndim = shape.size();
-   size_t total = t.flat_size();
+   size_t total = t.raw().flat_size();
 
    // Build Python-side shape and stride arrays
    std::vector<ssize_t> py_shape(shape.begin(), shape.end());
@@ -34,7 +34,7 @@ inline py::array_t<float> tensor_to_numpy(const Tensor<float> &t) {
    float *dst = static_cast<float *>(buf.ptr);
 
    // Copy from our flat std::vector<float>
-   const auto &src = t.raw_data();
+   const auto &src = t.raw().raw_data();
    if (t.size() != total) {
       throw std::runtime_error("tensor_to_numpy: size mismatch");
    }

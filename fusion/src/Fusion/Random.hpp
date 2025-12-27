@@ -17,8 +17,8 @@ template <typename T> class Random {
    explicit Random(uint32_t seed = std::random_device{}())
        : engine_(seed) {} // FIX: seed the member, not a local var
 
-   TensorBase<T> uniform_base(const std::vector<size_t> &shape, T min, T max,
-                              Device device) {
+   RawTensor<T> uniform_base(const std::vector<size_t> &shape, T min, T max,
+                             Device device) {
       size_t total =
           std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
                           std::multiplies<>());
@@ -32,7 +32,7 @@ template <typename T> class Random {
          data.push_back(dist(engine_));
       }
 
-      return TensorBase<T>(shape, std::move(data), DType::FLOAT32, device);
+      return RawTensor<T>(shape, std::move(data), DType::FLOAT32, device);
    }
 };
 

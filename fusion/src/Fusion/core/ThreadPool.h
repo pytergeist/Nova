@@ -10,29 +10,29 @@
 
 // RAII helper: joins all threads on destruction
 class JoinThreads {
-public:
-   explicit JoinThreads(std::vector<std::thread>& threads);
+ public:
+   explicit JoinThreads(std::vector<std::thread> &threads);
    ~JoinThreads();
 
-   JoinThreads(const JoinThreads&) = delete;
-   JoinThreads& operator=(const JoinThreads&) = delete;
+   JoinThreads(const JoinThreads &) = delete;
+   JoinThreads &operator=(const JoinThreads &) = delete;
 
-private:
-   std::vector<std::thread>& threads_;
+ private:
+   std::vector<std::thread> &threads_;
 };
 
 class ThreadPool {
-public:
+ public:
    ThreadPool();
    ~ThreadPool();
 
-   ThreadPool(const ThreadPool&) = delete;
-   ThreadPool& operator=(const ThreadPool&) = delete;
+   ThreadPool(const ThreadPool &) = delete;
+   ThreadPool &operator=(const ThreadPool &) = delete;
 
    // Non-templated public API
    void submit(std::function<void()> task);
 
-private:
+ private:
    void worker_thread();
 
    std::atomic_bool done_{false};
