@@ -226,21 +226,21 @@ template <typename T> class RawTensor {
       return fusion::math::linalg::swapaxes(*this, axis1, axis2);
    }
 
-   // TODO: fix this impl
    RawTensor &operator-=(const RawTensor &other) {
-      BinaryEwiseMeta meta = make_binary_meta(*this, other);
-      RawTensor tmp = init_out_from_meta(*this, other, meta);
-      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
-      if (!meta.out_shape.empty() && meta.out_shape != tmp.shape()) {
-         RawTensor corrected(meta.out_shape, dtype_, device_);
-         ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta,
-                                                  corrected);
-         replace_from(std::move(corrected));
-      } else {
-         replace_from(std::move(tmp));
-      }
+      // TODO: Need to figure out broadcast meta for inplace ops
+      // THe caveat of this impl is it works curr for shapes like
+      // (64, 10), (10,) - where this is kernel/bias as 64 is the batch dim
+      // but it probably shouldn't.
+      BinaryEwiseMeta meta{};
+      meta.fastpath = true;
+      meta.out_shape = shape_;
+      meta.fast_len = flat_size();
+
+      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, *this);
+
       return *this;
    }
+
 
    friend std::ostream &operator<<(std::ostream &os, const RawTensor &tensor) {
       const auto *cpuStorage =
