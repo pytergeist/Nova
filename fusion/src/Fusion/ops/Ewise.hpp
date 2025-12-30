@@ -54,6 +54,34 @@ inline RawTensor<T> pow(const RawTensor<T> &x, const RawTensor<T> &y) {
    return out;
 }
 
+std::string shape_str(std::vector<size_t> shape) {
+   std::ostringstream oss;
+   oss << '(';
+   for (size_t i = 0; i < shape.size(); ++i) {
+      oss << shape[i];
+      if (i + 1 < shape.size())
+         oss << ',';
+   }
+   oss << ')';
+   return oss.str();
+}
+
+template <typename T>
+inline void sub_inplace(RawTensor<T> &x, const RawTensor<T> &y) {
+   // TODO: need to impl_ a way to ignore batch dim in shape check in
+   // a sensible way
+   BinaryEwiseMeta meta{};
+   meta.fastpath = true;
+   meta.out_shape = x.shape();
+   meta.fast_len = x.flat_size();
+   // this impl is unstable for > rank(2) NDtensors
+   FUSION_CHECK(meta.out_shape[x.rank() - 1] == x.shape()[x.rank() - 1],
+                "sub_inplace would change tensor shape; "
+                "use out-of-place sub() instead.");
+
+   ewise::binary_ewise_tag<T, SubtractSIMD>(x, y, meta, x);
+}
+
 } // namespace math
 
 } // namespace fusion

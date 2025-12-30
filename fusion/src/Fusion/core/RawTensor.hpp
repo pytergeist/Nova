@@ -227,17 +227,7 @@ template <typename T> class RawTensor {
    }
 
    RawTensor &operator-=(const RawTensor &other) {
-      // TODO: Need to figure out broadcast meta for inplace ops
-      // THe caveat of this impl is it works curr for shapes like
-      // (64, 10), (10,) - where this is kernel/bias as 64 is the batch dim
-      // but it probably shouldn't.
-      BinaryEwiseMeta meta{};
-      meta.fastpath = true;
-      meta.out_shape = shape_;
-      meta.fast_len = flat_size();
-
-      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, *this);
-
+      fusion::math::sub_inplace(*this, other);
       return *this;
    }
 
