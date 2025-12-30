@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/ElementWise.hpp"
+#include "Fusion/core/EwiseIter.hpp"
 #include "Fusion/core/EwiseMeta.hpp"
 #include "Fusion/core/RawTensor.hpp"
 

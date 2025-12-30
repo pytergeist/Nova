@@ -29,7 +29,6 @@
 #include "Fusion/ops/Transcendental.hpp"
 
 #include "Fusion/core/DType.h"
-#include "Fusion/core/ElementWise.hpp"
 #include "Fusion/core/Layout.h"
 #include "Fusion/core/RawTensor.hpp"
 #include "Fusion/core/Reduce.hpp"

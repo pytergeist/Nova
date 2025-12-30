@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/ElementWise.hpp"
+#include "Fusion/core/EwiseIter.hpp"
 #include "Fusion/core/RawTensor.hpp"
 #include "Fusion/core/Reduce.hpp"
 #include "Fusion/cpu/SimdTags.hpp"

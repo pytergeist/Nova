@@ -11,7 +11,7 @@
 #include "Fusion/alloc/DefaultAllocator.h"
 #include "Fusion/common/Checks.hpp"
 #include "Fusion/core/DType.h"
-#include "Fusion/core/ElementWise.hpp"
+#include "Fusion/core/EwiseIter.hpp"
 #include "Fusion/core/Layout.h"
 #include "Fusion/core/Reduce.hpp"
 #include "Fusion/device/Device.h"
