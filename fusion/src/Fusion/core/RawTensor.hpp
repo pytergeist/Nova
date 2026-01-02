@@ -226,9 +226,9 @@ template <typename T> class RawTensor {
    RawTensor sum(const std::size_t axis, const bool keepdim) const {
       return fusion::math::sum(*this, axis, keepdim);
    }
-//   RawTensor mean(const std::size_t axis, const bool keepdim) const {
-//      return fusion::math::mean(*this, axis, keepdim);
-//   }
+   RawTensor mean(const std::size_t axis, const bool keepdim) const {
+      return fusion::math::mean(*this, axis, keepdim);
+   }
 
    RawTensor swapaxes(const int axis1, const int axis2) const {
       return fusion::math::linalg::swapaxes(*this, axis1, axis2);

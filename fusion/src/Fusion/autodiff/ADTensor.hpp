@@ -17,7 +17,7 @@
 #include "registry/Comparison/Comparison.h"
 #include "registry/Ewise/Ewise.h"
 #include "registry/LinAlg/LinAlg.h"
-#include "registry/Reduction/Reduction.h"
+#include "registry/Reduction/ReductionPolicy.h"
 #include "registry/Transcendental/Transcendental.h"
 
 #include "Fusion/ops/Comparison.hpp"
@@ -279,18 +279,25 @@ template <typename T> class ADTensor {
       return apply_unary_op<Exp<T>>([](const Raw &x) { return x.exp(); });
    }
 
-   ADTensor sum() const {
-      return apply_unary_op<Sum<T>>([](const Raw &x) { return x.sum(); });
+   ADTensor sum(const std::size_t axis, const bool keepdim) const {
+      ReductionParam rp{.reduction_axis = axis, .keepdim = keepdim};
+      return apply_unary_op<Sum<T>, ReductionParam>(
+          rp, [](const Raw &x, const ReductionParam &p) {
+             return x.sum(p.reduction_axis, p.keepdim);
+          });
    }
 
-   ADTensor mean() const {
-      return apply_unary_op<Mean<T>>([](const Raw &x) { return x.mean(); });
+   ADTensor mean(const std::size_t axis, const bool keepdim) const {
+      ReductionParam rp{.reduction_axis = axis, .keepdim = keepdim};
+      return apply_unary_op<Mean<T>, ReductionParam>(
+          rp, [](const Raw &x, const ReductionParam &p) {
+             return x.mean(p.reduction_axis, p.keepdim);
+          });
    }
 
    ADTensor swapaxes(int axis1, int axis2) const {
       using SwapAxesOp = SwapAxes<T>;
       SwapAxesParam sp{.axis1 = axis1, .axis2 = axis2};
-
       return apply_unary_op<SwapAxesOp, SwapAxesParam>(
           sp, [](const Raw &x, const SwapAxesParam &p) {
              return x.swapaxes(p.axis1, p.axis2);
@@ -333,6 +340,7 @@ template <typename T> class ADTensor {
           });
    }
 
+
    template <typename OpTag, typename F> ADTensor apply_unary_op(F &&f) const {
       using Op = Operation<T, OpTag>;
       const ADTensor &self = *this;
@@ -358,6 +366,7 @@ template <typename T> class ADTensor {
              return ADTensor(std::move(out), req_grad);
           });
    }
+
 };
 
 #endif // AD_TENSOR_HPP
