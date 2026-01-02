@@ -51,6 +51,9 @@ template <typename T> class RawTensor {
 
    ~RawTensor() = default;
 
+   // TODO: It is more idiomatic and less bug prone for the context to own tensor alloc,
+   // not to have the allocation strategy as a property of the tensor itself
+   // e.g. `bfc.make_tensor(...)` and later `arena.make_tensor(...)`, 'slab.make_tensor(...).
    explicit RawTensor(std::vector<std::size_t> shape, std::vector<T> data,
                       DType dtype, Device device,
                       IAllocator *allocator = nullptr)
@@ -219,8 +222,13 @@ template <typename T> class RawTensor {
    RawTensor sqrt() const { return fusion::math::sqrt(*this); }
    RawTensor log() const { return fusion::math::log(*this); }
    RawTensor exp() const { return fusion::math::exp(*this); }
-   RawTensor sum() const { return fusion::math::sum(*this); }
-   RawTensor mean() const { return fusion::math::mean(*this); };
+
+   RawTensor sum(const std::size_t axis, const bool keepdim) const {
+      return fusion::math::sum(*this, axis, keepdim);
+   }
+//   RawTensor mean(const std::size_t axis, const bool keepdim) const {
+//      return fusion::math::mean(*this, axis, keepdim);
+//   }
 
    RawTensor swapaxes(const int axis1, const int axis2) const {
       return fusion::math::linalg::swapaxes(*this, axis1, axis2);
@@ -230,7 +238,6 @@ template <typename T> class RawTensor {
       fusion::math::sub_inplace(*this, other);
       return *this;
    }
-
 
    friend std::ostream &operator<<(std::ostream &os, const RawTensor &tensor) {
       const auto *cpuStorage =
