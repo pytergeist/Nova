@@ -21,7 +21,9 @@ template <typename T> struct Mean {
       const autodiff::NoGradGuard _;
       const RawTensor<T> &x = input.at(0);
       context.save("x", x);
-      RawTensor<T> y = x.mean();
+      const ReductionParam &p =
+          std::any_cast<const ReductionParam &>(input.op_param);
+      RawTensor<T> y = x.mean(p.reduction_axis, p.keepdim);
       Out out;
       out.push_back(x);
       return out;

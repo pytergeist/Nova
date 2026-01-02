@@ -20,8 +20,10 @@ template <typename T> struct Sum {
       FUSION_CHECK(!input.empty(), "Sum requires one inputs");
       const autodiff::NoGradGuard _;
       const RawTensor<T> &x = input.at(0);
+      const ReductionParam &p =
+          std::any_cast<const ReductionParam &>(input.op_param);
       context.save("x", x);
-      RawTensor<T> y = x.sum();
+      RawTensor<T> y = x.sum(p.reduction_axis, p.keepdim);
       Out out;
       out.push_back(y);
       return out;
