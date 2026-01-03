@@ -34,7 +34,7 @@ jobs:
       - name: macOS deps
         if: runner.os == 'macOS'
         run: |
-          brew install cmake ninja openblas eigen
+          brew install cmake ninja openblas eigen pybind11
 
       - name: Windows deps
         if: runner.os == 'Windows'
