@@ -39,7 +39,22 @@ if(NOVA_USE_OPENBLAS)
 endif()
 
 # ---------- Eigen3 ----------
-find_package(Eigen3 REQUIRED)
+find_package(Eigen3 CONFIG QUIET)
+
+if(NOT Eigen3_FOUND)
+  message(STATUS "Eigen3 not found; fetching via FetchContent")
+  FetchContent_Declare(
+          eigen
+          GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+          GIT_TAG        3.4.0
+  )
+  FetchContent_MakeAvailable(eigen)
+
+  if(NOT TARGET Eigen3::Eigen)
+    add_library(Eigen3::Eigen INTERFACE IMPORTED)
+    target_include_directories(Eigen3::Eigen INTERFACE ${eigen_SOURCE_DIR})
+  endif()
+endif()
 
 # ---------- Tests / GoogleTest ----------
 include(CTest)
