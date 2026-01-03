@@ -35,10 +35,10 @@ jobs:
           name: nova-build-ubuntu-latest
           path: nova/src/backend/core/clib
 
-      - uses: snok/install-poetry@v1
-        with:
-          version: 1.8.3
-          virtualenvs-in-project: true
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry==2.0.1
 
       - run: python -m poetry install --no-interaction --no-ansi
 
