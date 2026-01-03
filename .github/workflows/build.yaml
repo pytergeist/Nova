@@ -64,8 +64,8 @@ jobs:
       - name: Import smoke test
         run: |
           poetry run python - <<EOF
-          import nova
-          x = nova.src.backend.core.Tensor([1.0, 2.0])
+          from nova.src.backend.core import Tensor
+          x = Tensor([1.0, 2.0])
           y = x + x
           print(y)
           EOF
