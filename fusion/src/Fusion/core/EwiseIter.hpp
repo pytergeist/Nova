@@ -1,5 +1,5 @@
-#ifndef ELEMENT_WISE_HPP
-#define ELEMENT_WISE_HPP
+#ifndef EWISE_ITER_HPP
+#define EWISE_ITER_HPP
 
 #include <cstdint>
 #include <functional>
@@ -57,25 +57,21 @@ inline void for_each_outer_then_inner(const BroadcastPlan &plan,
 }
 
 template <typename T, class Tag>
-inline void tag_fallback(T *o, const T *a, const T *b, const int64_t &so,
-                         const int64_t &sa, const int64_t &sb,
-                         const std::size_t len) {
+inline void tag_strided_binary(T *o, const T *a, const T *b, const int64_t &so,
+                               const int64_t &sa, const int64_t &sb,
+                               const std::size_t len) {
    Tag tag{};
    for (int64_t i = 0; i < len; ++i)
       o[i * so] = tag(a[i * sa], b[i * sb]);
 }
 
 template <typename T, class Tag>
-inline void tag_fallback_unary(T *o, const T *a, const int64_t &so,
-                               const int64_t &sa, const std::size_t len) {
+inline void tag_strided_unary(T *o, const T *a, const int64_t &so,
+                              const int64_t &sa, const std::size_t len) {
    Tag tag{};
    for (int64_t i = 0; i < len; ++i)
       o[i * so] = tag(a[i * sa]);
 }
-
-// ############################################# //
-// New impl test with empty buff for out_data    //
-// ############################################# //
 
 template <typename T, class Tag, class TensorT>
 void binary_ewise_tag(const TensorT &A, const TensorT &B,
@@ -98,7 +94,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
       if constexpr (simd_traits<Tag, T>::available) {
          simd_traits<Tag, T>::execute_contiguous(a, b, o, len, false, false);
       } else {
-         tag_fallback<T, Tag>(o, a, b, 1, 1, 1, len);
+         tag_strided_binary<T, Tag>(o, a, b, 1, 1, 1, len);
       }
       return;
    }
@@ -113,14 +109,12 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
               (sbytes[0] == step); // true if s[0] == step (e.g. bytes)
           // below here means that a/b must be either 0 (for broadcast) or same
           // size as step (e.g. bytes)
-          const bool a_ok =
+          const bool a_unit =
               (sbytes[1] == 0 ||
-               sbytes[1] ==
-                   step); // a_ok = True if s[1] = 0 or s[1] = bytes (4_
-          const bool b_ok =
+               sbytes[1] == step); // a_unit = True if s[1] = 0 or s[1] = bytes
+          const bool b_unit =
               (sbytes[2] == 0 ||
-               sbytes[2] ==
-                   step); // b_ok = True if s[1] = 0 or s[1] = bytes (4_
+               sbytes[2] == step); // b_unit = True if s[1] = 0 or s[1] = bytes
 
           auto *o = reinterpret_cast<T *>(
               p[0]); // takes bytes ptr and treats it as if it were a ptr to T
@@ -131,7 +125,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
           if constexpr (simd_traits<Tag, T>::available) {
              // include simd impl
              // from traits availible
-             if (out_contig && a_ok && b_ok && len > 0) {
+             if (out_contig && a_unit && b_unit && len > 0) {
                 // if all true continue
                 const bool a_scalar =
                     (sbytes[1] ==
@@ -144,13 +138,22 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
                     a, b, o, static_cast<size_t>(len), a_scalar, b_scalar);
                 return;
              }
+             const bool a_unit = (sbytes[1] == step);
+             const bool b_unit = (sbytes[2] == step);
+             if (out_contig && (a_unit || b_unit)) {
+                const int64_t so = 1;
+                const int64_t sa = sbytes[1] / step;
+                const int64_t sb = sbytes[2] / step;
+                tag_strided_binary<T, Tag>(o, a, b, so, sa, sb, len);
+                return;
+             }
           }
 
           const int64_t so = sbytes[0] / step;
           const int64_t sa = (sbytes[1] == 0) ? 0 : sbytes[1] / step;
           const int64_t sb = (sbytes[2] == 0) ? 0 : sbytes[2] / step;
           // uses tag struct from simd tags as fallback
-          tag_fallback<T, Tag>(o, a, b, so, sa, sb, len);
+          tag_strided_binary<T, Tag>(o, a, b, so, sa, sb, len);
        });
 }
 
@@ -171,7 +174,7 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
       if constexpr (simd_traits<Tag, T>::available) {
          simd_traits<Tag, T>::execute_contiguous(a, o, len, false);
       } else {
-         tag_fallback_unary<T, Tag>(o, a, 1, 1, len);
+         tag_strided_unary<T, Tag>(o, a, 1, 1, len);
       }
       return;
    }
@@ -186,10 +189,10 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
               (sbytes[0] == step); // true if s[0] == step (e.g. bytes)
           // below here means that a/b must be either 0 (for broadcast) or same
           // size as step (e.g. bytes)
-          const bool a_ok =
+          const bool a_unit =
               (sbytes[1] == 0 ||
                sbytes[1] ==
-                   step); // a_ok = True if s[1] = 0 or s[1] = bytes (4_
+                   step); // a_unit = True if s[1] = 0 or s[1] = bytes (4_
 
           auto *o = reinterpret_cast<T *>(
               p[0]); // takes bytes ptr and treats it as if it were a ptr to T
@@ -199,7 +202,7 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
           if constexpr (simd_traits<Tag, T>::available) {
              // include simd impl
              // from traits availible
-             if (out_contig && a_ok && len > 0) {
+             if (out_contig && a_unit && len > 0) {
                 // if all true continue
                 const bool a_scalar =
                     (sbytes[1] ==
@@ -209,15 +212,22 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
                     a, o, static_cast<size_t>(len), a_scalar);
                 return;
              }
+             const bool a_unit = (sbytes[1] == step);
+             if (out_contig && a_unit) {
+                const int64_t so = 1;
+                const int64_t sa = sbytes[1] / step;
+                tag_strided_unary<T, Tag>(o, a, so, sa, len);
+                return;
+             }
           }
 
           const int64_t so = sbytes[0] / step;
           const int64_t sa = (sbytes[1] == 0) ? 0 : sbytes[1] / step;
           // uses tag struct from simd tags as fallback
           Tag tag{};
-          tag_fallback_unary<T, Tag>(o, a, so, sa, len);
+          tag_strided_unary<T, Tag>(o, a, so, sa, len);
        });
 }
 } // namespace ewise
 
-#endif // ELEMENT_WISE_HPP
+#endif // EWISE_ITER_HPP
