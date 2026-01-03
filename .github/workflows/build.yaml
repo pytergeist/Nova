@@ -65,7 +65,7 @@ jobs:
         run: |
           poetry run python - <<EOF
           import nova
-          x = nova.tensor([1.0, 2.0])
+          x = nova.src.backend.core.Tensor([1.0, 2.0])
           y = x + x
           print(y)
           EOF
