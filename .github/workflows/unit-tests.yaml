@@ -2,9 +2,9 @@ name: Nova Unit Tests
 
 on:
   pull_request:
-    branches: [ main, dev ]
-  push:
     branches: [ main ]
+  push:
+    branches: [ main, feature/docs-update ]
   workflow_dispatch:
 
 jobs:
