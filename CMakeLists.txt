@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
+cmake_policy(SET CMP0148 NEW)
+cmake_policy(SET CMP0069 NEW)
 project(Nova LANGUAGES CXX)
 
 # ------------------------------------------------------------

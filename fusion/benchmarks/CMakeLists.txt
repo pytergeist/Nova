@@ -13,5 +13,9 @@ FetchContent_Declare(nanobench
 )
 FetchContent_MakeAvailable(nanobench)
 
+if(TARGET nanobench)
+    set_property(TARGET nanobench PROPERTY INTERPROCEDURAL_OPTIMIZATION OFF)
+endif()
+
 add_subdirectory(eigen)
 add_subdirectory(fusion)

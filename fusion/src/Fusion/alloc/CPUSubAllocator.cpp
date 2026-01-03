@@ -14,9 +14,15 @@ inline void *aligned_alloc_region(Alignment alignment, std::size_t size) {
       throw std::bad_alloc();
    }
    return ptr;
-#else
-   ptr = std::aligned_alloc(alignment, size);
+#elif defined(_WIN32)
+   ptr = _aligned_malloc(size, alignment);
+   if (!ptr) {
+      throw std::bad_alloc();
+   }
    return ptr;
+
+#else
+#error "Unsupported platform for aligned allocation"
 #endif
 };
 
@@ -27,5 +33,9 @@ void *CPUSubAllocator::allocate_region(Alignment alignment,
 };
 
 void CPUSubAllocator::deallocate_region(void *ptr) {
-   std::free(ptr); // NOLINT
-};
+#if defined(_WIN32)
+   _aligned_free(ptr);
+#else
+   std::free(ptr);
+#endif
+}
