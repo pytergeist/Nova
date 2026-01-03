@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <img src="https://github.com/pytergeist/Nova/actions/workflows/cross-platform-build.yaml/badge.svg" />
   <img src="https://github.com/pytergeist/Nova/actions/workflows/unit-tests.yaml/badge.svg" />
   <img src="https://github.com/pytergeist/Nova/actions/workflows/integration-test.yaml/badge.svg" />
   <img src="https://github.com/pytergeist/Nova/actions/workflows/documentation.yaml/badge.svg" />

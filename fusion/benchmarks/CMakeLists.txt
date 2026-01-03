@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.22)
 
+if(NOT NOVA_USE_OPENBLAS)
+    message(STATUS "Skipping benchmarks (BLAS disabled)")
+    return()
+endif()
+
 # Provide nanobench if your top-level Dependencies didn’t already
 include(FetchContent)
 FetchContent_Declare(nanobench
