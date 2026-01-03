@@ -21,7 +21,7 @@ if(NOT OPENBLAS_LIB OR NOT OPENBLAS_INCLUDE_DIR)
 endif()
 
 # ---------- Eigen3 ----------
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Eigen3 REQUIRED)
 
 # ---------- Tests / GoogleTest ----------
 include(CTest)
