@@ -36,10 +36,10 @@ jobs:
         run: |
           brew install cmake ninja openblas eigen pybind11
 
-      - name: Windows deps
-        if: runner.os == 'Windows'
-        run: |
-          choco install cmake ninja -y
+#      - name: Windows deps
+#        if: runner.os == 'Windows'
+#        run: |
+#          choco install cmake ninja -y
 
       - name: Install Poetry
         run: |
