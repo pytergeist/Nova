@@ -37,9 +37,9 @@ jobs:
           version: 1.8.3
           virtualenvs-in-project: true
 
-      - run: poetry install --no-interaction --no-ansi
+      - run: python -m poetry install --no-interaction --no-ansi
 
       - run: |
           echo "PYTHONPATH=$PWD/nova/src/backend/core/clib:$PWD" >> $GITHUB_ENV
 
-      - run: poetry run pytest -v ${{ matrix.path }}
+      - run: python -m poetry run pytest -v ${{ matrix.path }}

@@ -51,7 +51,7 @@ jobs:
           add-to-path: true
 
       - name: Install Python deps
-        run: poetry install --no-interaction --no-ansi
+        run: python -m poetry install --no-interaction --no-ansi
 
       - name: Configure
         env:

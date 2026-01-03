@@ -23,7 +23,7 @@ jobs:
           version: 1.8.3
           virtualenvs-in-project: true
 
-      - run: poetry install --no-interaction
+      - run: python -m poetry install --no-interaction
 
       - run: |
           cmake --preset dev
@@ -31,4 +31,4 @@ jobs:
 
       - run: |
           echo "PYTHONPATH=$PWD/nova/src/backend/core/clib:$PWD" >> $GITHUB_ENV
-          poetry run pytest -v tests/integration/simd
+          python -m poetry run pytest -v tests/integration/simd
