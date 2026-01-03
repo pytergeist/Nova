@@ -36,7 +36,7 @@ PYBIND11_MODULE(fusion, m_ten) {
        .value("INT64", DType::INT64)
        .value("BOOL", DType::BOOL);
 
-   py::class_<EngineScope<float>>(m_ten, "grad_tape")
+   py::class_<EngineScope<float>>(m_ten, "Grad")
        .def(py::init<>())
        .def(
            "__enter__",

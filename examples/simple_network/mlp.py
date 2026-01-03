@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from nova.src.backend.core import Tensor, autodiff, grad_tape
+from nova.src.backend.core import Tensor, autodiff, Grad
 from nova.src.blocks.activations import ReLU
 from nova.src.blocks.core import InputBlock
 from nova.src.blocks.core.linear import Linear
@@ -61,7 +61,7 @@ for epoch in range(1, epochs + 1):
         xb = Tensor(X_shuf[i : i + batch_size])
         yb = Tensor(Y_shuf[i : i + batch_size])
 
-        with grad_tape():
+        with Grad():
             y_pred = model(xb)
             loss = loss_fn(y_pred, yb)
             loss.backward()

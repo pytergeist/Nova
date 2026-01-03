@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from nova.src.backend.core import Tensor
-from tests.integration.gradient import set_grad_tape
+from tests.integration.gradient import set_grad
 from tests.integration.gradient.finite_difference import (
     Tolerance,
     finite_difference_jacobian,
@@ -11,7 +11,7 @@ from tests.integration.gradient.finite_difference import (
 # TODO: Add parameterisation for multiple test cases
 
 
-@set_grad_tape
+@set_grad
 def compute_autodiff_gradient(x):
     x_tensor = Tensor(x, requires_grad=True)
 

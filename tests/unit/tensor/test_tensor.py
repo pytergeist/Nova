@@ -3,7 +3,7 @@ import pytest
 
 from nova.src.backend.core import Tensor
 from nova.src.backend.core.clib import factory_methods as fm
-from tests.integration.gradient import set_grad_tape
+from tests.integration.gradient import set_grad
 
 
 @pytest.mark.parametrize(
@@ -54,7 +54,7 @@ def test_tensor_right_subtraction(data_a, data_b, expected_data):
     assert c.requires_grad is True
 
 
-@set_grad_tape
+@set_grad
 @pytest.mark.parametrize(
     "data_a, data_b, expected_grad_a, expected_grad_b",
     [
@@ -72,7 +72,7 @@ def test_tensor_backward_addition(data_a, data_b, expected_grad_a, expected_grad
     np.testing.assert_array_equal(b.grad.to_numpy(), expected_grad_b)
 
 
-@set_grad_tape
+@set_grad
 @pytest.mark.parametrize(
     "data_a, data_b, expected_grad_a, expected_grad_b",
     [
@@ -90,7 +90,7 @@ def test_tensor_backward_subtraction(data_a, data_b, expected_grad_a, expected_g
     np.testing.assert_array_equal(b.grad.to_numpy(), expected_grad_b)
 
 
-@set_grad_tape
+@set_grad
 @pytest.mark.parametrize(  # TODO: is this correct?
     "data_a, data_b, expected_grad_a, expected_grad_b",
     [
@@ -128,7 +128,7 @@ def test_tensor_division(data_a, data_b, expected_data):
     assert c.requires_grad is True
 
 
-@set_grad_tape
+@set_grad
 @pytest.mark.parametrize(
     "data_a, data_b, expected_grad_a, expected_grad_b",
     [
@@ -158,7 +158,7 @@ def test_tensor_backward_division(data_a, data_b, expected_grad_a, expected_grad
     np.testing.assert_array_almost_equal(b.grad.to_numpy(), expected_grad_b, decimal=5)
 
 
-@set_grad_tape
+@set_grad
 @pytest.mark.parametrize(
     "data",
     [
@@ -177,7 +177,7 @@ def test_tensor_sum_backward(data):
     np.testing.assert_array_almost_equal(a.grad.to_numpy(), expected_grad, decimal=5)
 
 
-@set_grad_tape
+@set_grad
 def test_tensor_matmul_backward():
     """Checks gradient correctness for C = A @ B, using an example where A:(2,3) and
     B:(3,2).

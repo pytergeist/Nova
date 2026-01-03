@@ -7,7 +7,7 @@ from nova.src.backend.topology.builder import Builder
 from nova.src.blocks.activations.activations import ReLU
 from nova.src.blocks.core.linear import Linear
 from nova.src.initialisers import Constant, Ones, RandomNormal, RandomUniform, Zeros
-from tests.integration.gradient import set_grad_tape
+from tests.integration.gradient import set_grad
 from tests.integration.gradient.finite_difference import Tolerance
 
 network_configs = [
@@ -21,7 +21,7 @@ network_configs = [
 ]
 
 
-@set_grad_tape
+@set_grad
 def compute_autodiff_network_grad(x, initializer, config):
     with Builder():  # TODO: change | temporary test fix for builder context
         layer_sizes = config["layers"]
