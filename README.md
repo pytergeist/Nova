@@ -1,3 +1,13 @@
+<p align="center">
+  <img src="logo.png" alt="Nova Logo" width="200"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/pytergeist/Nova/actions/workflows/unit-tests.yaml/badge.svg" />
+  <img src="https://github.com/pytergeist/Nova/actions/workflows/integration-test.yaml/badge.svg" />
+  <img src="https://github.com/pytergeist/Nova/actions/workflows/documentation.yaml/badge.svg" />
+</p>
+
 # Nova (WIP)
 
 Nova is a high-performance deep learning framework and tensor engine built from first principles in modern C++, with a Python 3.13 frontend.
