@@ -51,12 +51,19 @@ jobs:
         run: python -m poetry install --no-interaction --no-ansi
 
       - name: Configure
-        env:
-          PY: ${{ github.workspace }}/.venv/bin/python
+        shell: bash
         run: |
+          PYTHON_EXECUTABLE=$(python -m poetry run python - <<EOF
+          import sys
+          print(sys.executable)
+          EOF
+          )
+
+          echo "Using Python: $PYTHON_EXECUTABLE"
+
           cmake --preset dev \
-            -DPython_EXECUTABLE="$PY" \
-            -DPython3_EXECUTABLE="$PY"
+            -DPython_EXECUTABLE="$PYTHON_EXECUTABLE" \
+            -DPython3_EXECUTABLE="$PYTHON_EXECUTABLE"
 
       - name: Build
         run: cmake --build --preset dev -j2
