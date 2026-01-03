@@ -1,4 +1,4 @@
-name: Build (Linux / macOS / Windows)
+name: Build (Linux · macOS · Windows)
 
 on:
   pull_request:

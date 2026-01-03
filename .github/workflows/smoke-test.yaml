@@ -1,4 +1,4 @@
-name: Nova Smoke Tests
+name: Smoke Tests
 
 on:
   pull_request:

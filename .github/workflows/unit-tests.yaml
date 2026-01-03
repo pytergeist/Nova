@@ -1,4 +1,4 @@
-name: Nova Unit Tests
+name: Unit Tests
 
 on:
   pull_request:

@@ -1,4 +1,4 @@
-name: Nova Nightly NEON
+name: Nightly NEON
 
 on:
   schedule:

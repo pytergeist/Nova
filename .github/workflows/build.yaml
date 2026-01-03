@@ -1,4 +1,4 @@
-name: Nova Build
+name: Build
 
 on:
   workflow_call:
