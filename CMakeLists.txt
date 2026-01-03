@@ -48,14 +48,18 @@ if(NOT DEFINED Python_EXECUTABLE)
 endif()
 
 find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
-find_package(pybind11 REQUIRED)
 
 message(STATUS "Using Python: ${Python_EXECUTABLE} (${Python_VERSION})")
 
 # ------------------------------------------------------------
 # BLAS / Accelerate
 # ------------------------------------------------------------
-find_package(BLAS REQUIRED)
+if(NOVA_USE_OPENBLAS)
+  find_package(BLAS REQUIRED)
+else()
+  set(BLAS_LIBRARIES "")
+endif()
+
 set(ACCELERATE_FRAMEWORK "")
 if(APPLE)
   set(ACCELERATE_FRAMEWORK "-framework Accelerate")
