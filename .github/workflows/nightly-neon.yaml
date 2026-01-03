@@ -1,0 +1,34 @@
+name: Nova Nightly NEON
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  neon:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - run: brew install cmake ninja openblas eigen
+
+      - uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-in-project: true
+
+      - run: poetry install --no-interaction
+
+      - run: |
+          cmake --preset dev
+          cmake --build --preset dev -j2
+
+      - run: |
+          echo "PYTHONPATH=$PWD/nova/src/backend/core/clib:$PWD" >> $GITHUB_ENV
+          poetry run pytest -v tests/integration/simd

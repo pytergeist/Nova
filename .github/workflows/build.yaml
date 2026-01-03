@@ -1,0 +1,76 @@
+name: Nova Build
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      python:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python }}
+
+      - name: Linux deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build \
+            pybind11-dev \
+            libopenblas-dev liblapack-dev \
+            libeigen3-dev libsleef-dev
+
+      - name: macOS deps
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake ninja openblas eigen
+
+      - name: Windows deps
+        if: runner.os == 'Windows'
+        run: |
+          choco install cmake ninja -y
+
+      - uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install Python deps
+        run: poetry install --no-interaction --no-ansi
+
+      - name: Configure
+        env:
+          PY: ${{ github.workspace }}/.venv/bin/python
+        run: |
+          cmake --preset dev \
+            -DPython_EXECUTABLE="$PY" \
+            -DPython3_EXECUTABLE="$PY"
+
+      - name: Build
+        run: cmake --build --preset dev -j2
+
+      - name: Import smoke test
+        run: |
+          poetry run python - <<EOF
+          import nova
+          x = nova.tensor([1.0, 2.0])
+          y = x + x
+          print(y)
+          EOF
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nova-build-${{ inputs.os }}
+          path: nova/src/backend/core/clib

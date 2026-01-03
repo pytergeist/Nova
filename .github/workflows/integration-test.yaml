@@ -1,79 +1,47 @@
 name: Nova Integration Tests
 
 on:
-  push:
-    branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
+  build:
+    uses: ./.github/workflows/build.yaml
+    with:
+      os: ubuntu-latest
+      python: '3.13'
+
   integration:
+    needs: build
     runs-on: ubuntu-latest
+    fail-fast: false
+
     strategy:
-      fail-fast: false
       matrix:
-        include:
-          - suite: finite-difference
-            path: tests/integration/gradient/finite_difference
-          - suite: pytorch
-            path: tests/integration/gradient/pytorch
+        path:
+          - tests/integration/gradient/finite_difference
+          - tests/integration/gradient/pytorch
+          - tests/integration/simd
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
         with:
-          fetch-depth: 1
+          name: nova-build-ubuntu-latest
+          path: nova/src/backend/core/clib
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Install system build deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential cmake ninja-build curl \
-            python3-dev pybind11-dev \
-            libopenblas-dev liblapack-dev \
-            libeigen3-dev libgtest-dev \
-            libsleef-dev
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
+      - uses: snok/install-poetry@v1
         with:
           version: 1.8.3
-          virtualenvs-create: true
           virtualenvs-in-project: true
-          installer-parallel: true
 
-      - name: Install Python deps with Poetry
-        run: poetry install --no-interaction --no-ansi
+      - run: poetry install --no-interaction --no-ansi
 
-      - name: Show tool versions
-        run: |
-          python -V
-          poetry --version
-          poetry run python -V
-          cmake --version
-          ninja --version
+      - run: |
+          echo "PYTHONPATH=$PWD/nova/src/backend/core/clib:$PWD" >> $GITHUB_ENV
 
-      - name: "CMake configure (preset: dev)"
-        env:
-          PY: ${{ github.workspace }}/.venv/bin/python
-        run: |
-          cmake --preset dev \
-            -DPython3_EXECUTABLE="$PY" \
-            -DPython_EXECUTABLE="$PY"
-
-      - name: "CMake build (preset: dev)"
-        run: cmake --build --preset dev -j"$(nproc)"
-
-      - name: Export PYTHONPATH for tests
-        run: |
-          echo "PYTHONPATH=${{ github.workspace }}/nova/src/backend/core/clib:${{ github.workspace }}" >> $GITHUB_ENV
-
-      - name: Run ${{ matrix.suite }} integration tests
-        run: |
-          poetry run pytest -v ${{ matrix.path }}
+      - run: poetry run pytest -v ${{ matrix.path }}
