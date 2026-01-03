@@ -17,16 +17,25 @@ if(NOT pybind11_FOUND)
 endif()
 
 # ---------- OpenBLAS ----------
-find_library(OPENBLAS_LIB
-  NAMES openblas
-  PATHS /opt/homebrew/opt/openblas/lib /usr/lib /usr/local/lib
-)
-find_path(OPENBLAS_INCLUDE_DIR
-  NAMES cblas.h openblas_config.h
-  PATHS /usr/include /usr/local/include /opt/homebrew/opt/openblas/include
-)
-if(NOT OPENBLAS_LIB OR NOT OPENBLAS_INCLUDE_DIR)
-  message(FATAL_ERROR "OpenBLAS not found (lib: ${OPENBLAS_LIB}, include: ${OPENBLAS_INCLUDE_DIR})")
+option(NOVA_USE_OPENBLAS "Enable OpenBLAS acceleration" ON)
+if(NOVA_USE_OPENBLAS)
+  if(WIN32)
+    message(STATUS "OpenBLAS disabled on Windows")
+    set(NOVA_USE_OPENBLAS OFF)
+  else()
+    find_library(OPENBLAS_LIB
+            NAMES openblas
+            PATHS /opt/homebrew/opt/openblas/lib /usr/lib /usr/local/lib
+    )
+    find_path(OPENBLAS_INCLUDE_DIR
+            NAMES cblas.h openblas_config.h
+            PATHS /usr/include /usr/local/include /opt/homebrew/opt/openblas/include
+    )
+
+    if(NOT OPENBLAS_LIB OR NOT OPENBLAS_INCLUDE_DIR)
+      message(FATAL_ERROR "OpenBLAS not found")
+    endif()
+  endif()
 endif()
 
 # ---------- Eigen3 ----------
