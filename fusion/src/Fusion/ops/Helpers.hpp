@@ -4,7 +4,7 @@
 #include <cassert>
 
 #include "Fusion/Tensor.h"
-#include "Fusion/core/EwiseMeta.hpp"
+#include "Fusion/core/PlanMeta.hpp"
 
 template <typename T>
 inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,

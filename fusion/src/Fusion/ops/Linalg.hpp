@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Fusion/common/Log.hpp"
-#include "Fusion/core/EwiseIter.hpp"
+#include "Fusion/core/TensorIter.hpp"
 #include "Fusion/core/RawTensor.hpp"
 #include "Fusion/cpu/blas/Gemm.hpp"
 

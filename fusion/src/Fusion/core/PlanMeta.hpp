@@ -5,7 +5,6 @@
 
 #include "Broadcast.h"
 #include "Reduction.h"
-#include "TensorDesc.hpp"
 
 #include "RawTensor.hpp"
 
@@ -42,6 +41,35 @@ struct ReductionMeta {
    std::size_t reduce_len;
    TensorDescription dA, dOut;
 };
+
+inline std::vector<std::int64_t>
+contig_elem_strides(const std::vector<std::size_t> &shape) {
+   std::vector<std::int64_t> st(shape.size());
+   std::int64_t r = 1;
+   for (int i = (int)shape.size() - 1; i >= 0; --i) {
+      st[i] = r;
+      r *= static_cast<std::int64_t>(shape[i]);
+   }
+   return st;
+}
+
+template <typename T>
+inline TensorDescription make_desc(const std::vector<std::size_t> &shape,
+                                   const int64_t *strides_elems) {
+   // Create TensorDescription with ndims (shape.size()), int64_t vector of
+   // sizes (shape), strides is stride_elems is not a nullptr, and itemsize
+   std::vector<std::size_t> sz(shape.begin(), shape.end());
+   std::vector<std::int64_t> st;
+   if (strides_elems) {
+      st.assign(strides_elems,
+                strides_elems + static_cast<int64_t>(shape.size()));
+   } else {
+      st = contig_elem_strides(shape);
+   }
+   return TensorDescription{static_cast<std::size_t>(shape.size()),
+                            std::move(sz), std::move(st), sizeof(T)};
+}
+
 
 template <typename T>
 inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,

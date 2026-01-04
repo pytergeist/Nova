@@ -11,12 +11,14 @@
 #include "Fusion/cpu/simd/VecNeon128.hpp"
 
 #include "Broadcast.h"
-#include "EwiseMeta.hpp"
+#include "PlanMeta.hpp"
 
-namespace ewise {
+namespace fusion {
 
-template <std::size_t N, class InnerFn>
-inline void walk(int dim, const int inn, const BroadcastPlan &plan,
+namespace iter {
+
+template <typename IterPlan, std::size_t N, class InnerFn>
+inline void walk(int dim, const int inn, const IterPlan &plan,
                  std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
    if (dim == inn) {
       const auto &ld = plan.loop[inn];
@@ -34,8 +36,8 @@ inline void walk(int dim, const int inn, const BroadcastPlan &plan,
       ptr[k] -= ld.stride_bytes[k] * ld.size;
 };
 
-template <std::size_t N, typename FnInnermost>
-inline void for_each_outer_then_inner(const BroadcastPlan &plan,
+template <typename IterPlan, std::size_t N, typename FnInnermost>
+inline void for_each_outer_then_inner(const IterPlan &plan,
                                       std::array<uint8_t *, N> &base,
                                       FnInnermost &&inner) {
    // first set the ndim (2 usually, for 2 tensors in loop)
@@ -73,6 +75,14 @@ inline void tag_strided_unary(T *o, const T *a, const int64_t &so,
       o[i * so] = tag(a[i * sa]);
 }
 
+template <typename T, class Tag>
+inline void tag_fallback_reduction(T *o, const T *a, const int64_t &so,
+                                   const int64_t &sa, const std::size_t len) {
+   Tag tag{};
+   for (int64_t i = 0; i < len; ++i)
+      o[i * so] += tag(a[i * sa]);
+}
+
 template <typename T, class Tag, class TensorT>
 void binary_ewise_tag(const TensorT &A, const TensorT &B,
                       const BinaryEwiseMeta &meta, TensorT &out) {
@@ -99,7 +109,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
       return;
    }
 
-   for_each_outer_then_inner<3>(
+   for_each_outer_then_inner<BroadcastPlan, 3>(
        meta.plan, base,
        [&](std::array<uint8_t *, 3> &p, int64_t len,
            const std::vector<int64_t> &sbytes) {
@@ -157,7 +167,6 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
        });
 }
 
-// Tag = ExponentialSIMD / NaturalLogSIMD / ...
 template <typename T, class Tag, class TensorT>
 void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
                      TensorT &out_data) {
@@ -179,7 +188,7 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
       return;
    }
 
-   for_each_outer_then_inner<2>(
+   for_each_outer_then_inner<BroadcastPlan, 2>(
        meta.plan, base,
        [&](std::array<uint8_t *, 2> &p, int64_t len,
            const std::vector<int64_t> &sbytes) {
@@ -228,6 +237,62 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
           tag_strided_unary<T, Tag>(o, a, so, sa, len);
        });
 }
-} // namespace ewise
+
+template <typename T, class Tag, class TensorT>
+void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
+
+   auto *out = reinterpret_cast<T *>(out_data.get_ptr());
+   std::fill(out, out + out_data.flat_size(), T{0});
+   std::array<uint8_t *, 2> base = {
+       reinterpret_cast<uint8_t *>(const_cast<T *>(out)),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
+   };
+
+   if (meta.fastpath) {
+      auto *o = reinterpret_cast<T *>(base[0]);
+      const auto *a = reinterpret_cast<const T *>(base[1]);
+      const size_t len = meta.fast_len;
+      if constexpr (simd_traits<Tag, T>::available) {
+         *o += simd_traits<Tag, T>::reduce_contiguous(a, len);
+      } else {
+         tag_fallback_reduction<T, Tag>(o, a, 1, 1, len);
+      }
+      return;
+   }
+
+   for_each_outer_then_inner<ReductionPlan, 2>(
+       meta.plan, base,
+       [&](std::array<uint8_t *, 2> &p, int64_t len,
+           const std::vector<int64_t> &sbytes) {
+          const auto step = static_cast<int64_t>(
+              sizeof(T));
+          const bool out_contig =
+              (sbytes[0] == 0);
+          const bool a_ok =
+              (sbytes[1] == 0 ||
+               sbytes[1] ==
+                   step);
+
+          auto *o = reinterpret_cast<T *>(p[0]);
+          const auto *a = reinterpret_cast<const T *>(p[1]);
+
+          if constexpr (simd_traits<Tag, T>::available) {
+             if (sbytes[0] == 0 && sbytes[1] == step && len > 0) {
+                *o += simd_traits<Tag, T>::reduce_contiguous(
+                    a, static_cast<size_t>(len));
+                return;
+             }
+          }
+
+          const std::int64_t so = sbytes[0] / step;
+          const std::int64_t sa = (sbytes[1] == 0) ? 0 : sbytes[1] / step;
+          Tag tag{};
+          tag_fallback_reduction<T, Tag>(o, a, so, sa, len);
+       });
+}
+
+} // namespace fusion
+
+} // namespace iter
 
 #endif // EWISE_ITER_HPP
