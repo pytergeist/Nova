@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (c) 2025 Tom Pope
+#
+# Nova — a high-performance hybrid physics and deep learning tensor engine.
+
 from .dtypes import Bool as bool
 from .dtypes import DType
 from .dtypes import Float32 as float32

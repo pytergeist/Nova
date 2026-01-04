@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (c) 2025 Tom Pope
+//
+// Nova — a high-performance hybrid physics and deep learning tensor engine.
+
 #include "BFCPoolAllocator.h"
 
 void RegionManager::add_allocated_region(void *ptr, std::size_t region_size,

@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (c) 2025 Tom Pope
+#
+# Nova — a high-performance hybrid physics and deep learning tensor engine.
+
 import numpy as np
 import matplotlib.pyplot as plt
 from nova.src.backend.core import Tensor, autodiff, Grad

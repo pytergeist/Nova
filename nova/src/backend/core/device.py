@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (c) 2025 Tom Pope
+#
+# Nova — a high-performance hybrid physics and deep learning tensor engine.
+
 from enum import Enum
 
 # NB: this file is a python shim for the device type/device inside the cpp core and

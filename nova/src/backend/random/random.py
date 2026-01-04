@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (c) 2025 Tom Pope
+#
+# Nova — a high-performance hybrid physics and deep learning tensor engine.
+
 from typing import TYPE_CHECKING, Literal, Optional
 
 from nova.src.backend.core import clib, io

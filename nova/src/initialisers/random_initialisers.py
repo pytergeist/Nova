@@ -1,4 +1,9 @@
-﻿# TODO: Replace numpy functionality with backend operations - written in Fusion module
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (c) 2025 Tom Pope
+#
+# Nova — a high-performance hybrid physics and deep learning tensor engine.
+
+# TODO: Replace numpy functionality with backend operations - written in Fusion module
 
 import os
 from typing import Any, Dict, Tuple

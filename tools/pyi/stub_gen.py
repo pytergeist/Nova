@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (c) 2025 Tom Pope
+#
+# Nova — a high-performance hybrid physics and deep learning tensor engine.
+
 #!/usr/bin/env python3
 """
 Generate .pyi stubs for the fused C++ extension using pybind11-stubgen.

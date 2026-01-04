@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (c) 2025 Tom Pope
+//
+// Nova — a high-performance hybrid physics and deep learning tensor engine.
+
 #ifndef DENSE_STORAGE_H
 #define DENSE_STORAGE_H
 
