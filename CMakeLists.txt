@@ -102,9 +102,8 @@ target_link_libraries(fusion_storage INTERFACE
 # core layer (Tensor semantics)
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
-        ${FUSION_SRC_DIR}/core/Broadcast.cpp
+        ${FUSION_SRC_DIR}/core/TensorPlan.cpp
         ${FUSION_SRC_DIR}/core/ThreadPool.cpp
-        ${FUSION_SRC_DIR}/core/Reduction.cpp
 )
 
 set_target_properties(fusion_core PROPERTIES POSITION_INDEPENDENT_CODE ON)

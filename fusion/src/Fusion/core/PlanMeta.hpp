@@ -3,8 +3,7 @@
 
 #include <vector>
 
-#include "Broadcast.h"
-#include "Reduction.h"
+#include "TensorPlan.h"
 
 #include "RawTensor.hpp"
 
