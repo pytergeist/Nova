@@ -1,5 +1,5 @@
-#ifndef REDUCTION_H
-#define REDUCTION_H
+#ifndef REDUCTION_POLICY_H
+#define REDUCTION_POLICY_H
 
 #include "Mean.hpp"
 #include "Sum.hpp"

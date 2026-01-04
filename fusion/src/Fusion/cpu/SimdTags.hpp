@@ -70,10 +70,11 @@ struct SqrtSIMD {
    }
 };
 
-struct GlobalSumSIMD {
+struct SumSIMD {
    template <typename U> constexpr U operator()(U a) const noexcept {
-      return a; // TODO: This is incorrect for global sum
+      return a;
    }
 };
+
 
 #endif // FUSION_CPU_SIMD_TAGS_HPP

@@ -4,7 +4,7 @@
 #include <cassert>
 
 #include "Fusion/Tensor.h"
-#include "Fusion/core/EwiseMeta.hpp"
+#include "Fusion/core/PlanMeta.hpp"
 
 template <typename T>
 inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
@@ -18,6 +18,12 @@ inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
 template <typename T>
 inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
                                        const UnaryEwiseMeta &m) {
+   return RawTensor<T>(m.out_shape, x.dtype(), x.device());
+}
+
+template <typename T>
+inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
+                                       const ReductionMeta &m) {
    return RawTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 

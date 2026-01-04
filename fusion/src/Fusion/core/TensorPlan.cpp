@@ -6,12 +6,11 @@
 #include <utility>
 #include <vector>
 
-#include "Broadcast.h"
+#include "TensorPlan.h"
 
 using value_type = std::ptrdiff_t;
 
-auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
-    -> BroadcastPlan {
+BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs) {
    // Set Broadcast plan struct info (from Broadcast.h)
    BroadcastPlan plan;
    plan.num_operands = descs.size();
@@ -42,6 +41,7 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
    // broadcastable starting with the right most axes and incramenting left.
    //***************************
 
+   // TODO: renaim shape to shapes (in constitutes both shapes in a vec
    std::vector<std::vector<std::size_t>> shape(descs.size());
    std::vector<std::vector<std::int64_t>> strides(descs.size());
 
@@ -71,10 +71,12 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
       std::size_t out_dim = 1;
       for (std::size_t op = 0; op < plan.num_operands; ++op) {
          std::size_t new_dim = shape[op][dim];
-         if (new_dim != 1) { // TODO: this is where the problem lies - we're setting the
-            // out dim to 7 here (the correct new dim) but we have a cached 64 from previous
-            // loop iterations - is this a loop cycle? because 7 is set to the out dim
-            // and then on next iteration we pull 64 for the new dim? need to lop the tensor descs
+         if (new_dim !=
+             1) { // TODO: this is where the problem lies - we're setting the
+            // out dim to 7 here (the correct new dim) but we have a cached 64
+            // from previous loop iterations - is this a loop cycle? because 7
+            // is set to the out dim and then on next iteration we pull 64 for
+            // the new dim? need to lop the tensor descs
             if (out_dim != 1 && out_dim != new_dim) {
                std::cout << "out dim: " << out_dim << " new_dim: " << new_dim
                          << '\n';
@@ -106,6 +108,79 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
                        static_cast<long long>(plan.itemsize));
       }
       plan.loop[dim] = std::move(loop_dim);
+   }
+
+   return plan;
+}
+
+ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &descs,
+                                  std::size_t axis, bool keepdim) {
+   ReductionPlan plan;
+   plan.num_operands = descs.size();
+   plan.itemsize = descs.back().itemsize; // assume all same dtype
+   plan.reduction_axis = axis;
+   plan.keep_dim = keepdim;
+
+   const TensorDescription &out_desc = descs[0];
+   const TensorDescription &in_desc = descs.back();
+
+   const std::size_t in_ndims = in_desc.ndims;
+
+   plan.out_shape = out_desc.shape;
+   plan.out_ndim = plan.out_shape.size();
+
+   plan.loop.resize(in_ndims);
+
+   std::vector<std::size_t> dim_order;
+   dim_order.reserve(in_ndims);
+   for (std::size_t d = 0; d < in_ndims; ++d) {
+      if (d != axis)
+         dim_order.push_back(d);
+   }
+   dim_order.push_back(axis);
+
+   auto out_dim_index = [&](std::size_t dim) -> std::size_t {
+      if (keepdim) {
+         return dim;
+      } else {
+         if (dim < axis)
+            return dim;
+         if (dim > axis)
+            return dim - 1;
+         return static_cast<std::size_t>(-1);
+      }
+   };
+
+   for (std::size_t idx = 0; idx < in_ndims; ++idx) {
+      const std::size_t dim = dim_order[idx];
+      LoopDim ld;
+
+      if (dim == axis) {
+         ld.size = in_desc.shape[dim];
+      } else {
+         const auto od = out_dim_index(dim);
+         ld.size = plan.out_shape[od];
+      }
+
+      ld.stride_bytes.resize(plan.num_operands);
+
+      if (dim == axis) {
+         ld.stride_bytes[0] = 0;
+      } else {
+         const auto od = out_dim_index(dim);
+         const auto out_stride_elems = out_desc.strides[od];
+         ld.stride_bytes[0] = static_cast<std::int64_t>(out_stride_elems) *
+                              static_cast<std::int64_t>(plan.itemsize);
+      }
+
+      for (std::size_t op = 1; op < plan.num_operands; ++op) {
+         const auto &desc = descs[op];
+         const auto stride_elems = desc.strides[dim];
+         ld.stride_bytes[op] = static_cast<std::int64_t>(stride_elems) *
+                               static_cast<std::int64_t>(plan.itemsize);
+      }
+
+      plan.loop[idx] = std::move(ld);
    }
 
    return plan;

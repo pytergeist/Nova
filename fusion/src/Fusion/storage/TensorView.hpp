@@ -4,7 +4,8 @@
 #include <cstddef>
 #include <memory>
 
-#include "Fusion/core/DType.h"
+// TODO: this is the storage layer - core is leaking in here
+#include "Fusion/core/Dtype.h"
 #include "Fusion/core/Layout.h"
 
 template <typename T> class TensorView {

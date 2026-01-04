@@ -101,6 +101,59 @@ def test_sum(input_data, expected_data, requires_grad):
 
 
 @pytest.mark.parametrize(
+    "input_data, axis, keepdim, expected_data, requires_grad",
+    [
+        ([[1, 2], [3, 4]], 1, False, [3, 7], False),
+        ([[1, 2], [3, 4]], 0, False, [4, 6], False),
+        ([[1, 2], [3, 4]], 1, True, [[3], [7]], False),
+        ([[1, 2], [3, 4]], 0, True, [[4, 6]], False),
+    ],
+)
+def test_sum_with_axis(input_data, axis, keepdim, expected_data, requires_grad):
+    """Tests sum_op's forward_func using arrays with various shapes."""
+    a = Tensor(input_data, requires_grad=False)
+    result_data = a.sum(axis=axis, keepdim=keepdim).to_numpy()
+    requires_grad_result = a.requires_grad
+    np.testing.assert_almost_equal(result_data, expected_data, decimal=5)
+    assert requires_grad_result == requires_grad
+
+
+@pytest.mark.parametrize(
+    "input_data, expected_data, requires_grad",
+    [
+        ([1, 2, 3], 2.0, False),
+        ([[1, 2], [3, 4]], 2.5, False),
+        ([0, 0, 0], 0.0, False),
+    ],
+)
+def test_mean(input_data, expected_data, requires_grad):
+    """Tests sum_op's forward_func using arrays with various shapes."""
+    a = Tensor(input_data, requires_grad=False)
+    result_data = a.mean().to_numpy()
+    requires_grad_result = a.requires_grad
+    np.testing.assert_almost_equal(result_data, expected_data, decimal=5)
+    assert requires_grad_result == requires_grad
+
+
+@pytest.mark.parametrize(
+    "input_data, axis, keepdim, expected_data, requires_grad",
+    [
+        ([[1, 2], [3, 4]], 1, False, [1.5, 3.5], False),
+        ([[1, 2], [3, 4]], 0, False, [2.0, 3.0], False),
+        ([[1, 2], [3, 4]], 1, True, [[1.5], [3.5]], False),
+        ([[1, 2], [3, 4]], 0, True, [[2.0, 3.0]], False),
+    ],
+)
+def test_mean_with_axis(input_data, axis, keepdim, expected_data, requires_grad):
+    """Tests sum_op's forward_func using arrays with various shapes."""
+    a = Tensor(input_data, requires_grad=False)
+    result_data = a.mean(axis=axis, keepdim=keepdim).to_numpy()
+    requires_grad_result = a.requires_grad
+    np.testing.assert_almost_equal(result_data, expected_data, decimal=5)
+    assert requires_grad_result == requires_grad
+
+
+@pytest.mark.parametrize(
     "data_a, data_b, expected_data, requires_grad",
     [
         (

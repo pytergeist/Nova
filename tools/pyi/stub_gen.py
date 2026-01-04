@@ -21,7 +21,9 @@ from pathlib import Path
 
 
 def parse_args() -> argparse.Namespace:
-    repo_root = Path(__file__).resolve().parents[2]  # tools/pyi/stub_gen.py -> repo root
+    repo_root = (
+        Path(__file__).resolve().parents[2]
+    )  # tools/pyi/stub_gen.py -> repo root
     default_dest = repo_root / "nova" / "src" / "backend" / "core" / "clib"
 
     p = argparse.ArgumentParser()
@@ -55,7 +57,9 @@ def parse_args() -> argparse.Namespace:
 def check_module_import(modname: str) -> None:
     try:
         m = importlib.import_module(modname)
-        print(f"[gen.py] Imported '{modname}' from: {getattr(m, '__file__', '<unknown>')}")
+        print(
+            f"[gen.py] Imported '{modname}' from: {getattr(m, '__file__', '<unknown>')}"
+        )
     except Exception as e:
         print(
             f"[gen.py] ERROR: failed to import '{modname}'.\n"
@@ -85,6 +89,7 @@ def run_stubgen(modname: str, outdir: Path, verbose: bool) -> None:
 
 def print_dir_tree(root: Path, depth: int = 4, prefix: str = "") -> None:
     try:
+
         def _walk(p: Path, d: int):
             if d < 0:
                 return
@@ -151,7 +156,9 @@ def find_stub_outputs(tmpdir: Path, module: str) -> list[Path]:
 
 def copy_results(found: list[Path], dest: Path, leaf_name: str) -> None:
     if not found:
-        print(f"[gen.py] ERROR: no stub outputs found in {dest.parent}", file=sys.stderr)
+        print(
+            f"[gen.py] ERROR: no stub outputs found in {dest.parent}", file=sys.stderr
+        )
         sys.exit(3)
 
     dest.mkdir(parents=True, exist_ok=True)
