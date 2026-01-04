@@ -10,7 +10,7 @@
 
 #include "Fusion/alloc/DefaultAllocator.h"
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/core/DType.h"
+#include "Fusion/core/Dtype.h"
 #include "Fusion/core/EwiseIter.hpp"
 #include "Fusion/core/Layout.h"
 #include "Fusion/device/Device.h"

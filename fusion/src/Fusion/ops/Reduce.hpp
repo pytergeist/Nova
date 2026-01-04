@@ -6,7 +6,6 @@
 
 #include "Fusion/core/EwiseIter.hpp"
 #include "Fusion/core/RawTensor.hpp"
-#include "Fusion/core/Reduce.hpp"
 #include "Fusion/core/ReductionIter.hpp"
 #include "Fusion/cpu/SimdTags.hpp"
 #include "Fusion/cpu/SimdTraits.hpp"
