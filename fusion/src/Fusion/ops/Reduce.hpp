@@ -9,9 +9,8 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/ElementWise.hpp"
+#include "Fusion/core/TensorIter.hpp"
 #include "Fusion/core/RawTensor.hpp"
-#include "Fusion/core/Reduce.hpp"
 #include "Fusion/cpu/SimdTags.hpp"
 #include "Fusion/cpu/SimdTraits.hpp"
 
@@ -22,20 +21,23 @@ namespace fusion {
 namespace math {
 
 template <typename T>
-inline RawTensor<T> sum(const RawTensor<T> &x) { // TODO: This bypasses Tensor
-   // buffer/boadcast in curr impl
-   const T *y = x.get_ptr();
-   const std::size_t n = x.flat_size();
-   T acc = reduce::reduce_tag<T, GlobalSumSIMD>(y, n);
-   return RawTensor<T>({1}, std::vector<T>{acc}, x.dtype(), x.device());
+inline RawTensor<T> sum(const RawTensor<T> &x, const std::size_t axis,
+                        const bool keep_dim) {
+   ReductionMeta meta = make_reduction_meta(x, axis, keep_dim);
+   RawTensor<T> out = init_out_from_meta(x, meta);
+   fusion::iter::reduction_tag<T, SumSIMD>(x, meta, out);
+   return out;
 }
 
-template <typename T> inline RawTensor<T> mean(const RawTensor<T> &x) {
-   const T *y = x.get_ptr();
-   const std::size_t n = x.flat_size();
-   T acc = reduce::reduce_tag<T, GlobalSumSIMD>(y, n);
-   T mean = acc / static_cast<T>(n);
-   return RawTensor<T>({1}, std::vector<T>{acc}, x.dtype(), x.device());
+template <typename T>
+inline RawTensor<T> mean(const RawTensor<T> &x, const std::size_t axis,
+                         const bool keep_dim) {
+   ReductionMeta meta = make_reduction_meta(x, axis, keep_dim);
+   RawTensor<T> out = init_out_from_meta(x, meta);
+   fusion::iter::reduction_tag<T, SumSIMD>(x, meta, out);
+   const T denom = static_cast<T>(meta.reduce_len);
+   out = out / denom;
+   return out;
 }
 
 } // namespace math

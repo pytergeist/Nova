@@ -11,7 +11,7 @@
 #include <random>
 #include <vector>
 
-#include "Fusion/core/DType.h"
+#include "Fusion/core/Dtype.h"
 
 #include "Fusion/Tensor.h"
 

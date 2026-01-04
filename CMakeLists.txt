@@ -108,7 +108,7 @@ target_link_libraries(fusion_storage INTERFACE
 # core layer (Tensor semantics)
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
-        ${FUSION_SRC_DIR}/core/Broadcast.cpp
+        ${FUSION_SRC_DIR}/core/TensorPlan.cpp
         ${FUSION_SRC_DIR}/core/ThreadPool.cpp
 )
 

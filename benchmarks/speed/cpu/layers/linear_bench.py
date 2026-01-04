@@ -10,6 +10,7 @@ import statistics as stats
 import time
 from typing import Callable, Tuple, Dict, Any
 
+
 # --- Set thread env before importing NumPy / Torch / TF ---
 def set_thread_env(threads: int):
     val = str(max(1, int(threads)))
@@ -47,10 +48,10 @@ def materialize(x):
 
 
 def bench(
-        fn: Callable[[], object],
-        warmup: int = 10,
-        inner: int = 50,
-        samples: int = 15,
+    fn: Callable[[], object],
+    warmup: int = 10,
+    inner: int = 50,
+    samples: int = 15,
 ) -> Tuple[float, float, float]:
     """
     Same style as your micro-benchmarks:
@@ -86,12 +87,12 @@ def bench(
 
 
 def _get_layers(
-        in_features: int,
-        out_features: int,
-        np_dtype,
-        torch_dtype,
-        tf_dtype,
-        seed: int,
+    in_features: int,
+    out_features: int,
+    np_dtype,
+    torch_dtype,
+    tf_dtype,
+    seed: int,
 ) -> Dict[str, Any]:
     """
     Build (or fetch cached) Nova model, raw weights, Torch and Keras layers
@@ -119,9 +120,7 @@ def _get_layers(
     )
     torch_layer.eval()
 
-    keras_layer = tf.keras.layers.Dense(
-        out_features, use_bias=True, dtype=tf_dtype
-    )
+    keras_layer = tf.keras.layers.Dense(out_features, use_bias=True, dtype=tf_dtype)
     dummy_x = tf.zeros((1, in_features), dtype=tf_dtype)
     _ = keras_layer(dummy_x)
 
@@ -137,17 +136,17 @@ def _get_layers(
 
 
 def profile_linear(
-        *,
-        batch: int,
-        in_features: int = 1024,
-        out_features: int = 1024,
-        dtype: str = "float32",
-        warmup: int = 10,
-        inner: int = 50,
-        samples: int = 15,
-        threads: int = 1,
-        seed: int = 42,
-        verbose: bool = True,
+    *,
+    batch: int,
+    in_features: int = 1024,
+    out_features: int = 1024,
+    dtype: str = "float32",
+    warmup: int = 10,
+    inner: int = 50,
+    samples: int = 15,
+    threads: int = 1,
+    seed: int = 42,
+    verbose: bool = True,
 ):
     """
     Run the benchmark once for a given batch size and return the medians.
@@ -288,10 +287,14 @@ def profile_linear(
         )
 
         print("\nNotes:")
-        print("- 'nova_model' = full Block/Model path (InputBlock → Linear → Model(x)).")
+        print(
+            "- 'nova_model' = full Block/Model path (InputBlock → Linear → Model(x))."
+        )
         print("- 'nova_raw'   = backend-only matmul + bias (x @ W + b).")
         print("- Speed-up % are positive when Nova is faster (lower median).")
-        print("- For apples-to-apples CPU, keep threads=1 and ensure Torch/TF are on CPU only.")
+        print(
+            "- For apples-to-apples CPU, keep threads=1 and ensure Torch/TF are on CPU only."
+        )
 
     return {
         "batch": batch,

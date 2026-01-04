@@ -15,8 +15,8 @@ from nova.src.optim.sgd import SGD
 from nova.src.blocks.regularisation import Dropout
 
 
-
 from profiling import Profiler
+
 prof = Profiler()
 
 inp = InputBlock((None, 10))
@@ -36,7 +36,10 @@ model = Model(inputs=[inp], outputs=[out])
 
 params = model.parameters()
 
-N, D = 20480, 10 # TODO: Batch size currently failing at 40 step for N=1000: dynamic batch size fix
+N, D = (
+    20487,
+    10,
+)  # TODO: Batch size currently failing at 40 step for N=1000: dynamic batch size fix
 X = np.random.randn(N, D).astype(np.float32)
 Y = 2 * X + 1 + 0.1 * np.random.randn(N, D).astype(np.float32)
 X = (X - X.mean(axis=0)) / (X.std(axis=0) + 1e-6)
@@ -74,7 +77,9 @@ for epoch in range(1, epochs + 1):
         optimizer.step()
         batch_losses.append(loss.mean().to_numpy())
 
-    epoch_mses.append(batch_losses[0].mean()) # TODO: the data structure created here is horrible
+    epoch_mses.append(
+        batch_losses[0].mean()
+    )  # TODO: the data structure created here is horrible
     losses = np.min(batch_losses[0])
     print(
         f"Epoch {epoch:2d} | "

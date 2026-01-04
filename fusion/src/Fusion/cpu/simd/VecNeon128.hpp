@@ -35,7 +35,8 @@ static constexpr std::size_t kStep = kUnroll;
 // non-commutative OPS!
 
 // =========================
-// Core contiguous kernels - Current alignment in fixed 64 // TODO: Fix alignment criteria?
+// Core contiguous kernels - Current alignment in fixed 64 // TODO: Fix
+// alignment criteria?
 // =========================
 // All assume: a, b, dst are contiguous T buffers of length n.
 

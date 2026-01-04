@@ -3,10 +3,6 @@
 //
 // Nova — a high-performance hybrid physics and deep learning tensor engine.
 
-#include "Fusion/device/Device.h"
-#include "Fusion/device/DeviceType.h"
-
 int main() {
-   Device device(DeviceType::CPU, 0);
    return 0;
 }

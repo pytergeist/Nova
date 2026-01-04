@@ -3,7 +3,10 @@
 //
 // Nova — a high-performance hybrid physics and deep learning tensor engine.
 
+#ifndef REDUCTION_POLICY_H
+#define REDUCTION_POLICY_H
 
-#include "Reduction.h"
+#include "Mean.hpp"
+#include "Sum.hpp"
 
-using value_type = std::ptrdiff_t;
+#endif // REDUCTION_H

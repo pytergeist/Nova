@@ -3,8 +3,8 @@
 //
 // Nova — a high-performance hybrid physics and deep learning tensor engine.
 
-#ifndef BROADCAST_ITERATOR_H
-#define BROADCAST_ITERATOR_H
+#ifndef TENSOR_PLAN_H
+#define TENSOR_PLAN_H
 
 #include <cstddef>
 #include <cstdint>
@@ -31,10 +31,26 @@ struct BroadcastPlan {
    bool all_contiguous_like{false};
    std::size_t vector_bytes{0};
 
-   std::vector<std::int64_t> out_strides;
+   std::size_t itemsize;
+};
+
+struct ReductionPlan {
+   std::size_t num_operands;
+   std::size_t out_ndim;
+   std::vector<std::size_t> out_shape;
+   std::size_t reduction_axis;
+   std::vector<LoopDim> loop;
+
+   bool keep_dim{false};
+   bool all_contiguous_like{false};
+   std::size_t vector_bytes{0};
+
    std::size_t itemsize;
 };
 
 BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs);
 
-#endif // BROADCAST_ITERATOR_H
+ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &desc,
+                                  const std::size_t axis, const bool keepdim);
+
+#endif // TENSOR_PLAN_H

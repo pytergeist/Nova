@@ -16,7 +16,7 @@
 #include "Fusion/Random.hpp"
 #include "Fusion/Tensor.h"
 #include "Fusion/TensorFactory.hpp"
-#include "Fusion/core/DType.h"
+#include "Fusion/core/Dtype.h"
 
 #include "Helpers.hpp"
 
@@ -174,7 +174,10 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
        .def("sqrt", &PyT::sqrt)
        .def("exp", &PyT::exp)
        .def("log", &PyT::log)
-       .def("sum", &PyT::sum)
+       .def("sum", [](const PyT &t) { return t.sum(-1, false); })
+       .def("sum", &PyT::sum, py::arg("axis"), py::arg("keepdim") = false)
+       .def("mean", [](const PyT &t) { return t.mean(-1, false); })
+       .def("mean", &PyT::mean, py::arg("axis"), py::arg("keepdim") = false)
 
        // --- matrix multiply ( @ ) ---
        .def("__matmul__", &PyT::matmul, "Matrix multiplication (A @ B)")
@@ -192,7 +195,6 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
        .def(
            "maximum", [](const PyT &a, T b) { return a.maximum(b); },
            py::is_operator())
-       .def("mean", &PyT::mean, "Return the global mean of the Tensor.")
        .def("swapaxes", &PyT::swapaxes, py::arg("axis1"), py::arg("axis2"))
        .def("backward", &PyT::backward)
        .def("backward", &PyT::backward)

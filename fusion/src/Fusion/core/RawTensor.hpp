@@ -3,8 +3,8 @@
 //
 // Nova — a high-performance hybrid physics and deep learning tensor engine.
 
-#ifndef TENSOR_BASE_HPP
-#define TENSOR_BASE_HPP
+#ifndef RAW_TENSOR_HPP
+#define RAW_TENSOR_HPP
 
 #include <cstring>
 #include <memory>
@@ -15,10 +15,8 @@
 
 #include "Fusion/alloc/DefaultAllocator.h"
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/core/DType.h"
-#include "Fusion/core/ElementWise.hpp"
+#include "Fusion/core/Dtype.h"
 #include "Fusion/core/Layout.h"
-#include "Fusion/core/Reduce.hpp"
 #include "Fusion/device/Device.h"
 #include "Fusion/kernels/Serial.hpp"
 #include "Fusion/ops/Comparison.hpp"
@@ -28,6 +26,7 @@
 #include "Fusion/ops/OpParams.hpp"
 #include "Fusion/ops/Reduce.hpp"
 #include "Fusion/ops/Transcendental.hpp"
+#include "Fusion/storage/DenseStorage.hpp"
 #include "Fusion/storage/DenseStorage.hpp"
 #include "Fusion/storage/StorageInterface.hpp"
 #include "Fusion/storage/TensorView.hpp"
@@ -56,6 +55,10 @@ template <typename T> class RawTensor {
 
    ~RawTensor() = default;
 
+   // TODO: It is more idiomatic and less bug prone for the context to own
+   // tensor alloc, not to have the allocation strategy as a property of the
+   // tensor itself e.g. `bfc.make_tensor(...)` and later
+   // `arena.make_tensor(...)`, 'slab.make_tensor(...).
    explicit RawTensor(std::vector<std::size_t> shape, std::vector<T> data,
                       DType dtype, Device device,
                       IAllocator *allocator = nullptr)
@@ -224,26 +227,20 @@ template <typename T> class RawTensor {
    RawTensor sqrt() const { return fusion::math::sqrt(*this); }
    RawTensor log() const { return fusion::math::log(*this); }
    RawTensor exp() const { return fusion::math::exp(*this); }
-   RawTensor sum() const { return fusion::math::sum(*this); }
-   RawTensor mean() const { return fusion::math::mean(*this); };
+
+   RawTensor sum(const std::size_t axis, const bool keepdim) const {
+      return fusion::math::sum(*this, axis, keepdim);
+   }
+   RawTensor mean(const std::size_t axis, const bool keepdim) const {
+      return fusion::math::mean(*this, axis, keepdim);
+   }
 
    RawTensor swapaxes(const int axis1, const int axis2) const {
       return fusion::math::linalg::swapaxes(*this, axis1, axis2);
    }
 
-   // TODO: fix this impl
    RawTensor &operator-=(const RawTensor &other) {
-      BinaryEwiseMeta meta = make_binary_meta(*this, other);
-      RawTensor tmp = init_out_from_meta(*this, other, meta);
-      ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta, tmp);
-      if (!meta.out_shape.empty() && meta.out_shape != tmp.shape()) {
-         RawTensor corrected(meta.out_shape, dtype_, device_);
-         ewise::binary_ewise_tag<T, SubtractSIMD>(*this, other, meta,
-                                                  corrected);
-         replace_from(std::move(corrected));
-      } else {
-         replace_from(std::move(tmp));
-      }
+      fusion::math::sub_inplace(*this, other);
       return *this;
    }
 
@@ -322,4 +319,4 @@ template <typename T> class RawTensor {
    }
 };
 
-#endif // TENSOR_BASE_HPP
+#endif // RAW_TENSOR_HPP
