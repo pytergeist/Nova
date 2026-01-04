@@ -340,7 +340,6 @@ template <typename T> class ADTensor {
           });
    }
 
-
    template <typename OpTag, typename F> ADTensor apply_unary_op(F &&f) const {
       using Op = Operation<T, OpTag>;
       const ADTensor &self = *this;
@@ -366,7 +365,6 @@ template <typename T> class ADTensor {
              return ADTensor(std::move(out), req_grad);
           });
    }
-
 };
 
 #endif // AD_TENSOR_HPP

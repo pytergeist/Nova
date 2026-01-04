@@ -26,7 +26,6 @@ struct BroadcastPlan {
    bool all_contiguous_like{false};
    std::size_t vector_bytes{0};
 
-   std::vector<std::int64_t> out_strides;
    std::size_t itemsize;
 };
 

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Broadcast.h"
+#include "Reduction.h"
 #include "TensorDesc.hpp"
 
 #include "RawTensor.hpp"
@@ -28,6 +29,16 @@ struct UnaryEwiseMeta {
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
    BroadcastPlan plan;
+   TensorDescription dA, dOut;
+};
+
+struct ReductionMeta {
+   bool fastpath;
+   std::size_t fast_len;
+   std::vector<std::size_t> out_shape;
+   ReductionPlan plan;
+   bool keepdim;
+   std::size_t reduction_axis;
    TensorDescription dA, dOut;
 };
 
@@ -59,7 +70,7 @@ inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
 };
 
 template <typename T>
-inline UnaryEwiseMeta make_binary_meta(const RawTensor<T> &A) {
+inline UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
    UnaryEwiseMeta meta{};
    const bool cont = A.is_contiguous();
 
@@ -80,5 +91,41 @@ inline UnaryEwiseMeta make_binary_meta(const RawTensor<T> &A) {
    meta.plan = make_broadcast_plan({meta.dOut, meta.dA});
    return meta;
 };
+
+constexpr std::size_t kGlobalReduceAxis = -1;
+
+template <typename T>
+inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
+                                         const std::size_t axis, bool keepdim) {
+   ReductionMeta meta{};
+   if (axis == kGlobalReduceAxis && keepdim == false) {
+      meta.fastpath = true;
+      meta.out_shape = std::vector<std::size_t>{1};
+      meta.fast_len = A.flat_size();
+      return meta;
+   }
+
+   const TensorDescription dA = make_desc<T>(A.shape(), nullptr);
+
+   std::vector<std::size_t> out_shape;
+   for (std::size_t d = 0; d < dA.ndims; ++d) {
+      if (d == axis) {
+         if (keepdim)
+            out_shape.push_back(1);
+      } else {
+         out_shape.push_back(dA.shape[d]);
+      }
+   }
+   meta.out_shape = out_shape;
+   meta.dOut = make_desc<T>(meta.out_shape, nullptr);
+   meta.dA = dA;
+
+   meta.plan = make_reduction_plan({meta.dOut, meta.dA}, axis, keepdim);
+   meta.fastpath = false;
+   meta.keepdim = keepdim;
+   meta.reduction_axis = axis;
+
+   return meta;
+}
 
 #endif // EWISE_META_HPP

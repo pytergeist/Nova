@@ -10,8 +10,7 @@
 
 using value_type = std::ptrdiff_t;
 
-auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
-    -> BroadcastPlan {
+BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs) {
    // Set Broadcast plan struct info (from Broadcast.h)
    BroadcastPlan plan;
    plan.num_operands = descs.size();
@@ -42,6 +41,7 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
    // broadcastable starting with the right most axes and incramenting left.
    //***************************
 
+   // TODO: renaim shape to shapes (in constitutes both shapes in a vec
    std::vector<std::vector<std::size_t>> shape(descs.size());
    std::vector<std::vector<std::int64_t>> strides(descs.size());
 
@@ -71,10 +71,12 @@ auto make_broadcast_plan(const std::vector<TensorDescription> &descs)
       std::size_t out_dim = 1;
       for (std::size_t op = 0; op < plan.num_operands; ++op) {
          std::size_t new_dim = shape[op][dim];
-         if (new_dim != 1) { // TODO: this is where the problem lies - we're setting the
-            // out dim to 7 here (the correct new dim) but we have a cached 64 from previous
-            // loop iterations - is this a loop cycle? because 7 is set to the out dim
-            // and then on next iteration we pull 64 for the new dim? need to lop the tensor descs
+         if (new_dim !=
+             1) { // TODO: this is where the problem lies - we're setting the
+            // out dim to 7 here (the correct new dim) but we have a cached 64
+            // from previous loop iterations - is this a loop cycle? because 7
+            // is set to the out dim and then on next iteration we pull 64 for
+            // the new dim? need to lop the tensor descs
             if (out_dim != 1 && out_dim != new_dim) {
                std::cout << "out dim: " << out_dim << " new_dim: " << new_dim
                          << '\n';

@@ -51,9 +51,10 @@ template <typename T> class RawTensor {
 
    ~RawTensor() = default;
 
-   // TODO: It is more idiomatic and less bug prone for the context to own tensor alloc,
-   // not to have the allocation strategy as a property of the tensor itself
-   // e.g. `bfc.make_tensor(...)` and later `arena.make_tensor(...)`, 'slab.make_tensor(...).
+   // TODO: It is more idiomatic and less bug prone for the context to own
+   // tensor alloc, not to have the allocation strategy as a property of the
+   // tensor itself e.g. `bfc.make_tensor(...)` and later
+   // `arena.make_tensor(...)`, 'slab.make_tensor(...).
    explicit RawTensor(std::vector<std::size_t> shape, std::vector<T> data,
                       DType dtype, Device device,
                       IAllocator *allocator = nullptr)

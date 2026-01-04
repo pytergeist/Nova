@@ -21,4 +21,10 @@ inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
    return RawTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 
+template <typename T>
+inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
+                                       const ReductionMeta &m) {
+   return RawTensor<T>(m.out_shape, x.dtype(), x.device());
+}
+
 #endif // OP_HELPERS_HPP

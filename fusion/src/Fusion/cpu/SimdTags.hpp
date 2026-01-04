@@ -70,9 +70,15 @@ struct SqrtSIMD {
    }
 };
 
-struct GlobalSumSIMD {
+struct SumSIMD {
    template <typename U> constexpr U operator()(U a) const noexcept {
       return a; // TODO: This is incorrect for global sum
+   }
+};
+
+struct MeanSIMD {
+   template <typename U> constexpr U operator()(U a) const noexcept {
+      return a; // TODO: This is incorrect for global mean
    }
 };
 

@@ -6,9 +6,9 @@
 #include "SimdTags.hpp"
 
 #if defined(FUSION_ENABLE_NEON) && defined(__ARM_NEON)
-  #include "simd/VecNeon128.hpp"
+#include "simd/VecNeon128.hpp"
 #else
-  #include "simd/VecFallback.hpp"
+#include "simd/VecFallback.hpp"
 #endif
 
 /* TODO: evaluate the use of neon_scalar for non-commutative operations */
@@ -177,14 +177,26 @@ template <typename T> struct simd_traits<SqrtSIMD, T> {
    }
 };
 
-// ---------- Global sum ----------
-template <typename T> struct simd_traits<GlobalSumSIMD, T> {
+// ---------- Sum ----------
+template <typename T> struct simd_traits<SumSIMD, T> {
    static constexpr bool available = true;
 
-   static T reduce(const T *a, std::size_t n) {
+   static T reduce_contiguous(const T *a, std::size_t n) {
       T acc = T(0.0);
       simd::sum_contiguous<T>(&acc, a, n);
       return acc;
+   }
+};
+
+// ---------- Mean ----------
+template <typename T> struct simd_traits<MeanSIMD, T> {
+   static constexpr bool available = true;
+
+   static T reduce_contiguous(const T *a, std::size_t n) {
+      T acc = T(0.0);
+      simd::sum_contiguous<T>(&acc, a, n);
+      T mean = acc / static_cast<T>(n);
+      return mean;
    }
 };
 #endif // FUSION_CPU_SIMD_TRAITS_HPP
