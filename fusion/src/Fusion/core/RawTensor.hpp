@@ -13,7 +13,6 @@
 #include "Fusion/core/DType.h"
 #include "Fusion/core/EwiseIter.hpp"
 #include "Fusion/core/Layout.h"
-#include "Fusion/core/Reduce.hpp"
 #include "Fusion/device/Device.h"
 #include "Fusion/kernels/Serial.hpp"
 #include "Fusion/ops/Comparison.hpp"

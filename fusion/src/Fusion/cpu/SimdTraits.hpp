@@ -188,15 +188,4 @@ template <typename T> struct simd_traits<SumSIMD, T> {
    }
 };
 
-// ---------- Mean ----------
-template <typename T> struct simd_traits<MeanSIMD, T> {
-   static constexpr bool available = true;
-
-   static T reduce_contiguous(const T *a, std::size_t n) {
-      T acc = T(0.0);
-      simd::sum_contiguous<T>(&acc, a, n);
-      T mean = acc / static_cast<T>(n);
-      return mean;
-   }
-};
 #endif // FUSION_CPU_SIMD_TRAITS_HPP

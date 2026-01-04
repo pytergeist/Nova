@@ -39,6 +39,7 @@ struct ReductionMeta {
    ReductionPlan plan;
    bool keepdim;
    std::size_t reduction_axis;
+   std::size_t reduce_len;
    TensorDescription dA, dOut;
 };
 
@@ -102,6 +103,7 @@ inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
       meta.fastpath = true;
       meta.out_shape = std::vector<std::size_t>{1};
       meta.fast_len = A.flat_size();
+      meta.reduce_len = meta.fast_len;
       return meta;
    }
 
@@ -124,6 +126,7 @@ inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
    meta.fastpath = false;
    meta.keepdim = keepdim;
    meta.reduction_axis = axis;
+   meta.reduce_len = dA.shape[axis];
 
    return meta;
 }

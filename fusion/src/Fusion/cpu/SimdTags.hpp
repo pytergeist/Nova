@@ -72,14 +72,9 @@ struct SqrtSIMD {
 
 struct SumSIMD {
    template <typename U> constexpr U operator()(U a) const noexcept {
-      return a; // TODO: This is incorrect for global sum
+      return a;
    }
 };
 
-struct MeanSIMD {
-   template <typename U> constexpr U operator()(U a) const noexcept {
-      return a; // TODO: This is incorrect for global mean
-   }
-};
 
 #endif // FUSION_CPU_SIMD_TAGS_HPP
