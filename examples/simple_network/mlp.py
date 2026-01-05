@@ -77,15 +77,14 @@ for epoch in range(1, epochs + 1):
         optimizer.step()
         batch_losses.append(loss.mean().to_numpy())
 
-    epoch_mses.append(
-        batch_losses[0].mean()
-    )  # TODO: the data structure created here is horrible
-    losses = np.min(batch_losses[0])
+    epoch_mses.append(np.mean(batch_losses))
+
     print(
         f"Epoch {epoch:2d} | "
-        f"Batch MSE range: {np.min(losses):.4f}–{np.max(losses):.4f} | "
+        f"Batch MSE range: {np.min(batch_losses):.4f}–{np.max(batch_losses):.4f} | "
         f"Epoch MSE: {epoch_mses[-1]:.4f}"
     )
+
 
 plt.figure()
 plt.plot(range(1, epochs + 1), epoch_mses)

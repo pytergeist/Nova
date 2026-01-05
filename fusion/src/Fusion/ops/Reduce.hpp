@@ -9,8 +9,8 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/TensorIter.hpp"
 #include "Fusion/core/RawTensor.hpp"
+#include "Fusion/core/TensorIter.hpp"
 #include "Fusion/cpu/SimdTags.hpp"
 #include "Fusion/cpu/SimdTraits.hpp"
 
@@ -35,8 +35,8 @@ inline RawTensor<T> mean(const RawTensor<T> &x, const std::size_t axis,
    ReductionMeta meta = make_reduction_meta(x, axis, keep_dim);
    RawTensor<T> out = init_out_from_meta(x, meta);
    fusion::iter::reduction_tag<T, SumSIMD>(x, meta, out);
-   const T denom = static_cast<T>(meta.reduce_len);
-   out = out / denom;
+   const T norm_len = static_cast<T>(meta.reduce_len);
+   out = out / norm_len;
    return out;
 }
 

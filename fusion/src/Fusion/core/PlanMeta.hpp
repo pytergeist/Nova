@@ -69,7 +69,6 @@ inline TensorDescription make_desc(const std::vector<std::size_t> &shape,
                             std::move(sz), std::move(st), sizeof(T)};
 }
 
-
 template <typename T>
 inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
                                         const RawTensor<T> &B) {

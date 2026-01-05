@@ -27,7 +27,6 @@
 #include "Fusion/ops/Reduce.hpp"
 #include "Fusion/ops/Transcendental.hpp"
 #include "Fusion/storage/DenseStorage.hpp"
-#include "Fusion/storage/DenseStorage.hpp"
 #include "Fusion/storage/StorageInterface.hpp"
 #include "Fusion/storage/TensorView.hpp"
 

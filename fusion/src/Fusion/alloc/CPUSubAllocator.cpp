@@ -3,7 +3,6 @@
 //
 // Nova — a high-performance hybrid physics and deep learning tensor engine.
 
-
 #include "CPUSubAllocator.h"
 
 inline void *aligned_alloc_region(Alignment alignment, std::size_t size) {

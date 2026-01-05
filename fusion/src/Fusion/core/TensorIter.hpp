@@ -15,8 +15,8 @@
 #include "Fusion/cpu/SimdTraits.hpp"
 #include "Fusion/cpu/simd/VecNeon128.hpp"
 
-#include "TensorPlan.h"
 #include "PlanMeta.hpp"
+#include "TensorPlan.h"
 
 namespace fusion {
 
@@ -269,14 +269,9 @@ void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
        meta.plan, base,
        [&](std::array<uint8_t *, 2> &p, int64_t len,
            const std::vector<int64_t> &sbytes) {
-          const auto step = static_cast<int64_t>(
-              sizeof(T));
-          const bool out_contig =
-              (sbytes[0] == 0);
-          const bool a_ok =
-              (sbytes[1] == 0 ||
-               sbytes[1] ==
-                   step);
+          const auto step = static_cast<int64_t>(sizeof(T));
+          const bool out_contig = (sbytes[0] == 0);
+          const bool a_ok = (sbytes[1] == 0 || sbytes[1] == step);
 
           auto *o = reinterpret_cast<T *>(p[0]);
           const auto *a = reinterpret_cast<const T *>(p[1]);
@@ -296,8 +291,8 @@ void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
        });
 }
 
-} // namespace fusion
-
 } // namespace iter
+
+} // namespace fusion
 
 #endif // TENSOR_ITER_HPP
