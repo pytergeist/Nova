@@ -63,7 +63,9 @@ jobs:
       - name: macOS runtime libs
         if: runner.os == 'macOS'
         run: |
-          echo "DYLD_LIBRARY_PATH=$(brew --prefix sleef)/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
+          BREW_PREFIX=$(brew --prefix)
+          echo "Using Homebrew prefix: $BREW_PREFIX"
+          echo "DYLD_LIBRARY_PATH=$BREW_PREFIX/opt/sleef/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
 
       - name: Run integration tests
         run: python -m poetry run pytest -v ${{ matrix.path }}
