@@ -9,38 +9,60 @@
   <img src="https://github.com/pytergeist/Nova/actions/workflows/documentation.yaml/badge.svg" />
 </p>
 
-# Nova (WIP)
+# Nova (Alpha / WIP)
 
-Nova is a high-performance deep learning framework and tensor engine built from first principles in modern C++, with a Python 3.13 frontend.
+**Nova** is a deterministic tensor runtime and automatic differentiation engine, currently CPU-first, designed for **machine learning and scientific computing**, with a particular focus on **physics-informed and HPC-oriented workflows**.
 
-It provides a full stack for numerical computation and machine learning, including explicit memory management, a SIMD-accelerated tensor core, a deterministic automatic differentiation system, and a Python API for building and training models.
+Nova is written from first principles in modern C++ with a Python 3 frontend.  
+It emphasises **explicit execution**, **transparent memory management**, and **clear architectural boundaries**, rather than maximising convenience or surface-level feature breadth.
 
-Nova is designed for researchers and engineers who care about **performance transparency**, **architectural clarity**, and **extensibility beyond conventional ML workloads**.
-
----
-
-## Why Nova?
-
-Most existing frameworks optimize for ease of use and rapid experimentation, often at the cost of opaque execution, implicit memory behavior, and tightly coupled subsystems.
-
-Nova explores a different set of trade-offs:
-
-- Explicit and deterministic execution
-- Clear separation between tensor semantics, kernels, and autodiff
-- First-class memory management
-- A foundation suitable for machine learning *and* scientific computing
-
-Nova is not intended to be a drop-in replacement for other frameworks.  
-It is a research-driven system with an emphasis on correctness, performance, and long-term extensibility.
+Nova is intended for researchers and engineers who want to understand — and control — how their numerical workloads execute.
 
 ---
 
-## Features
+## What is Nova?
+
+Nova is **not** a drop-in replacement for existing deep learning frameworks.
+
+Instead, it is a research-oriented runtime that explores a different set of design trade-offs:
+
+- Deterministic execution over implicit asynchrony
+- Explicit memory ownership over opaque allocation
+- Inspectable computation graphs over hidden mutation
+- First-class support for scientific and physics-driven workloads
+
+The long-term goal of Nova is to support **differentiable physics and machine learning within a single, coherent execution engine**, 
+suitable for traditional CPU- and MPI-based HPC environments as well as modern ML workflows.
+
+---
+
+## Design Goals
+
+Nova is built around the following principles:
+
+- **Explicitness**  
+  Execution order, memory ownership, and differentiation are never implicit.
+
+- **Determinism**  
+  Given the same inputs and configuration, Nova aims to produce the same results.
+
+- **Separation of concerns**  
+  Tensor semantics, kernels, autodiff, and higher-level APIs are deliberately decoupled.
+
+- **Extensibility**  
+  The system is designed to support user-defined operations, including physics solvers, without requiring a DSL or compiler pipeline.
+
+- **Transparency over abstraction**  
+  Complexity is not hidden — it is structured and made inspectable.
+
+---
+
+## Current Capabilities (v0.1 focus)
 
 ### Tensor Core
 - Dense tensor storage with explicit layout
 - NumPy-style broadcasting and reduction semantics
-- Zero-copy views and slicing
+- Zero-copy tensor views
 - SIMD-accelerated elementwise operations
 - BLAS-backed linear algebra
 
@@ -48,31 +70,63 @@ It is a research-driven system with an emphasis on correctness, performance, and
 - Pluggable allocator interfaces
 - Pool-based allocation for reuse and alignment
 - Deterministic ownership via RAII
-- Designed for future arena and slab allocation strategies
+- Architecture designed to support arena and slab allocators
 
 ### Automatic Differentiation
-- Deterministic, SSA-style computation graphs
+- Reverse-mode autodiff with explicit SSA-style graphs
+- Deterministic forward and backward execution
 - Explicit forward and adjoint definitions per operation
 - Topological sorting with cycle detection
 - Thread-local autodiff contexts
-- No hidden graph mutation during backward passes
+- No implicit graph mutation during backpropagation
 
-### Python API
-- Python 3.13 support
-- Thin bindings over the C++ core via pybind11
+### Python Interface
+- Python frontend with thin bindings over the C++ core (via pybind11)
 - High-level abstractions for:
   - Tensors
   - Layers
   - Models
-  - Optimizers
+  - Optimisers
   - Loss functions
 - NumPy interoperability
 
-### Performance
-- Optimized fast paths for contiguous and shape-compatible tensors
-- SIMD kernels with scalar fallbacks
-- Eager execution with minimal overhead
-- Designed for predictable performance characteristics
+--- 
+
+## Execution Backends and SIMD Support
+
+Nova is currently targeting a **CPU-first execution model**, with explicit control over threading, memory, and vectorisation.
+GPU support is planned for the future.
+
+| Component                | Status          | Notes                                                           |
+|--------------------------|-----------------|-----------------------------------------------------------------|
+| CPU (x86_64)             | ✅ Supported     |                                                                 |
+| CPU (ARM64)              | ✅ Supported     |                                                                 |
+| SIMD (ARM NEON)          | ✅ Supported     | Explicit NEON vector kernels                                    |
+| SIMD (x86 AVX/SSE)       | ⚠️ In Progress  | SIMD kernels for selected operations; scalar fallback elsewhere |
+| Scalar fallback          | ✅ Supported     | Guaranteed portable execution                                   |
+| BLAS (OpenBLAS)          | ✅ Supported     | Default on Linux                                                |
+| BLAS (Accelerate)        | ✅ Supported     | Default on macOS                                                |
+| BLAS (Intel MKL)         | ⚠️ In Progress  | Support for windows/linux pending                               |
+| Multithreaded CPU        | ⚠️ In Progress     | Deterministic thread pool                                       |
+| Single-process runtime   | ✅ Supported     | No implicit asynchronous execution                              |
+| Windows                  | ❌ Not supported | Blocked by MKL / BLAS integration                               |
+| GPU (any vendor)         | ❌ Not supported | GPU support planned for future release                          |
+| Distributed execution    | ❌ Not supported | MPI planned for future releases                                 |
+
+---
+
+## Physics-Oriented Direction
+
+A core motivation behind Nova is the observation that, in many scientific ML workflows, **the physics simulation — not the model — is the dominant computational and conceptual bottleneck**.
+
+Nova is being designed so that:
+
+- Physics solvers can be represented as **first-class graph nodes**
+- Forward simulation and adjoint computation are explicit
+- Long-running, CPU-bound, and MPI-oriented workloads are natural fits
+- ML models act as consumers or parameterisations of physics, rather than the other way around
+
+Early versions focus on correctness and extensibility rather than breadth or peak performance.
 
 ---
 
@@ -96,10 +150,10 @@ out = ReLU()(x)
 model = Model(inputs=[inp], outputs=[out])
 ```
 
-Training with an explicit autodiff context:
+### Training with an explicit autodiff context:
 
 ```python
-from nova.src.backend.core import Tensor, Grad
+from nova.src.backend.core import Grad
 from nova.src.optim.sgd import SGD
 from nova.src.losses import MeanSquaredError
 
@@ -114,106 +168,88 @@ with Grad():
 optimizer.step()
 ```
 
+
 ## Installation
 
-Nova is currently built from source.
+Nova is currently built from source and targets development and research use.
 
-### Requirements
-
+Requirements
 - C++20-compatible compiler
 - CMake ≥ 3.21
-- Python 3.13 (This will soon be changed to python >= 3.11)
+- Python ≥ 3.11 (Python 3.12 currently used in development - but we wi)
 - pybind11
 - BLAS (system or vendor-provided)
 
-## Build (CPU backend)
-Nova provides a `Makefile` that wraps CMake presets and common development configurations.
+## Building Nova (CPU backend)
 
-### Development build (default)
-```
+Nova provides a `Makefile` that wraps CMake presets and common development configurations. All of the below
+build will automatically place the .so executable in the `Nova/nova/src/backend/core/clib` dir, which is the C++ module 
+that powers the frontend python API.
+
+### Development build
+```bash
 make dev
 ```
-The build output will be located under:
+Build output:
 ```
-build/dev/
+Nova/build/dev
 ```
-A symlink to `compile_commands.json` will be created in the project root if available.
+A `compile_commands.json` symlink is created in the project root when available.
 
 ### Release build
-Optimized release build with interprocedural optimisation and aggressive compiler flags:
+
+Optimised release build with inter-procedural optimisation:
 ```bash
 make release
 ```
-Build output:
+Output:
 ```bash
-build/release/
+Nova/build/release
 ```
 
 ### CPU profiling build
-Build with optimisations, debug symbols, and frame pointers enabled (useful for Instruments, perf, or sampling profilers):
 ```bash
 make cpu-profile
 ```
-
-### AddressSanitizer build
+### AddressSanitiser build
 ```bash
 make asan
 ```
-
 ### Incremental rebuild
-Rebuild without re-running CMake configuration:
 ```bash
 make rebuild
 ```
 
 The Python extension module is built as part of the CMake process and can be imported directly from the project root.
-Packaging, wheels, and a stable installation path are under active development.
+Packaging, wheels, and stable installation paths are under active development.
 
-### Running tests
-Nova has a split C++/python tests matrix. Fusion uses GTest, and can be run with: 
+### Python tests
 ```bash
-make test
-```
-This runs `ctest` in the active build directory.
-
-For the python side tests, Nova uses pytest. Python tests can be run with:
-```bash
-pytest -v
+pytest -v 
 ```
 
 ## Documentation
-- Architecture overview: ARCH.md
-- Development roadmap: ROADMAP.md
-- API and module documentation: docs/
-- Additional documentation will be added as the public API stabilizes.
+- Architecture overview: `ARCH.md`
+- Development roadmap: `ROADMAP.md`
+- API and module documentation: `docs/`
+
+Documentation will expand as the public API stabilises.
 
 ## Project Status
-- Nova is under active development.
-- The CPU backend is the primary focus
-- APIs may change as the architecture evolves
-- Performance tuning and correctness validation are ongoing
+- Active development
+- CPU backend is the current primary focus
+- APIs may change
+- Performance tuning and numerical validation are ongoing
 - Despite this, Nova is already usable for real numerical workloads and model training, and serves as a foundation for further research and experimentation.
-
-## Design Philosophy
-Nova emphasizes:
-- Explicit over implicit behavior
-- Deterministic execution over dynamic mutation
-- Clear separation of concerns between subsystems
-- Performance characteristics that are inspectable and understandable
-- Complexity is not hidden, but structured.
 
 ## Contributing
 
-Contributions are welcome.
-
-Nova is particularly suited to contributors interested in:
+Contributions are welcome, particularly from those interested in:
 - Systems programming
 - Numerical computing
 - Automatic differentiation
 - Memory allocation strategies
 - Performance engineering
-- Scientific and physics-informed machine learning
-- Contribution guidelines will be added in `CONTRIBUTING.md`.
+- Physics-informed and scientific machine learning
 
-## License
-Nova is released under the MIT License.
+Contribution guidelines will be added in CONTRIBUTING.md.

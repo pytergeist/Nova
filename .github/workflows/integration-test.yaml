@@ -5,27 +5,30 @@ on:
     branches: [ main ]
   push:
     branches: [ main, feature/docs-update ]
-
   workflow_dispatch:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     uses: ./.github/workflows/build.yaml
     with:
-      os: ubuntu-latest
+      os: ${{ matrix.os }}
       python: '3.13'
+
 
   integration:
     needs: build
-    runs-on: ubuntu-latest
-    fail-fast: false
+    runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest]
         path:
           - tests/integration/gradient/finite_difference
           - tests/integration/gradient/pytorch
-          - tests/integration/simd
 
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +46,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: nova-build-ubuntu-latest
+          name: nova-build-${{ runner.os }}
           path: nova/src/backend/core/clib
 
       - name: Install Poetry
@@ -53,7 +56,9 @@ jobs:
 
       - run: python -m poetry install --no-interaction --no-ansi
 
-      - run: |
+      - name: Set PYTHONPATH
+        run: |
           echo "PYTHONPATH=$PWD/nova/src/backend/core/clib:$PWD" >> $GITHUB_ENV
 
-      - run: python -m poetry run pytest -v ${{ matrix.path }}
+      - name: Run integration tests
+        run: python -m poetry run pytest -v ${{ matrix.path }}

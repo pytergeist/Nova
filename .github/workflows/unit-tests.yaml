@@ -9,17 +9,21 @@ on:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     uses: ./.github/workflows/build.yaml
     with:
-      os: ubuntu-latest
+      os: ${{ matrix.os }}
       python: '3.13'
 
   unit:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         path:
           - tests/unit/tensor
           - tests/unit/activations
@@ -40,7 +44,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: nova-build-ubuntu-latest
+          name: nova-build-${{ runner.os }}
           path: nova/src/backend/core/clib
 
       - name: Install Poetry
@@ -50,7 +54,9 @@ jobs:
 
       - run: python -m poetry install --no-interaction --no-ansi
 
-      - run: |
+      - name: Set PYTHONPATH
+        run: |
           echo "PYTHONPATH=$PWD/nova/src/backend/core/clib:$PWD" >> $GITHUB_ENV
 
-      - run: python -m poetry run pytest -v ${{ matrix.path }}
+      - name: Run unit tests
+        run: python -m poetry run pytest -v ${{ matrix.path }}
