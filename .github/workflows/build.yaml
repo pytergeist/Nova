@@ -79,5 +79,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nova-build-${{ inputs.os }}
+          name: nova-build-${{ runner.os }}
           path: nova/src/backend/core/clib
