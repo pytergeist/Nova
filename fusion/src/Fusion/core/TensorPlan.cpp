@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "TensorPlan.h"
+//#include "PlanMeta.hpp"
 
 using value_type = std::ptrdiff_t;
 
@@ -184,4 +185,97 @@ ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &descs,
    }
 
    return plan;
+}
+
+// TEMPORARY: adding here to bypass circular imports during dev
+inline std::vector<std::int64_t>
+contig_elem_strides_tmp(const std::vector<std::size_t> &shape) {
+   std::vector<std::int64_t> st(shape.size());
+   std::int64_t r = 1;
+   for (int i = (int)shape.size() - 1; i >= 0; --i) {
+      st[i] = r;
+      r *= static_cast<std::int64_t>(shape[i]);
+   }
+   return st;
+}
+
+
+inline TensorDescription make_desc_tmp(const std::vector<std::size_t> &shape,
+                                   const int64_t *strides_elems) {
+   // Create TensorDescription with ndims (shape.size()), int64_t vector of
+   // sizes (shape), strides is stride_elems is not a nullptr, and itemsize
+   std::vector<std::size_t> sz(shape.begin(), shape.end());
+   std::vector<std::int64_t> st;
+   if (strides_elems) {
+      st.assign(strides_elems,
+                strides_elems + static_cast<int64_t>(shape.size()));
+   } else {
+      st = contig_elem_strides_tmp(shape);
+   }
+   return TensorDescription{static_cast<std::size_t>(shape.size()),
+                            std::move(sz), std::move(st), sizeof(float)};
+}
+
+
+ContractionPlan make_contraction_plan(const std::vector<TensorDescription> &descs) {
+   ContractionPlan plan;
+   plan.num_operands = descs.size();
+   plan.itemsize = descs[0].itemsize;
+   std::size_t max_ndims = 0;
+   for (const auto &desc : descs) {
+      max_ndims = std::max(desc.ndims, max_ndims);
+   }
+   plan.out_ndim = max_ndims - 1; // GeMM -> [M, K] @ [K, N] -> [M, N]
+
+   // This is currently hardcoded for matmul rules
+   std::int64_t lhs_contraction_axis = descs[0].ndims - 1;
+   std::int64_t rhs_contraction_axis = descs[0].ndims - 2;
+   // probably need to change the aboive to prebroadcast and recaculate post plan
+
+   plan.caxes = ContractionAxes{.lhs_operand=lhs_contraction_axis, .rhs_operand=rhs_contraction_axis};
+
+
+
+   // Hardcoded for two operands
+   std::vector<std::size_t> output_shape;
+   for (std::size_t i = 0; i < max_ndims; ++i) {
+      if (i < lhs_contraction_axis) {
+      output_shape.push_back(descs[0].shape[i]);
+      }
+      if (i > rhs_contraction_axis) {
+         output_shape.push_back(descs[0].shape[i]);
+      }
+   }
+   plan.out_shape = output_shape;
+   // here I am going to create a broadcast plan between out/lhs and out/rhs
+   TensorDescription dOut = make_desc_tmp(output_shape, nullptr);
+   std::vector<TensorDescription> full_descs{dOut, descs[0], descs[1]};
+   BroadcastPlan lhs_broadcast_plan = make_broadcast_plan(full_descs);
+
+   plan.loop = lhs_broadcast_plan.loop;
+
+   // This is currently hardcoded for matmul rules
+   std::int64_t lhs_contraction_axis_post_broadcast = descs[0].ndims - 1;
+   std::int64_t rhs_contraction_axis_post_broadcast = descs[0].ndims - 2;
+   // probably need to change the aboive to prebroadcast and recaculate post plan
+   plan.caxes = ContractionAxes{.lhs_operand=lhs_contraction_axis_post_broadcast, .rhs_operand=rhs_contraction_axis_post_broadcast};
+
+   // This is almost certainly not generic - test and validate
+   std::size_t contraction_loop_index = std::max(lhs_contraction_axis, rhs_contraction_axis) - std::min(lhs_contraction_axis, rhs_contraction_axis);
+   LoopDim contraction_loop = plan.loop[contraction_loop_index];
+   contraction_loop.stride_bytes[0] = 0;
+   plan.loop.erase(plan.loop.begin() + contraction_loop_index);
+   plan.loop.push_back(contraction_loop);
+
+
+   /*
+	The ordering of what is happening here is wrong:
+		- set a data member in loop called kind{indepedant, reduce, paired}
+		- create broadcastplan with {dOut, dA, dB}
+		- this create a common loop space
+		- remove loop for contraction axis from generic loop dim
+		- re-enter loop that is a pairwise loop as the final loop
+    */
+   return plan;
+
 }
