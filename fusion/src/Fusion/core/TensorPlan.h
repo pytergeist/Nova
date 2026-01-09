@@ -57,8 +57,6 @@ struct ContractionPlan {
 
    ContractionAxes caxes;
    std::vector<LoopDim> loop;
-
-   bool keep_dim{false};
    bool all_contiguous_like{false}; // curr not used - evaluate
    bool lhs_tranpose{false};
    bool rhs_tranpose{false};
