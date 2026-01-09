@@ -35,10 +35,19 @@ struct ReductionMeta {
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
    ReductionPlan plan;
-   bool keepdim;
-   std::size_t reduction_axis;
+   bool keepdim; // TODO: Remove this it's also in the plan
+   std::size_t reduction_axis; // TODO: This is also in the plan
    std::size_t reduce_len;
    TensorDescription dA, dOut;
+};
+
+
+struct ContractionMeta {
+   bool fastpath;
+   std::size_t fast_len;
+   std::vector<std::size_t> out_shape;
+   ContractionPlan plan;
+   TensorDescription dA, dB, dOut;
 };
 
 inline std::vector<std::int64_t>
