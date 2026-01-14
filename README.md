@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="Nova Logo" width="200"/>
+  <img src="logo.png" alt="Noval Logo" width="200"/>
 </p>
 
 <p align="center">
@@ -9,20 +9,20 @@
   <img src="https://github.com/pytergeist/Nova/actions/workflows/documentation.yaml/badge.svg" />
 </p>
 
-# Nova (Alpha / WIP)
+# Noval (Alpha / WIP)
 
 **Nova** is a deterministic tensor runtime and automatic differentiation engine, currently CPU-first, designed for **machine learning and scientific computing**, with a particular focus on **physics-informed and HPC-oriented workflows**.
 
-Nova is written from first principles in modern C++ with a Python 3 frontend.  
+Noval is written from first principles in modern C++ with a Python 3 frontend.  
 It emphasises **explicit execution**, **transparent memory management**, and **clear architectural boundaries**, rather than maximising convenience or surface-level feature breadth.
 
-Nova is intended for researchers and engineers who want to understand — and control — how their numerical workloads execute.
+Noval is intended for researchers and engineers who want to understand — and control — how their numerical workloads execute.
 
 ---
 
 ## What is Nova?
 
-Nova is **not** a drop-in replacement for existing deep learning frameworks.
+Noval is **not** a drop-in replacement for existing deep learning frameworks.
 
 Instead, it is a research-oriented runtime that explores a different set of design trade-offs:
 
@@ -31,20 +31,20 @@ Instead, it is a research-oriented runtime that explores a different set of desi
 - Inspectable computation graphs over hidden mutation
 - First-class support for scientific and physics-driven workloads
 
-The long-term goal of Nova is to support **differentiable physics and machine learning within a single, coherent execution engine**, 
+The long-term goal of Noval is to support **differentiable physics and machine learning within a single, coherent execution engine**, 
 suitable for traditional CPU- and MPI-based HPC environments as well as modern ML workflows.
 
 ---
 
 ## Design Goals
 
-Nova is built around the following principles:
+Noval is built around the following principles:
 
 - **Explicitness**  
   Execution order, memory ownership, and differentiation are never implicit.
 
 - **Determinism**  
-  Given the same inputs and configuration, Nova aims to produce the same results.
+  Given the same inputs and configuration, Noval aims to produce the same results.
 
 - **Separation of concerns**  
   Tensor semantics, kernels, autodiff, and higher-level APIs are deliberately decoupled.
@@ -94,7 +94,7 @@ Nova is built around the following principles:
 
 ## Execution Backends and SIMD Support
 
-Nova is currently targeting a **CPU-first execution model**, with explicit control over threading, memory, and vectorisation.
+Noval is currently targeting a **CPU-first execution model**, with explicit control over threading, memory, and vectorisation.
 GPU support is planned for the future.
 
 | Component                | Status          | Notes                                                           |
@@ -117,9 +117,9 @@ GPU support is planned for the future.
 
 ## Physics-Oriented Direction
 
-A core motivation behind Nova is the observation that, in many scientific ML workflows, **the physics simulation — not the model — is the dominant computational and conceptual bottleneck**.
+A core motivation behind Noval is the observation that, in many scientific ML workflows, **the physics simulation — not the model — is the dominant computational and conceptual bottleneck**.
 
-Nova is being designed so that:
+Noval is being designed so that:
 
 - Physics solvers can be represented as **first-class graph nodes**
 - Forward simulation and adjoint computation are explicit
@@ -171,7 +171,7 @@ optimizer.step()
 
 ## Installation
 
-Nova is currently built from source and targets development and research use.
+Noval is currently built from source and targets development and research use.
 
 Requirements
 - C++20-compatible compiler
@@ -180,9 +180,9 @@ Requirements
 - pybind11
 - BLAS (system or vendor-provided)
 
-## Building Nova (CPU backend)
+## Building Noval (CPU backend)
 
-Nova provides a `Makefile` that wraps CMake presets and common development configurations. All of the below
+Noval provides a `Makefile` that wraps CMake presets and common development configurations. All of the below
 build will automatically place the .so executable in the `Nova/nova/src/backend/core/clib` dir, which is the C++ module 
 that powers the frontend python API.
 
@@ -240,7 +240,7 @@ Documentation will expand as the public API stabilises.
 - CPU backend is the current primary focus
 - APIs may change
 - Performance tuning and numerical validation are ongoing
-- Despite this, Nova is already usable for real numerical workloads and model training, and serves as a foundation for further research and experimentation.
+- Despite this, Noval is already usable for real numerical workloads and model training, and serves as a foundation for further research and experimentation.
 
 ## Contributing
 
