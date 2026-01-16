@@ -41,7 +41,7 @@ struct ReductionMeta {
    TensorDescription dA, dOut;
 };
 
-
+// TODO: need to migrate this to einsum index space IR
 struct ContractionMeta {
    bool fastpath;
    std::size_t fast_len;
