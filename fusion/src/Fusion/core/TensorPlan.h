@@ -12,9 +12,16 @@ struct TensorDescription {
    std::size_t itemsize;
 };
 
+enum class LoopKind {
+    Independent,
+    Reduction
+};
+
+
 struct LoopDim {
    std::size_t size;
    std::vector<std::int64_t> stride_bytes;
+   LoopKind kind;
 };
 
 struct BroadcastPlan {
@@ -70,6 +77,6 @@ BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs);
 ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &desc,
                                   const std::size_t axis, const bool keepdim);
 
-ContractionPlan make_contraction_plan(const std::vector<TensorDescription> &descs);
+ContractionPlan make_contraction_plan(const std::vector<TensorDescription> &descs, const ContractionAxes axes);
 
 #endif // BROADCAST_ITERATOR_H
