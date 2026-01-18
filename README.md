@@ -11,8 +11,8 @@
 
 # Noval (Alpha / WIP)
 
-A deterministic, CPU-first (soon to be MPI-native) execution engine where physics solvers and ML operators are scheduled, memory-managed, 
-and differentiated under the same explicit runtime model.
+Nova is a deterministic, CPU-first (soon to be MPI-native) execution engine where physics solvers and ML operators are scheduled,
+memory-managed, and differentiated under the same explicit runtime model.
 
 Noval is written from first principles in modern C++ with a Python 3 frontend.  
 It emphasises **explicit execution**, **transparent memory management**, and **clear architectural boundaries**, rather than maximising convenience or surface-level feature breadth.
