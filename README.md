@@ -11,7 +11,8 @@
 
 # Noval (Alpha / WIP)
 
-**Nova** is a deterministic tensor runtime and automatic differentiation engine, currently CPU-first, designed for **machine learning and scientific computing**, with a particular focus on **physics-informed and HPC-oriented workflows**.
+A deterministic, CPU-first (soon to be MPI-native) execution engine where physics solvers and ML operators are scheduled, memory-managed, 
+and differentiated under the same explicit runtime model.
 
 Noval is written from first principles in modern C++ with a Python 3 frontend.  
 It emphasises **explicit execution**, **transparent memory management**, and **clear architectural boundaries**, rather than maximising convenience or surface-level feature breadth.
