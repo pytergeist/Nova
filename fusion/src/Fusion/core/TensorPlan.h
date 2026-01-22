@@ -116,4 +116,8 @@ ContractionPlan
 make_contraction_plan(const std::vector<TensorDescription> &descs,
                       const ContractionAxes axes);
 
+ContractionPlan
+make_contraction_plan_einsum(const std::vector<TensorDescription>& inputs,
+                             const EinsumBinding& binding);
+
 #endif // BROADCAST_ITERATOR_H
