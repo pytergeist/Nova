@@ -41,14 +41,17 @@ struct ReductionMeta {
    TensorDescription dA, dOut;
 };
 
-// TODO: need to migrate this to einsum index space IR
 struct ContractionMeta {
    bool fastpath;
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
    ContractionPlan plan;
    TensorDescription dA, dB, dOut;
+
+   // New: store binding for debug/validation (optional)
+   EinsumBinding binding;
 };
+
 
 inline std::vector<std::int64_t>
 contig_elem_strides(const std::vector<std::size_t> &shape) {
@@ -166,5 +169,28 @@ inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
 
    return meta;
 }
+
+
+template <typename T>
+inline ContractionMeta make_contraction_meta_einsum(const RawTensor<T>& A,
+                                                    const RawTensor<T>& B,
+                                                    const EinsumBinding& binding) {
+   ContractionMeta meta{};
+
+   meta.dA = make_desc<T>(A.shape(), nullptr);
+   meta.dB = make_desc<T>(B.shape(), nullptr);
+
+   meta.plan = make_contraction_plan_einsum({meta.dA, meta.dB}, binding);
+
+   meta.out_shape = meta.plan.out_shape;
+   meta.dOut = make_desc<T>(meta.out_shape, nullptr);
+
+   meta.fastpath = false;
+   meta.fast_len = 0;
+
+   meta.binding = binding;
+
+   return meta;
+};
 
 #endif // EWISE_META_HPP
