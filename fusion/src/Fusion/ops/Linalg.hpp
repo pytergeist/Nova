@@ -52,18 +52,6 @@ matmul(const RawTensor<T> &x,
                        x.device());
 }
 
-std::string shape_str(std::vector<size_t> shape) {
-   std::ostringstream oss;
-   oss << '(';
-   for (size_t i = 0; i < shape.size(); ++i) {
-      oss << shape[i];
-      if (i + 1 < shape.size())
-         oss << ',';
-   }
-   oss << ')';
-   return oss.str();
-}
-
 template <typename T>
 inline RawTensor<T> swapaxes(const RawTensor<T> &x, const int axis1,
                              const int axis2) {
