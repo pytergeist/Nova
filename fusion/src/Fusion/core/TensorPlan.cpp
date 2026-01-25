@@ -437,8 +437,6 @@ static IndexSpaceIR build_ir_from_einsum_binding(
         ir.out_indices.push_back(id);
     }
 
-    // Validate output operand axes match out_labels (op0 must have those labels in that order)
-    // This ensures your "out desc" is consistent with the binding.
     {
         const auto& out_labs = bind.op_axis_labels[0];
         if (out_labs.size() != bind.out_labels.size()) {
@@ -463,77 +461,61 @@ static std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR& ir) {
     return out_shape;
 }
 
-//
-//ContractionPlan
-//make_contraction_plan_einsum(const std::vector<TensorDescription>& inputs,
-//                             const EinsumBinding& binding) {
-//    if (inputs.size() < 2) {
-//        throw std::runtime_error("einsum: need at least 2 input operands");
-//    }
-//    validate_descs_same_itemsize(inputs);
-//
-//    // We will build a full desc list: {out, in0, in1, ...}
-//    // First, we need IR to know out_shape, but IR expects an out operand in descs.
-//    // We'll create a temporary out_desc after we know out_shape; to do that,
-//    // we build a "shape-only" pass from labels/extents using inputs first.
-//
-//    // Step A: create a temporary descs vector with a dummy out placeholder for binding checks.
-//    // We'll overwrite it once out_shape is known.
-//    TensorDescription dummy_out;
-//    dummy_out.ndims = binding.out_labels.size();
-//    dummy_out.shape.assign(dummy_out.ndims, 1);
-//    dummy_out.strides.assign(dummy_out.ndims, 0);
-//    dummy_out.itemsize = inputs[0].itemsize;
-//
-//    std::vector<TensorDescription> descs;
-//    descs.reserve(1 + inputs.size());
-//    descs.push_back(dummy_out);
-//    for (const auto& in : inputs) descs.push_back(in);
-//
-//    // IMPORTANT: binding.op_axis_labels must include op0 (out) + all inputs.
-//    if (binding.op_axis_labels.size() != descs.size()) {
-//        throw std::runtime_error("einsum: binding.op_axis_labels must include output operand (op0) + all inputs");
-//    }
-//
-//    // Step B: build IR (extents computed from descs; dummy_out extents are ignored because broadcast_dim(1,x)=x)
-//    IndexSpaceIR ir = build_ir_from_einsum_binding(descs, binding);
-//
-//    // Step C: derive out_shape and build a real contiguous out desc
-//    std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
-//
-//    TensorDescription out_desc;
-//    out_desc.ndims = out_shape.size();
-//    out_desc.shape = out_shape;
-//    out_desc.strides = contig_elem_strides(out_shape); // you already have this helper
-//    out_desc.itemsize = inputs[0].itemsize;
-//
-//    // Replace descs[0] with the real output desc
-//    descs[0] = out_desc;
-//
-//    // Step D: choose loop order: out indices first, then all reductions
-//    std::vector<std::uint32_t> loop_order;
-//    loop_order.reserve(ir.indices.size());
-//
-//    for (auto id : ir.out_indices) loop_order.push_back(id);
-//    for (std::uint32_t id = 0; id < static_cast<std::uint32_t>(ir.indices.size()); ++id) {
-//        if (ir.indices[id].kind == IndexKind::Reduction) loop_order.push_back(id);
-//    }
-//
-//    // Step E: lower
-//    std::vector<LoopDim> loops = lower_to_loops(ir, descs, loop_order);
-//
-//    // Step F: fill plan
-//    ContractionPlan plan;
-//    plan.num_operands = descs.size(); // out + inputs
-//    plan.itemsize = inputs[0].itemsize;
-//
-//    plan.out_shape = std::move(out_shape);
-//    plan.out_ndim = plan.out_shape.size();
-//    plan.loop = std::move(loops);
-//
-//    // Your existing ContractionPlan has caxes (matmul-era). For general einsum,
-//    // it’s not meaningful; set to {-1,-1} or keep as-is if you need ABI stability.
-//    plan.caxes = ContractionAxes{.lhs_operand = -1, .rhs_operand = -1};
-//
-//    return plan;
-//}
+
+ContractionPlan
+make_contraction_plan_einsum(const std::vector<TensorDescription>& inputs,
+                             const EinsumBinding& binding) {
+    if (inputs.size() < 2) {
+        throw std::runtime_error("einsum: need at least 2 input operands");
+    }
+    validate_descs_same_itemsize(inputs);
+
+    TensorDescription dummy_out;
+    dummy_out.ndims = binding.out_labels.size();
+    dummy_out.shape.assign(dummy_out.ndims, 1);
+    dummy_out.strides.assign(dummy_out.ndims, 0);
+    dummy_out.itemsize = inputs[0].itemsize;
+
+    std::vector<TensorDescription> descs;
+    descs.reserve(1 + inputs.size());
+    descs.push_back(dummy_out);
+    for (const auto& in : inputs) descs.push_back(in);
+
+    if (binding.op_axis_labels.size() != descs.size()) {
+        throw std::runtime_error("einsum: binding.op_axis_labels must include output operand (op0) + all inputs");
+    }
+
+    IndexSpaceIR ir = build_ir_from_einsum_binding(descs, binding);
+
+    std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
+
+    TensorDescription out_desc;
+    out_desc.ndims = out_shape.size();
+    out_desc.shape = out_shape;
+    out_desc.itemsize = inputs[0].itemsize;
+
+    // Replace descs[0] with the real output desc
+    descs[0] = out_desc;
+
+    std::vector<std::uint32_t> loop_order;
+    loop_order.reserve(ir.indices.size());
+
+    for (auto id : ir.out_indices) loop_order.push_back(id);
+    for (std::uint32_t id = 0; id < static_cast<std::uint32_t>(ir.indices.size()); ++id) {
+        if (ir.indices[id].kind == IndexKind::Reduction) loop_order.push_back(id);
+    }
+
+    std::vector<LoopDim> loops = lower_to_loops(ir, descs, loop_order);
+
+    ContractionPlan plan;
+    plan.num_operands = descs.size();
+    plan.itemsize = inputs[0].itemsize;
+
+    plan.out_shape = std::move(out_shape);
+    plan.out_ndim = plan.out_shape.size();
+    plan.loop = std::move(loops);
+
+    plan.caxes = ContractionAxes{.lhs_operand = -1, .rhs_operand = -1};
+
+    return plan;
+}
