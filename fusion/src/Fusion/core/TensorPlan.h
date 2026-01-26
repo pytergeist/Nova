@@ -36,11 +36,13 @@ struct TensorDescription {
 };
 
 enum class LoopKind { Independent, Reduction };
+enum class LoopRole { Batch, M, N, K };
 
 struct LoopDim {
    std::size_t size;
    std::vector<std::int64_t> stride_bytes;
    LoopKind kind;
+   LoopRole role;
 };
 
 struct AxisRef3 {
@@ -53,11 +55,7 @@ struct AxisRef3 {
 struct BroadcastView {
    std::size_t out_ndim = 0;
    std::vector<std::size_t> out_shape;
-
-   // For each operand: output axis -> input axis, or -1 if padded
    std::vector<std::vector<int>> axis_map;
-
-   // For each operand: stride bytes per output axis (0 if broadcasted)
    std::vector<std::vector<std::int64_t>> stride_bytes;
 };
 
@@ -67,10 +65,27 @@ struct BroadcastPlan {
    std::vector<std::size_t> out_shape;
    std::vector<LoopDim> loop;
 
-   bool all_contiguous_like{false}; // curr not used - evaluate
+   bool all_contiguous_like{false};
    std::size_t vector_bytes{0};
 
    std::size_t itemsize;
+};
+
+
+struct GemmLikeDesc {
+   std::size_t batch{1};
+   std::size_t M{1}, N{1}, K{1};
+
+   // byte strides
+   std::int64_t out_rs{0}, out_cs{0};
+   std::int64_t a_rs{0}, a_cs{0};
+   std::int64_t b_rs{0}, b_cs{0};
+
+   bool a_transpose{false};
+   bool b_transpose{false};
+   bool out_is_contig_mn{false};
+   bool a_is_contig_mk{false};
+   bool b_is_contig_kn{false};
 };
 
 struct ReductionPlan {
@@ -93,18 +108,17 @@ struct ContractionAxes {
 };
 
 struct ContractionPlan {
-   std::size_t num_operands;
-   std::size_t out_ndim;
+   std::size_t num_operands{0};
+   std::size_t out_ndim{0};
    std::vector<std::size_t> out_shape;
 
-   ContractionAxes caxes;
-   std::vector<LoopDim> loop;
-   bool all_contiguous_like{false}; // curr not used - evaluate
-   bool lhs_tranpose{false};
-   bool rhs_tranpose{false};
-   std::size_t vector_bytes{0};
+   std::vector<LoopDim> outer;
+   std::vector<LoopDim> reduce;
 
-   std::size_t itemsize;
+   bool gemm_like{false};
+   GemmLikeDesc gemm;
+
+   std::size_t itemsize{0};
 };
 
 BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs);
