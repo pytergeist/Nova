@@ -76,7 +76,6 @@ struct GemmLikeDesc {
    std::size_t batch{1};
    std::size_t M{1}, N{1}, K{1};
 
-   // byte strides
    std::int64_t out_rs{0}, out_cs{0};
    std::int64_t a_rs{0}, a_cs{0};
    std::int64_t b_rs{0}, b_cs{0};
