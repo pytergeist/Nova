@@ -126,11 +126,11 @@ ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &desc,
                                   const std::size_t axis, const bool keepdim);
 
 ContractionPlan
-make_contraction_plan(const std::vector<TensorDescription> &descs,
-                      const ContractionAxes axes);
-
-ContractionPlan
 make_contraction_plan_einsum(const std::vector<TensorDescription>& inputs,
                              const EinsumBinding& binding);
+
+ContractionPlan
+make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
+                                 const EinsumBinding& binding);
 
 #endif // BROADCAST_ITERATOR_H
