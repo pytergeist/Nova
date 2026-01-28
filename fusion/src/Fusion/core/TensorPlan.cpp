@@ -763,3 +763,68 @@ make_contraction_plan_einsum(const std::vector<TensorDescription>& inputs,
 
     return plan;
 }
+
+
+ContractionPlan
+make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
+                                 const EinsumBinding& binding) {
+    if (descs.size() != 3) {
+        throw std::runtime_error("einsum_out: expected descs = {out, A, B}");
+    }
+    validate_descs_same_itemsize(descs);
+
+    if (binding.op_axis_labels.size() != 3) {
+        throw std::runtime_error("einsum_out: binding.op_axis_labels must be {out, A, B}");
+    }
+    if (binding.op_axis_labels[0].size() != binding.out_labels.size()) {
+        throw std::runtime_error("einsum_out: op0 labels length must equal out_labels length");
+    }
+
+    IndexSpaceIR ir = build_ir_from_einsum_binding(descs, binding);
+    std::vector<std::size_t> expected_out_shape = out_shape_from_ir(ir);
+
+    if (descs[0].ndims != expected_out_shape.size()) {
+        throw std::runtime_error("einsum_out: out.ndims does not match inferred out shape rank");
+    }
+    if (descs[0].shape != expected_out_shape) {
+        throw std::runtime_error("einsum_out: out.shape does not match inferred out shape");
+    }
+
+    std::vector<std::uint32_t> outer_order = ir.out_indices;
+
+    std::vector<std::uint32_t> reduce_order;
+    reduce_order.reserve(ir.indices.size());
+    for (std::uint32_t id = 0; id < static_cast<std::uint32_t>(ir.indices.size()); ++id) {
+        if (ir.indices[id].kind == IndexKind::Reduction) {
+            reduce_order.push_back(id);
+        }
+    }
+
+    std::vector<LoopDim> outer_loops = lower_to_loops_with_roles(ir, descs, outer_order);
+    std::vector<LoopDim> reduce_loops = lower_to_loops_with_roles(ir, descs, reduce_order);
+
+    ContractionPlan plan;
+    plan.num_operands = descs.size();
+    plan.itemsize = ir.itemsize;
+
+    plan.out_ndim = descs[0].ndims;
+    plan.out_shape = descs[0].shape;
+
+    plan.outer = std::move(outer_loops);
+    plan.reduce = std::move(reduce_loops);
+
+    plan.gemm_like = false;
+    plan.gemm = GemmLikeDesc{};
+
+    GemmLikeDesc g;
+    if (try_make_gemm_like(descs, binding, ir, g)) {
+        plan.gemm_like = true;
+        plan.gemm = g;
+
+        for (auto& ld : plan.reduce) {
+            ld.role = LoopRole::K;
+        }
+    }
+
+    return plan;
+}
