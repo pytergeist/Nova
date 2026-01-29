@@ -179,17 +179,19 @@ inline ContractionMeta make_contraction_meta_einsum(const RawTensor<T>& A,
    meta.dA = make_desc_from_shape<T>(A.shape(), nullptr);
    meta.dB = make_desc_from_shape<T>(B.shape(), nullptr);
 
-   meta.plan = make_contraction_plan_einsum({meta.dA, meta.dB}, binding);
+   const ContractionPlan plan_in = make_contraction_plan_einsum({meta.dA, meta.dB}, binding);
+   meta.out_shape = plan_in.out_shape;
 
-   meta.out_shape = meta.plan.out_shape;
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
+
+   meta.plan = make_contraction_plan_einsum_out({meta.dOut, meta.dA, meta.dB}, binding);
 
    meta.fastpath = false;
    meta.fast_len = 0;
-
    meta.binding = binding;
 
    return meta;
-};
+}
+
 
 #endif // EWISE_META_HPP

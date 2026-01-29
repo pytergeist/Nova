@@ -22,7 +22,6 @@
 #include "Fusion/ops/Reduce.hpp"
 #include "Fusion/ops/Transcendental.hpp"
 #include "Fusion/storage/DenseStorage.hpp"
-#include "Fusion/storage/DenseStorage.hpp"
 #include "Fusion/storage/StorageInterface.hpp"
 #include "Fusion/storage/TensorView.hpp"
 
@@ -82,7 +81,7 @@ template <typename T> class RawTensor {
    std::size_t rank() const { return shape_.size(); }
    std::size_t ndims() const { return shape_.size(); }
    std::vector<std::size_t> shape() const { return shape_; }
-   std::vector<std::size_t> strides() const { return strides_; }
+   std::vector<std::int64_t> strides() const { return strides_; }
    Device device() const noexcept { return device_; }
 
    bool is_contiguous() const noexcept {
@@ -127,13 +126,15 @@ template <typename T> class RawTensor {
    T *end() const { return storage_->data().template end<T>(); }
 
    std::size_t set_contiguous_strides() {
-      size_t sz = 1;
-      strides_.resize(shape_.size());
-      for (size_t i = 0; i < shape_.size(); i++) {
-         strides_[i] = sz;
-         sz *= shape_[i];
-      };
-      return sz;
+      std::int64_t sz = 1;
+      strides_.assign(shape_.size(), 0);
+
+      for (std::int64_t i = static_cast<std::int64_t>(shape_.size()) - 1;
+           i >= 0; --i) {
+         strides_[static_cast<std::size_t>(i)] = sz;
+         sz *= static_cast<std::int64_t>(shape_[static_cast<std::size_t>(i)]);
+      }
+      return static_cast<std::size_t>(sz);
    }
 
    void clear() noexcept {
@@ -275,7 +276,9 @@ template <typename T> class RawTensor {
 
  protected:
    std::shared_ptr<ITensorStorage<T>> storage_;
-   std::vector<std::size_t> shape_{}, strides_{};
+   std::vector<std::size_t> shape_{};
+   std::vector<std::int64_t>
+       strides_{}; // TODO: Chaneg strides to int64_t!!! can be negative
    DType dtype_;
    Device device_;
    IAllocator *allocator_ = nullptr;
