@@ -23,7 +23,6 @@ template <typename T> class Graph {
 
    ~Graph() = default;
 
-   std::vector<INode<T>> nodes() const { return nodes_; }
    std::vector<INode<T>> &nodes() { return nodes_; }
 
    std::vector<NodeID> &node_ids() { return node_ids_; }
