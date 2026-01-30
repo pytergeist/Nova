@@ -10,6 +10,7 @@ using Label = std::uint32_t;
 enum class IndexKind { Independent, Reduction };
 
 struct IndexDef {
+   Label label{0};
    std::size_t extent{1};
    IndexKind kind{IndexKind::Independent};
    std::vector<std::int32_t> axis_of_operand;
@@ -39,17 +40,11 @@ enum class LoopKind { Independent, Reduction };
 enum class LoopRole { Batch, M, N, K };
 
 struct LoopDim {
+   // TODO: LoopKind and LoopRole are currently just set on init - need to add set role/kind to lower_to_loop
    std::size_t size;
    std::vector<std::int64_t> stride_bytes;
-   LoopKind kind;
-   LoopRole role;
-};
-
-struct AxisRef3 {
-   int out = -1;
-   int lhs = -1;
-   int rhs = -1;
-   LoopKind kind = LoopKind::Independent;
+   LoopKind kind{LoopKind::Independent};
+   LoopRole role{LoopRole::Batch};
 };
 
 struct BroadcastView {
@@ -101,18 +96,12 @@ struct ReductionPlan {
    std::size_t itemsize;
 };
 
-struct ContractionAxes {
-   std::int64_t lhs_operand;
-   std::int64_t rhs_operand;
-};
-
 struct ContractionPlan {
    std::size_t num_operands{0};
    std::size_t out_ndim{0};
    std::vector<std::size_t> out_shape;
 
-   std::vector<LoopDim> outer;
-   std::vector<LoopDim> reduce;
+   std::vector<LoopDim> loop;
 
    bool gemm_like{false};
    GemmLikeDesc gemm;
@@ -132,5 +121,10 @@ make_contraction_plan_einsum(const std::vector<TensorDescription>& inputs,
 ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
                                  const EinsumBinding& binding);
+
+
+std::vector<std::size_t>
+infer_einsum_out_shape(const std::vector<TensorDescription>& inputs,
+                       const EinsumBinding& binding);
 
 #endif // BROADCAST_ITERATOR_H

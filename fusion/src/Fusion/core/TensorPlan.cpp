@@ -13,76 +13,6 @@
 
 using value_type = std::ptrdiff_t;
 
-// ContractionPlan make_contraction_plan(const std::vector<TensorDescription>
-// &descs) {
-//    ContractionPlan plan;
-//    plan.num_operands = descs.size();
-//    plan.itemsize = descs[0].itemsize;
-//    std::size_t max_ndims = 0;
-//    for (const auto &desc : descs) {
-//       max_ndims = std::max(desc.ndims, max_ndims);
-//    }
-//    plan.out_ndim = max_ndims - 1; // GeMM -> [M, K] @ [K, N] -> [M, N]
-//
-//    // This is currently hardcoded for matmul rules
-//    std::int64_t lhs_contraction_axis = descs[0].ndims - 1;
-//    std::int64_t rhs_contraction_axis = descs[0].ndims - 2;
-//    // probably need to change the aboive to prebroadcast and recaculate post
-//    plan
-//
-//    plan.caxes = ContractionAxes{.lhs_operand=lhs_contraction_axis,
-//    .rhs_operand=rhs_contraction_axis};
-//
-//
-//
-//    // Hardcoded for two operands
-//    std::vector<std::size_t> output_shape;
-//    for (std::size_t i = 0; i < max_ndims; ++i) {
-//       if (i < lhs_contraction_axis) {
-//       output_shape.push_back(descs[0].shape[i]);
-//       }
-//       if (i > rhs_contraction_axis) {
-//          output_shape.push_back(descs[0].shape[i]);
-//       }
-//    }
-//    plan.out_shape = output_shape;
-//    // here I am going to create a broadcast plan between out/lhs and out/rhs
-//    TensorDescription dOut = make_desc_tmp(output_shape, nullptr);
-//    std::vector<TensorDescription> full_descs{dOut, descs[0], descs[1]};
-//    BroadcastPlan lhs_broadcast_plan = make_broadcast_plan(full_descs);
-//
-//    plan.loop = lhs_broadcast_plan.loop;
-//
-//    // This is currently hardcoded for matmul rules
-//    std::int64_t lhs_contraction_axis_post_broadcast = descs[0].ndims - 1;
-//    std::int64_t rhs_contraction_axis_post_broadcast = descs[0].ndims - 2;
-//    // probably need to change the aboive to prebroadcast and recaculate post
-//    plan plan.caxes =
-//    ContractionAxes{.lhs_operand=lhs_contraction_axis_post_broadcast,
-//    .rhs_operand=rhs_contraction_axis_post_broadcast};
-//
-//    // This is almost certainly not generic - test and validate
-//    std::size_t contraction_loop_index = std::max(lhs_contraction_axis,
-//    rhs_contraction_axis) - std::min(lhs_contraction_axis,
-//    rhs_contraction_axis); LoopDim contraction_loop =
-//    plan.loop[contraction_loop_index]; contraction_loop.stride_bytes[0] = 0;
-//    plan.loop.erase(plan.loop.begin() + contraction_loop_index);
-//    plan.loop.push_back(contraction_loop);
-//
-//
-//    /*
-//	The ordering of what is happening here is wrong:
-//		- set a data member in loop called kind{indepedant, reduce,
-//paired}
-//		- create broadcastplan with {dOut, dA, dB}
-//		- this create a common loop space
-//		- remove loop for contraction axis from generic loop dim
-//		- re-enter loop that is a pairwise loop as the final loop
-//     */
-//    return plan;
-//
-// }
-
 inline void
 validate_descs_same_itemsize(const std::vector<TensorDescription> &descs) {
    if (descs.empty())
@@ -275,6 +205,7 @@ inline std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
                const std::vector<TensorDescription> &descs,
                const std::vector<std::uint32_t> &loop_order) {
+   /* TODO: Lower_to_loops currently doesn't set a LoopRole -- FIX */
    if (descs.size() != ir.num_operands)
       throw std::runtime_error("lower: desc count mismatch");
 
@@ -307,6 +238,113 @@ lower_to_loops(const IndexSpaceIR &ir,
 
    return loops;
 }
+
+inline std::vector<LoopDim>
+lower_to_loops(const IndexSpaceIR &ir,
+               const std::vector<TensorDescription> &descs,
+               const std::vector<std::uint32_t> &loop_order,
+               const std::vector<LoopRole>* role_of_id) {
+
+    if (descs.size() != ir.num_operands)
+        throw std::runtime_error("lower: desc count mismatch");
+
+    std::vector<LoopDim> loops;
+    loops.reserve(loop_order.size());
+
+    for (std::uint32_t id : loop_order) {
+        if (id >= ir.indices.size())
+            throw std::runtime_error("lower: bad loop index id");
+
+        const IndexDef &idx = ir.indices[id];
+
+        LoopDim ld;
+        ld.size = idx.extent;
+        ld.kind = (idx.kind == IndexKind::Reduction) ? LoopKind::Reduction
+                                                     : LoopKind::Independent;
+
+        // NEW:
+        if (role_of_id) ld.role = (*role_of_id)[id];
+        else            ld.role = LoopRole::Batch;
+
+        ld.stride_bytes.resize(ir.num_operands);
+        for (std::size_t op = 0; op < ir.num_operands; ++op) {
+            if (op == 0 && idx.kind == IndexKind::Reduction) {
+                ld.stride_bytes[op] = 0;
+            } else {
+                ld.stride_bytes[op] = stride_bytes_for_binding(
+                    descs[op], idx.axis_of_operand[op], idx.extent, ir.itemsize);
+            }
+        }
+        loops.push_back(std::move(ld));
+    }
+
+    return loops;
+}
+
+static std::vector<LoopRole>
+compute_roles_for_gemm_like(const IndexSpaceIR& ir,
+                            const EinsumBinding& binding) {
+
+    const auto& outL = binding.op_axis_labels[0];
+    const auto& aL   = binding.op_axis_labels[1];
+    const auto& bL   = binding.op_axis_labels[2];
+
+    auto as_set = [](const std::vector<Label>& v) {
+        std::unordered_set<Label> s;
+        s.reserve(v.size());
+        for (auto x : v) s.insert(x);
+        return s;
+    };
+
+    auto outS = as_set(outL);
+    auto aS   = as_set(aL);
+    auto bS   = as_set(bL);
+
+    std::unordered_map<Label, LoopRole> role_of_label;
+    role_of_label.reserve(64);
+
+    Label labelM = 0, labelN = 0, labelK = 0;
+    bool haveM=false, haveN=false, haveK=false;
+
+    std::unordered_set<Label> all;
+    all.reserve(outS.size() + aS.size() + bS.size());
+    for (auto x : outS) all.insert(x);
+    for (auto x : aS)   all.insert(x);
+    for (auto x : bS)   all.insert(x);
+
+    for (Label L : all) {
+        const bool inO = outS.count(L);
+        const bool inA = aS.count(L);
+        const bool inB = bS.count(L);
+
+        if (inO && inA && inB) {
+            role_of_label[L] = LoopRole::Batch;
+        } else if (inO && inA && !inB) {
+            role_of_label[L] = LoopRole::M;
+            labelM = L; haveM = true;
+        } else if (inO && !inA && inB) {
+            role_of_label[L] = LoopRole::N;
+            labelN = L; haveN = true;
+        } else if (!inO && inA && inB) {
+            role_of_label[L] = LoopRole::K;
+            labelK = L; haveK = true;
+        } else {
+            role_of_label[L] = LoopRole::Batch;
+        }
+    }
+
+    std::vector<LoopRole> role_of_id(ir.indices.size(), LoopRole::Batch);
+
+    for (std::uint32_t id = 0; id < ir.indices.size(); ++id) {
+        const Label L = ir.indices[id].label; // <-- add this field
+        auto it = role_of_label.find(L);
+        if (it != role_of_label.end()) role_of_id[id] = it->second;
+    }
+
+    return role_of_id;
+}
+
+
 
 BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs) {
    IndexSpaceIR ir = build_broadcast_ir_right_aligned(descs);
@@ -388,6 +426,7 @@ static IndexSpaceIR build_ir_from_einsum_binding(
         std::uint32_t id = static_cast<std::uint32_t>(ir.indices.size());
         IndexDef idx;
         idx.extent = 1;
+        idx.label = L;
         idx.kind = IndexKind::Reduction;
         idx.axis_of_operand.assign(ir.num_operands, -1);
         ir.indices.push_back(std::move(idx));
@@ -461,6 +500,26 @@ static std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR& ir) {
     return out_shape;
 }
 
+std::vector<std::size_t>
+infer_einsum_out_shape(const std::vector<TensorDescription>& inputs,
+                       const EinsumBinding& binding) {
+    if (inputs.size() != 2) {
+        throw std::runtime_error("einsum: expected inputs = {A, B}");
+    }
+    validate_descs_same_itemsize(inputs);
+
+    TensorDescription dummy_out;
+    dummy_out.ndims = binding.out_labels.size();
+    dummy_out.shape.assign(dummy_out.ndims, 1);
+    dummy_out.strides.assign(dummy_out.ndims, 0);
+    dummy_out.itemsize = inputs[0].itemsize;
+
+    std::vector<TensorDescription> tmp = {dummy_out, inputs[0], inputs[1]};
+    IndexSpaceIR ir = build_ir_from_einsum_binding(tmp, binding);
+    return out_shape_from_ir(ir);
+}
+
+
 static inline std::int64_t stride_bytes_raw(const TensorDescription& d, std::int32_t axis, std::size_t itemsize) {
     if (axis < 0) return 0;
     return static_cast<std::int64_t>(d.strides[static_cast<std::size_t>(axis)]) *
@@ -477,293 +536,6 @@ static inline std::vector<std::int64_t> contig_elem_strides_local(const std::vec
     return st;
 }
 
-static inline bool is_c_contiguous_local(const TensorDescription& d) {
-    if (d.ndims == 0) return true;
-    const auto expect = contig_elem_strides_local(d.shape);
-    return d.strides == expect;
-}
-
-static inline std::size_t prod_extents(const IndexSpaceIR& ir, const std::vector<std::uint32_t>& ids) {
-    std::size_t p = 1;
-    for (auto id : ids) p *= ir.indices[id].extent;
-    return p;
-}
-
-static inline LoopRole infer_role_for_id_two_inputs(const IndexDef& idx) {
-    // Assumes operands: [0]=out, [1]=A, [2]=B
-    const bool inA = (idx.axis_of_operand.size() > 1 && idx.axis_of_operand[1] >= 0);
-    const bool inB = (idx.axis_of_operand.size() > 2 && idx.axis_of_operand[2] >= 0);
-
-    if (idx.kind == IndexKind::Reduction) {
-        return LoopRole::K;
-    }
-
-    if (inA && inB) return LoopRole::Batch;
-    if (inA && !inB) return LoopRole::M;
-    if (!inA && inB) return LoopRole::N;
-    return LoopRole::Batch; // fallback
-}
-
-static inline std::vector<LoopDim>
-lower_to_loops_with_roles(const IndexSpaceIR& ir,
-                          const std::vector<TensorDescription>& descs,
-                          const std::vector<std::uint32_t>& loop_order) {
-    if (descs.size() != ir.num_operands)
-        throw std::runtime_error("lower: desc count mismatch");
-
-    std::vector<LoopDim> loops;
-    loops.reserve(loop_order.size());
-
-    for (std::uint32_t id : loop_order) {
-        if (id >= ir.indices.size())
-            throw std::runtime_error("lower: bad loop index id");
-
-        const IndexDef& idx = ir.indices[id];
-
-        LoopDim ld;
-        ld.size = idx.extent;
-        ld.kind = (idx.kind == IndexKind::Reduction) ? LoopKind::Reduction : LoopKind::Independent;
-        ld.role = infer_role_for_id_two_inputs(idx);
-
-        ld.stride_bytes.resize(ir.num_operands);
-
-        for (std::size_t op = 0; op < ir.num_operands; ++op) {
-            if (op == 0 && idx.kind == IndexKind::Reduction) {
-                ld.stride_bytes[op] = 0;
-            } else {
-                ld.stride_bytes[op] = stride_bytes_for_binding(
-                    descs[op], idx.axis_of_operand[op], idx.extent, ir.itemsize);
-            }
-        }
-
-        loops.push_back(std::move(ld));
-    }
-    return loops;
-}
-
-static inline bool label_in_vec(Label L, const std::vector<Label>& v) {
-    for (auto x : v) if (x == L) return true;
-    return false;
-}
-
-static inline std::int32_t find_axis_of_label(const std::vector<Label>& labs, Label L) {
-    for (std::size_t i = 0; i < labs.size(); ++i) {
-        if (labs[i] == L) return static_cast<std::int32_t>(i);
-    }
-    return -1;
-}
-
-static inline std::vector<Label> labels_intersection(const std::vector<Label>& a, const std::vector<Label>& b) {
-    std::vector<Label> out;
-    out.reserve(std::min(a.size(), b.size()));
-    for (auto x : a) {
-        if (label_in_vec(x, b)) out.push_back(x);
-    }
-    return out;
-}
-
-static inline std::vector<Label> labels_difference(const std::vector<Label>& a, const std::vector<Label>& b) {
-    std::vector<Label> out;
-    out.reserve(a.size());
-    for (auto x : a) {
-        if (!label_in_vec(x, b)) out.push_back(x);
-    }
-    return out;
-}
-
-static inline bool try_make_gemm_like(const std::vector<TensorDescription>& descs,
-                                     const EinsumBinding& binding,
-                                     const IndexSpaceIR& ir,
-                                     GemmLikeDesc& gemm_out) {
-    if (descs.size() != 3) return false;
-
-    const auto& out_labs = binding.out_labels;
-    const auto& A_labs   = binding.op_axis_labels[1];
-    const auto& B_labs   = binding.op_axis_labels[2];
-
-    const auto AB_common = labels_intersection(A_labs, B_labs);
-    const auto K_labs    = labels_difference(AB_common, out_labs);
-
-    std::vector<Label> M_labs;
-    for (auto L : out_labs) {
-        if (label_in_vec(L, A_labs) && !label_in_vec(L, B_labs)) M_labs.push_back(L);
-    }
-
-    std::vector<Label> N_labs;
-    for (auto L : out_labs) {
-        if (label_in_vec(L, B_labs) && !label_in_vec(L, A_labs)) N_labs.push_back(L);
-    }
-
-    std::vector<Label> Batch_labs;
-    for (auto L : out_labs) {
-        if (label_in_vec(L, A_labs) && label_in_vec(L, B_labs)) Batch_labs.push_back(L);
-    }
-
-    if (M_labs.size() != 1 || N_labs.size() != 1 || K_labs.size() != 1) return false;
-
-    const Label M = M_labs[0];
-    const Label N = N_labs[0];
-    const Label K = K_labs[0];
-
-    const std::size_t batch_rank = Batch_labs.size();
-
-    if (out_labs.size() != batch_rank + 2) return false;
-    if (A_labs.size()   != batch_rank + 2) return false;
-    if (B_labs.size()   != batch_rank + 2) return false;
-
-    for (std::size_t i = 0; i < batch_rank; ++i) {
-        if (out_labs[i] != Batch_labs[i]) return false;
-        if (A_labs[i]   != Batch_labs[i]) return false;
-        if (B_labs[i]   != Batch_labs[i]) return false;
-    }
-
-    if (!(out_labs[batch_rank] == M && out_labs[batch_rank + 1] == N)) return false;
-
-    const bool A_mk = (A_labs[batch_rank] == M && A_labs[batch_rank + 1] == K);
-    const bool A_km = (A_labs[batch_rank] == K && A_labs[batch_rank + 1] == M);
-    const bool B_kn = (B_labs[batch_rank] == K && B_labs[batch_rank + 1] == N);
-    const bool B_nk = (B_labs[batch_rank] == N && B_labs[batch_rank + 1] == K);
-
-    if (!(A_mk || A_km)) return false;
-    if (!(B_kn || B_nk)) return false;
-
-    if (!is_c_contiguous_local(descs[0])) return false;
-    if (!is_c_contiguous_local(descs[1])) return false;
-    if (!is_c_contiguous_local(descs[2])) return false;
-
-    for (std::size_t i = 0; i < batch_rank; ++i) {
-        const auto ax_out = static_cast<std::int32_t>(i);
-        const auto ax_A   = static_cast<std::int32_t>(i);
-        const auto ax_B   = static_cast<std::int32_t>(i);
-
-        const auto s_out = stride_bytes_for_binding(descs[0], ax_out, descs[0].shape[i], ir.itemsize);
-        const auto s_A   = stride_bytes_for_binding(descs[1], ax_A,   descs[1].shape[i], ir.itemsize);
-        const auto s_B   = stride_bytes_for_binding(descs[2], ax_B,   descs[2].shape[i], ir.itemsize);
-
-        if (s_out == 0 || s_A == 0 || s_B == 0) return false;
-    }
-
-    const std::int32_t out_m_ax = find_axis_of_label(out_labs, M);
-    const std::int32_t out_n_ax = find_axis_of_label(out_labs, N);
-    const std::int32_t A_ax0    = static_cast<std::int32_t>(batch_rank);
-    const std::int32_t A_ax1    = static_cast<std::int32_t>(batch_rank + 1);
-    const std::int32_t B_ax0    = static_cast<std::int32_t>(batch_rank);
-    const std::int32_t B_ax1    = static_cast<std::int32_t>(batch_rank + 1);
-
-    const std::size_t M_extent = descs[0].shape[static_cast<std::size_t>(out_m_ax)];
-    const std::size_t N_extent = descs[0].shape[static_cast<std::size_t>(out_n_ax)];
-
-    const std::int32_t A_k_ax = find_axis_of_label(A_labs, K);
-    if (A_k_ax < 0) return false;
-    const std::size_t K_extent = descs[1].shape[static_cast<std::size_t>(A_k_ax)];
-
-    std::size_t batch = 1;
-    for (std::size_t i = 0; i < batch_rank; ++i) batch *= descs[0].shape[i];
-
-    GemmLikeDesc g;
-    g.batch = batch;
-    g.M = M_extent;
-    g.N = N_extent;
-    g.K = K_extent;
-
-    g.a_transpose = A_km;
-    g.b_transpose = B_nk;
-
-    g.out_rs = stride_bytes_raw(descs[0], out_m_ax, ir.itemsize);
-    g.out_cs = stride_bytes_raw(descs[0], out_n_ax, ir.itemsize);
-
-    g.a_rs = stride_bytes_raw(descs[1], A_ax0, ir.itemsize);
-    g.a_cs = stride_bytes_raw(descs[1], A_ax1, ir.itemsize);
-
-    g.b_rs = stride_bytes_raw(descs[2], B_ax0, ir.itemsize);
-    g.b_cs = stride_bytes_raw(descs[2], B_ax1, ir.itemsize);
-
-    g.out_is_contig_mn = true;
-    g.a_is_contig_mk = A_mk;
-    g.b_is_contig_kn = B_kn;
-
-    gemm_out = g;
-    return true;
-}
-
-ContractionPlan
-make_contraction_plan_einsum(const std::vector<TensorDescription>& inputs,
-                             const EinsumBinding& binding) {
-    if (inputs.size() != 2) {
-        throw std::runtime_error("einsum: current contraction planner expects exactly 2 inputs (A,B)");
-    }
-    validate_descs_same_itemsize(inputs);
-
-    if (binding.op_axis_labels.size() != 3) {
-        throw std::runtime_error("einsum: binding.op_axis_labels must be {out, A, B}");
-    }
-    if (binding.op_axis_labels[0].size() != binding.out_labels.size()) {
-        throw std::runtime_error("einsum: op0 labels length must equal out_labels length");
-    }
-
-    TensorDescription dummy_out;
-    dummy_out.ndims = binding.out_labels.size();
-    dummy_out.shape.assign(dummy_out.ndims, 1);
-    dummy_out.strides.assign(dummy_out.ndims, 0);
-    dummy_out.itemsize = inputs[0].itemsize;
-
-    std::vector<TensorDescription> descs;
-    descs.reserve(3);
-    descs.push_back(dummy_out);
-    descs.push_back(inputs[0]);
-    descs.push_back(inputs[1]);
-
-    IndexSpaceIR ir = build_ir_from_einsum_binding(descs, binding);
-
-    std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
-
-    TensorDescription out_desc;
-    out_desc.ndims = out_shape.size();
-    out_desc.shape = out_shape;
-    out_desc.strides = contig_elem_strides_local(out_shape);
-    out_desc.itemsize = inputs[0].itemsize;
-    descs[0] = out_desc;
-
-    std::vector<std::uint32_t> outer_order = ir.out_indices;
-
-    std::vector<std::uint32_t> reduce_order;
-    reduce_order.reserve(ir.indices.size());
-    for (std::uint32_t id = 0; id < static_cast<std::uint32_t>(ir.indices.size()); ++id) {
-        if (ir.indices[id].kind == IndexKind::Reduction) reduce_order.push_back(id);
-    }
-
-    std::vector<LoopDim> outer_loops = lower_to_loops_with_roles(ir, descs, outer_order);
-    std::vector<LoopDim> reduce_loops = lower_to_loops_with_roles(ir, descs, reduce_order);
-
-    ContractionPlan plan;
-    plan.num_operands = descs.size();
-    plan.itemsize = ir.itemsize;
-
-    plan.out_ndim = out_shape.size();
-    plan.out_shape = std::move(out_shape);
-
-    plan.outer = std::move(outer_loops);
-    plan.reduce = std::move(reduce_loops);
-
-    plan.gemm_like = false;
-    plan.gemm = GemmLikeDesc{};
-
-    GemmLikeDesc g;
-    if (try_make_gemm_like(descs, binding, ir, g)) {
-        plan.gemm_like = true;
-        plan.gemm = g;
-
-        for (auto& ld : plan.outer) {
-            (void)ld;
-        }
-        for (auto& ld : plan.reduce) {
-            ld.role = LoopRole::K;
-        }
-    }
-
-    return plan;
-}
-
 
 ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
@@ -773,24 +545,15 @@ make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
     }
     validate_descs_same_itemsize(descs);
 
-    if (binding.op_axis_labels.size() != 3) {
-        throw std::runtime_error("einsum_out: binding.op_axis_labels must be {out, A, B}");
-    }
-    if (binding.op_axis_labels[0].size() != binding.out_labels.size()) {
-        throw std::runtime_error("einsum_out: op0 labels length must equal out_labels length");
-    }
-
     IndexSpaceIR ir = build_ir_from_einsum_binding(descs, binding);
-    std::vector<std::size_t> expected_out_shape = out_shape_from_ir(ir);
 
-    if (descs[0].ndims != expected_out_shape.size()) {
-        throw std::runtime_error("einsum_out: out.ndims does not match inferred out shape rank");
-    }
-    if (descs[0].shape != expected_out_shape) {
+    const std::vector<std::size_t> expected = out_shape_from_ir(ir);
+    if (descs[0].shape != expected) {
         throw std::runtime_error("einsum_out: out.shape does not match inferred out shape");
     }
 
-    std::vector<std::uint32_t> outer_order = ir.out_indices;
+    // Loop order: all output (independent) indices first, then all reduction indices.
+    const std::vector<std::uint32_t> outer_order = ir.out_indices;
 
     std::vector<std::uint32_t> reduce_order;
     reduce_order.reserve(ir.indices.size());
@@ -800,8 +563,10 @@ make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
         }
     }
 
-    std::vector<LoopDim> outer_loops = lower_to_loops_with_roles(ir, descs, outer_order);
-    std::vector<LoopDim> reduce_loops = lower_to_loops_with_roles(ir, descs, reduce_order);
+    std::vector<std::uint32_t> loop_order;
+    loop_order.reserve(outer_order.size() + reduce_order.size());
+    loop_order.insert(loop_order.end(), outer_order.begin(), outer_order.end());
+    loop_order.insert(loop_order.end(), reduce_order.begin(), reduce_order.end());
 
     ContractionPlan plan;
     plan.num_operands = descs.size();
@@ -810,21 +575,133 @@ make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
     plan.out_ndim = descs[0].ndims;
     plan.out_shape = descs[0].shape;
 
-    plan.outer = std::move(outer_loops);
-    plan.reduce = std::move(reduce_loops);
+    // Assign roles (Batch/M/N/K) per IR id, then lower loops and carry roles through.
+    const auto role_of_id = compute_roles_for_gemm_like(ir, binding);
+    plan.loop = lower_to_loops(ir, descs, loop_order, &role_of_id);
 
-    plan.gemm_like = false;
+    // Tentatively gemm-like; validate below.
+    plan.gemm_like = true;
     plan.gemm = GemmLikeDesc{};
 
-    GemmLikeDesc g;
-    if (try_make_gemm_like(descs, binding, ir, g)) {
-        plan.gemm_like = true;
-        plan.gemm = g;
+    // -------------------------
+    // 1) Detect exactly one M/N/K and compute batch/M/N/K
+    // -------------------------
+    std::size_t batch = 1, M = 1, N = 1, K = 1;
+    int m_count = 0, n_count = 0, k_count = 0;
 
-        for (auto& ld : plan.reduce) {
-            ld.role = LoopRole::K;
+    for (const auto& ld : plan.loop) {
+        switch (ld.role) {
+            case LoopRole::Batch:
+                batch *= ld.size;
+                break;
+            case LoopRole::M:
+                M = ld.size;
+                ++m_count;
+                break;
+            case LoopRole::N:
+                N = ld.size;
+                ++n_count;
+                break;
+            case LoopRole::K:
+                K = ld.size;
+                ++k_count;
+                break;
         }
     }
 
+    if (!(m_count == 1 && n_count == 1 && k_count == 1)) {
+        plan.gemm_like = false;
+        return plan;
+    }
+
+    plan.gemm.batch = batch;
+    plan.gemm.M = M;
+    plan.gemm.N = N;
+    plan.gemm.K = K;
+
+    // -------------------------
+    // 2) Extract element-strides for logical dims from the loop roles
+    // -------------------------
+    const std::int64_t item = static_cast<std::int64_t>(plan.itemsize);
+
+    std::int64_t out_m = 0, out_n = 0;
+    std::int64_t a_m   = 0, a_k   = 0;
+    std::int64_t b_k   = 0, b_n   = 0;
+
+    for (const auto& ld : plan.loop) {
+        if (ld.role == LoopRole::M) {
+            // out and A advance with M
+            out_m = static_cast<std::int64_t>(ld.stride_bytes[0]) / item;
+            a_m   = static_cast<std::int64_t>(ld.stride_bytes[1]) / item;
+        } else if (ld.role == LoopRole::N) {
+            // out and B advance with N
+            out_n = static_cast<std::int64_t>(ld.stride_bytes[0]) / item;
+            b_n   = static_cast<std::int64_t>(ld.stride_bytes[2]) / item;
+        } else if (ld.role == LoopRole::K) {
+            // A and B advance with K
+            a_k   = static_cast<std::int64_t>(ld.stride_bytes[1]) / item;
+            b_k   = static_cast<std::int64_t>(ld.stride_bytes[2]) / item;
+        }
+    }
+
+    // Map to your GemmLikeDesc convention:
+    // "rs" = stride when row index increments (M for out/A, K for B)
+    // "cs" = stride when col index increments (N for out/B, K for A)
+    plan.gemm.out_rs = out_m;  // out stride for M
+    plan.gemm.out_cs = out_n;  // out stride for N
+
+    plan.gemm.a_rs = a_m;      // A stride for M
+    plan.gemm.a_cs = a_k;      // A stride for K
+
+    plan.gemm.b_rs = b_k;      // B stride for K
+    plan.gemm.b_cs = b_n;      // B stride for N
+
+    // If your backend requires "no transpose" explicitly, set it here.
+    // (Only do this if the field exists in your GemmLikeDesc.)
+    // plan.gemm.no_trans = true;
+
+    // -------------------------
+    // 3) Final GEMM eligibility checks
+    // -------------------------
+    // Any zero stride => broadcasted axis or malformed => not a proper GEMM.
+    if (plan.gemm.out_rs == 0 || plan.gemm.out_cs == 0 ||
+        plan.gemm.a_rs   == 0 || plan.gemm.a_cs   == 0 ||
+        plan.gemm.b_rs   == 0 || plan.gemm.b_cs   == 0) {
+        plan.gemm_like = false;
+        return plan;
+    }
+
     return plan;
+}
+
+
+ContractionPlan
+make_contraction_plan_einsum(const std::vector<TensorDescription>& inputs,
+                             const EinsumBinding& binding) {
+    if (inputs.size() != 2) {
+        throw std::runtime_error("einsum: expected inputs = {A, B}");
+    }
+    validate_descs_same_itemsize(inputs);
+
+    TensorDescription dummy_out;
+    dummy_out.ndims = binding.out_labels.size();
+    dummy_out.shape.assign(dummy_out.ndims, 1);
+    dummy_out.strides.assign(dummy_out.ndims, 0);
+    dummy_out.itemsize = inputs[0].itemsize;
+
+    std::vector<TensorDescription> tmp = {dummy_out, inputs[0], inputs[1]};
+    IndexSpaceIR ir = build_ir_from_einsum_binding(tmp, binding);
+
+    const std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
+
+    TensorDescription out_desc;
+    out_desc.ndims = out_shape.size();
+    out_desc.shape = out_shape;
+
+    out_desc.strides.assign(out_desc.ndims, 0);
+
+    out_desc.itemsize = inputs[0].itemsize;
+
+    std::vector<TensorDescription> descs = {out_desc, inputs[0], inputs[1]};
+    return make_contraction_plan_einsum_out(descs, binding);
 }
