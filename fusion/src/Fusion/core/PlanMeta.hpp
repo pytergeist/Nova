@@ -82,6 +82,25 @@ inline TensorDescription make_desc_from_shape(const std::vector<std::size_t> &sh
 
 
 template <typename T>
+static inline TensorDescription
+make_desc_from_tensor(const RawTensor<T>& t) {
+    TensorDescription d;
+    d.ndims = t.shape().size();
+    d.shape = t.shape();
+    d.itemsize = t.dtype_size();
+
+    // If RawTensor has explicit strides, use them.
+    // Otherwise compute contiguous element strides.
+    if constexpr (requires { t.strides(); }) {
+        d.strides = t.strides();                  // element strides
+    } else {
+        d.strides = contig_elem_strides(d.shape); // element strides
+    }
+    return d;
+}
+
+
+template <typename T>
 inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
                                         const RawTensor<T> &B) {
    BinaryEwiseMeta meta{};
@@ -94,7 +113,7 @@ inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
       meta.fast_len = A.flat_size();
       return meta;
    }
-
+   // TODO: We are lying about strides here
    auto dA = make_desc_from_shape<T>(A.shape(), nullptr);
    auto dB = make_desc_from_shape<T>(B.shape(), nullptr);
    auto plan_in = make_broadcast_plan({dA, dB});
@@ -119,7 +138,7 @@ inline UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
       meta.fast_len = A.flat_size();
       return meta;
    }
-
+   // TODO: We are lying about strides here
    auto dA = make_desc_from_shape<T>(A.shape(), nullptr);
    auto plan_in = make_broadcast_plan({dA});
 
@@ -130,6 +149,7 @@ inline UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
    meta.plan = make_broadcast_plan({meta.dOut, meta.dA});
    return meta;
 };
+
 
 constexpr std::size_t kGlobalReduceAxis = -1;
 
@@ -176,17 +196,17 @@ inline ContractionMeta make_contraction_meta_einsum(const RawTensor<T>& A,
                                                     const EinsumBinding& binding) {
    ContractionMeta meta{};
 
-   meta.dA = make_desc_from_shape<T>(A.shape(), nullptr);
-   meta.dB = make_desc_from_shape<T>(B.shape(), nullptr);
+   // TODO: push real strides into here
+   meta.dA = make_desc_from_tensor<T>(A);
+   meta.dB = make_desc_from_tensor<T>(B);
 
-   const ContractionPlan plan_in = make_contraction_plan_einsum({meta.dA, meta.dB}, binding);
-   meta.out_shape = plan_in.out_shape;
+   meta.out_shape = infer_einsum_out_shape({meta.dA, meta.dB}, binding);
 
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
 
    meta.plan = make_contraction_plan_einsum_out({meta.dOut, meta.dA, meta.dB}, binding);
 
-   meta.fastpath = false;
+   meta.fastpath = A.is_contiguous() && B.is_contiguous(); // TODO: need better fast path here
    meta.fast_len = 0;
    meta.binding = binding;
 

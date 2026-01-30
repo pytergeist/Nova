@@ -5,7 +5,7 @@
 
 // TODO: evaluate this impl
 inline bool calc_contiguous(const std::vector<std::size_t> &shape,
-                            const std::vector<std::size_t> &strides) noexcept {
+                            const std::vector<std::int64_t> &strides) noexcept {
    if (shape.empty()) {
       return true;
    }
