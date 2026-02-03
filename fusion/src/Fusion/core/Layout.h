@@ -3,22 +3,18 @@
 
 #include <vector>
 
-// TODO: evaluate this impl
-inline bool calc_contiguous(const std::vector<std::size_t> &shape,
-                            const std::vector<std::int64_t> &strides) noexcept {
-   if (shape.empty()) {
-      return true;
-   }
-   std::size_t expected = 1;
-   for (std::size_t i = 0; i < shape.size(); ++i) {
-      if (strides[i] != expected) {
-         return false;
-      }
-      expected *= shape[(i + 1 < shape.size()) ? i + 1 : i];
-      if (i + 1 == shape.size())
-         expected = 1;
-   }
-   return true;
+inline bool calc_contiguous(const std::vector<std::size_t>& shape,
+                              const std::vector<std::int64_t>& strides) noexcept {
+    const std::size_t nd = shape.size();
+    if (nd == 0) return true;
+
+    std::int64_t expected = 1;
+    for (std::size_t i = nd; i-- > 0;) {
+        if (shape[i] == 1) continue;
+        if (strides[i] != expected) return false;
+        expected *= static_cast<std::int64_t>(shape[i]);
+    }
+    return true;
 }
 
 #endif // LAYOUT_HPP
