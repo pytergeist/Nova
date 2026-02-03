@@ -6,9 +6,9 @@
 #include "SimdTags.hpp"
 
 #if defined(FUSION_ENABLE_NEON) && defined(__ARM_NEON)
-#include "simd/VecNeon128.hpp"
+#include "VecNeon128.hpp"
 #else
-#include "simd/VecFallback.hpp"
+#include "VecFallback.hpp"
 #endif
 
 /* TODO: evaluate the use of neon_scalar for non-commutative operations */
