@@ -1,42 +1,35 @@
-#ifndef GEMM_HPP
-#define GEMM_HPP
+#ifndef FUSION_CPU_BLAS_GEMM_HPP
+#define FUSION_CPU_BLAS_GEMM_HPP
 
-#include <vector>
+#include <cstddef>
+#include <type_traits>
 
-#if defined(__APPLE__)
-#ifndef ACCELERATE_NEW_LAPACK
-#define ACCELERATE_NEW_LAPACK 1
-#endif
-#include <Accelerate/Accelerate.h>
-#else
-#include <cblas.h>
-#endif
+#include "BlasCblas.hpp"
 
-/* TODO: The current GeMM kernel below does not go through dispatch and
- * therefore does not have contiguous hot path optimisation - therefore it is
- * slower in the bench marks */
+namespace fusion::blas {
 
-namespace blas_ops {
+    // single GEMM
+    template <typename T>
+    inline void gemm_rowmajor_nn(const T* A, const T* B, T* C,
+                                 int m, int n, int k,
+                                 T alpha, T beta) {
+        static_assert(std::is_same_v<T, float>,
+                      "gemm_rowmajor_nn: only float is implemented currently");
+        backend::gemm_rowmajor_nn(A, B, C, m, n, k, alpha, beta);
+    }
 
-template <typename T>
-void batched_gemm(const T *baseA, const T *baseB, T *baseC, int m, int n, int k,
-                  const std::size_t batch, const T alpha = 1,
-                  const T beta = 0) {
+    // batched GEMM
+    template <typename T>
+    inline void batched_gemm_rowmajor_nn(const T* baseA, const T* baseB, T* baseC,
+                                         int m, int n, int k,
+                                         std::size_t batch,
+                                         T alpha, T beta) {
+        static_assert(std::is_same_v<T, float>,
+                      "batched_gemm_rowmajor_nn: only float is implemented currently");
+        backend::batched_gemm_rowmajor_nn(baseA, baseB, baseC,
+                                         m, n, k, batch, alpha, beta);
+    }
 
-   for (size_t b = 0; b < batch; ++b) {
-      const T *A = baseA + b * (size_t(m) * k);
-      const T *B = baseB + b * (size_t(k) * n);
-      T *C = baseC + b * (size_t(m) * n);
+} // namespace fusion::blas
 
-      if constexpr (std::is_same_v<T, float>) {
-
-         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, alpha,
-                     A, k, B, n, beta, C, n);
-      } else {
-         static_assert(!sizeof(T), "GEMM currently only implemented for float");
-      }
-   }
-}
-} // namespace blas_ops
-
-#endif // GEMM_HPP
+#endif // FUSION_CPU_BLAS_GEMM_HPP
