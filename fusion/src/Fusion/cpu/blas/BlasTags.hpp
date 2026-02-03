@@ -1,11 +1,13 @@
 #ifndef FUSION_CPU_BLAS_TAGS_HPP
 #define FUSION_CPU_BLAS_TAGS_HPP
 
-namespace fusion::blas {
+#include <cstddef>
 
-    struct GemmBLAS {};
-    struct BatchedGemmBLAS {};
 
-} // namespace fusion::blas
+struct BatchedGemmBLAS {};
+struct GemmBLAS {};
+struct GemvBLAS {};
+struct DotBLAS {};
 
-#endif // FUSION_CPU_BLAS_TAGS_HPP
+
+#endif
