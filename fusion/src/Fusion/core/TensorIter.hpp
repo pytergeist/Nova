@@ -7,9 +7,9 @@
 #include <vector>
 
 #include "Fusion/common/Checks.hpp"
+#include "Fusion/cpu/blas/BlasTraits.hpp"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 #include "Fusion/cpu/simd/VecNeon128.hpp"
-#include "Fusion/cpu/blas/BlasTraits.hpp"
 
 #include "PlanMeta.hpp"
 #include "TensorPlan.h"
@@ -23,8 +23,7 @@ inline void walk(int dim, const int inn, const IterPlan &plan,
                  std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
    if (dim == inn) {
       const auto &ld = plan.loop[inn];
-      std::vector<int64_t> s = ld.stride_bytes;
-      inner(ptr, ld.size, s);
+      inner(ptr, ld.size, ld.stride_bytes);
       return;
    }
    const auto &ld = plan.loop[dim];
@@ -297,53 +296,55 @@ void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
        });
 }
 
-    template <typename T, class BlasTag, class ScalarTag, class TensorT>
-    void contraction_tag(const TensorT& A, const TensorT& B,
-                         ContractionMeta& meta, TensorT& out_data) {
+template <typename T, class BlasTag, class ScalarTag, class TensorT>
+void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
+                     TensorT &out_data) {
 
-    auto* out = reinterpret_cast<T*>(out_data.get_ptr());
-    std::fill(out, out + out_data.flat_size(), T{0});
+   auto *out = reinterpret_cast<T *>(out_data.get_ptr());
+   std::fill(out, out + out_data.flat_size(), T{0});
 
-    // “fast path” for contraction = “whole plan matches BLAS contract”
-//    std::cout << "Meta fastpath trigger " << meta.fastpath << std::endl;
-//    std::cout << "availible trigger " << fusion::blas::blas_traits<BlasTag, T>::available << std::endl;
-//    std::cout << "Gemm Like trigger " << meta.plan.gemm_like << std::endl;
-    if constexpr (fusion::blas::blas_traits<BlasTag, T>::available) {
-        if (meta.plan.gemm_like) {
-            const auto& g = meta.plan.gemm;
-            if (fusion::blas::blas_traits<BlasTag, T>::can_execute(g)) {
-                const T* baseA = reinterpret_cast<const T*>(A.get_ptr());
-                const T* baseB = reinterpret_cast<const T*>(B.get_ptr());
-                T* baseC       = reinterpret_cast<T*>(out_data.get_ptr());
-                fusion::blas::blas_traits<BlasTag, T>::execute(baseA, baseB, baseC, g, T(1), T(0));
-                return;
-            }
-        }
-    }
-
-    // fallback: generic contraction walker (ScalarTag = multiply, etc.)
-    std::array<uint8_t*, 3> base = {
-        reinterpret_cast<uint8_t*>(out),
-        reinterpret_cast<uint8_t*>(const_cast<T*>(A.get_ptr())),
-        reinterpret_cast<uint8_t*>(const_cast<T*>(B.get_ptr())),
-      };
-
-    for_each_outer_then_inner<ContractionPlan, 3>(
-      meta.plan, base,
-      [&](auto& p, int64_t len, const std::vector<int64_t>& sbytes) {
-        const int64_t step = (int64_t)sizeof(T);
-
-        auto* o = reinterpret_cast<T*>(p[0]);
-        auto* a = reinterpret_cast<const T*>(p[1]);
-        auto* b = reinterpret_cast<const T*>(p[2]);
-
-        const int64_t so = (sbytes[0] == 0) ? 0 : (sbytes[0] / step);
-        const int64_t sa = (sbytes[1] == 0) ? 0 : (sbytes[1] / step);
-        const int64_t sb = (sbytes[2] == 0) ? 0 : (sbytes[2] / step);
-
-        tag_fallback_contraction<T, ScalarTag>(o, a, b, so, sa, sb, (std::size_t)len);
+   // “fast path” for contraction = “whole plan matches BLAS contract”
+   //    std::cout << "Meta fastpath trigger " << meta.fastpath << std::endl;
+   //    std::cout << "availible trigger " << fusion::blas::blas_traits<BlasTag,
+   //    T>::available << std::endl; std::cout << "Gemm Like trigger " <<
+   //    meta.plan.gemm_like << std::endl;
+   if constexpr (fusion::blas::blas_traits<BlasTag, T>::available) {
+      if (meta.plan.gemm_like) {
+         const auto &g = meta.plan.gemm;
+         if (fusion::blas::blas_traits<BlasTag, T>::can_execute(g)) {
+            const T *baseA = reinterpret_cast<const T *>(A.get_ptr());
+            const T *baseB = reinterpret_cast<const T *>(B.get_ptr());
+            T *baseC = reinterpret_cast<T *>(out_data.get_ptr());
+            fusion::blas::blas_traits<BlasTag, T>::execute(baseA, baseB, baseC,
+                                                           g, T(1), T(0));
+            return;
+         }
       }
-    );
+   }
+
+   // fallback: generic contraction walker (ScalarTag = multiply, etc.)
+   std::array<uint8_t *, 3> base = {
+       reinterpret_cast<uint8_t *>(out),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr())),
+   };
+
+   for_each_outer_then_inner<ContractionPlan, 3>(
+       meta.plan, base,
+       [&](auto &p, int64_t len, const std::vector<int64_t> &sbytes) {
+          const int64_t step = (int64_t)sizeof(T);
+
+          auto *o = reinterpret_cast<T *>(p[0]);
+          auto *a = reinterpret_cast<const T *>(p[1]);
+          auto *b = reinterpret_cast<const T *>(p[2]);
+
+          const int64_t so = (sbytes[0] == 0) ? 0 : (sbytes[0] / step);
+          const int64_t sa = (sbytes[1] == 0) ? 0 : (sbytes[1] / step);
+          const int64_t sb = (sbytes[2] == 0) ? 0 : (sbytes[2] / step);
+
+          tag_fallback_contraction<T, ScalarTag>(o, a, b, so, sa, sb,
+                                                 (std::size_t)len);
+       });
 }
 
 } // namespace iter
