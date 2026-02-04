@@ -11,7 +11,7 @@
 template <typename T> class TensorView {
  public:
    TensorView() = default;
-   TensorView(T *data, std::vector<size_t> shape, std::vector<size_t> strides,
+   TensorView(T *data, std::vector<size_t> shape, std::vector<int64_t> strides,
               std::size_t rank, std::size_t ndims, DType dtype = DType::FLOAT32)
        : data_(data), shape_(shape), strides_(strides), rank_(rank),
          ndims_(ndims), dtype_(dtype) {};
@@ -24,8 +24,8 @@ template <typename T> class TensorView {
    const std::vector<std::size_t> shape() const noexcept { return shape_; }
    std::vector<std::size_t> shape() noexcept { return shape_; }
 
-   const std::vector<std::size_t> strides() const noexcept { return strides_; }
-   std::vector<std::size_t> strides() noexcept { return strides_; }
+   const std::vector<std::int64_t> strides() const noexcept { return strides_; }
+   std::vector<std::int64_t> strides() noexcept { return strides_; }
 
    const std::size_t rank() const noexcept { return rank_; }
    std::size_t rank() noexcept { return rank_; }
@@ -43,7 +43,7 @@ template <typename T> class TensorView {
  private:
    T *data_ = nullptr;
    std::vector<std::size_t> shape_;
-   std::vector<std::size_t> strides_;
+   std::vector<std::int64_t> strides_;
    std::size_t rank_;
    std::size_t ndims_;
    DType dtype_;
