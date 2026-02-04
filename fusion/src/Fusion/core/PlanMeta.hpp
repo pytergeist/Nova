@@ -66,8 +66,6 @@ contig_elem_strides(const std::vector<std::size_t> &shape) {
 template <typename T>
 inline TensorDescription make_desc_from_shape(const std::vector<std::size_t> &shape,
                                    const int64_t *strides_elems) {
-   // Create TensorDescription with ndims (shape.size()), int64_t vector of
-   // sizes (shape), strides is stride_elems is not a nullptr, and itemsize
    std::vector<std::size_t> sz(shape.begin(), shape.end());
    std::vector<std::int64_t> st;
    if (strides_elems) {
@@ -89,12 +87,10 @@ make_desc_from_tensor(const RawTensor<T>& t) {
     d.shape = t.shape();
     d.itemsize = t.dtype_size();
 
-    // If RawTensor has explicit strides, use them.
-    // Otherwise compute contiguous element strides.
     if constexpr (requires { t.strides(); }) {
-        d.strides = t.strides();                  // element strides
+        d.strides = t.strides();
     } else {
-        d.strides = contig_elem_strides(d.shape); // element strides
+        d.strides = contig_elem_strides(d.shape);
     }
     return d;
 }

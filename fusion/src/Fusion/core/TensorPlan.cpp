@@ -9,7 +9,6 @@
 #include <unordered_set>
 
 #include "TensorPlan.h"
-// #include "PlanMeta.hpp"
 
 using value_type = std::ptrdiff_t;
 
@@ -262,7 +261,6 @@ lower_to_loops(const IndexSpaceIR &ir,
         ld.kind = (idx.kind == IndexKind::Reduction) ? LoopKind::Reduction
                                                      : LoopKind::Independent;
 
-        // NEW:
         if (role_of_id) ld.role = (*role_of_id)[id];
         else            ld.role = LoopRole::Batch;
 
@@ -336,7 +334,7 @@ compute_roles_for_gemm_like(const IndexSpaceIR& ir,
     std::vector<LoopRole> role_of_id(ir.indices.size(), LoopRole::Batch);
 
     for (std::uint32_t id = 0; id < ir.indices.size(); ++id) {
-        const Label L = ir.indices[id].label; // <-- add this field
+        const Label L = ir.indices[id].label;
         auto it = role_of_label.find(L);
         if (it != role_of_label.end()) role_of_id[id] = it->second;
     }
@@ -552,7 +550,6 @@ make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
         throw std::runtime_error("einsum_out: out.shape does not match inferred out shape");
     }
 
-    // Loop order: all output (independent) indices first, then all reduction indices.
     const std::vector<std::uint32_t> outer_order = ir.out_indices;
 
     std::vector<std::uint32_t> reduce_order;
@@ -575,17 +572,12 @@ make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
     plan.out_ndim = descs[0].ndims;
     plan.out_shape = descs[0].shape;
 
-    // Assign roles (Batch/M/N/K) per IR id, then lower loops and carry roles through.
     const auto role_of_id = compute_roles_for_gemm_like(ir, binding);
     plan.loop = lower_to_loops(ir, descs, loop_order, &role_of_id);
 
-    // Tentatively gemm-like; validate below.
     plan.gemm_like = true;
     plan.gemm = GemmLikeDesc{};
 
-    // -------------------------
-    // 1) Detect exactly one M/N/K and compute batch/M/N/K
-    // -------------------------
     std::size_t batch = 1, M = 1, N = 1, K = 1;
     int m_count = 0, n_count = 0, k_count = 0;
 
@@ -619,9 +611,6 @@ make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
     plan.gemm.N = N;
     plan.gemm.K = K;
 
-    // -------------------------
-    // 2) Extract element-strides for logical dims from the loop roles
-    // -------------------------
     const std::int64_t item = static_cast<std::int64_t>(plan.itemsize);
 
     std::int64_t out_m = 0, out_n = 0;
@@ -630,40 +619,26 @@ make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
 
     for (const auto& ld : plan.loop) {
         if (ld.role == LoopRole::M) {
-            // out and A advance with M
             out_m = static_cast<std::int64_t>(ld.stride_bytes[0]) / item;
             a_m   = static_cast<std::int64_t>(ld.stride_bytes[1]) / item;
         } else if (ld.role == LoopRole::N) {
-            // out and B advance with N
             out_n = static_cast<std::int64_t>(ld.stride_bytes[0]) / item;
             b_n   = static_cast<std::int64_t>(ld.stride_bytes[2]) / item;
         } else if (ld.role == LoopRole::K) {
-            // A and B advance with K
             a_k   = static_cast<std::int64_t>(ld.stride_bytes[1]) / item;
             b_k   = static_cast<std::int64_t>(ld.stride_bytes[2]) / item;
         }
     }
 
-    // Map to your GemmLikeDesc convention:
-    // "rs" = stride when row index increments (M for out/A, K for B)
-    // "cs" = stride when col index increments (N for out/B, K for A)
-    plan.gemm.out_rs = out_m;  // out stride for M
-    plan.gemm.out_cs = out_n;  // out stride for N
+    plan.gemm.out_rs = out_m;
+    plan.gemm.out_cs = out_n;
 
-    plan.gemm.a_rs = a_m;      // A stride for M
-    plan.gemm.a_cs = a_k;      // A stride for K
+    plan.gemm.a_rs = a_m;
+    plan.gemm.a_cs = a_k;
 
-    plan.gemm.b_rs = b_k;      // B stride for K
-    plan.gemm.b_cs = b_n;      // B stride for N
+    plan.gemm.b_rs = b_k;
+    plan.gemm.b_cs = b_n;
 
-    // If your backend requires "no transpose" explicitly, set it here.
-    // (Only do this if the field exists in your GemmLikeDesc.)
-    // plan.gemm.no_trans = true;
-
-    // -------------------------
-    // 3) Final GEMM eligibility checks
-    // -------------------------
-    // Any zero stride => broadcasted axis or malformed => not a proper GEMM.
     if (plan.gemm.out_rs == 0 || plan.gemm.out_cs == 0 ||
         plan.gemm.a_rs   == 0 || plan.gemm.a_cs   == 0 ||
         plan.gemm.b_rs   == 0 || plan.gemm.b_cs   == 0) {
