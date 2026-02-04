@@ -7,11 +7,12 @@
 #include <vector>
 
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/cpu/SimdTraits.hpp"
+#include "Fusion/cpu/blas/BlasTraits.hpp"
+#include "Fusion/cpu/simd/SimdTraits.hpp"
 #include "Fusion/cpu/simd/VecNeon128.hpp"
 
-#include "TensorPlan.h"
 #include "PlanMeta.hpp"
+#include "TensorPlan.h"
 
 namespace fusion {
 
@@ -22,8 +23,7 @@ inline void walk(int dim, const int inn, const IterPlan &plan,
                  std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
    if (dim == inn) {
       const auto &ld = plan.loop[inn];
-      std::vector<int64_t> s = ld.stride_bytes;
-      inner(ptr, ld.size, s);
+      inner(ptr, ld.size, ld.stride_bytes);
       return;
    }
    const auto &ld = plan.loop[dim];
@@ -59,17 +59,17 @@ inline void for_each_outer_then_inner(const IterPlan &plan,
 }
 
 template <typename T, class Tag>
-inline void tag_strided_binary(T *o, const T *a, const T *b, const int64_t &so,
-                               const int64_t &sa, const int64_t &sb,
-                               const std::size_t len) {
+inline void tag_fallback_binary(T *o, const T *a, const T *b, const int64_t &so,
+                                const int64_t &sa, const int64_t &sb,
+                                const std::size_t len) {
    Tag tag{};
    for (int64_t i = 0; i < len; ++i)
       o[i * so] = tag(a[i * sa], b[i * sb]);
 }
 
 template <typename T, class Tag>
-inline void tag_strided_unary(T *o, const T *a, const int64_t &so,
-                              const int64_t &sa, const std::size_t len) {
+inline void tag_fallback_unary(T *o, const T *a, const int64_t &so,
+                               const int64_t &sa, const std::size_t len) {
    Tag tag{};
    for (int64_t i = 0; i < len; ++i)
       o[i * so] = tag(a[i * sa]);
@@ -81,6 +81,16 @@ inline void tag_fallback_reduction(T *o, const T *a, const int64_t &so,
    Tag tag{};
    for (int64_t i = 0; i < len; ++i)
       o[i * so] += tag(a[i * sa]);
+}
+
+template <typename T, class Tag>
+inline void tag_fallback_contraction(T *o, const T *a, const T *b,
+                                     const int64_t &so, const int64_t &sa,
+                                     const int64_t &sb, const std::size_t len) {
+   Tag tag{};
+   for (int64_t i = 0; i < static_cast<int64_t>(len); ++i) {
+      o[i * so] += tag(a[i * sa], b[i * sb]);
+   }
 }
 
 template <typename T, class Tag, class TensorT>
@@ -104,7 +114,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
       if constexpr (simd_traits<Tag, T>::available) {
          simd_traits<Tag, T>::execute_contiguous(a, b, o, len, false, false);
       } else {
-         tag_strided_binary<T, Tag>(o, a, b, 1, 1, 1, len);
+         tag_fallback_binary<T, Tag>(o, a, b, 1, 1, 1, len);
       }
       return;
    }
@@ -154,7 +164,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
                 const int64_t so = 1;
                 const int64_t sa = sbytes[1] / step;
                 const int64_t sb = sbytes[2] / step;
-                tag_strided_binary<T, Tag>(o, a, b, so, sa, sb, len);
+                tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, len);
                 return;
              }
           }
@@ -163,7 +173,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
           const int64_t sa = (sbytes[1] == 0) ? 0 : sbytes[1] / step;
           const int64_t sb = (sbytes[2] == 0) ? 0 : sbytes[2] / step;
           // uses tag struct from simd tags as fallback
-          tag_strided_binary<T, Tag>(o, a, b, so, sa, sb, len);
+          tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, len);
        });
 }
 
@@ -183,7 +193,7 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
       if constexpr (simd_traits<Tag, T>::available) {
          simd_traits<Tag, T>::execute_contiguous(a, o, len, false);
       } else {
-         tag_strided_unary<T, Tag>(o, a, 1, 1, len);
+         tag_fallback_unary<T, Tag>(o, a, 1, 1, len);
       }
       return;
    }
@@ -225,7 +235,7 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
              if (out_contig && a_unit) {
                 const int64_t so = 1;
                 const int64_t sa = sbytes[1] / step;
-                tag_strided_unary<T, Tag>(o, a, so, sa, len);
+                tag_fallback_unary<T, Tag>(o, a, so, sa, len);
                 return;
              }
           }
@@ -234,7 +244,7 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
           const int64_t sa = (sbytes[1] == 0) ? 0 : sbytes[1] / step;
           // uses tag struct from simd tags as fallback
           Tag tag{};
-          tag_strided_unary<T, Tag>(o, a, so, sa, len);
+          tag_fallback_unary<T, Tag>(o, a, so, sa, len);
        });
 }
 
@@ -264,14 +274,9 @@ void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
        meta.plan, base,
        [&](std::array<uint8_t *, 2> &p, int64_t len,
            const std::vector<int64_t> &sbytes) {
-          const auto step = static_cast<int64_t>(
-              sizeof(T));
-          const bool out_contig =
-              (sbytes[0] == 0);
-          const bool a_ok =
-              (sbytes[1] == 0 ||
-               sbytes[1] ==
-                   step);
+          const auto step = static_cast<int64_t>(sizeof(T));
+          const bool out_contig = (sbytes[0] == 0);
+          const bool a_ok = (sbytes[1] == 0 || sbytes[1] == step);
 
           auto *o = reinterpret_cast<T *>(p[0]);
           const auto *a = reinterpret_cast<const T *>(p[1]);
@@ -291,8 +296,59 @@ void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
        });
 }
 
-} // namespace fusion
+template <typename T, class BlasTag, class ScalarTag, class TensorT>
+void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
+                     TensorT &out_data) {
+
+   auto *out = reinterpret_cast<T *>(out_data.get_ptr());
+   std::fill(out, out + out_data.flat_size(), T{0});
+
+   // “fast path” for contraction = “whole plan matches BLAS contract”
+   //    std::cout << "Meta fastpath trigger " << meta.fastpath << std::endl;
+   //    std::cout << "availible trigger " << fusion::blas::blas_traits<BlasTag,
+   //    T>::available << std::endl; std::cout << "Gemm Like trigger " <<
+   //    meta.plan.gemm_like << std::endl;
+   if constexpr (fusion::blas::blas_traits<BlasTag, T>::available) {
+      if (meta.plan.gemm_like) {
+         const auto &g = meta.plan.gemm;
+         if (fusion::blas::blas_traits<BlasTag, T>::can_execute(g)) {
+            const T *baseA = reinterpret_cast<const T *>(A.get_ptr());
+            const T *baseB = reinterpret_cast<const T *>(B.get_ptr());
+            T *baseC = reinterpret_cast<T *>(out_data.get_ptr());
+            fusion::blas::blas_traits<BlasTag, T>::execute(baseA, baseB, baseC,
+                                                           g, T(1), T(0));
+            return;
+         }
+      }
+   }
+
+   // fallback: generic contraction walker (ScalarTag = multiply, etc.)
+   std::array<uint8_t *, 3> base = {
+       reinterpret_cast<uint8_t *>(out),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr())),
+   };
+
+   for_each_outer_then_inner<ContractionPlan, 3>(
+       meta.plan, base,
+       [&](auto &p, int64_t len, const std::vector<int64_t> &sbytes) {
+          const int64_t step = (int64_t)sizeof(T);
+
+          auto *o = reinterpret_cast<T *>(p[0]);
+          auto *a = reinterpret_cast<const T *>(p[1]);
+          auto *b = reinterpret_cast<const T *>(p[2]);
+
+          const int64_t so = (sbytes[0] == 0) ? 0 : (sbytes[0] / step);
+          const int64_t sa = (sbytes[1] == 0) ? 0 : (sbytes[1] / step);
+          const int64_t sb = (sbytes[2] == 0) ? 0 : (sbytes[2] / step);
+
+          tag_fallback_contraction<T, ScalarTag>(o, a, b, so, sa, sb,
+                                                 (std::size_t)len);
+       });
+}
 
 } // namespace iter
+
+} // namespace fusion
 
 #endif // EWISE_ITER_HPP

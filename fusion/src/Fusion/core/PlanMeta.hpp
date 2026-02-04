@@ -35,10 +35,20 @@ struct ReductionMeta {
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
    ReductionPlan plan;
-   bool keepdim;
-   std::size_t reduction_axis;
+   bool keepdim;               // TODO: Remove this it's also in the plan
+   std::size_t reduction_axis; // TODO: This is also in the plan
    std::size_t reduce_len;
    TensorDescription dA, dOut;
+};
+
+struct ContractionMeta {
+   bool fastpath;
+   std::size_t fast_len;
+   std::vector<std::size_t> out_shape;
+   ContractionPlan plan;
+   TensorDescription dA, dB, dOut;
+
+   EinsumBinding binding;
 };
 
 inline std::vector<std::int64_t>
@@ -53,10 +63,9 @@ contig_elem_strides(const std::vector<std::size_t> &shape) {
 }
 
 template <typename T>
-inline TensorDescription make_desc(const std::vector<std::size_t> &shape,
-                                   const int64_t *strides_elems) {
-   // Create TensorDescription with ndims (shape.size()), int64_t vector of
-   // sizes (shape), strides is stride_elems is not a nullptr, and itemsize
+inline TensorDescription
+make_desc_from_shape(const std::vector<std::size_t> &shape,
+                     const int64_t *strides_elems) {
    std::vector<std::size_t> sz(shape.begin(), shape.end());
    std::vector<std::int64_t> st;
    if (strides_elems) {
@@ -69,6 +78,20 @@ inline TensorDescription make_desc(const std::vector<std::size_t> &shape,
                             std::move(sz), std::move(st), sizeof(T)};
 }
 
+template <typename T>
+static inline TensorDescription make_desc_from_tensor(const RawTensor<T> &t) {
+   TensorDescription d;
+   d.ndims = t.shape().size();
+   d.shape = t.shape();
+   d.itemsize = t.dtype_size();
+
+   if constexpr (requires { t.strides(); }) {
+      d.strides = t.strides();
+   } else {
+      d.strides = contig_elem_strides(d.shape);
+   }
+   return d;
+}
 
 template <typename T>
 inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
@@ -83,14 +106,14 @@ inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
       meta.fast_len = A.flat_size();
       return meta;
    }
-
-   auto dA = make_desc<T>(A.shape(), nullptr);
-   auto dB = make_desc<T>(B.shape(), nullptr);
+   // TODO: We are lying about strides here
+   auto dA = make_desc_from_shape<T>(A.shape(), nullptr);
+   auto dB = make_desc_from_shape<T>(B.shape(), nullptr);
    auto plan_in = make_broadcast_plan({dA, dB});
 
    meta.fastpath = false;
    meta.out_shape.assign(plan_in.out_shape.begin(), plan_in.out_shape.end());
-   meta.dOut = make_desc<T>(meta.out_shape, nullptr);
+   meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
    meta.dA = std::move(dA);
    meta.dB = std::move(dB);
    meta.plan = make_broadcast_plan({meta.dOut, meta.dA, meta.dB});
@@ -108,13 +131,13 @@ inline UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
       meta.fast_len = A.flat_size();
       return meta;
    }
-
-   auto dA = make_desc<T>(A.shape(), nullptr);
+   // TODO: We are lying about strides here
+   auto dA = make_desc_from_shape<T>(A.shape(), nullptr);
    auto plan_in = make_broadcast_plan({dA});
 
    meta.fastpath = false;
    meta.out_shape.assign(plan_in.out_shape.begin(), plan_in.out_shape.end());
-   meta.dOut = make_desc<T>(meta.out_shape, nullptr);
+   meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
    meta.dA = std::move(dA);
    meta.plan = make_broadcast_plan({meta.dOut, meta.dA});
    return meta;
@@ -134,7 +157,7 @@ inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
       return meta;
    }
 
-   const TensorDescription dA = make_desc<T>(A.shape(), nullptr);
+   const TensorDescription dA = make_desc_from_shape<T>(A.shape(), nullptr);
 
    std::vector<std::size_t> out_shape;
    for (std::size_t d = 0; d < dA.ndims; ++d) {
@@ -146,7 +169,7 @@ inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
       }
    }
    meta.out_shape = out_shape;
-   meta.dOut = make_desc<T>(meta.out_shape, nullptr);
+   meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
    meta.dA = dA;
 
    meta.plan = make_reduction_plan({meta.dOut, meta.dA}, axis, keepdim);
@@ -154,6 +177,31 @@ inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
    meta.keepdim = keepdim;
    meta.reduction_axis = axis;
    meta.reduce_len = dA.shape[axis];
+
+   return meta;
+}
+
+template <typename T>
+inline ContractionMeta
+make_contraction_meta_einsum(const RawTensor<T> &A, const RawTensor<T> &B,
+                             const EinsumBinding &binding) {
+   ContractionMeta meta{};
+
+   // TODO: push real strides into here
+   meta.dA = make_desc_from_tensor<T>(A);
+   meta.dB = make_desc_from_tensor<T>(B);
+
+   meta.out_shape = infer_einsum_out_shape({meta.dA, meta.dB}, binding);
+
+   meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
+
+   meta.plan =
+       make_contraction_plan_einsum_out({meta.dOut, meta.dA, meta.dB}, binding);
+
+   meta.fastpath = A.is_contiguous() &&
+                   B.is_contiguous(); // TODO: need better fast path here
+   meta.fast_len = 0;
+   meta.binding = binding;
 
    return meta;
 }

@@ -86,7 +86,7 @@ template <typename T> class INode {
 
    void set_output(std::size_t idx, ValueID vid) {
       resize_outputs(idx + 1);
-      inputs_[idx] = vid;
+      outputs_[idx] = vid;
    };
 
    void add_input(ValueID vid) { inputs_.push_back(vid); }

@@ -4,10 +4,10 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/TensorIter.hpp"
 #include "Fusion/core/RawTensor.hpp"
-#include "Fusion/cpu/SimdTags.hpp"
-#include "Fusion/cpu/SimdTraits.hpp"
+#include "Fusion/core/TensorIter.hpp"
+#include "Fusion/cpu/simd/SimdTags.hpp"
+#include "Fusion/cpu/simd/SimdTraits.hpp"
 
 #include "Helpers.hpp"
 
