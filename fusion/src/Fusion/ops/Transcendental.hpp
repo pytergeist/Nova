@@ -4,8 +4,8 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/TensorIter.hpp"
 #include "Fusion/core/RawTensor.hpp"
+#include "Fusion/core/TensorIter.hpp"
 
 namespace fusion {
 

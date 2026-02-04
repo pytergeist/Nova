@@ -35,7 +35,7 @@ struct ReductionMeta {
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
    ReductionPlan plan;
-   bool keepdim; // TODO: Remove this it's also in the plan
+   bool keepdim;               // TODO: Remove this it's also in the plan
    std::size_t reduction_axis; // TODO: This is also in the plan
    std::size_t reduce_len;
    TensorDescription dA, dOut;
@@ -51,7 +51,6 @@ struct ContractionMeta {
    EinsumBinding binding;
 };
 
-
 inline std::vector<std::int64_t>
 contig_elem_strides(const std::vector<std::size_t> &shape) {
    std::vector<std::int64_t> st(shape.size());
@@ -64,8 +63,9 @@ contig_elem_strides(const std::vector<std::size_t> &shape) {
 }
 
 template <typename T>
-inline TensorDescription make_desc_from_shape(const std::vector<std::size_t> &shape,
-                                   const int64_t *strides_elems) {
+inline TensorDescription
+make_desc_from_shape(const std::vector<std::size_t> &shape,
+                     const int64_t *strides_elems) {
    std::vector<std::size_t> sz(shape.begin(), shape.end());
    std::vector<std::int64_t> st;
    if (strides_elems) {
@@ -78,23 +78,20 @@ inline TensorDescription make_desc_from_shape(const std::vector<std::size_t> &sh
                             std::move(sz), std::move(st), sizeof(T)};
 }
 
-
 template <typename T>
-static inline TensorDescription
-make_desc_from_tensor(const RawTensor<T>& t) {
-    TensorDescription d;
-    d.ndims = t.shape().size();
-    d.shape = t.shape();
-    d.itemsize = t.dtype_size();
+static inline TensorDescription make_desc_from_tensor(const RawTensor<T> &t) {
+   TensorDescription d;
+   d.ndims = t.shape().size();
+   d.shape = t.shape();
+   d.itemsize = t.dtype_size();
 
-    if constexpr (requires { t.strides(); }) {
-        d.strides = t.strides();
-    } else {
-        d.strides = contig_elem_strides(d.shape);
-    }
-    return d;
+   if constexpr (requires { t.strides(); }) {
+      d.strides = t.strides();
+   } else {
+      d.strides = contig_elem_strides(d.shape);
+   }
+   return d;
 }
-
 
 template <typename T>
 inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
@@ -146,7 +143,6 @@ inline UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
    return meta;
 };
 
-
 constexpr std::size_t kGlobalReduceAxis = -1;
 
 template <typename T>
@@ -185,11 +181,10 @@ inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
    return meta;
 }
 
-
 template <typename T>
-inline ContractionMeta make_contraction_meta_einsum(const RawTensor<T>& A,
-                                                    const RawTensor<T>& B,
-                                                    const EinsumBinding& binding) {
+inline ContractionMeta
+make_contraction_meta_einsum(const RawTensor<T> &A, const RawTensor<T> &B,
+                             const EinsumBinding &binding) {
    ContractionMeta meta{};
 
    // TODO: push real strides into here
@@ -200,14 +195,15 @@ inline ContractionMeta make_contraction_meta_einsum(const RawTensor<T>& A,
 
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
 
-   meta.plan = make_contraction_plan_einsum_out({meta.dOut, meta.dA, meta.dB}, binding);
+   meta.plan =
+       make_contraction_plan_einsum_out({meta.dOut, meta.dA, meta.dB}, binding);
 
-   meta.fastpath = A.is_contiguous() && B.is_contiguous(); // TODO: need better fast path here
+   meta.fastpath = A.is_contiguous() &&
+                   B.is_contiguous(); // TODO: need better fast path here
    meta.fast_len = 0;
    meta.binding = binding;
 
    return meta;
 }
-
 
 #endif // EWISE_META_HPP

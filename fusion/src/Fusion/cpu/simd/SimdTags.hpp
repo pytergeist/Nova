@@ -76,5 +76,4 @@ struct SumSIMD {
    }
 };
 
-
 #endif // FUSION_CPU_SIMD_TAGS_HPP

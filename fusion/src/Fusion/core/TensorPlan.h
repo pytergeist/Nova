@@ -40,7 +40,8 @@ enum class LoopKind { Independent, Reduction };
 enum class LoopRole { Batch, M, N, K };
 
 struct LoopDim {
-   // TODO: LoopKind and LoopRole are currently just set on init - need to add set role/kind to lower_to_loop
+   // TODO: LoopKind and LoopRole are currently just set on init - need to add
+   // set role/kind to lower_to_loop
    std::size_t size;
    std::vector<std::int64_t> stride_bytes;
    LoopKind kind{LoopKind::Independent};
@@ -65,7 +66,6 @@ struct BroadcastPlan {
 
    std::size_t itemsize;
 };
-
 
 struct GemmLikeDesc {
    std::size_t batch{1};
@@ -115,16 +115,15 @@ ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &desc,
                                   const std::size_t axis, const bool keepdim);
 
 ContractionPlan
-make_contraction_plan_einsum(const std::vector<TensorDescription>& inputs,
-                             const EinsumBinding& binding);
+make_contraction_plan_einsum(const std::vector<TensorDescription> &inputs,
+                             const EinsumBinding &binding);
 
 ContractionPlan
-make_contraction_plan_einsum_out(const std::vector<TensorDescription>& descs,
-                                 const EinsumBinding& binding);
-
+make_contraction_plan_einsum_out(const std::vector<TensorDescription> &descs,
+                                 const EinsumBinding &binding);
 
 std::vector<std::size_t>
-infer_einsum_out_shape(const std::vector<TensorDescription>& inputs,
-                       const EinsumBinding& binding);
+infer_einsum_out_shape(const std::vector<TensorDescription> &inputs,
+                       const EinsumBinding &binding);
 
 #endif // BROADCAST_ITERATOR_H

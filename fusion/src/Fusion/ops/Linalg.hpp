@@ -6,9 +6,9 @@
 
 #include "Fusion/common/Log.hpp"
 
-#include "Fusion/core/TensorIter.hpp"
 #include "Fusion/core/PlanMeta.hpp"
 #include "Fusion/core/RawTensor.hpp"
+#include "Fusion/core/TensorIter.hpp"
 
 #include "Helpers.hpp"
 
@@ -30,7 +30,8 @@ inline EinsumBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
    const std::size_t batch_nd_a = a_nd - 2;
    const std::size_t batch_nd_b = b_nd - 2;
    if (batch_nd_a != batch_nd_b) {
-      throw std::runtime_error("matmul: batch rank mismatch (implement broadcasting/padding)");
+      throw std::runtime_error(
+          "matmul: batch rank mismatch (implement broadcasting/padding)");
    }
 
    const std::size_t batch_nd = batch_nd_a;
@@ -46,7 +47,8 @@ inline EinsumBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
    const Label Lk = static_cast<Label>(base + batch_nd + 2);
 
    std::vector<Label> batch_labels(batch_nd);
-   for (std::size_t t = 0; t < batch_nd; ++t) batch_labels[t] = static_cast<Label>(base + t);
+   for (std::size_t t = 0; t < batch_nd; ++t)
+      batch_labels[t] = static_cast<Label>(base + t);
 
    // A labels: [batch..., i, k]
    std::vector<Label> a_labels = batch_labels;
@@ -64,21 +66,22 @@ inline EinsumBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
    out_labels.push_back(Lj);
 
    EinsumBinding binding;
-   // IMPORTANT: your contraction planner expects {out, A, B} labels in compute_roles_for_gemm_like
+   // IMPORTANT: your contraction planner expects {out, A, B} labels in
+   // compute_roles_for_gemm_like
    binding.op_axis_labels = {out_labels, a_labels, b_labels};
    binding.out_labels = out_labels;
    return binding;
 }
 
 template <typename T>
-inline RawTensor<T> matmul(const RawTensor<T>& A, const RawTensor<T>& B) {
+inline RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
    FUSION_CHECK(A.is_initialised(), "matmul: A uninitialised");
    FUSION_CHECK(B.is_initialised(), "matmul: B uninitialised");
    FUSION_CHECK(A.dtype() == B.dtype(), "matmul: dtype mismatch");
    FUSION_CHECK(A.device() == B.device(), "matmul: device mismatch");
 
-   const auto& a_shape = A.shape();
-   const auto& b_shape = B.shape();
+   const auto &a_shape = A.shape();
+   const auto &b_shape = B.shape();
    if (a_shape.size() < 2 || b_shape.size() < 2)
       throw std::runtime_error("matmul: expected rank >= 2");
 
@@ -92,12 +95,13 @@ inline RawTensor<T> matmul(const RawTensor<T>& A, const RawTensor<T>& B) {
 
    RawTensor<T> out = init_out_from_meta(A, B, meta);
 
-   // One call. BLAS fastpath happens inside contraction_tag if meta.plan.gemm_like etc.
-   fusion::iter::contraction_tag<
-       T,
-       BatchedGemmBLAS,  // BLAS backend tag
-       MultiplySIMD                    // scalar fallback tag for generic contraction
-   >(A, B, meta, out);
+   // One call. BLAS fastpath happens inside contraction_tag if
+   // meta.plan.gemm_like etc.
+   fusion::iter::contraction_tag<T,
+                                 BatchedGemmBLAS, // BLAS backend tag
+                                 MultiplySIMD // scalar fallback tag for generic
+                                              // contraction
+                                 >(A, B, meta, out);
 
    return out;
 }

@@ -3,11 +3,9 @@
 
 #include <cstddef>
 
-
 struct BatchedGemmBLAS {};
 struct GemmBLAS {};
 struct GemvBLAS {};
 struct DotBLAS {};
-
 
 #endif

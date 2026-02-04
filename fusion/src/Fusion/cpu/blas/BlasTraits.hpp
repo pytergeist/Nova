@@ -48,12 +48,12 @@ template <typename T> struct blas_traits<BatchedGemmBLAS, T> {
       const bool ok = no_trans && out_rowmajor_contig && a_rowmajor_contig &&
                       b_rowmajor_contig;
 
-//      std::cout << "can_execute=" << ok << " no_trans=" << no_trans
-//                << " out(cs,rs)=(" << g.out_cs << "," << g.out_rs << ")"
-//                << " a(cs,rs)=(" << g.a_cs << "," << g.a_rs << ")"
-//                << " b(cs,rs)=(" << g.b_cs << "," << g.b_rs << ")"
-//                << " (elem strides)"
-//                << " N=" << g.N << " K=" << g.K << "\n";
+      //      std::cout << "can_execute=" << ok << " no_trans=" << no_trans
+      //                << " out(cs,rs)=(" << g.out_cs << "," << g.out_rs << ")"
+      //                << " a(cs,rs)=(" << g.a_cs << "," << g.a_rs << ")"
+      //                << " b(cs,rs)=(" << g.b_cs << "," << g.b_rs << ")"
+      //                << " (elem strides)"
+      //                << " N=" << g.N << " K=" << g.K << "\n";
 
       return ok;
    }
