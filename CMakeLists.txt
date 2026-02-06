@@ -151,6 +151,19 @@ target_link_libraries(fusion_autodiff INTERFACE
         fusion_core
 )
 
+
+# ------------------------------------------------------------
+# physics
+# ------------------------------------------------------------
+add_library(fusion_physics INTERFACE)
+
+target_include_directories(fusion_physics INTERFACE ${FUSION_INCLUDE_ROOT})
+target_link_libraries(fusion_physics INTERFACE
+        fusion_autodiff
+        fusion_ops
+        fusion_core
+)
+
 # ============================================================
 # Python extension
 # ============================================================
@@ -164,6 +177,7 @@ pybind11_add_module(fusion
 )
 
 target_link_libraries(fusion PRIVATE
+        fusion_physics
         fusion_autodiff
         fusion_ops
         fusion_core
