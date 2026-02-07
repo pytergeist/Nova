@@ -11,11 +11,6 @@ struct LJParams {
    T sigma;
 };
 
-struct PairList {
-   std::vector<uint32_t> i;
-   std::vector<uint32_t> j;
-};
-
 template <typename T>
 inline T pair_r2(const Vec3Ptrs<T>& P, uint32_t i, uint32_t j) {
   const T dx = P.x[i] - P.x[j];
@@ -35,7 +30,7 @@ T pairwise_dist(T* xi, T* xj) {
 
 template <typename T>
 T lennard_jones(const ParticlesSoA<T>& psoa,
-                const PairList& pairs,
+                const EdgeList& pairs,
                 const LJParams<T>& params) {
 
   const auto P = psoa.vec3();
