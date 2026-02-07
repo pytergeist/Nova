@@ -9,6 +9,13 @@
  *
  */
 
+template <typename T>
+struct Vec3Ptrs {
+  const T* x;
+  const T* y;
+  const T* z;
+};
+
 template <typename T> struct ParticlesSoA {
    RawTensor<T> p, v, f, m; // pos, velocity, force, mass
 
@@ -17,11 +24,19 @@ template <typename T> struct ParticlesSoA {
                                           const RawTensor<T> &f,
                                           const RawTensor<T> &m) {
       ParticlesSoA<T> soa{p, v, f, m};
-//      soa.validate();
+
+//      soa.validate(); // TODO: validate shapes
       return soa;
    }
-   inline T* x3(int i) {return p.get_ptr() + i*3;};
+
+  Vec3Ptrs<T> vec3() const {
+    const T* base = p.get_ptr();
+    int n = N();
+    return { base + 0*n, base + 1*n, base + 2*n };
+  }
+
    void validate() const;
+   T N() const { return static_cast<int>(p.shape()[1]); };
 };
 
 #endif // FUSION_PHYSICS_STATE
