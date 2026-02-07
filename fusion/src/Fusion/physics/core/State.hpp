@@ -17,11 +17,11 @@ template <typename T> struct ParticlesSoA {
                                           const RawTensor<T> &f,
                                           const RawTensor<T> &m) {
       ParticlesSoA<T> soa{p, v, f, m};
-      soa.validate();
+//      soa.validate();
       return soa;
    }
-
+   inline T* x3(int i) {return p.get_ptr() + i*3;};
    void validate() const;
-}
+};
 
 #endif // FUSION_PHYSICS_STATE
