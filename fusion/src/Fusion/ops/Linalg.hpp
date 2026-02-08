@@ -12,21 +12,13 @@
 
 #include "Helpers.hpp"
 
-namespace fusion {
-
-namespace math {
-
-namespace linalg {
+namespace fusion::math::linalg {
 
 inline EinsumBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
-   // require at least 2D
    if (a_nd < 2 || b_nd < 2) {
       throw std::runtime_error("matmul: expected rank >= 2 for both operands");
    }
 
-   // For now require same batch rank. If you want broadcast batch ranks
-   // you can pad the smaller with leading singleton axes in desc building,
-   // or construct labels with left-padding logic.
    const std::size_t batch_nd_a = a_nd - 2;
    const std::size_t batch_nd_b = b_nd - 2;
    if (batch_nd_a != batch_nd_b) {
@@ -36,11 +28,6 @@ inline EinsumBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
 
    const std::size_t batch_nd = batch_nd_a;
 
-   // Label assignment:
-   // batch dims: 0..batch_nd-1
-   // i: batch_nd
-   // j: batch_nd+1
-   // k: batch_nd+2
    const Label base = 0;
    const Label Li = static_cast<Label>(base + batch_nd);
    const Label Lj = static_cast<Label>(base + batch_nd + 1);
@@ -50,24 +37,19 @@ inline EinsumBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
    for (std::size_t t = 0; t < batch_nd; ++t)
       batch_labels[t] = static_cast<Label>(base + t);
 
-   // A labels: [batch..., i, k]
    std::vector<Label> a_labels = batch_labels;
    a_labels.push_back(Li);
    a_labels.push_back(Lk);
 
-   // B labels: [batch..., k, j]
    std::vector<Label> b_labels = batch_labels;
    b_labels.push_back(Lk);
    b_labels.push_back(Lj);
 
-   // out labels: [batch..., i, j]
    std::vector<Label> out_labels = batch_labels;
    out_labels.push_back(Li);
    out_labels.push_back(Lj);
 
    EinsumBinding binding;
-   // IMPORTANT: your contraction planner expects {out, A, B} labels in
-   // compute_roles_for_gemm_like
    binding.op_axis_labels = {out_labels, a_labels, b_labels};
    binding.out_labels = out_labels;
    return binding;
@@ -95,12 +77,10 @@ inline RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
 
    RawTensor<T> out = init_out_from_meta(A, B, meta);
 
-   // One call. BLAS fastpath happens inside contraction_tag if
-   // meta.plan.gemm_like etc.
    fusion::iter::contraction_tag<T,
-                                 BatchedGemmBLAS, // BLAS backend tag
-                                 MultiplySIMD // scalar fallback tag for generic
-                                              // contraction
+                                 BatchedGemmBLAS,
+                                 MultiplySIMD
+
                                  >(A, B, meta, out);
 
    return out;
@@ -127,10 +107,6 @@ inline RawTensor<T> swapaxes(const RawTensor<T> &x, const int axis1,
                        x.device());
 }
 
-} // namespace linalg
-
-} // namespace math
-
-} // namespace fusion
+} // namespace fusion::math::linalg
 
 #endif // OPS_LINALG_HPP

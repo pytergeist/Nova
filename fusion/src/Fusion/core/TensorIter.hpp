@@ -39,7 +39,9 @@ inline void walk(int dim, const int inn, const IterPlan &plan,
 template <typename IterPlan, std::size_t N, typename FnInnermost>
 inline void for_each_outer_then_inner(const IterPlan &plan,
                                       std::array<uint8_t *, N> &base,
-                                      FnInnermost &&inner) {
+                                      FnInnermost &&inner)
+
+{
    // first set the ndim (2 usually, for 2 tensors in loop)
    // set base ptrs (size=3 here, a, b, out?)
    const int ndim = static_cast<int>(plan.loop.size());
@@ -101,7 +103,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
    FUSION_CHECK(B.is_initialised(), "binary ewise: RHS uninitialised");
    FUSION_CHECK(A.is_initialised() && B.is_initialised(),
                 "uninitialised tensor");
-   std::array<uint8_t *, 3> base = {
+   std::array<uint8_t *, 3> base = { // TODO: why are you casting and recasting here???
        reinterpret_cast<uint8_t *>(const_cast<T *>(out.get_ptr())),
        reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
        reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr()))};
