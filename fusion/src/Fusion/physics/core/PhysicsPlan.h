@@ -11,11 +11,12 @@ enum class PairListKind { EdgeList, CRS, NMCLuster };
 enum class VecLayout { SoA, AoS };
 
 template <typename T> struct PairwisePlan {
-   PairListKind kind{PairListKind::EdgeList};
+   PairListKind kind{PairListKind::CRS};
    VecLayout layout{VecLayout::SoA};
 
    ParticlesSoA<T> psoa;
    EdgeList edges;
+   CRS crs;
 
    std::int64_t N{0};
    std::int64_t E{0};
@@ -26,16 +27,47 @@ template <typename T> struct PairwisePlan {
 };
 
 template <typename T>
+inline CRS make_crs(const ParticlesSoA<T> &psoa, const EdgeList &edges) {
+   CRS crs;
+   crs.N = psoa.N();
+   crs.E = edges.E();
+
+   crs.row_ptr.assign(crs.N + 1, 0);
+   crs.col_idx.resize(crs.E);
+
+   for (std::size_t e = 0; e < crs.E; ++e) {
+      const std::uint32_t src = edges.i[e];
+      crs.row_ptr[src + 1]++;
+   }
+
+   for (std::int64_t i = 0; i < crs.N; ++i) {
+      crs.row_ptr[i + 1] += crs.row_ptr[i];
+   }
+
+   std::vector<std::uint32_t> cursor = crs.row_ptr;
+   for (std::size_t e = 0; e < crs.E; ++e) {
+      const std::uint32_t src = edges.i[e];
+      const std::uint32_t dst = edges.j[e];
+      const std::uint32_t pos = cursor[src]++;
+      crs.col_idx[pos] = dst;
+   }
+   return crs;
+}
+
+template <typename T>
 inline PairwisePlan<T> make_pairwise_plan(const ParticlesSoA<T> &psoa,
                                           const EdgeList &edges) {
    PairwisePlan<T> plan;
-   plan.kind = PairListKind::EdgeList;
+   plan.kind = PairListKind::CRS;
    plan.layout = VecLayout::SoA;
    plan.psoa = psoa;
+
+   CRS crs = make_crs(psoa, edges);
+   plan.crs = crs;
    plan.edges = edges;
 
    plan.N = static_cast<int64_t>(psoa.N());
-   plan.E = static_cast<int64_t>(edges.size());
+   plan.E = static_cast<int64_t>(edges.E());
    plan.x_contig = psoa.x.is_contiguous();
    plan.f_contig = psoa.f.is_contiguous();
    plan.itemsize = sizeof(T);

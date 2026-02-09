@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include "PhysicsPlan.hpp"
+#include "PhysicsPlan.h"
 
 template <typename T> struct PairwiseMeta {
    bool fastpath;
@@ -18,10 +18,10 @@ inline PairwiseMeta<T> make_pairwise_meta(const ParticlesSoA<T> &psoa,
                                           const EdgeList &edges) {
    PairwiseMeta<T> meta;
    meta.fastpath = false;
-   meta.fast_len = edges.size();
+   meta.fast_len = edges.E();
    meta.plan = make_pairwise_plan(psoa, edges);
-   meta.out_shape = std::vector<std::size_t>{
-       psoa.x.shape()[0], static_cast<std::size_t>(meta.plan.E)};
+   meta.out_shape =
+       std::vector<std::size_t>{3, static_cast<std::size_t>(meta.plan.E)};
    meta.edges = edges;
    return meta;
 }
