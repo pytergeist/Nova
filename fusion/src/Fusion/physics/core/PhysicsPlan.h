@@ -6,7 +6,7 @@
 
 #include "State.hpp"
 
-enum class PairListKind { EdgeList, CRS };
+enum class PairListKind { EdgeList, CRS, NMCLuster };
 
 enum class VecLayout { SoA, AoS };
 

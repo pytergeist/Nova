@@ -1,6 +1,7 @@
 #ifndef FUSION_PHYSICS_STATE
 #define FUSION_PHYSICS_STATE
 
+#include <assert.h>
 #include <cstddef>
 #include <cstdint>
 
@@ -22,7 +23,10 @@ struct EdgeList {
    // TODO: you're using just i here, need to set invariants of edge list,
    // i.e. assert (i.size() == j.size())
    // no overlapping edge indices, e.g. assert (i, j).size() == set(i, j)
-   std::size_t size() const { return i.size(); }
+   std::size_t E() const {
+      assert(i.size() == j.size());
+      return i.size();
+   }
 };
 
 struct CRS {
@@ -63,7 +67,7 @@ template <typename T> struct ParticlesSoA {
    }
 
    void validate() const;
-   T N() const { return static_cast<int>(x.shape()[1]); };
+   std::uint32_t N() const { return static_cast<int>(x.shape()[1]); };
 };
 
 #endif // FUSION_PHYSICS_STATE
