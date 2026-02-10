@@ -16,6 +16,12 @@ template <typename T> struct Vec3Ptrs {
    const T *z;
 };
 
+// TODO: make sure you have vec3Ptr opt for physics and VecNPtrs for
+// GNN pairwise iteration over node features.
+template <typename T, std::size_t N> struct VecNPtrs {
+  T* components[N];
+};
+
 struct EdgeList {
    std::vector<std::uint32_t> i;
    std::vector<std::uint32_t> j;
@@ -43,6 +49,8 @@ struct CRS {
    bool directed = false;
 };
 
+
+
 // TODO: make this type a physics DType concept (should only be float, double,
 // maybe half)
 template <typename T> struct ParticlesSoA {
@@ -69,5 +77,22 @@ template <typename T> struct ParticlesSoA {
    void validate() const;
    std::uint32_t N() const { return static_cast<int>(x.shape()[1]); };
 };
+
+
+template <typename T, std::size_t N, std::size_t TILE>
+struct alignas(16) ParticleBlock { // TODO: think about alignment carefully here - contig SIMD assumes 64
+   RawTensor<T> x{{N , TILE}};
+   RawTensor<T> v{N , TILE};
+   RawTensor<T> f{N , TILE};
+   RawTensor<T> m{{TILE}};
+   std::uint32_t type[TILE];
+};
+
+template <typename T> struct ParticlesAoSoA {
+   std::int64_t N_ = 0;
+   std::int64_t nBlocks_ = 0;
+   std::vector<ParticleBlock<T, 3, 4>> blocks; // rn we're using 3 positions and tile=4 (4 lanes for xf32)
+
+   };
 
 #endif // FUSION_PHYSICS_STATE
