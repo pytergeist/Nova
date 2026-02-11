@@ -210,10 +210,10 @@ if(NOVA_BUILD_CLI)
   target_link_libraries(FusionExecutable PRIVATE fusion_core)
 endif()
 
-# ============================================================
-# Benchmarks
-# ============================================================
-add_subdirectory(fusion/benchmarks)
+## ============================================================
+## Benchmarks
+## ============================================================
+#add_subdirectory(fusion/benchmarks)
 
 # ============================================================
 # Tests
