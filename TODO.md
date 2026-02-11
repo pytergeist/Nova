@@ -7,6 +7,7 @@
 ## CPU
 ### SIMD
 - Numerical Stability for exp/log
+- Scalar tail latency is high - tile structure with last tile padded & partially filled?
 ### BLAS
 - Build concept model for Blas backend (similar to SIMD)
 - Implement DotLikeDesc
