@@ -122,7 +122,7 @@ target_link_libraries(fusion_core PUBLIC
         ${BLAS_LIBRARIES}
         ${ACCELERATE_FRAMEWORK}
         OpenBLAS::OpenBLAS
-        Eigen3::Eigen
+#        Eigen3::Eigen
 )
 
 if(TARGET sleef::sleef)
