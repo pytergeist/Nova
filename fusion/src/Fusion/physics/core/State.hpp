@@ -19,7 +19,7 @@ template <typename T> struct Vec3Ptrs {
 // TODO: make sure you have vec3Ptr opt for physics and VecNPtrs for
 // GNN pairwise iteration over node features.
 template <typename T, std::size_t N> struct VecNPtrs {
-  T* components[N];
+   T *components[N];
 };
 
 struct EdgeList {
@@ -49,8 +49,6 @@ struct CRS {
    bool directed = false;
 };
 
-
-
 // TODO: make this type a physics DType concept (should only be float, double,
 // maybe half)
 template <typename T> struct ParticlesSoA {
@@ -78,21 +76,52 @@ template <typename T> struct ParticlesSoA {
    std::uint32_t N() const { return static_cast<int>(x.shape()[1]); };
 };
 
-
-template <typename T, std::size_t N, std::size_t TILE>
-struct alignas(16) ParticleBlock { // TODO: think about alignment carefully here - contig SIMD assumes 64
-   RawTensor<T> x{{N , TILE}};
-   RawTensor<T> v{N , TILE};
-   RawTensor<T> f{N , TILE};
-   RawTensor<T> m{{TILE}};
-   std::uint32_t type[TILE];
-};
-
-template <typename T> struct ParticlesAoSoA {
+template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
+   static_assert(DIM > 0);
+   static_assert(TILE > 0);
    std::int64_t N_ = 0;
    std::int64_t nBlocks_ = 0;
-   std::vector<ParticleBlock<T, 3, 4>> blocks; // rn we're using 3 positions and tile=4 (4 lanes for xf32)
+   RawTensor<T> x, v, f, m, type;
 
-   };
+   static constexpr std::size_t dim() { return DIM; };
+   static constexpr std::size_t tile() { return TILE; };
+   static inline std::size_t blocks_for(std::size_t N) {
+      return (N + TILE - 1) / TILE;
+   }
+
+   static ParticlesAoSoA allocate(std::size_t N) {
+      ParticlesAoSoA out;
+      out.N_ = 0;
+      out.nBlocks_ = blocks_for(N);
+
+      out.x = RawTensor<T>{{DIM, out.nBlocks_, TILE}};
+      out.v = RawTensor<T>{{DIM, out.nBlocks_, TILE}};
+      out.f = RawTensor<T>{{DIM, out.nBlocks_, TILE}};
+      out.m = RawTensor<T>{{out.nBlocks_, TILE}};
+      //      out.type = RawTensor<T>{{out.nBlocks_, TILE}}; // needs to be int
+      //      tensor
+      return out;
+   }
+
+   std::size_t N() const { return N_; };
+   std::size_t nBlocks() { return nBlocks_; };
+
+   T *x_block_ptr(const std::size_t c, std::size_t b) {
+      return x.get_ptr() + TILE * (c * nBlocks_ + b);
+   }
+
+   T *v_block_ptr(const std::size_t c, std::size_t b) {
+      return v.get_ptr() + TILE * (c * nBlocks_ + b);
+   }
+
+   T *f_block_ptr(const std::size_t c, std::size_t b) {
+      return f.get_ptr() + TILE * (c * nBlocks_ + b);
+   }
+
+   static ParticlesAoSoA from_three_n_raw_tensor(const RawTensor<T> &x,
+                                                 const RawTensor<T> &v,
+                                                 const RawTensor<T> &f,
+                                                 const RawTensor<T> &m) {}
+};
 
 #endif // FUSION_PHYSICS_STATE
