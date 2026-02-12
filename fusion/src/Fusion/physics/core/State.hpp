@@ -77,6 +77,7 @@ template <typename T> struct ParticlesSoA {
 
    void validate() const;
    std::uint32_t N() const { return static_cast<int>(x.shape()[1]); };
+   static constexpr std::size_t dim() { return 3; };
 };
 
 template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
@@ -126,6 +127,12 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
       assert(c < DIM);
       assert(b < nBlocks_);
       return f.get_ptr() + TILE * (c * nBlocks_ + b);
+   }
+
+   T x_at(std::size_t c, std::uint32_t p) const {
+      const std::uint32_t b = p / TILE;
+      const std::uint32_t l = p % TILE;
+      return x.get_ptr()[((c * nBlocks_ + b) * TILE) + l];
    }
 
    std::span<T> x_block_span(const std::size_t c, std::size_t b) {

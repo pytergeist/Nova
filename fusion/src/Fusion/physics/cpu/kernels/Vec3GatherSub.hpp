@@ -30,10 +30,9 @@ void vec3_rowwise_crs(const Vec3Ptrs<T> &pos, const CRS &crs, T *out,
    }
 }
 
-
 template <typename T, class ParticleT>
 void block_rowwise_crs(const ParticleT &pos, const CRS &crs, T *out,
-                      std::uint64_t E) {
+                       std::uint64_t E) {
    T *out_x = out + 0 * E;
    T *out_y = out + 1 * E;
    T *out_z = out + 2 * E;
