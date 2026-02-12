@@ -13,8 +13,8 @@
 
 namespace fusion::physics::iter {
 
-template <typename T, typename IterPlan, class FnPairwise>
-void for_each_edge(const IterPlan &plan, const Vec3Ptrs<T> &pos, T *out,
+template <typename T, typename IterPlan, class FnPairwise, class ParticlesT>
+void for_each_edge(const IterPlan &plan, const ParticlesT &pos, T *out,
                    FnPairwise fn) {
    for (std::size_t e = 0; e < plan.E; e++) {
       std::uint32_t i = plan.edges.i[e];
@@ -23,22 +23,21 @@ void for_each_edge(const IterPlan &plan, const Vec3Ptrs<T> &pos, T *out,
    }
 }
 
-template <typename T, class Tag, class TensorT>
-void pairwise_tag(const PairwiseMeta<T> &meta, TensorT &out) {
+template <typename T, class Tag, class TensorT, class ParticlesT>
+void pairwise_tag(const PairwiseMeta<T, ParticlesT> &meta, TensorT &out) {
 
-   const Vec3Ptrs vec3 = meta.plan.psoa.vec3();
    if (meta.fastpath) {
       // TODO: wtf would fast path need here?
    }
 
-   for_each_edge<T, PairwisePlan<T>>(
-       meta.plan, vec3, out.get_ptr(),
-       [&](const Vec3Ptrs<T> &vec3, T *out, std::uint32_t e, std::uint32_t i,
+   for_each_edge<T, PairwisePlan<T, ParticlesT>>(
+       meta.plan, meta.plan.psoa, out.get_ptr(),
+       [&](const ParticlesT &psoa, T *out, std::uint32_t e, std::uint32_t i,
            std::uint32_t j) {
           bool a_scalar = false;
           bool b_scalar = false;
           if constexpr (simd_traits<Tag, T>::available) {
-             vec3_rowwise_crs(vec3, meta.plan.crs, out, meta.plan.E);
+             block_rowwise_crs(psoa, meta.plan.crs, out, meta.plan.E);
              return;
           }
           //          if constexpr (simd_traits<Tag, T>::available) {

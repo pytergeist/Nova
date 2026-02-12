@@ -8,13 +8,13 @@
 
 enum class PairListKind { EdgeList, CRS, NMCLuster };
 
-enum class VecLayout { SoA, AoS };
+enum class VecLayout { SoA, AoS, AoSoA };
 
-template <typename T> struct PairwisePlan {
+template <typename T, class ParticlesT> struct PairwisePlan {
    PairListKind kind{PairListKind::CRS};
    VecLayout layout{VecLayout::SoA};
 
-   ParticlesSoA<T> psoa;
+   ParticlesT psoa;
    EdgeList edges;
    CRS crs;
 
@@ -26,8 +26,8 @@ template <typename T> struct PairwisePlan {
    std::size_t itemsize;
 };
 
-template <typename T>
-inline CRS make_crs(const ParticlesSoA<T> &psoa, const EdgeList &edges) {
+template <typename T, class ParticlesT>
+inline CRS make_crs(const ParticlesT &psoa, const EdgeList &edges) {
    CRS crs;
    crs.N = psoa.N();
    crs.E = edges.E();
@@ -54,15 +54,16 @@ inline CRS make_crs(const ParticlesSoA<T> &psoa, const EdgeList &edges) {
    return crs;
 }
 
-template <typename T>
-inline PairwisePlan<T> make_pairwise_plan(const ParticlesSoA<T> &psoa,
-                                          const EdgeList &edges) {
-   PairwisePlan<T> plan;
+template <typename T, class ParticlesT>
+inline PairwisePlan<T, ParticlesT> make_pairwise_plan(const ParticlesT &psoa,
+                                                      const EdgeList &edges) {
+   PairwisePlan<T, ParticlesT> plan;
    plan.kind = PairListKind::CRS;
-   plan.layout = VecLayout::SoA;
+   plan.layout = VecLayout::AoSoA; // TODO: cur defualting to AoSoA, should have
+                                   // all options?
    plan.psoa = psoa;
 
-   CRS crs = make_crs(psoa, edges);
+   CRS crs = make_crs<T, ParticlesT>(psoa, edges);
    plan.crs = crs;
    plan.edges = edges;
 
