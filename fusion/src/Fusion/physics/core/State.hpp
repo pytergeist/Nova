@@ -110,12 +110,19 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
 
    std::size_t N() const { return N_; };
    std::size_t nBlocks() { return nBlocks_; };
+   std::size_t nBlocks() const { return nBlocks_; };
 
    T *x_block_ptr(const std::size_t c, std::size_t b) {
       assert(c < DIM);
       assert(b < nBlocks_);
       return x.get_ptr() + TILE * (c * nBlocks_ + b);
    }
+
+  const T* x_block_ptr(std::size_t c, std::size_t b) const {
+    assert(c < DIM);
+    assert(b < nBlocks_);
+    return x.get_ptr() + TILE * (c * nBlocks_ + b);
+  }
 
    T *v_block_ptr(const std::size_t c, std::size_t b) {
       assert(c < DIM);
