@@ -38,20 +38,6 @@ struct EdgeList {
    }
 };
 
-struct CRS {
-   std::int64_t N = 0, E = 0;
-   std::vector<std::uint32_t> row_ptr;
-   std::vector<std::uint32_t> col_idx;
-
-   std::vector<float> w;
-   std::vector<float> r0;
-   std::vector<std::uint16_t> type;
-
-   bool sorted_by_j = false;
-   bool symmetric = false;
-   bool directed = false;
-};
-
 // TODO: make this type a physics DType concept (should only be float, double,
 // maybe half)
 template <typename T> struct ParticlesSoA {
@@ -118,11 +104,11 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
       return x.get_ptr() + TILE * (c * nBlocks_ + b);
    }
 
-  const T* x_block_ptr(std::size_t c, std::size_t b) const {
-    assert(c < DIM);
-    assert(b < nBlocks_);
-    return x.get_ptr() + TILE * (c * nBlocks_ + b);
-  }
+   const T *x_block_ptr(std::size_t c, std::size_t b) const {
+      assert(c < DIM);
+      assert(b < nBlocks_);
+      return x.get_ptr() + TILE * (c * nBlocks_ + b);
+   }
 
    T *v_block_ptr(const std::size_t c, std::size_t b) {
       assert(c < DIM);
