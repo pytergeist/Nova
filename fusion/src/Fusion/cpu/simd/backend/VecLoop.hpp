@@ -191,7 +191,6 @@ void reduce_contiguous_apply(T *__restrict dst, const T *__restrict a,
       vec va = B::load(pa);
       pa += kStep;
       acc = vec_op(acc, va);
-      pd += kStep;
    }
 
    T result = reduce_op(acc);
