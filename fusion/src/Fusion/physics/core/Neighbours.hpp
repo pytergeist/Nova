@@ -1,12 +1,42 @@
 #ifndef FUSION_PHYSICS_CORE_NEIGHBOURS_HPP
 #define FUSION_PHYSICS_CORE_NEIGHBOURS_HPP
 
+#include <assert.h>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 
+#include "NeighbourSort.hpp"
+
 // TODO: Make sure you change the below types to whatever is the most suitable
 // e.g.
+
+
+enum struct SortType { Unsorted, ij, Blockij };
+
+struct EdgeList {
+   std::vector<std::uint32_t> i;
+   std::vector<std::uint32_t> j;
+   SortType sorted = SortType::Unsorted;
+
+   // TODO: you're using just i here, need to set invariants of edge list,
+   // i.e. assert (i.size() == j.size())
+   // no overlapping edge indices, e.g. assert (i, j).size() == set(i, j)
+   std::size_t E() const {
+      assert(i.size() == j.size());
+      return i.size();
+   }
+
+   void sort_by_blocks(std::uint32_t tile) {
+      sort_edges_by_block_then_i_then_j(i, j, tile);
+      sorted = SortType::Blockij;
+   }
+
+   void sort_by_i_then_j() {
+      sort_edges_by_i_then_j(i, j);
+      sorted = SortType::Blockij;
+   };
+};
 
 struct CRS {
    std::int64_t N = 0, E = 0;
