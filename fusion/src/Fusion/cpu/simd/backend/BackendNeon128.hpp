@@ -1,7 +1,9 @@
 #ifndef FUSION_CPU_NEON128_BACKEND_HPP
 #define FUSION_CPU_NEON128_BACKEND_HPP
 
+#include <array>
 #include <cstddef>
+#include <cstdint>
 
 #if defined(FUSION_ENABLE_NEON) &&                                             \
     (defined(__ARM_NEON) || defined(__ARM_NEON__))
@@ -15,6 +17,7 @@ template <> struct Neon128<float> {
    using U = float;
    using vec = float32x4_t;
    using wide_vec = float32x4x4_t;
+   using lane_index = uint8x16_t;
    using mask = uint32x4_t;
 
    static constexpr std::size_t kVectorBytes = 16;
@@ -62,6 +65,34 @@ template <> struct Neon128<float> {
       s2 = vpadd_f32(s2, s2);
       return vget_lane_f32(s2, 0);
 #endif
+   }
+
+   static uint8_t byte_index(uint8_t lane, uint8_t byte) {
+      return static_cast<uint8_t>((4U * lane) + byte);
+   }
+
+   static float32x4_t load_lane_indices(const std::uint16_t *lanes) {
+
+      const uint8_t l0 = static_cast<uint8_t>(lanes[0]);
+      const uint8_t l1 = static_cast<uint8_t>(lanes[1]);
+      const uint8_t l2 = static_cast<uint8_t>(lanes[2]);
+      const uint8_t l3 = static_cast<uint8_t>(lanes[3]);
+
+      const std::array<uint8_t, 16> idx_arr = {
+          byte_index(l0, 0), byte_index(l0, 1), byte_index(l0, 2),
+          byte_index(l0, 3), byte_index(l1, 0), byte_index(l1, 1),
+          byte_index(l1, 2), byte_index(l1, 3), byte_index(l2, 0),
+          byte_index(l2, 1), byte_index(l2, 2), byte_index(l2, 3),
+          byte_index(l3, 0), byte_index(l3, 1), byte_index(l3, 2),
+          byte_index(l3, 3),
+      };
+
+      return vld1q_u8(idx_arr.data());
+   }
+
+   static vec gather_lanes(vec v, lane_index idx) {
+      const uint8x16_t table = vreinterpretq_u8_f32(v);
+      return vreinterpretq_f32_u8(vqtbl1q_u8(table, idx));
    }
 };
 
