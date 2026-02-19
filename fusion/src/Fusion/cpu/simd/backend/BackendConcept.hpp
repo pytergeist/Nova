@@ -2,8 +2,10 @@
 #define FUSION_CPU_BACKEND_CONCEPT_HPP
 
 #include <concepts>
+#include <cstddef>
 
-/* TODO: refactor this into multiple concepts */
+
+// TODO: Add lane based concept to this
 
 template <typename B>
 concept BackendCore = requires {
