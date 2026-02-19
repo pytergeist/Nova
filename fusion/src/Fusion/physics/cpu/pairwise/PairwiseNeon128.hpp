@@ -7,6 +7,12 @@
 
 #include "Fusion/cpu/simd/backend/BackendNeon128.hpp"
 
+#if defined(FUSION_ENABLE_NEON) &&                                             \
+(defined(__ARM_NEON) || defined(__ARM_NEON__))
+
+#include <arm_neon.h>
+#include <sleef.h>
+
 namespace pairwise {
 
 template <typename T, class ParticlesT>
@@ -21,5 +27,11 @@ inline void sub_blocked_crs(const ParticlesT &particles, const BlockedCRS &crs,
 }
 
 } // namespace pairwise
+
+#else
+
+// Need to programme fallbacks in here
+
+#endif
 
 #endif // FUSION_PHYSICS_CPU_PAIRWISE_NEON_128

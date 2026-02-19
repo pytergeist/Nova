@@ -7,17 +7,16 @@
 #include "Neighbours.hpp"
 #include "State.hpp"
 
-enum class PairListKind { EdgeList, CRS, NMCLuster };
-
+enum class PairListKind { EdgeList, CRS, BlockedCRS };
 enum class VecLayout { SoA, AoS, AoSoA };
 
 template <typename T, class ParticlesT> struct PairwisePlan {
-   PairListKind kind{PairListKind::CRS};
-   VecLayout layout{VecLayout::SoA};
+   PairListKind kind{PairListKind::BlockedCRS};
+   VecLayout layout{VecLayout::AoSoA};
 
-   ParticlesT psoa;
+   ParticlesT particles;
    EdgeList edges;
-   CRS crs;
+   BlockedCRS crs;
 
    std::int64_t N{0};
    std::int64_t E{0};
@@ -65,14 +64,15 @@ struct Group {
 };
 
 template <typename T, class ParticlesT>
-inline BlockedCRS make_blocked_crs(const ParticlesT &psoa, EdgeList &edges) {
+inline BlockedCRS make_blocked_crs(const ParticlesT &particles,
+                                   EdgeList &edges) {
    if (!(edges.sorted == SortType::Blockij)) {
-      edges.sort_by_blocks(psoa.tile());
+      edges.sort_by_blocks(particles.tile());
    }
    BlockedCRS bcrs;
-   bcrs.N = psoa.N();
+   bcrs.N = particles.N();
    bcrs.E = edges.E();
-   bcrs.TILE = psoa.tile(); // TODO: curr just hardcoding for dev
+   bcrs.TILE = particles.tile(); // TODO: curr just hardcoding for dev
    bcrs.nBlocks = (bcrs.N + bcrs.TILE - 1) / bcrs.TILE;
 
    bcrs.ib_ptr.assign(bcrs.nBlocks + 1, 0);
@@ -101,7 +101,7 @@ inline BlockedCRS make_blocked_crs(const ParticlesT &psoa, EdgeList &edges) {
       std::uint16_t j_lane_idx = edges.j[e] % bcrs.TILE;
       bcrs.i_lane.push_back(i_lane_idx);
       bcrs.j_lane.push_back(j_lane_idx);
-      bcrs.e_idx.push_back(edges.i[e]);
+      bcrs.e_idx.push_back(e);
    }
 
    for (std::size_t k = 1; k < bcrs.ib_ptr.size(); ++k) {
@@ -150,7 +150,7 @@ inline BlockedCRS make_blocked_crs(const ParticlesT &psoa, EdgeList &edges) {
    }
    std::cout << "]" << std::endl;
 
-   std::cout << "j_lane: [";
+   std::cout << "e_idx: [";
    for (auto i : bcrs.e_idx) {
       std::cout << i << ", ";
    }
@@ -160,22 +160,22 @@ inline BlockedCRS make_blocked_crs(const ParticlesT &psoa, EdgeList &edges) {
 }
 
 template <typename T, class ParticlesT>
-inline PairwisePlan<T, ParticlesT> make_pairwise_plan(const ParticlesT &psoa,
-                                                      const EdgeList &edges) {
+inline PairwisePlan<T, ParticlesT>
+make_pairwise_plan(const ParticlesT &particles, EdgeList &edges) {
    PairwisePlan<T, ParticlesT> plan;
    plan.kind = PairListKind::CRS;
    plan.layout = VecLayout::AoSoA; // TODO: cur defualting to AoSoA, should have
                                    // all options?
-   plan.psoa = psoa;
+   plan.particles = particles;
 
-   CRS crs = make_crs<T, ParticlesT>(psoa, edges);
+   BlockedCRS crs = make_blocked_crs<T, ParticlesT>(particles, edges);
    plan.crs = crs;
    plan.edges = edges;
 
-   plan.N = static_cast<int64_t>(psoa.N());
+   plan.N = static_cast<int64_t>(particles.N());
    plan.E = static_cast<int64_t>(edges.E());
-   plan.x_contig = psoa.x.is_contiguous();
-   plan.f_contig = psoa.f.is_contiguous();
+   plan.x_contig = particles.x.is_contiguous();
+   plan.f_contig = particles.f.is_contiguous();
    plan.itemsize = sizeof(T);
 
    return plan;

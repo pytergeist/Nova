@@ -25,7 +25,6 @@ template <typename T, std::size_t N> struct VecNPtrs {
    T *components[N];
 };
 
-
 // TODO: make this type a physics DType concept (should only be float, double,
 // maybe half)
 template <typename T> struct ParticlesSoA {

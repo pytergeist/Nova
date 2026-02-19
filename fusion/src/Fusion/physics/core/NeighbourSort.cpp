@@ -1,8 +1,3 @@
-#ifndef FUSION_PHYSICS_CORE_NEIGHBOUR_SORT_H
-#define FUSION_PHYSICS_CORE_NEIGHBOUR_SORT_H
-
-// TODO: Make this a .h/.cpp split NOT an hpp
-
 #include <vector>
 #include <assert.h>
 #include <cstddef>
@@ -70,6 +65,3 @@ inline void sort_edges_by_block_then_i_then_j(std::vector<std::uint32_t> &i,
    i.swap(i2);
    j.swap(j2);
 }
-
-
-#endif // FUSION_PHYSICS_CORE_NEIGHBOUR_SORT_H
