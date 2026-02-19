@@ -154,7 +154,8 @@ target_link_libraries(fusion_autodiff INTERFACE
 # ------------------------------------------------------------
 # physics
 # ------------------------------------------------------------
-add_library(fusion_physics INTERFACE)
+add_library(fusion_physics INTERFACE
+        ${FUSION_SRC_DIR}/physics/core/NeighbourSort.cpp)
 
 target_include_directories(fusion_physics INTERFACE ${FUSION_INCLUDE_ROOT})
 target_link_libraries(fusion_physics INTERFACE

@@ -6,11 +6,10 @@
 #include <cstdint>
 #include <vector>
 
-#include "NeighbourSort.hpp"
+#include "NeighbourSort.cpp"
 
 // TODO: Make sure you change the below types to whatever is the most suitable
 // e.g.
-
 
 enum struct SortType { Unsorted, ij, Blockij };
 
@@ -58,7 +57,7 @@ struct BlockedCRS {
 
    /* i-block ptr. size = nblocks + 1.
    * i-block(n) = ib_ptr[n] + ib_ptr[n+1].
-   * i=0 → j {1,4,5} → j-blocks {0,1,1}
+   * i=0 → j {1,4,5} → j-blocks {0,1,1},
    * i=1 → j {0,4} → j-blocks {0,1}
    * i=2 → j {6} → j-blocks {1}
    * i=3 → j {4,7} → j-blocks {1,1}

@@ -7,7 +7,8 @@
 
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 
-#include "Fusion/physics/cpu/kernels/Vec3GatherSub.hpp"
+#include "Fusion/physics/cpu/pairwise/PairwiseTraits.hpp"
+#include "Fusion/physics/cpu/pairwise/Vec3GatherSub.hpp"
 
 #include "PhysicsMeta.hpp"
 
@@ -26,38 +27,42 @@ void for_each_edge(const IterPlan &plan, const ParticlesT &pos, T *out,
 template <typename T, class Tag, class TensorT, class ParticlesT>
 void pairwise_tag(const PairwiseMeta<T, ParticlesT> &meta, TensorT &out) {
 
-   if (meta.fastpath) {
-      // TODO: wtf would fast path need here?
+   if constexpr (true) {
+      // Use AoSoA block-rowwise SIMD path over CRS
+      pairwise_traits<T, Tag, ParticlesT>::can_execute(
+          meta.plan.particles, meta.plan.crs, out.get_ptr(), meta.plan.E);
+      return;
    }
 
-   for_each_edge<T, PairwisePlan<T, ParticlesT>>(
-       meta.plan, meta.plan.psoa, out.get_ptr(),
-       [&](const ParticlesT &psoa, T *out, std::uint32_t e, std::uint32_t i,
-           std::uint32_t j) {
-          bool a_scalar = false;
-          bool b_scalar = false;
-          if constexpr (simd_traits<Tag, T>::available) {
-             block_rowwise_crs(psoa, meta.plan.crs, out, meta.plan.E);
-             return;
-          }
-          //          if constexpr (simd_traits<Tag, T>::available) {
-          //             simd_traits<Tag, T>::execute_contiguous(
-          //                 y + i, y + j, o + e + 0 * meta.plan.E,
-          //                 static_cast<size_t>(1), a_scalar, b_scalar);
-          //
-          //             simd_traits<Tag, T>::execute_contiguous(
-          //                 z + i, z + j, o + e + 1 * meta.plan.E,
-          //                 static_cast<size_t>(1), a_scalar, b_scalar);
-          //
-          //             simd_traits<Tag, T>::execute_contiguous(
-          //                 z + i, z + j, o + e + 2 * meta.plan.E,
-          //                 static_cast<size_t>(1), a_scalar, b_scalar);
-          //
-          //             return;
-          //          }
+   //   for_each_edge<T, PairwisePlan<T, ParticlesT>>(
+   //       meta.plan, meta.plan.psoa, out.get_ptr(),
+   //       [&](const ParticlesT &psoa, T *out, std::uint32_t e, std::uint32_t
+   //       i,
+   //           std::uint32_t j) {
+   //          bool a_scalar = false;
+   //          bool b_scalar = false;
+   //          if constexpr (simd_traits<Tag, T>::available) {
+   //             block_rowwise_crs(psoa, meta.plan.crs, out, meta.plan.E);
+   //             return;
+   //          }
+   //          if constexpr (simd_traits<Tag, T>::available) {
+   //             simd_traits<Tag, T>::execute_contiguous(
+   //                 y + i, y + j, o + e + 0 * meta.plan.E,
+   //                 static_cast<size_t>(1), a_scalar, b_scalar);
+   //
+   //             simd_traits<Tag, T>::execute_contiguous(
+   //                 z + i, z + j, o + e + 1 * meta.plan.E,
+   //                 static_cast<size_t>(1), a_scalar, b_scalar);
+   //
+   //             simd_traits<Tag, T>::execute_contiguous(
+   //                 z + i, z + j, o + e + 2 * meta.plan.E,
+   //                 static_cast<size_t>(1), a_scalar, b_scalar);
+   //
+   //             return;
+   //          }
 
-          return;
-       });
+   //          return;
+   //       });
 }
 
 } // namespace fusion::physics::iter

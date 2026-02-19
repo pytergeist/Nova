@@ -1,8 +1,8 @@
-#include <vector>
 #include <assert.h>
 #include <cstddef>
 #include <cstdint>
 #include <numeric>
+#include <vector>
 
 inline void sort_edges_by_i_then_j(std::vector<std::uint32_t> &i,
                                    std::vector<std::uint32_t> &j) {
