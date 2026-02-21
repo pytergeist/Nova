@@ -10,7 +10,7 @@
 #include "Fusion/physics/cpu/pairwise/PairwiseTraits.hpp"
 #include "Fusion/physics/cpu/pairwise/Vec3GatherSub.hpp"
 
-#include "PhysicsMeta.hpp"
+#include "PhysicsPlanMeta.hpp"
 
 namespace fusion::physics::iter {
 

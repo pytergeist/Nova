@@ -86,13 +86,13 @@ int main() {
                   }};
 
    PairwiseMeta<T, ParticlesAoSoA<T, DIM, TILE>> meta =
-       make_pairwise_meta<T, ParticlesAoSoA<T, DIM, TILE>>(psoa, edges);
+       make_pairwise_meta<T, ParticlesAoSoA<T, DIM, TILE>>(psoa, edges, 1);
 
-   BlockedCRS bcrs = build_pair_index_blocked_crs<T, ParticlesAoSoA<T, DIM, TILE>>(psoa, edges);
+   PairBlockedCRS bcrs = build_pair_index_blocked_crs<T, ParticlesAoSoA<T, DIM, TILE>>(psoa, edges);
 
    RawTensor<T> out = init_out_from_meta(psoa.x, meta);
 
-   fusion::physics::iter::pairwise_tag<T, Vec3GatherSub>(meta, out);
+   fusion::physics::iter::pairwise_tag<T, Vec3GatherR2>(meta, out);
    std::cout << shape_str(out.shape()) << std::endl;
    std::cout << out << std::endl;
 

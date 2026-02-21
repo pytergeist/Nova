@@ -1,3 +1,7 @@
+// PhysicsPlan.h
+// Umbrella header for physics execution plan structs (PairwisePlan, BondedPlan,
+// ...)
+
 #ifndef FUSION_PHYSICS_PLAN_HPP
 #define FUSION_PHYSICS_PLAN_HPP
 
@@ -7,16 +11,16 @@
 #include "Neighbours.hpp"
 #include "State.hpp"
 
-enum class PairIndexFormat { EdgeList, CRS, BlockedCRS };
+enum class PairIndexFormat { EdgeList, PairCRS, PairBlockedCRS };
 enum class ParticleLayout { SoA, AoS, AoSoA };
 
 template <typename T, class ParticlesT> struct PairwisePlan {
-   PairIndexFormat kind{PairIndexFormat::BlockedCRS};
+   PairIndexFormat kind{PairIndexFormat::PairBlockedCRS};
    ParticleLayout layout{ParticleLayout::AoSoA};
 
    ParticlesT particles;
    EdgeList edges;
-   BlockedCRS crs;
+   PairBlockedCRS crs;
 
    std::int64_t N{0};
    std::int64_t E{0};
@@ -27,8 +31,9 @@ template <typename T, class ParticlesT> struct PairwisePlan {
 };
 
 template <typename T, class ParticlesT>
-inline CRS build_pair_index_crs(const ParticlesT &psoa, const EdgeList &edges) {
-   CRS crs;
+inline PairCRS build_pair_index_crs(const ParticlesT &psoa,
+                                    const EdgeList &edges) {
+   PairCRS crs;
    crs.N = psoa.N();
    crs.E = edges.E();
 
@@ -64,12 +69,12 @@ struct Group {
 };
 
 template <typename T, class ParticlesT>
-inline BlockedCRS build_pair_index_blocked_crs(const ParticlesT &particles,
-                                   EdgeList &edges) {
+inline PairBlockedCRS build_pair_index_blocked_crs(const ParticlesT &particles,
+                                                   EdgeList &edges) {
    if (!(edges.sorted == SortType::Blockij)) {
       edges.sort_by_blocks(particles.tile());
    }
-   BlockedCRS bcrs;
+   PairBlockedCRS bcrs;
    bcrs.N = particles.N();
    bcrs.E = edges.E();
    bcrs.TILE = particles.tile(); // TODO: curr just hardcoding for dev
@@ -122,12 +127,13 @@ template <typename T, class ParticlesT>
 inline PairwisePlan<T, ParticlesT>
 make_pairwise_plan(const ParticlesT &particles, EdgeList &edges) {
    PairwisePlan<T, ParticlesT> plan;
-   plan.kind = PairIndexFormat::CRS;
-   plan.layout = ParticleLayout::AoSoA; // TODO: cur defualting to AoSoA, should have
-                                   // all options?
+   plan.kind = PairIndexFormat::PairCRS;
+   plan.layout = ParticleLayout::AoSoA; // TODO: cur defualting to AoSoA, should
+                                        // have all options?
    plan.particles = particles;
 
-   BlockedCRS crs = build_pair_index_blocked_crs<T, ParticlesT>(particles, edges);
+   PairBlockedCRS crs =
+       build_pair_index_blocked_crs<T, ParticlesT>(particles, edges);
    plan.crs = crs;
    plan.edges = edges;
 

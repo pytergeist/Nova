@@ -33,15 +33,16 @@ struct EdgeList {
 
    void sort_by_i_then_j() {
       sort_edges_by_i_then_j(i, j);
-      sorted = SortType::Blockij;
+      sorted = SortType::ij;
    };
 };
 
-struct CRS {
+struct PairCRS {
    std::int64_t N = 0, E = 0;
    std::vector<std::uint32_t> row_ptr;
    std::vector<std::uint32_t> col_idx;
 
+   // TODO: the below 'stateful' code should not be contained in PairCRS
    std::vector<float> w;
    std::vector<float> r0;
    std::vector<std::uint16_t> type;
@@ -51,7 +52,7 @@ struct CRS {
    bool directed = false;
 };
 
-struct BlockedCRS {
+struct PairBlockedCRS {
    std::int64_t N = 0, E = 0;
    std::int64_t TILE = 0, nBlocks = 0;
 
