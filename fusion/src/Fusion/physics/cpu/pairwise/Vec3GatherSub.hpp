@@ -14,7 +14,7 @@
 #include "Fusion/cpu/simd/backend/BackendNeon128.hpp"
 
 template <typename T>
-void vec3_rowwise_crs(const Vec3Ptrs<T> &pos, const CRS &crs, T *out,
+void vec3_rowwise_crs(const Vec3Ptrs<T> &pos, const PairCRS &crs, T *out,
                       std::uint64_t E) {
    T *out_x = out + 0 * E;
    T *out_y = out + 1 * E;
@@ -41,7 +41,7 @@ void vec3_rowwise_crs(const Vec3Ptrs<T> &pos, const CRS &crs, T *out,
 }
 
 template <typename T, class Tag, class ParticleT>
-void block_rowwise_crs(const ParticleT &particles, const BlockedCRS &crs,
+void block_rowwise_crs(const ParticleT &particles, const PairBlockedCRS &crs,
                        T *out, std::uint64_t E) {
    using B = Neon128<T>;
    using vec = B::vec;

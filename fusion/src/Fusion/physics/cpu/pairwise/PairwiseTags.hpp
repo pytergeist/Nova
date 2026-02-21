@@ -2,5 +2,6 @@
 #define FUSION_PHYSICS_CPU_PAIRWISE_PAIRWISE_TAGS_H
 
 struct Vec3GatherSub {};
+struct Vec3GatherR2 {};
 
 #endif // FUSION_PHYSICS_CPU_PAIRWISE_PAIRWISE_TAGS_H

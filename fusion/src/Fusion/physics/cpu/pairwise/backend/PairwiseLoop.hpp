@@ -10,21 +10,18 @@
 #include "Fusion/cpu/simd/backend/BackendConcept.hpp"
 #include "Fusion/cpu/simd/backend/BackendNeon128.hpp"
 
-
 namespace pairwise {
 
-template <typename T, class ParticleT, BackendConcept Backend, class BinaryVecOp>
-void vec3_block_crs_apply(const ParticleT &particles, const BlockedCRS &crs,
-                       T *out, std::uint64_t E, BinaryVecOp op) {
+template <typename T, class ParticleT, BackendConcept Backend,
+          class BinaryVecOp, class Consumer>
+void block_crs_traverse(const ParticleT &particles, const PairBlockedCRS &crs,
+                        T *out, std::uint64_t E, BinaryVecOp &&op,
+                        Consumer &&consumer) {
    using B = Neon128<T>;
    using vec = B::vec;
 
    constexpr std::size_t TILE = ParticleT::tile();
    static_assert(TILE > 0);
-
-   T *out_x = out + 0 * E;
-   T *out_y = out + 1 * E;
-   T *out_z = out + 2 * E;
 
    for (std::size_t ib = 0; ib < particles.nBlocks(); ++ib) {
       const std::size_t valid = particles.valid_in_block(ib);
@@ -67,15 +64,12 @@ void vec3_block_crs_apply(const ParticleT &particles, const BlockedCRS &crs,
             // not in edge order
             // We can do a linear reorder from BCRS indices to edge indices if
             // needed
-            B::store(out_x + k, dx);
-            B::store(out_y + k, dy);
-            B::store(out_z + k, dz);
+            std::forward<Consumer>(consumer)(k, dx, dy, dz);
          }
       }
    }
 }
 
-
-} // pairwise
+} // namespace pairwise
 
 #endif // FUSION_PHYSICS_CPU_PAIRWISE_LOOP_HPP

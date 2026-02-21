@@ -12,9 +12,19 @@ template <typename T, class ParticlesT>
 struct pairwise_traits<T, Vec3GatherSub, ParticlesT> {
    static constexpr bool available = true;
 
-   static void can_execute(const ParticlesT &particles, const BlockedCRS &crs,
-                           T *out, std::uint64_t E) {
+   static void can_execute(const ParticlesT &particles,
+                           const PairBlockedCRS &crs, T *out, std::uint64_t E) {
       pairwise::sub_blocked_crs<T, ParticlesT>(particles, crs, out, E);
+   }
+};
+
+template <typename T, class ParticlesT>
+struct pairwise_traits<T, Vec3GatherR2, ParticlesT> {
+   static constexpr bool available = true;
+
+   static void can_execute(const ParticlesT &particles,
+                           const PairBlockedCRS &crs, T *out, std::uint64_t E) {
+      pairwise::r2_blocked_crs<T, ParticlesT>(particles, crs, out, E);
    }
 };
 
