@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-#include "Fusion/physics/core/PhysicsMeta.hpp"
+#include "Fusion/physics/core/PhysicsPlanMeta.hpp"
 #include "Fusion/physics/core/State.hpp"
 
 template <typename T> struct LJParams {
