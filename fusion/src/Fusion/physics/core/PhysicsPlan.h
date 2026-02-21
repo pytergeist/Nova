@@ -7,12 +7,12 @@
 #include "Neighbours.hpp"
 #include "State.hpp"
 
-enum class PairListKind { EdgeList, CRS, BlockedCRS };
-enum class VecLayout { SoA, AoS, AoSoA };
+enum class PairIndexFormat { EdgeList, CRS, BlockedCRS };
+enum class ParticleLayout { SoA, AoS, AoSoA };
 
 template <typename T, class ParticlesT> struct PairwisePlan {
-   PairListKind kind{PairListKind::BlockedCRS};
-   VecLayout layout{VecLayout::AoSoA};
+   PairIndexFormat kind{PairIndexFormat::BlockedCRS};
+   ParticleLayout layout{ParticleLayout::AoSoA};
 
    ParticlesT particles;
    EdgeList edges;
@@ -27,7 +27,7 @@ template <typename T, class ParticlesT> struct PairwisePlan {
 };
 
 template <typename T, class ParticlesT>
-inline CRS make_crs(const ParticlesT &psoa, const EdgeList &edges) {
+inline CRS build_pair_index_crs(const ParticlesT &psoa, const EdgeList &edges) {
    CRS crs;
    crs.N = psoa.N();
    crs.E = edges.E();
@@ -64,7 +64,7 @@ struct Group {
 };
 
 template <typename T, class ParticlesT>
-inline BlockedCRS make_blocked_crs(const ParticlesT &particles,
+inline BlockedCRS build_pair_index_blocked_crs(const ParticlesT &particles,
                                    EdgeList &edges) {
    if (!(edges.sorted == SortType::Blockij)) {
       edges.sort_by_blocks(particles.tile());
@@ -115,47 +115,6 @@ inline BlockedCRS make_blocked_crs(const ParticlesT &particles,
       bcrs.jb_ptr[k] += psum;
    }
 
-   std::cout << "Groups: [";
-   for (auto v : groups) {
-      std::cout << v.num_edges << ", ";
-   }
-   std::cout << "]" << std::endl;
-
-   std::cout << "ib_ptr: [";
-   for (auto i : bcrs.ib_ptr) {
-      std::cout << i << ", ";
-   }
-   std::cout << "]" << std::endl;
-   std::cout << "jb_idx: [";
-   for (auto i : bcrs.jb_idx) {
-      std::cout << i << ", ";
-   }
-   std::cout << "]" << std::endl;
-
-   std::cout << "jb_ptr: [";
-   for (auto i : bcrs.jb_ptr) {
-      std::cout << i << ", ";
-   }
-   std::cout << "]" << std::endl;
-
-   std::cout << "i_lane: [";
-   for (auto i : bcrs.i_lane) {
-      std::cout << i << ", ";
-   }
-   std::cout << "]" << std::endl;
-
-   std::cout << "j_lane: [";
-   for (auto i : bcrs.j_lane) {
-      std::cout << i << ", ";
-   }
-   std::cout << "]" << std::endl;
-
-   std::cout << "e_idx: [";
-   for (auto i : bcrs.e_idx) {
-      std::cout << i << ", ";
-   }
-   std::cout << "]" << std::endl;
-
    return bcrs;
 }
 
@@ -163,12 +122,12 @@ template <typename T, class ParticlesT>
 inline PairwisePlan<T, ParticlesT>
 make_pairwise_plan(const ParticlesT &particles, EdgeList &edges) {
    PairwisePlan<T, ParticlesT> plan;
-   plan.kind = PairListKind::CRS;
-   plan.layout = VecLayout::AoSoA; // TODO: cur defualting to AoSoA, should have
+   plan.kind = PairIndexFormat::CRS;
+   plan.layout = ParticleLayout::AoSoA; // TODO: cur defualting to AoSoA, should have
                                    // all options?
    plan.particles = particles;
 
-   BlockedCRS crs = make_blocked_crs<T, ParticlesT>(particles, edges);
+   BlockedCRS crs = build_pair_index_blocked_crs<T, ParticlesT>(particles, edges);
    plan.crs = crs;
    plan.edges = edges;
 

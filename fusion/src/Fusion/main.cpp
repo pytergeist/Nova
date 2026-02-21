@@ -3,7 +3,7 @@
 #include "Fusion/physics/core/State.hpp"
 #include "Fusion/physics/cpu/pairwise/PairwiseTraits.hpp"
 #include "Fusion/physics/core/Neighbours.hpp"
-#include "Fusion/physics/primitives/LJ.hpp"
+#include "Fusion/physics/potentials/LJ.hpp"
 
 template <typename T, class ParticlesT>
 inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
@@ -88,7 +88,7 @@ int main() {
    PairwiseMeta<T, ParticlesAoSoA<T, DIM, TILE>> meta =
        make_pairwise_meta<T, ParticlesAoSoA<T, DIM, TILE>>(psoa, edges);
 
-   BlockedCRS bcrs = make_blocked_crs<T, ParticlesAoSoA<T, DIM, TILE>>(psoa, edges);
+   BlockedCRS bcrs = build_pair_index_blocked_crs<T, ParticlesAoSoA<T, DIM, TILE>>(psoa, edges);
 
    RawTensor<T> out = init_out_from_meta(psoa.x, meta);
 
