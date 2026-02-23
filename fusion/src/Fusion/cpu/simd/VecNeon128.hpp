@@ -76,6 +76,17 @@ inline void log_contiguous(T *__restrict dst, const T *__restrict a,
        [](T x) -> T { return std::log(x); });
 }
 
+
+template <typename T>
+inline void reciprocal_contiguous(T *__restrict dst, const T *__restrict a,
+                           std::size_t n) {
+
+  using B = Neon128<T>;
+  return simd::detail::unary_contiguous_apply<T, B>(
+      dst, a, n, [](B::vec vx) -> B::vec { return B::reciprocal(vx); },
+      [](T x) -> T { return 1 / x; });
+}
+
 template <typename T>
 inline void pow_contiguous(T *__restrict dst, const T *__restrict a,
                            const T *__restrict b, std::size_t n) {
@@ -170,6 +181,8 @@ inline void div_contiguous(T *__restrict dst, const T *__restrict a,
        [](B::vec vx, B::vec vy) -> B::vec { return B::div(vx, vy); },
        [](T x, T y) -> T { return x / y; });
 }
+
+
 
 // =========================
 // Scalar wrappers

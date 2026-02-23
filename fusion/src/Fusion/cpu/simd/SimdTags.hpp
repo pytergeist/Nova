@@ -76,4 +76,11 @@ struct SumSIMD {
    }
 };
 
+
+struct ReciprocalSIMD {
+   template <typename U> constexpr U operator()(U a) const noexcept {
+      return 1 / a;
+   }
+};
+
 #endif // FUSION_CPU_SIMD_TAGS_HPP

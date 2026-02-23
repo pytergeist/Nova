@@ -5,6 +5,7 @@
 #include "Divide.hpp"
 #include "Multiply.hpp"
 #include "Pow.hpp"
+#include "Reciprocal.hpp"
 #include "Subtract.hpp"
 
 #endif // _EWISE_H

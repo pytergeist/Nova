@@ -28,6 +28,23 @@ def test_add(data_a, data_b, expected_data, requires_grad):
 
 
 @pytest.mark.parametrize(
+    "data_a, expected_data, requires_grad",
+    [
+        ([1, 2, 3], [1/1, 1/2, 1/3], False),
+        ([1, -1, 1],  [1/1, 1/-1, 1/1], False),
+        ([0, 2, 3], [np.inf, 1/2, 1/3], False),
+    ],
+)
+def test_reciprocal(data_a, expected_data, requires_grad):
+    a = Tensor(data_a, requires_grad=False)
+
+    result_data = a.reciprocal().to_numpy()
+    requires_grad_result = a.requires_grad
+
+    np.testing.assert_allclose(result_data, expected_data, rtol=1e-6, atol=1e-7)
+    assert requires_grad_result == requires_grad
+
+@pytest.mark.parametrize(
     "data_a, data_b, expected_data, requires_grad",
     [
         ([1, 2, 3], [4, 5, 6], [-3, -3, -3], False),

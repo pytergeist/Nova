@@ -252,6 +252,11 @@ template <typename T> class ADTensor {
           other, [](const Raw &x, const Raw &y) { return x.pow(y); });
    }
 
+   ADTensor reciprocal() const { // TODO: write policy for reciprocal
+      return apply_unary_op<Reciprocal<T>>(
+          [](const Raw &x) { return x.reciprocal(); });
+   }
+
    ADTensor matmul(const ADTensor &other) const {
       return apply_binary_op<MatMul<T>>(
           other, [](const Raw &x, const Raw &y) { return x.matmul(y); });

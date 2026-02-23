@@ -188,4 +188,14 @@ template <typename T> struct simd_traits<SumSIMD, T> {
    }
 };
 
+// ---------- Reciprocal ----------
+template <typename T> struct simd_traits<ReciprocalSIMD, T> {
+   static constexpr bool available = true;
+
+   static void execute_contiguous(const T *a, T *out, std::size_t n,
+                                  bool a_scalar) {
+      simd::reciprocal_contiguous<T>(out, a, n);
+   }
+};
+
 #endif // FUSION_CPU_SIMD_TRAITS_HPP

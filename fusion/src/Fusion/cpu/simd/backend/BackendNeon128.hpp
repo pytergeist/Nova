@@ -56,6 +56,7 @@ template <> struct Neon128<float> {
    static vec sqrt(vec x) { return vsqrtq_f32(x); }
    static vec log(vec x) { return Sleef_logf4_u10(x); }
    static vec exp(vec x) { return Sleef_expf4_u10(x); }
+   static vec reciprocal(vec x) { return vdivq_f32(vdupq_n_f32(1.0F), x); }
 
    static float horizontal_add(vec x) {
 #if defined(__aarch64__)
