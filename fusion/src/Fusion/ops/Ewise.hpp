@@ -54,6 +54,15 @@ inline RawTensor<T> pow(const RawTensor<T> &x, const RawTensor<T> &y) {
    return out;
 }
 
+template <typename T>
+inline RawTensor<T> reciprocal(const RawTensor<T> &x) {
+   UnaryEwiseMeta meta = make_unary_meta(x);
+   RawTensor<T> out = init_out_from_meta(x, meta);
+   fusion::iter::unary_ewise_tag<T, ReciprocalSIMD>(x, meta, out);
+   return out;
+}
+
+
 std::string shape_str(std::vector<size_t> shape) {
    std::ostringstream oss;
    oss << '(';
