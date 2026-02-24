@@ -7,9 +7,11 @@
 
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 
+#include "Fusion/physics/cpu/pairwise/PairwiseParams.hpp"
 #include "Fusion/physics/cpu/pairwise/PairwiseTraits.hpp"
 #include "Fusion/physics/cpu/pairwise/Vec3GatherSub.hpp"
 
+#include "PhysicsPlan.h"
 #include "PhysicsPlanMeta.hpp"
 
 namespace fusion::physics::iter {
@@ -24,13 +26,13 @@ void for_each_edge(const IterPlan &plan, const ParticlesT &pos, T *out,
    }
 }
 
-template <typename T, class Tag, class TensorT, class ParticlesT>
-void pairwise_tag(const PairwiseMeta<T, ParticlesT> &meta, TensorT &out) {
+template <class Tag, typename T, class TensorT, class ParticlesT>
+void pairwise_tag(const PairwiseMeta<T, ParticlesT> &meta, TensorT &out, params_type_t<Tag, T> params) {
 
-   if constexpr (true) {
+   if (meta.fastpath) {
       // Use AoSoA block-rowwise SIMD path over CRS
-      pairwise_traits<T, Tag, ParticlesT>::can_execute(
-          meta.plan.particles, meta.plan.crs, out.get_ptr(), meta.plan.E);
+      pairwise_traits<Tag, T, ParticlesT>::can_execute(
+          meta.plan.particles, meta.plan.crs, out.get_ptr(), meta.plan.E, params);
       return;
    }
 
