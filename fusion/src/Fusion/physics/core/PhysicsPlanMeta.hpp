@@ -21,11 +21,13 @@ inline PairwiseMeta<T, ParticlesT> make_pairwise_meta(const ParticlesT &psoa,
                                                       EdgeList &edges,
                                                       std::size_t channels) {
    PairwiseMeta<T, ParticlesT> meta;
-   meta.fastpath = false;
    meta.fast_len = edges.E();
    meta.plan = make_pairwise_plan<T, ParticlesT>(psoa, edges);
    meta.out_shape = std::vector<std::size_t>{
        channels, static_cast<std::size_t>(meta.plan.E)};
+   bool fcond = meta.plan.format == PairIndexFormat::PairBlockedCRS;
+   bool lcond = meta.plan.layout == ParticleLayout::AoSoA;
+   meta.fastpath = fcond && lcond;
    return meta;
 }
 
