@@ -165,7 +165,8 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
            },
            py::is_operator())
 
-       // --- Unary / other ops ---
+       // --- Unary ops ---
+       .def("reciprocal", &PyT::reciprocal)
        .def("sqrt", &PyT::sqrt)
        .def("exp", &PyT::exp)
        .def("log", &PyT::log)

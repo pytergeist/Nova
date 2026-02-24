@@ -12,13 +12,13 @@
 
 namespace pairwise {
 
-template <typename T, class ParticleT, BackendConcept Backend,
-          class BinaryVecOp, class Consumer>
+template <typename T, class ParticleT, BackendConcept Backend, class Kernel,
+          class Store>
 void block_crs_traverse(const ParticleT &particles, const PairBlockedCRS &crs,
-                        T *out, std::uint64_t E, BinaryVecOp &&op,
-                        Consumer &&consumer) {
-   using B = Neon128<T>;
-   using vec = B::vec;
+                        T *out, std::uint64_t E, Kernel &&kernel,
+                        Store &&store) {
+   using B = Backend;
+   using vec = typename B::vec;
 
    constexpr std::size_t TILE = ParticleT::tile();
    static_assert(TILE > 0);
@@ -57,14 +57,12 @@ void block_crs_traverse(const ParticleT &particles, const PairBlockedCRS &crs,
             vec yj = B::gather_lanes(Yj, jl);
             vec zj = B::gather_lanes(Zj, jl);
 
-            vec dx = op(xi, xj);
-            vec dy = op(yi, yj);
-            vec dz = op(zi, zj);
+            auto result = std::forward<Kernel>(kernel)(xi, yi, zi, xj, yj, zj);
             // Invariant: Here we are returning out ptr stored in group order,
             // not in edge order
             // We can do a linear reorder from BCRS indices to edge indices if
             // needed
-            std::forward<Consumer>(consumer)(k, dx, dy, dz);
+            store(out, k, result);
          }
       }
    }

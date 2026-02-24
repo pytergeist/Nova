@@ -2,6 +2,7 @@
 #define FUSION_PHYSICS_CPU_PAIRWISE_PAIRWISE_TRAITS_H
 
 #include "PairwiseNeon128.hpp"
+#include "PairwiseParams.hpp"
 #include "PairwiseTags.hpp"
 
 template <class Tag, typename T, class ParticlesT> struct pairwise_traits {
@@ -9,22 +10,35 @@ template <class Tag, typename T, class ParticlesT> struct pairwise_traits {
 };
 
 template <typename T, class ParticlesT>
-struct pairwise_traits<T, Vec3GatherSub, ParticlesT> {
+struct pairwise_traits<PairDelta3, T, ParticlesT> {
    static constexpr bool available = true;
 
    static void can_execute(const ParticlesT &particles,
-                           const PairBlockedCRS &crs, T *out, std::uint64_t E) {
-      pairwise::sub_blocked_crs<T, ParticlesT>(particles, crs, out, E);
+                           const PairBlockedCRS &crs, T *out, std::uint64_t E,
+                           params_type_t<PairDelta3, T> = {}) {
+      pairwise::pair_delta<T, ParticlesT>(particles, crs, out, E);
    }
 };
 
 template <typename T, class ParticlesT>
-struct pairwise_traits<T, Vec3GatherR2, ParticlesT> {
+struct pairwise_traits<PairR2, T, ParticlesT> {
    static constexpr bool available = true;
 
    static void can_execute(const ParticlesT &particles,
-                           const PairBlockedCRS &crs, T *out, std::uint64_t E) {
-      pairwise::r2_blocked_crs<T, ParticlesT>(particles, crs, out, E);
+                           const PairBlockedCRS &crs, T *out, std::uint64_t E,
+                           params_type_t<PairDelta3, T> = {}) {
+      pairwise::pair_r2<T, ParticlesT>(particles, crs, out, E);
+   }
+};
+
+template <typename T, class ParticlesT>
+struct pairwise_traits<LJEnergy, T, ParticlesT> {
+   static constexpr bool available = true;
+
+   static void can_execute(const ParticlesT &particles,
+                           const PairBlockedCRS &crs, T *out, std::uint64_t E,
+                           const LJParams<T> &params) {
+      pairwise::lj_energy<T, ParticlesT>(particles, crs, out, E, params);
    }
 };
 

@@ -1,7 +1,11 @@
 #ifndef FUSION_PHYSICS_CPU_PAIRWISE_PAIRWISE_TAGS_H
 #define FUSION_PHYSICS_CPU_PAIRWISE_PAIRWISE_TAGS_H
 
-struct Vec3GatherSub {};
-struct Vec3GatherR2 {};
+struct PairDelta3 {};
+struct PairR2 {};
+
+// -- fused -- //
+
+struct LJEnergy {};
 
 #endif // FUSION_PHYSICS_CPU_PAIRWISE_PAIRWISE_TAGS_H
