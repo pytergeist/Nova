@@ -9,7 +9,7 @@
 #include "fusion/physics/cpu/pairwise/store/StoragePolicy.hpp"
 
 #include "Fusion/physics/core/State.hpp"
-#include "Fusion/physics/cpu/pairwise/kernels/LJEnergy.hpp"
+#include "Fusion/physics/cpu/pairwise/kernels/LJ.hpp"
 #include "Fusion/physics/potentials/LJ.hpp"
 
 #include "Fusion/cpu/simd/backend/BackendNeon128.hpp"
@@ -53,9 +53,25 @@ inline void lj_energy(const ParticlesT &particles, const PairBlockedCRS &crs,
    using vec = typename B::vec;
 
    LJEnergyKernel<T, B> kernel;
+   StoreScalar<T, B> store{};
    kernel.p = params;
 
-   auto store = [&](T *outp, std::uint32_t k, vec v) { B::store(outp + k, v); };
+   return pairwise::block_crs_traverse<T, ParticlesT, B>(particles, crs, out, E,
+                                                         kernel, store);
+}
+
+template <typename T, class ParticlesT>
+inline void lj_force(const ParticlesT &particles, const PairBlockedCRS &crs,
+                      T *out, std::uint64_t E, const LJParams<T> &params) {
+   using B = Neon128<T>;
+   using vec = typename B::vec;
+   T *out_x = out + 0 * E;
+   T *out_y = out + 1 * E;
+   T *out_z = out + 2 * E;
+
+   LJForceKernel<T, B> kernel;
+   StoreForce3<T, B> store{out_x, out_y, out_z};
+   kernel.p = params;
 
    return pairwise::block_crs_traverse<T, ParticlesT, B>(particles, crs, out, E,
                                                          kernel, store);

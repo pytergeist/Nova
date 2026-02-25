@@ -5,6 +5,7 @@
 
 #include "Fusion/physics/cpu/pairwise/kernels/PairDelta.hpp"
 #include "Fusion/physics/cpu/pairwise/kernels/PairR2.hpp"
+#include "Fusion/physics/cpu/pairwise/kernels/LJ.hpp"
 
 #include "Fusion/cpu/simd/backend/BackendConcept.hpp"
 
@@ -26,11 +27,29 @@ template <class T, BackendConcept Backend> struct StoreDelta3 {
    T *out_y;
    T *out_z;
 
-   inline void operator()(T * /*out*/, std::uint32_t k, const Result &r) const {
+   inline void operator()(T *, std::uint32_t k, const Result &r) const {
       B::store(out_x + k, r.dx);
       B::store(out_y + k, r.dy);
       B::store(out_z + k, r.dz);
    }
 };
+
+
+template <class T, BackendConcept Backend> struct StoreForce3 {
+   using B = Backend;
+   using vec = typename B::vec;
+   using Result = typename LJForceKernel<T, Backend>::Force3;
+
+   T *out_x;
+   T *out_y;
+   T *out_z;
+
+   inline void operator()(T *, std::uint32_t k, const Result &r) const {
+      B::store(out_x + k, r.fx);
+      B::store(out_y + k, r.fy);
+      B::store(out_z + k, r.fz);
+   }
+};
+
 
 #endif // FUSION_PHYSICS_CPU_PAIRWISE_STORE_STORAGE_POLICY
