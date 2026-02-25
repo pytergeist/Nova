@@ -15,7 +15,7 @@ enum class PairIndexFormat { EdgeList, PairCRS, PairBlockedCRS };
 enum class ParticleLayout { SoA, AoS, AoSoA };
 
 template <typename T, class ParticlesT> struct PairwisePlan {
-   PairIndexFormat kind{PairIndexFormat::PairBlockedCRS};
+   PairIndexFormat format{PairIndexFormat::PairBlockedCRS};
    ParticleLayout layout{ParticleLayout::AoSoA};
 
    ParticlesT particles;
@@ -127,7 +127,7 @@ template <typename T, class ParticlesT>
 inline PairwisePlan<T, ParticlesT>
 make_pairwise_plan(const ParticlesT &particles, EdgeList &edges) {
    PairwisePlan<T, ParticlesT> plan;
-   plan.kind = PairIndexFormat::PairCRS;
+   plan.format = PairIndexFormat::PairBlockedCRS;
    plan.layout = ParticleLayout::AoSoA; // TODO: cur defualting to AoSoA, should
                                         // have all options?
    plan.particles = particles;

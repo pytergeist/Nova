@@ -10,7 +10,6 @@
 
 #include "Fusion/physics/core/State.hpp"
 #include "Fusion/physics/cpu/pairwise/kernels/LJ.hpp"
-#include "Fusion/physics/potentials/LJ.hpp"
 
 #include "Fusion/cpu/simd/backend/BackendNeon128.hpp"
 

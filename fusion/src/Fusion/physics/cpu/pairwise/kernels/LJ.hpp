@@ -1,8 +1,8 @@
 #ifndef FUSION_PHYSICS_CPU_PAIRWISE_FUSED_LJ
 #define FUSION_PHYSICS_CPU_PAIRWISE_FUSED_LJ
 
-#include "Fusion/cpu/simd/backend/BackendNeon128.hpp"
-#include "Fusion/physics/potentials/LJ.hpp"
+#include "Fusion/cpu/simd/backend/BackendConcept.hpp"
+#include "Fusion/physics/cpu/pairwise/PairwiseParams.hpp"
 
 template <typename T, BackendConcept Backend> struct LJEnergyKernel {
 

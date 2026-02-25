@@ -3,13 +3,8 @@
 #include "Fusion/physics/core/State.hpp"
 #include "Fusion/physics/cpu/pairwise/PairwiseTraits.hpp"
 #include "Fusion/physics/core/Neighbours.hpp"
-#include "Fusion/physics/potentials/LJ.hpp"
+#include "Fusion/physics/Potentials/NonBonded.hpp"
 
-template <typename T, class ParticlesT>
-inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
-                                       const PairwiseMeta<T, ParticlesT> &m) {
-   return RawTensor<T>(m.out_shape, x.dtype(), x.device());
-}
 std::string shape_str(std::vector<size_t> shape) {
    std::ostringstream oss;
    oss << '(';
@@ -64,6 +59,9 @@ int main() {
    ParticlesAoSoA<T, DIM, TILE> psoa =
        ParticlesAoSoA<T, DIM, TILE>::from_three_n_raw_tensor(8, X, X, X, X);
 
+   LJParams<T> params{0.2f, 0.7f};
+//   NoParams params;
+
    EdgeList edges{std::vector<uint32_t>{
                       0, 0, 0,    // i=0
                       1, 1,       // i=1
@@ -85,16 +83,24 @@ int main() {
                       3, 4, 6     // j for i=7
                   }};
 
-   PairwiseMeta<T, ParticlesAoSoA<T, DIM, TILE>> meta =
-       make_pairwise_meta<T, ParticlesAoSoA<T, DIM, TILE>>(psoa, edges, 1);
+   RawTensor<T> oute = lj_energy<T,  ParticlesAoSoA<T, DIM, TILE>>(psoa, edges, params);
+   RawTensor<T> outf = lj_force<T,  ParticlesAoSoA<T, DIM, TILE>>(psoa, edges, params);
 
-   PairBlockedCRS bcrs = build_pair_index_blocked_crs<T, ParticlesAoSoA<T, DIM, TILE>>(psoa, edges);
+   std::cout << oute << std::endl;
+   std::cout << outf << std::endl;
+//   std::cout << typeid(out).name() << std::endl;
+//   RawTensor<T> inv_r2 = out.reciprocal();
+//   RawTensor<T> inv_r6 = inv_r2.pow(3);
+//   RawTensor<T> sr2 = inv_r2 * (lj_params.sigma * lj_params.sigma);
+//   RawTensor<T> sr6 = sr2.pow(3);
+//   RawTensor<T> e_pair = (sr6 + sr6 - 1) * 4 * lj_params.epsilon;
+//   std::cout << shape_str(out.shape()) << std::endl;
+//   std::cout << inv_r2 << std::endl;
+//   std::cout << inv_r6 << std::endl;
+//   std::cout << sr2 << std::endl;
+//   std::cout << sr6 << std::endl;
+//   std::cout << e_pair << std::endl;
 
-   RawTensor<T> out = init_out_from_meta(psoa.x, meta);
-
-   fusion::physics::iter::pairwise_tag<T, Vec3GatherR2>(meta, out);
-   std::cout << shape_str(out.shape()) << std::endl;
-   std::cout << out << std::endl;
 
    return 0;
 };

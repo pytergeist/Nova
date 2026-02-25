@@ -1,7 +1,9 @@
 #ifndef FUSION_PHYSICS_CPU_PAIRWISE_KERNELS_PAIR_DELTA_H_
 #define FUSION_PHYSICS_CPU_PAIRWISE_KERNELS_PAIR_DELTA_H_
 
-template <class Backend> struct PairDeltaKernel {
+#include "Fusion/cpu/simd/backend/BackendConcept.hpp"
+
+template <BackendConcept Backend> struct PairDeltaKernel {
    using B = Backend;
    using vec = typename B::vec;
 

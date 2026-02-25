@@ -3,9 +3,12 @@
 
 #include <utility>
 
-#include "Fusion/physics/potentials/LJ.hpp"
-
 #include "PairwiseTags.hpp"
+
+template <typename T> struct LJParams {
+   T epsilon;
+   T sigma;
+};
 
 struct NoParams {};
 

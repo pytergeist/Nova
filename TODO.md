@@ -10,6 +10,7 @@
 - Numerical Stability for exp/log
 - Scalar tail latency is high - tile structure with last tile padded & partially filled?
 - Change SIMD dispatch to concepts + overload sets (or CPO point with tag_invoke?)
+- Refactor contiguous kernel in structs for clarity - rn using lambdas which is bad for readability past one line
 ### BLAS
 - Build concept model for Blas backend (similar to SIMD)
 - Implement DotLikeDesc

@@ -1,7 +1,10 @@
 #ifndef FUSION_PHYSICS_CPU_PAIRWISE_KERNELS_PAIR_R2_H_
 #define FUSION_PHYSICS_CPU_PAIRWISE_KERNELS_PAIR_R2_H_
 
-template <class Backend> struct PairR2Kernel {
+#include "Fusion/cpu/simd/backend/BackendConcept.hpp"
+
+
+template <BackendConcept Backend> struct PairR2Kernel {
    using B = Backend;
    using vec = typename B::vec;
 

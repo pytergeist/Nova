@@ -19,12 +19,6 @@ template <typename T> struct Vec3Ptrs {
    const T *z;
 };
 
-// TODO: make sure you have vec3Ptr opt for physics and VecNPtrs for
-// GNN pairwise iteration over node features.
-template <typename T, std::size_t N> struct VecNPtrs {
-   T *components[N];
-};
-
 // TODO: make this type a physics DType concept (should only be float, double,
 // maybe half)
 template <typename T> struct ParticlesSoA {
@@ -54,6 +48,8 @@ template <typename T> struct ParticlesSoA {
 };
 
 template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
+   // TODO: Make this a class - it now has internal layout assumptions
+   // and invariants to maintain that shouldn't be mutatable post init
    static_assert(DIM > 0);
    static_assert(TILE > 0);
    std::int64_t N_ = 0;
