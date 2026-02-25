@@ -7,5 +7,6 @@ struct PairR2 {};
 // -- fused -- //
 
 struct LJEnergy {};
+struct LJForce {};
 
 #endif // FUSION_PHYSICS_CPU_PAIRWISE_PAIRWISE_TAGS_H

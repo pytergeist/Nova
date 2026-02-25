@@ -17,6 +17,10 @@ template <class T> struct params_type<LJEnergy, T> {
    using type = LJParams<T>;
 };
 
+template <class T> struct params_type<LJForce, T> {
+   using type = LJParams<T>;
+};
+
 template <class Tag, class T>
 using params_type_t = typename params_type<Tag, T>::type;
 

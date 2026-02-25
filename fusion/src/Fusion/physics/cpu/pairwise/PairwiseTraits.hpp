@@ -42,4 +42,15 @@ struct pairwise_traits<LJEnergy, T, ParticlesT> {
    }
 };
 
+template <typename T, class ParticlesT>
+struct pairwise_traits<LJForce, T, ParticlesT> {
+   static constexpr bool available = true;
+
+   static void can_execute(const ParticlesT &particles,
+                           const PairBlockedCRS &crs, T *out, std::uint64_t E,
+                           const LJParams<T> &params) {
+      pairwise::lj_force<T, ParticlesT>(particles, crs, out, E, params);
+   }
+};
+
 #endif // FUSION_PHYSICS_CPU_PAIRWISE_PAIRWISE_TRAITS_H
