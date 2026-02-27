@@ -8,9 +8,9 @@
 
 template <typename T, class ParticlesT>
 struct LJParamPlan {
-   std::shared_ptr<PairwiseMeta<T, ParticlesT>> meta;
+   PairwiseMeta<T, ParticlesT>& meta;
    LJParams<T> params;
-}
+};
 
 
 #endif // FUSION_PHYSICS_REGISTRY_PARAM_PLAN_HPP
