@@ -59,6 +59,26 @@ inline ADTensor<T> unary(const ADTensor<T> &x, const Param &params,
    return result;
 }
 
+
+template <typename T, class Op, typename Meta, typename Param, class EagerFn>
+inline ADTensor<T> unary_meta(const ADTensor<T> &x, Meta &m, const Param &params,
+                         EagerFn &&eager) {
+   EagerFn feager = std::forward<EagerFn>(eager);
+   const bool needs_grad = grad_enabled() && x.requires_grad();
+   if (!needs_grad || !should_trace(x)) {
+      return feager(x, m, params);
+   }
+   Engine<T> &eng = EngineContext<T>::get();
+   ValueID vx = const_cast<ADTensor<T> &>(x).ensure_vid();
+   AutodiffMeta<T> meta = construct_meta<T>(x, params);
+   std::vector<ValueID> vids{vx};
+   ValueID out = eng.template apply<Op>(meta, vids);
+   RawTensor<T> raw = eng.materialise(out);
+   ADTensor<T> result(std::move(raw), x.requires_grad());
+   result.set_vid(out);
+   return result;
+}
+
 template <typename T, class Op, class EagerFn>
 inline ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
    EagerFn feager = std::forward<EagerFn>(eager);

@@ -308,6 +308,20 @@ template <typename T> class ADTensor {
    T *begin() const { return raw_.begin(); }
    T *end() const { return raw_.end(); }
 
+   template <typename OpTag, typename F> ADTensor unary_hook(F &&f) const {
+      return apply_unary_op<OpTag>(std::forward<F>(f));
+   }
+
+   template <typename OpTag, typename Param, typename F>
+   ADTensor unary_hook(const Param &p, F &&f) const {
+      return apply_unary_op<OpTag, Param>(p, std::forward<F>(f));
+   }
+
+   template <typename OpTag, typename Meta, typename Param, typename F>
+   ADTensor unary_meta_hook(Meta &m, const Param &p, F &&f) const {
+      return apply_unary_meta_op<OpTag, Meta, Param>(m, p, std::forward<F>(f));
+   }
+
  private:
    RawTensor<T> raw_;
    mutable std::shared_ptr<RawTensor<T>> grad_;
@@ -356,6 +370,21 @@ template <typename T> class ADTensor {
           self, p, [&](const ADTensor &x, const Param &param) {
              const Raw &xb = x.raw();
              Raw out = ff(xb, param);
+             bool req_grad = x.requires_grad();
+             return ADTensor(std::move(out), req_grad);
+          });
+   }
+
+   template <typename OpTag, typename Meta, typename Param, typename F>
+   ADTensor apply_unary_meta_op(Meta &m, const Param &p, F &&f) const {
+      using Op = Operation<T, OpTag>;
+      const ADTensor &self = *this;
+      F ff = std::forward<F>(f);
+      return autodiff::unary_meta<T, Op, Meta, Param>(
+          self, m, p,
+          [&](const ADTensor &x, Meta &meta, const Param &param) {
+             const Raw &xb = x.raw();
+             Raw out = ff(meta, param);
              bool req_grad = x.requires_grad();
              return ADTensor(std::move(out), req_grad);
           });
