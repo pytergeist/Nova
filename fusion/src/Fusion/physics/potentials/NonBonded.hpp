@@ -16,7 +16,8 @@ inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
 template <typename T, class ParticlesT>
 inline RawTensor<T> lj_energy(ParticlesT &p, EdgeList &edges,
                               LJParams<T> params) {
-   // TODO: Remove BlockedCRS building from meta construction?
+   // NB: this operation constructs plan/metas each time it is run
+   // and is not intended to be in any hot paths
    const std::size_t channels = 1;
    PairwiseMeta<T, ParticlesT> meta =
        make_pairwise_meta<T, ParticlesT>(p, edges, channels);
@@ -29,7 +30,8 @@ inline RawTensor<T> lj_energy(ParticlesT &p, EdgeList &edges,
 template <typename T, class ParticlesT>
 inline RawTensor<T> lj_force(ParticlesT &p, EdgeList &edges,
                              LJParams<T> params) {
-   // TODO: Remove BlockedCRS building from meta construction?
+   // NB: this operation constructs plan/metas each time it is run
+   // and is not intended to be in any hot paths
    const std::size_t channels = 3;
    PairwiseMeta<T, ParticlesT> meta =
        make_pairwise_meta<T, ParticlesT>(p, edges, channels);
@@ -38,5 +40,25 @@ inline RawTensor<T> lj_force(ParticlesT &p, EdgeList &edges,
    fusion::physics::iter::pairwise_tag<LJForce, T>(meta, out, params);
    return out;
 }
+
+
+template <typename T, class ParticlesT>
+inline RawTensor<T> lj_energy_from_meta(PairwiseMeta<T, ParticlesT> &meta,
+                              LJParams<T> params) {
+   RawTensor<T> out = init_out_from_meta(meta.plan.particles.x, meta);
+   fusion::physics::iter::pairwise_tag<LJEnergy, T>(meta, out, params);
+   return out;
+}
+
+
+template <typename T, class ParticlesT>
+inline RawTensor<T> lj_force_from_meta(PairwiseMeta<T, ParticlesT> &meta,
+                             LJParams<T> params) {
+   RawTensor<T> out = init_out_from_meta(meta.plan.particles.x, meta);
+   fusion::physics::iter::pairwise_tag<LJForce, T>(meta, out, params);
+   return out;
+}
+
+
 
 #endif // FUSION_PHYSICS_POTENTIALS_NONBONDED_H
