@@ -5,6 +5,8 @@
 #include "Fusion/physics/core/Neighbours.hpp"
 #include "Fusion/physics/Potentials/NonBonded.hpp"
 
+#include "Fusion/physics/autodiff/ADPhysics.hpp"
+
 std::string shape_str(std::vector<size_t> shape) {
    std::ostringstream oss;
    oss << '(';
@@ -24,6 +26,7 @@ int main() {
    constexpr std::size_t DIM = 3;
    constexpr std::size_t TILE = 4;
 
+   using Layout = ParticlesAoSoA<T, DIM, TILE>;
    RawTensor<T> X({(std::int64_t)DIM, (std::int64_t)8},
                   {
                       // x
@@ -56,8 +59,8 @@ int main() {
                   },
                   DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   ParticlesAoSoA<T, DIM, TILE> psoa =
-       ParticlesAoSoA<T, DIM, TILE>::from_three_n_raw_tensor(8, X, X, X, X);
+   Layout psoa =
+       Layout::from_three_n_raw_tensor(8, X, X, X, X);
 
    LJParams<T> params{0.2f, 0.7f};
 //   NoParams params;
@@ -82,12 +85,18 @@ int main() {
                       2, 7,       // j for i=6
                       3, 4, 6     // j for i=7
                   }};
+     PairwiseMeta<T, Layout> meta =
+       make_pairwise_meta<T, Layout>(psoa, edges, 1);
 
-   RawTensor<T> oute = lj_energy<T,  ParticlesAoSoA<T, DIM, TILE>>(psoa, edges, params);
-   RawTensor<T> outf = lj_force<T,  ParticlesAoSoA<T, DIM, TILE>>(psoa, edges, params);
+     ADTensor<T> x_diff{meta.plan.particles.x};
 
-   std::cout << oute << std::endl;
-   std::cout << outf << std::endl;
+     ADTensor<T> out = lj_energy<T, Layout>(x_diff, meta, params);
+     std::cout << out << std::endl;
+//   RawTensor<T> oute = lj_energy<T,  Layout>(psoa, edges, params);
+//   RawTensor<T> outf = lj_force<T,  Layout>(psoa, edges, params);
+
+//   std::cout << oute << std::endl;
+//   std::cout << outf << std::endl;
 //   std::cout << typeid(out).name() << std::endl;
 //   RawTensor<T> inv_r2 = out.reciprocal();
 //   RawTensor<T> inv_r6 = inv_r2.pow(3);

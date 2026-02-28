@@ -11,7 +11,7 @@
 
 template <typename U> class RawTensor;
 
-template <typename T, typename Enable = void>
+template <typename T, typename Enable = void> // TODO: remove need for static arity
 struct static_arity : std::integral_constant<std::size_t, 0> {};
 
 template <typename T> struct Context {
