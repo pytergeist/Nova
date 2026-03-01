@@ -172,4 +172,35 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
    }
 };
 
+template <typename T, std::size_t DIM, std::size_t TILE>
+struct ParticlesAoSoAView {
+   const T *x_ = nullptr;
+   std::int64_t N_ = 0;
+   std::size_t nBlocks_ = 0;
+
+   static constexpr std::size_t dim() { return DIM; }
+   static constexpr std::size_t tile() { return TILE; }
+
+   std::size_t N() const { return static_cast<std::size_t>(N_); }
+   std::size_t nBlocks() const { return nBlocks_; }
+
+   const T *x_block_ptr(const std::size_t c, const std::size_t b) const {
+      return x_ + TILE * (c * nBlocks_ + b);
+   }
+
+   std::size_t valid_in_block(std::size_t b) const {
+      const std::size_t start = b * TILE;
+      if (start >= static_cast<std::size_t>(N_))
+         return 0;
+      return std::min<std::size_t>(TILE, static_cast<std::size_t>(N_) - start);
+   }
+};
+
+template <typename T, std::size_t DIM, std::size_t TILE>
+inline ParticlesAoSoAView<T, DIM, TILE>
+make_view_x(const ParticlesAoSoA<T, DIM, TILE> &p, const RawTensor<T> &x) {
+   return ParticlesAoSoAView<T, DIM, TILE>{
+       .x_ = x.get_ptr(), .N_ = p.N_, .nBlocks_ = p.nBlocks_};
+}
+
 #endif // FUSION_PHYSICS_STATE

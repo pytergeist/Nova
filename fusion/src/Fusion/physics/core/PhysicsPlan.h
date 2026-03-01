@@ -18,7 +18,7 @@ template <typename T, class ParticlesT> struct PairwisePlan {
    PairIndexFormat format{PairIndexFormat::PairBlockedCRS};
    ParticleLayout layout{ParticleLayout::AoSoA};
 
-   ParticlesT particles;
+   //   ParticlesT particles;
    EdgeList edges;
    PairBlockedCRS crs;
 
@@ -130,7 +130,7 @@ make_pairwise_plan(const ParticlesT &particles, EdgeList &edges) {
    plan.format = PairIndexFormat::PairBlockedCRS;
    plan.layout = ParticleLayout::AoSoA; // TODO: cur defualting to AoSoA, should
                                         // have all options?
-   plan.particles = particles;
+                                        //   plan.particles = particles;
 
    PairBlockedCRS crs =
        build_pair_index_blocked_crs<T, ParticlesT>(particles, edges);

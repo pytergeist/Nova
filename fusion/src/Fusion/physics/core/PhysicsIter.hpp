@@ -26,13 +26,16 @@ void for_each_edge(const IterPlan &plan, const ParticlesT &pos, T *out,
    }
 }
 
-template <class Tag, typename T, class TensorT, class ParticlesT>
-void pairwise_tag(const PairwiseMeta<T, ParticlesT> &meta, TensorT &out, params_type_t<Tag, T> params) {
+template <class Tag, typename T, class TensorT, class ParticlesT,
+          class ParticlesView>
+void pairwise_tag(const PairwiseMeta<T, ParticlesT> &meta,
+                  ParticlesView &particles, TensorT &out,
+                  params_type_t<Tag, T> params) {
 
    if (meta.fastpath) {
-      // Use AoSoA block-rowwise SIMD path over CRS
-      pairwise_traits<Tag, T, ParticlesT>::can_execute(
-          meta.plan.particles, meta.plan.crs, out.get_ptr(), meta.plan.E, params);
+      // Use AoSoA block-rowwise SIMD path over PairBlockedCRS
+      pairwise_traits<Tag, T, ParticlesView>::can_execute(
+          particles, meta.plan.crs, out.get_ptr(), meta.plan.E, params);
       return;
    }
 

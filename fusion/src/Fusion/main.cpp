@@ -88,9 +88,9 @@ int main() {
      PairwiseMeta<T, Layout> meta =
        make_pairwise_meta<T, Layout>(psoa, edges, 1);
 
-     ADTensor<T> x_diff{meta.plan.particles.x};
+     ADTensor<T> x_diff{psoa.x};
 
-     ADTensor<T> out = lj_energy<T, Layout>(x_diff, meta, params);
+     ADTensor<T> out = lj_energy<T, Layout>(x_diff, psoa, meta, params);
      std::cout << out << std::endl;
 //   RawTensor<T> oute = lj_energy<T,  Layout>(psoa, edges, params);
 //   RawTensor<T> outf = lj_force<T,  Layout>(psoa, edges, params);
