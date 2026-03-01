@@ -14,11 +14,10 @@
 enum class PairIndexFormat { EdgeList, PairCRS, PairBlockedCRS };
 enum class ParticleLayout { SoA, AoS, AoSoA };
 
-template <typename T> struct PairwisePlan {
+struct PairwisePlan {
    PairIndexFormat format{PairIndexFormat::PairBlockedCRS};
    ParticleLayout layout{ParticleLayout::AoSoA};
 
-   //   ParticlesT particles;
    EdgeList edges;
    PairBlockedCRS crs;
 
@@ -124,9 +123,9 @@ inline PairBlockedCRS build_pair_index_blocked_crs(const ParticlesT &particles,
 }
 
 template <typename T, class ParticlesT>
-inline PairwisePlan<T>
+inline PairwisePlan
 make_pairwise_plan(const ParticlesT &particles, EdgeList &edges) {
-   PairwisePlan<T> plan;
+   PairwisePlan plan;
    plan.format = PairIndexFormat::PairBlockedCRS;
    plan.layout = ParticleLayout::AoSoA; // TODO: cur defualting to AoSoA, should
                                         // have all options?
