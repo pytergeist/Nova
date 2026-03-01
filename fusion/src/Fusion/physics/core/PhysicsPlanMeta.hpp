@@ -13,7 +13,7 @@ template <typename T, class ParticlesT> struct PairwiseMeta {
    bool fastpath;
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
-   PairwisePlan<T, ParticlesT> plan;
+   PairwisePlan<T> plan;
 };
 
 template <typename T, class ParticlesT>
