@@ -11,14 +11,16 @@
 #include "registry/pairwise/LJ.hpp"
 
 template <typename T, class ParticlesT>
-ADTensor<T> lj_energy(ADTensor<T> &x, PairwiseMeta<T, ParticlesT> &meta,
-                      LJParams<T> params) {
+ADTensor<T> lj_energy(ADTensor<T> &x, ParticlesT &particles,
+                      PairwiseMeta<T, ParticlesT> &meta, LJParams<T> params) {
    using Meta = PairwiseMeta<T, ParticlesT>;
    using Param = LJParamPlan<T, ParticlesT>;
-   Param pplan{meta, params};
+   Param pplan{meta, &particles, params};
    return x.template unary_meta_hook<LennardJones<T, ParticlesT>, Meta, Param>(
-       meta, pplan, [](Meta& meta_, const Param& plan_) {
-          return lj_energy_from_meta<T, ParticlesT>(meta_, plan_.params);
+       meta, pplan,
+       [&](const RawTensor<T> &xb, Meta &meta_, const Param &plan_) {
+          return lj_energy_from_meta<T, ParticlesT>(xb, particles, meta_,
+                                                    plan_.params);
        });
 }
 
