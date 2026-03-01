@@ -384,7 +384,7 @@ template <typename T> class ADTensor {
           self, m, p,
           [&](const ADTensor &x, Meta &meta, const Param &param) {
              const Raw &xb = x.raw();
-             Raw out = ff(meta, param);
+             Raw out = ff(xb, meta, param);
              bool req_grad = x.requires_grad();
              return ADTensor(std::move(out), req_grad);
           });
