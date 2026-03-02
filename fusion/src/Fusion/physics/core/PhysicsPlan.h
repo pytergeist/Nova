@@ -72,18 +72,22 @@ struct ParticlesAoSoADesc {
    std::size_t E{0};
    std::size_t tile{0};
    std::size_t dim{0};
+
+   bool x_contig{false};
+   bool f_contig{false};
+
+   std::size_t itemsize{0};
 };
 
-template <typename T, class ParticlesT>
-inline PairBlockedCRS build_pair_index_blocked_crs(const ParticlesT &particles,
-                                                   EdgeList &edges) {
+inline PairBlockedCRS
+build_pair_index_blocked_crs(const ParticlesAoSoADesc &pdesc, EdgeList &edges) {
    if (!(edges.sorted == SortType::Blockij)) {
-      edges.sort_by_blocks(particles.tile());
+      edges.sort_by_blocks(pdesc.tile);
    }
    PairBlockedCRS bcrs;
-   bcrs.N = particles.N();
-   bcrs.E = edges.E();
-   bcrs.TILE = particles.tile(); // TODO: curr just hardcoding for dev
+   bcrs.N = pdesc.N;
+   bcrs.E = pdesc.E;
+   bcrs.TILE = pdesc.tile; // TODO: curr just hardcoding for dev
    bcrs.nBlocks = (bcrs.N + bcrs.TILE - 1) / bcrs.TILE;
 
    bcrs.ib_ptr.assign(bcrs.nBlocks + 1, 0);
@@ -129,8 +133,7 @@ inline PairBlockedCRS build_pair_index_blocked_crs(const ParticlesT &particles,
    return bcrs;
 }
 
-template <typename T, class ParticlesT>
-inline PairwisePlan make_pairwise_plan(const ParticlesT &particles,
+inline PairwisePlan make_pairwise_plan(const ParticlesAoSoADesc &pdesc,
                                        EdgeList &edges) {
    PairwisePlan plan;
    plan.format = PairIndexFormat::PairBlockedCRS;
@@ -138,16 +141,17 @@ inline PairwisePlan make_pairwise_plan(const ParticlesT &particles,
                                         // have all options?
                                         //   plan.particles = particles;
 
-   PairBlockedCRS crs =
-       build_pair_index_blocked_crs<T, ParticlesT>(particles, edges);
+   PairBlockedCRS crs = build_pair_index_blocked_crs(pdesc, edges);
    plan.crs = crs;
    plan.edges = edges;
 
-   plan.N = static_cast<int64_t>(particles.N());
+   plan.N = static_cast<int64_t>(pdesc.N);
    plan.E = static_cast<int64_t>(edges.E());
-   plan.x_contig = particles.x.is_contiguous();
-   plan.f_contig = particles.f.is_contiguous();
-   plan.itemsize = sizeof(T);
+
+   plan.x_contig = pdesc.x_contig;
+   plan.f_contig = pdesc.f_contig;
+
+   plan.itemsize = pdesc.itemsize;
 
    return plan;
 }

@@ -16,7 +16,7 @@ template <typename T, class ParticlesT> struct PairwiseMeta {
    PairwisePlan plan;
 };
 
-template <class ParticlesT>
+template <typename T, class ParticlesT>
 ParticlesAoSoADesc make_particles_aosoa_desc(const ParticlesT &particles,
                                              const EdgeList edges) {
    ParticlesAoSoADesc desc;
@@ -24,6 +24,9 @@ ParticlesAoSoADesc make_particles_aosoa_desc(const ParticlesT &particles,
    desc.E = edges.E();
    desc.tile = particles.tile();
    desc.dim = particles.dim();
+   desc.x_contig = particles.x.is_contiguous();
+   desc.f_contig = particles.f.is_contiguous();
+   desc.itemsize = sizeof(T);
    return desc;
 }
 
@@ -32,8 +35,10 @@ inline PairwiseMeta<T, ParticlesT> make_pairwise_meta(const ParticlesT &psoa,
                                                       EdgeList &edges,
                                                       std::size_t channels) {
    PairwiseMeta<T, ParticlesT> meta;
+   ParticlesAoSoADesc pdesc =
+       make_particles_aosoa_desc<T, ParticlesT>(psoa, edges);
    meta.fast_len = edges.E();
-   meta.plan = make_pairwise_plan<T, ParticlesT>(psoa, edges);
+   meta.plan = make_pairwise_plan(pdesc, edges);
    meta.out_shape = std::vector<std::size_t>{
        channels, static_cast<std::size_t>(meta.plan.E)};
    bool fcond = meta.plan.format == PairIndexFormat::PairBlockedCRS;
