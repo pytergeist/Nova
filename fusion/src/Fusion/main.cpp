@@ -90,6 +90,13 @@ int main() {
 
      ADTensor<T> x_diff{psoa.x};
 
+//     auto desc = make_particles_aosoa_desc<Layout>(psoa, edges);
+//     std::cout << desc.N << std::endl;
+//     std::cout << desc.E << std::endl;
+//     std::cout << desc.tile << std::endl;
+//     std::cout << desc.dim << std::endl;
+
+
      ADTensor<T> out = lj_energy<T, Layout>(x_diff, psoa, meta, params);
      std::cout << out << std::endl;
 //   RawTensor<T> oute = lj_energy<T,  Layout>(psoa, edges, params);

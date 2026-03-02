@@ -155,7 +155,10 @@ target_link_libraries(fusion_autodiff INTERFACE
 # physics
 # ------------------------------------------------------------
 add_library(fusion_physics STATIC
-        ${FUSION_SRC_DIR}/physics/core/NeighbourSort.cpp)
+        ${FUSION_SRC_DIR}/physics/core/NeighbourSort.cpp
+        ${FUSION_SRC_DIR}/physics/core/PhysicsPlan.cpp
+
+)
 
 target_include_directories(fusion_physics PUBLIC ${FUSION_INCLUDE_ROOT})
 target_link_libraries(fusion_physics PUBLIC
@@ -206,6 +209,7 @@ if(NOVA_BUILD_CLI)
           ${FUSION_SRC_DIR}/main.cpp
   )
   target_link_libraries(FusionExecutable PRIVATE fusion_core)
+  target_link_libraries(FusionExecutable PRIVATE fusion_physics)
 endif()
 
 # ============================================================

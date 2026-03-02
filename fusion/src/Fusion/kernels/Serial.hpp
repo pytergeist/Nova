@@ -41,7 +41,7 @@ inline size_t normalise_axis(int axis, size_t ndim) {
    return static_cast<size_t>(axis < 0 ? nd + axis : axis);
 }
 
-std::vector<size_t> linear_to_coord(size_t idx, size_t stride1, size_t stride2,
+inline std::vector<size_t> linear_to_coord(size_t idx, size_t stride1, size_t stride2,
                                     size_t dim1, size_t dim2) {
    // Convert linear coordinate to 2d matrix coordinate based on
    // strides, dims and linear index:
@@ -55,7 +55,7 @@ std::vector<size_t> linear_to_coord(size_t idx, size_t stride1, size_t stride2,
    return dst;
 }
 
-std::vector<size_t> unravel_idx(size_t idx, const std::vector<size_t> &strides,
+inline std::vector<size_t> unravel_idx(size_t idx, const std::vector<size_t> &strides,
                                 const std::vector<size_t> &shape) {
    const size_t n = shape.size();
    std::vector<size_t> coord(n);
@@ -66,7 +66,7 @@ std::vector<size_t> unravel_idx(size_t idx, const std::vector<size_t> &strides,
    return coord;
 }
 
-size_t ravel_idx(const std::vector<size_t> &coord,
+inline std::size_t ravel_idx(const std::vector<size_t> &coord,
                  const std::vector<size_t> &strides) {
    size_t idx = 0;
    for (size_t k = 0; k < coord.size(); k++)
@@ -74,7 +74,7 @@ size_t ravel_idx(const std::vector<size_t> &coord,
    return idx;
 }
 
-size_t coord_to_linear(std::vector<size_t> &coords,
+inline std::size_t coord_to_linear(std::vector<size_t> &coords,
                        std::vector<size_t> &strides, size_t axis1,
                        size_t axis2) {
    // Convert 2d matrix coordinate to linear coordinate based on

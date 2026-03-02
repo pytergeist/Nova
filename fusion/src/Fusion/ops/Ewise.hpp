@@ -63,7 +63,7 @@ inline RawTensor<T> reciprocal(const RawTensor<T> &x) {
 }
 
 
-std::string shape_str(std::vector<size_t> shape) {
+inline std::string shape_str(std::vector<size_t> shape) {
    std::ostringstream oss;
    oss << '(';
    for (size_t i = 0; i < shape.size(); ++i) {

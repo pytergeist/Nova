@@ -26,6 +26,7 @@ ParticlesAoSoADesc make_particles_aosoa_desc(const ParticlesT &particles,
    desc.dim = particles.dim();
    desc.x_contig = particles.x.is_contiguous();
    desc.f_contig = particles.f.is_contiguous();
+   desc.v_contig = particles.v.is_contiguous();
    desc.itemsize = sizeof(T);
    return desc;
 }
