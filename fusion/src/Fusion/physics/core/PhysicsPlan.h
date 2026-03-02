@@ -67,6 +67,13 @@ struct Group {
    }
 };
 
+struct ParticlesAoSoADesc {
+   std::int64_t N{0};
+   std::size_t E{0};
+   std::size_t tile{0};
+   std::size_t dim{0};
+};
+
 template <typename T, class ParticlesT>
 inline PairBlockedCRS build_pair_index_blocked_crs(const ParticlesT &particles,
                                                    EdgeList &edges) {
@@ -123,8 +130,8 @@ inline PairBlockedCRS build_pair_index_blocked_crs(const ParticlesT &particles,
 }
 
 template <typename T, class ParticlesT>
-inline PairwisePlan
-make_pairwise_plan(const ParticlesT &particles, EdgeList &edges) {
+inline PairwisePlan make_pairwise_plan(const ParticlesT &particles,
+                                       EdgeList &edges) {
    PairwisePlan plan;
    plan.format = PairIndexFormat::PairBlockedCRS;
    plan.layout = ParticleLayout::AoSoA; // TODO: cur defualting to AoSoA, should

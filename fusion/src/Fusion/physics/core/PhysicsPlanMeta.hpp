@@ -16,6 +16,17 @@ template <typename T, class ParticlesT> struct PairwiseMeta {
    PairwisePlan plan;
 };
 
+template <class ParticlesT>
+ParticlesAoSoADesc make_particles_aosoa_desc(const ParticlesT &particles,
+                                             const EdgeList edges) {
+   ParticlesAoSoADesc desc;
+   desc.N = particles.N();
+   desc.E = edges.E();
+   desc.tile = particles.tile();
+   desc.dim = particles.dim();
+   return desc;
+}
+
 template <typename T, class ParticlesT>
 inline PairwiseMeta<T, ParticlesT> make_pairwise_meta(const ParticlesT &psoa,
                                                       EdgeList &edges,
