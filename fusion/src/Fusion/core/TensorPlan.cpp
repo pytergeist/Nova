@@ -416,7 +416,7 @@ build_ir_from_einsum_binding(const std::vector<TensorDescription> &descs,
 
    IndexSpaceIR ir;
    ir.num_operands = descs.size();
-   ir.itemsize = descs[0].itemsize;
+   ir.itemsize = descs[0].itemsize; // NB: all operands must be same dtype
 
    std::unordered_map<Label, std::uint32_t> label_to_id;
    label_to_id.reserve(64);
