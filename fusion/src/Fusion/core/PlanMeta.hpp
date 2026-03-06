@@ -10,7 +10,7 @@
 /* TODO: OPTIMIZE LATER: implament shape caching for broadcast plans, you need
  * to figure out what to cache and when. This will reduce the amount of plan
  * construction. Unodered_map impl? Also consider moving to a faster (poss
- * inlined) vec representation  */
+ * ) vec representation  */
 
 template <typename T> struct RawTensor;
 
@@ -51,7 +51,7 @@ struct ContractionMeta {
    EinsumBinding binding;
 };
 
-inline std::vector<std::int64_t>
+std::vector<std::int64_t>
 contig_elem_strides(const std::vector<std::size_t> &shape) {
    std::vector<std::int64_t> st(shape.size());
    std::int64_t r = 1;
@@ -63,9 +63,8 @@ contig_elem_strides(const std::vector<std::size_t> &shape) {
 }
 
 template <typename T>
-inline TensorDescription
-make_desc_from_shape(const std::vector<std::size_t> &shape,
-                     const int64_t *strides_elems) {
+TensorDescription make_desc_from_shape(const std::vector<std::size_t> &shape,
+                                       const int64_t *strides_elems) {
    std::vector<std::size_t> sz(shape.begin(), shape.end());
    std::vector<std::int64_t> st;
    if (strides_elems) {
@@ -74,14 +73,12 @@ make_desc_from_shape(const std::vector<std::size_t> &shape,
    } else {
       st = contig_elem_strides(shape);
    }
-   return TensorDescription{static_cast<std::size_t>(shape.size()),
-                            std::move(sz), std::move(st), sizeof(T)};
+   return TensorDescription{std::move(sz), std::move(st), sizeof(T)};
 }
 
 template <typename T>
-static inline TensorDescription make_desc_from_tensor(const RawTensor<T> &t) {
+static TensorDescription make_desc_from_tensor(const RawTensor<T> &t) {
    TensorDescription d;
-   d.ndims = t.shape().size();
    d.shape = t.shape();
    d.itemsize = t.dtype_size();
 
@@ -94,8 +91,7 @@ static inline TensorDescription make_desc_from_tensor(const RawTensor<T> &t) {
 }
 
 template <typename T>
-inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
-                                        const RawTensor<T> &B) {
+BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A, const RawTensor<T> &B) {
    BinaryEwiseMeta meta{};
    const bool same = A.shape() == B.shape();
    const bool cont = A.is_contiguous() && B.is_contiguous();
@@ -120,8 +116,7 @@ inline BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A,
    return meta;
 };
 
-template <typename T>
-inline UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
+template <typename T> UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
    UnaryEwiseMeta meta{};
    const bool cont = A.is_contiguous();
 
@@ -146,8 +141,8 @@ inline UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
 constexpr std::size_t kGlobalReduceAxis = -1;
 
 template <typename T>
-inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
-                                         const std::size_t axis, bool keepdim) {
+ReductionMeta make_reduction_meta(const RawTensor<T> &A, const std::size_t axis,
+                                  bool keepdim) {
    ReductionMeta meta{};
    if (axis == kGlobalReduceAxis && keepdim == false) {
       meta.fastpath = true;
@@ -160,7 +155,7 @@ inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
    const TensorDescription dA = make_desc_from_shape<T>(A.shape(), nullptr);
 
    std::vector<std::size_t> out_shape;
-   for (std::size_t d = 0; d < dA.ndims; ++d) {
+   for (std::size_t d = 0; d < dA.ndims(); ++d) {
       if (d == axis) {
          if (keepdim)
             out_shape.push_back(1);
@@ -182,9 +177,9 @@ inline ReductionMeta make_reduction_meta(const RawTensor<T> &A,
 }
 
 template <typename T>
-inline ContractionMeta
-make_contraction_meta_einsum(const RawTensor<T> &A, const RawTensor<T> &B,
-                             const EinsumBinding &binding) {
+ContractionMeta make_contraction_meta_einsum(const RawTensor<T> &A,
+                                             const RawTensor<T> &B,
+                                             const EinsumBinding &binding) {
    ContractionMeta meta{};
 
    // TODO: push real strides into here

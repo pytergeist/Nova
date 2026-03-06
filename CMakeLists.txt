@@ -77,7 +77,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # allocation layer
 # ------------------------------------------------------------
 add_library(fusion_alloc STATIC
-        ${FUSION_SRC_DIR}/alloc/BFCPoolAllocator.cpp
+        ${FUSION_SRC_DIR}/alloc/FUAllocator.cpp
         ${FUSION_SRC_DIR}/alloc/CPUSubAllocator.cpp
 )
 
@@ -103,6 +103,7 @@ target_link_libraries(fusion_storage INTERFACE
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
         ${FUSION_SRC_DIR}/core/TensorPlan.cpp
+        ${FUSION_SRC_DIR}/core/fuir/IR.cpp
         ${FUSION_SRC_DIR}/core/ThreadPool.cpp
 )
 

@@ -1,13 +1,10 @@
 #ifndef POOL_ALLOCATOR_H
 #define POOL_ALLOCATOR_H
 
-#include <array>
-#include <bit>
+
 #include <cstddef>
-#include <limits>
 #include <map>
 #include <set>
-#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
@@ -52,15 +49,15 @@ class RegionManager {
    std::size_t counter_ = 0;
 };
 
-class PoolAllocator final : public IAllocator {
+class FUAllocator final : public IAllocator {
  public:
-   PoolAllocator();
-   ~PoolAllocator() override;
+   FUAllocator();
+   ~FUAllocator() override;
 
-   PoolAllocator(const PoolAllocator &) = delete;
-   PoolAllocator &operator=(const PoolAllocator &) = delete;
-   PoolAllocator(PoolAllocator &&) noexcept = delete;
-   PoolAllocator &operator=(PoolAllocator &&) noexcept = delete;
+   FUAllocator(const FUAllocator &) = delete;
+   FUAllocator &operator=(const FUAllocator &) = delete;
+   FUAllocator(FUAllocator &&) noexcept = delete;
+   FUAllocator &operator=(FUAllocator &&) noexcept = delete;
 
    void *allocate(std::size_t size, Alignment alignment) override;
    void deallocate(void *ptr) override;

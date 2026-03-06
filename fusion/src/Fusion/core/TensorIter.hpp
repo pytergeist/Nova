@@ -103,7 +103,8 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
    FUSION_CHECK(B.is_initialised(), "binary ewise: RHS uninitialised");
    FUSION_CHECK(A.is_initialised() && B.is_initialised(),
                 "uninitialised tensor");
-   std::array<uint8_t *, 3> base = { // TODO: why are you casting and recasting here???
+   std::array<uint8_t *, 3> base = {
+       // TODO: why are you casting and recasting here???
        reinterpret_cast<uint8_t *>(const_cast<T *>(out.get_ptr())),
        reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
        reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr()))};

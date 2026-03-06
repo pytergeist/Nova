@@ -1,4 +1,4 @@
-#include "BFCPoolAllocator.h"
+#include "FUAllocator.h"
 
 void RegionManager::add_allocated_region(void *ptr, std::size_t region_size,
                                          Alignment alignment) {
@@ -29,10 +29,10 @@ ChunkID RegionManager::get_chunkid_from_ptr(void *chunk_ptr) {
    auto it = ptr_chunk_map_.find(chunk_ptr);
    if (it == ptr_chunk_map_.end()) {
       FUSION_LOGI(false,
-                  "PoolAllocator: deallocate called with unknown pointer: ",
+                  "FUAllocator: deallocate called with unknown pointer: ",
                   chunk_ptr, " (double free or foreign pointer)");
       throw std::runtime_error(
-          "PoolAllocator: unknown pointer in get_chunkid_from_ptr");
+          "FUAllocator: unknown pointer in get_chunkid_from_ptr");
    }
    return it->second;
 }
@@ -51,12 +51,12 @@ std::vector<Region> RegionManager::regions() const { return regions_; }
 
 std::vector<Region> RegionManager::regions() { return regions_; }
 
-PoolAllocator::PoolAllocator()
+FUAllocator::FUAllocator()
     : sub_allocator_(std::make_unique<CPUSubAllocator>()) {}
 
-PoolAllocator::~PoolAllocator() = default;
+FUAllocator::~FUAllocator() = default;
 
-void *PoolAllocator::allocate(std::size_t size, Alignment alignment) {
+void *FUAllocator::allocate(std::size_t size, Alignment alignment) {
    if (size == 0) {
       size = 1;
    }
@@ -91,7 +91,7 @@ void *PoolAllocator::allocate(std::size_t size, Alignment alignment) {
    throw std::bad_alloc();
 }
 
-void PoolAllocator::deallocate(void *ptr) {
+void FUAllocator::deallocate(void *ptr) {
    if (ptr == nullptr) {
       return;
    }
@@ -110,10 +110,10 @@ void PoolAllocator::deallocate(void *ptr) {
    bucket.free_chunks.insert(chunk_id);
 }
 
-std::vector<Chunk> PoolAllocator::chunks() const { return chunks_; }
+std::vector<Chunk> FUAllocator::chunks() const { return chunks_; }
 
 std::vector<ChunkID>
-PoolAllocator::get_free_chunks(std::size_t bucket_size) const {
+FUAllocator::get_free_chunks(std::size_t bucket_size) const {
    std::vector<ChunkID> result;
    auto it = buckets_by_size_.find(bucket_size);
    if (it == buckets_by_size_.end()) {
@@ -125,7 +125,7 @@ PoolAllocator::get_free_chunks(std::size_t bucket_size) const {
    return result;
 }
 
-std::size_t PoolAllocator::round_up_pow2(std::size_t n) {
+std::size_t FUAllocator::round_up_pow2(std::size_t n) {
    static constexpr int kSizeTBits = int(sizeof(std::size_t) * 8);
    if (n <= 1) {
       return 1;
@@ -137,7 +137,7 @@ std::size_t PoolAllocator::round_up_pow2(std::size_t n) {
    return std::size_t{1} << bw;
 }
 
-std::size_t PoolAllocator::round_down_pow2(std::size_t n) {
+std::size_t FUAllocator::round_down_pow2(std::size_t n) {
    if (n <= 1) {
       return 1;
    }
@@ -145,12 +145,12 @@ std::size_t PoolAllocator::round_down_pow2(std::size_t n) {
    return std::size_t{1} << (bw - 1);
 }
 
-Chunk &PoolAllocator::get_chunk_from_id(ChunkID chunk_id) {
+Chunk &FUAllocator::get_chunk_from_id(ChunkID chunk_id) {
    FUSION_BOUNDS_CHECK(chunk_id, chunks_.size());
    return chunks_[chunk_id];
 }
 
-Bucket &PoolAllocator::get_or_create_bucket(std::size_t bucket_size) {
+Bucket &FUAllocator::get_or_create_bucket(std::size_t bucket_size) {
    auto it = buckets_by_size_.find(bucket_size);
    if (it != buckets_by_size_.end()) {
       return it->second;
@@ -164,7 +164,7 @@ Bucket &PoolAllocator::get_or_create_bucket(std::size_t bucket_size) {
    return inserted_it->second;
 }
 
-ChunkID PoolAllocator::find_free_chunk_id_for_size(std::size_t size) {
+ChunkID FUAllocator::find_free_chunk_id_for_size(std::size_t size) {
    const std::size_t size_class = round_up_pow2(size);
 
    for (auto it = buckets_by_size_.lower_bound(size_class);
@@ -183,7 +183,7 @@ ChunkID PoolAllocator::find_free_chunk_id_for_size(std::size_t size) {
    return kInvalidChunkID;
 }
 
-void PoolAllocator::grow_pool_for_size(std::size_t size, Alignment alignment) {
+void FUAllocator::grow_pool_for_size(std::size_t size, Alignment alignment) {
    while (current_allocation_size_ < size) {
       current_allocation_size_ <<= 1;
    }
@@ -208,14 +208,14 @@ void PoolAllocator::grow_pool_for_size(std::size_t size, Alignment alignment) {
    bucket.free_chunks.insert(chunk.chunk_id);
 }
 
-void *PoolAllocator::allocate_bucket_region(std::size_t region,
+void *FUAllocator::allocate_bucket_region(std::size_t region,
                                             Alignment alignment) {
    void *ptr = sub_allocator_->allocate_region(alignment, region);
    region_manager_.add_allocated_region(ptr, region, alignment);
    return ptr;
 }
 
-ChunkID PoolAllocator::split_chunk_for_allocation(ChunkID chunk_id,
+ChunkID FUAllocator::split_chunk_for_allocation(ChunkID chunk_id,
                                                   std::size_t size) {
 
    Chunk &chunk = get_chunk_from_id(chunk_id);
@@ -262,7 +262,7 @@ ChunkID PoolAllocator::split_chunk_for_allocation(ChunkID chunk_id,
    return chunk_id;
 }
 
-void PoolAllocator::delete_chunk(Chunk &chunk) {
+void FUAllocator::delete_chunk(Chunk &chunk) {
    chunk.size = 0;
    chunk.requested_size = 0;
    chunk.ptr = nullptr;
@@ -272,7 +272,7 @@ void PoolAllocator::delete_chunk(Chunk &chunk) {
    chunk.in_use = false;
 }
 
-void PoolAllocator::erase_chunk_from_bucket(Chunk &chunk) {
+void FUAllocator::erase_chunk_from_bucket(Chunk &chunk) {
    if (chunk.size == 0) {
       return;
    }
@@ -285,7 +285,7 @@ void PoolAllocator::erase_chunk_from_bucket(Chunk &chunk) {
    bucket.free_chunks.erase(chunk.chunk_id);
 }
 
-ChunkID PoolAllocator::merge_chunks(Chunk &lchunk, Chunk &rchunk) {
+ChunkID FUAllocator::merge_chunks(Chunk &lchunk, Chunk &rchunk) {
    const std::byte *lbase = static_cast<std::byte *>(lchunk.ptr);
    const std::byte *rbase = static_cast<std::byte *>(rchunk.ptr);
    if (lbase + lchunk.size ==
@@ -310,7 +310,7 @@ ChunkID PoolAllocator::merge_chunks(Chunk &lchunk, Chunk &rchunk) {
    return rchunk.chunk_id;
 }
 
-ChunkID PoolAllocator::free_and_maybe_coalesce(ChunkID chunk_id) {
+ChunkID FUAllocator::free_and_maybe_coalesce(ChunkID chunk_id) {
    ChunkID current_id = chunk_id;
 
    while (true) {

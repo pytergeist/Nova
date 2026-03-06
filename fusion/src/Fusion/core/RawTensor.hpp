@@ -220,9 +220,7 @@ template <typename T> class RawTensor {
       return fusion::math::pow(*this, other);
    }
 
-   RawTensor reciprocal() const {
-      return fusion::math::reciprocal(*this);
-   }
+   RawTensor reciprocal() const { return fusion::math::reciprocal(*this); }
 
    RawTensor sqrt() const { return fusion::math::sqrt(*this); }
    RawTensor log() const { return fusion::math::log(*this); }
