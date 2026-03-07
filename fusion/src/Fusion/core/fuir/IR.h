@@ -107,31 +107,31 @@ struct LoopDim {
    IndexRole role{IndexRole::Batch};
 };
 
-void validate_descs_same_itemsize(const std::vector<TensorDescription> &descs);
+void validate_descs_same_itemsize(const std::vector<OperandDescription> &descs);
 
 std::size_t norm_axis(std::int64_t ax, std::size_t ndims);
 
 std::size_t broadcast_dim(std::size_t a, std::size_t b);
 
-std::int64_t stride_bytes_for_binding(const TensorDescription &desc,
+std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
                                       std::int32_t axis,
                                       std::size_t index_extent,
                                       std::size_t itemsize);
 
 IndexSpaceIR
-build_broadcast_ir_right_aligned(const std::vector<TensorDescription> &descs);
+build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs);
 
-IndexSpaceIR build_reduction_ir(const std::vector<TensorDescription> &descs,
+IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
                                 std::size_t axis, bool keepdim);
 
 std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
-               const std::vector<TensorDescription> &descs,
+               const std::vector<OperandDescription> &descs,
                const std::vector<std::uint32_t> &loop_order);
 
 std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
-               const std::vector<TensorDescription> &descs,
+               const std::vector<OperandDescription> &descs,
                const std::vector<std::uint32_t> &loop_order,
                const std::vector<IndexRole> *role_of_id);
 
@@ -140,16 +140,16 @@ compute_roles_for_gemm_like(const IndexSpaceIR &ir,
                             const EinsumBinding &binding);
 
 IndexSpaceIR
-build_ir_from_einsum_binding(const std::vector<TensorDescription> &descs,
+build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
                              const EinsumBinding &bind);
 
 std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir);
 
 std::vector<std::size_t>
-infer_einsum_out_shape(const std::vector<TensorDescription> &inputs,
+infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
                        const EinsumBinding &binding);
 
-std::int64_t stride_bytes_raw(const TensorDescription &d, std::int32_t axis,
+std::int64_t stride_bytes_raw(const OperandDescription &d, std::int32_t axis,
                               std::size_t itemsize);
 
 std::vector<std::int64_t>

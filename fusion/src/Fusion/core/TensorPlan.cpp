@@ -10,7 +10,8 @@
 #include "TensorPlan.h"
 #include "fuir/IR.h"
 
-BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs) {
+BroadcastPlan
+make_broadcast_plan(const std::vector<OperandDescription> &descs) {
    IndexSpaceIR ir = build_broadcast_ir_right_aligned(descs);
 
    BroadcastPlan plan;
@@ -31,12 +32,12 @@ BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs) {
    return plan;
 }
 
-ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &descs,
+ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
                                   std::size_t axis, bool keepdim) {
    if (descs.size() < 2)
       throw std::runtime_error("reduction: expected at least {out, in}");
 
-   const TensorDescription &in_desc = descs.back();
+   const OperandDescription &in_desc = descs.back();
    const std::size_t in_nd = in_desc.ndims();
    const std::size_t ax = norm_axis(static_cast<std::int64_t>(axis), in_nd);
 
@@ -65,7 +66,7 @@ ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &descs,
 }
 
 ContractionPlan
-make_contraction_plan_einsum_out(const std::vector<TensorDescription> &descs,
+make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
                                  const EinsumBinding &binding) {
    if (descs.size() != 3) {
       throw std::runtime_error("einsum_out: expected descs = {out, A, B}");
@@ -181,30 +182,30 @@ make_contraction_plan_einsum_out(const std::vector<TensorDescription> &descs,
 }
 
 ContractionPlan
-make_contraction_plan_einsum(const std::vector<TensorDescription> &inputs,
+make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
                              const EinsumBinding &binding) {
    if (inputs.size() != 2) {
       throw std::runtime_error("einsum: expected inputs = {A, B}");
    }
    validate_descs_same_itemsize(inputs);
 
-   TensorDescription dummy_out;
+   OperandDescription dummy_out;
    dummy_out.shape.assign(binding.out_labels.size(), 1);
    dummy_out.strides.assign(dummy_out.ndims(), 0);
    dummy_out.itemsize = inputs[0].itemsize;
 
-   std::vector<TensorDescription> tmp = {dummy_out, inputs[0], inputs[1]};
+   std::vector<OperandDescription> tmp = {dummy_out, inputs[0], inputs[1]};
    IndexSpaceIR ir = build_ir_from_einsum_binding(tmp, binding);
 
    const std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
 
-   TensorDescription out_desc;
+   OperandDescription out_desc;
    out_desc.shape = out_shape;
 
    out_desc.strides.assign(out_desc.ndims(), 0);
 
    out_desc.itemsize = inputs[0].itemsize;
 
-   std::vector<TensorDescription> descs = {out_desc, inputs[0], inputs[1]};
+   std::vector<OperandDescription> descs = {out_desc, inputs[0], inputs[1]};
    return make_contraction_plan_einsum_out(descs, binding);
 }

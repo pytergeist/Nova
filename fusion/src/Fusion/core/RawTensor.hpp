@@ -110,10 +110,13 @@ template <typename T> class RawTensor {
    const T *get_ptr() const { return storage_->data_ptr(); }
 
    TensorView<T>
-   view() { // TODO: need to eventuall pass into metadata for views
+   view() { // TODO: need to eventually pass into metadata for views
       return TensorView<T>(storage_->data().template data<T>(), this->shape(),
                            this->strides(), this->rank(), this->ndims());
    }
+
+   bool is_view() const noexcept { return is_view_; }
+   std::size_t storage_offset() const noexcept { return storage_offset_elems_; }
 
    T operator[](int idx) const {
       return storage_->data().template data_as<const T>()[idx];
@@ -279,8 +282,9 @@ template <typename T> class RawTensor {
  protected:
    std::shared_ptr<ITensorStorage<T>> storage_;
    std::vector<std::size_t> shape_{};
-   std::vector<std::int64_t>
-       strides_{}; // TODO: Chaneg strides to int64_t!!! can be negative
+   std::vector<std::int64_t> strides_{};
+   bool is_view_{false};
+   std::size_t storage_offset_elems_{0};
    DType dtype_;
    Device device_;
    IAllocator *allocator_ = nullptr;

@@ -62,21 +62,21 @@ struct ContractionPlan {
    std::size_t itemsize{0};
 };
 
-BroadcastPlan make_broadcast_plan(const std::vector<TensorDescription> &descs);
+BroadcastPlan make_broadcast_plan(const std::vector<OperandDescription> &descs);
 
-ReductionPlan make_reduction_plan(const std::vector<TensorDescription> &desc,
+ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &desc,
                                   const std::size_t axis, const bool keepdim);
 
 ContractionPlan
-make_contraction_plan_einsum(const std::vector<TensorDescription> &inputs,
+make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
                              const EinsumBinding &binding);
 
 ContractionPlan
-make_contraction_plan_einsum_out(const std::vector<TensorDescription> &descs,
+make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
                                  const EinsumBinding &binding);
 
 std::vector<std::size_t>
-infer_einsum_out_shape(const std::vector<TensorDescription> &inputs,
+infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
                        const EinsumBinding &binding);
 
 #endif // BROADCAST_ITERATOR_H

@@ -10,18 +10,19 @@
 
 using value_type = std::ptrdiff_t;
 
-void validate_descs_same_itemsize(const std::vector<TensorDescription> &descs) {
+void validate_descs_same_itemsize(
+    const std::vector<OperandDescription> &descs) {
    if (descs.empty())
       throw std::runtime_error("broadcast: no operands");
    const std::size_t itemsize = descs[0].itemsize;
 
-   for (const TensorDescription &d : descs) {
+   for (const OperandDescription &d : descs) {
       if (d.itemsize != itemsize)
          throw std::runtime_error(
              "You are trying to broadcast mixed datatype Tensors");
       if (d.ndims() != d.shape.size() || d.ndims() != d.strides.size()) {
-         throw std::runtime_error(
-             "broadcast: bad TensorDescription (ndims/shape/strides mismatch)");
+         throw std::runtime_error("broadcast: bad OperandDescription "
+                                  "(ndims/shape/strides mismatch)");
       }
    }
 }
@@ -46,7 +47,7 @@ std::size_t broadcast_dim(std::size_t a, std::size_t b) {
 
 /// HERE
 
-std::int64_t stride_bytes_for_binding(const TensorDescription &desc,
+std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
                                       std::int32_t axis,
                                       std::size_t index_extent,
                                       std::size_t itemsize) {
@@ -64,7 +65,7 @@ std::int64_t stride_bytes_for_binding(const TensorDescription &desc,
 }
 
 IndexSpaceIR
-build_broadcast_ir_right_aligned(const std::vector<TensorDescription> &descs) {
+build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs) {
    validate_descs_same_itemsize(descs);
 
    IndexSpaceIR ir;
@@ -72,7 +73,7 @@ build_broadcast_ir_right_aligned(const std::vector<TensorDescription> &descs) {
    ir.itemsize = descs[0].itemsize;
 
    std::size_t max_nd = 0;
-   for (const TensorDescription &d : descs)
+   for (const OperandDescription &d : descs)
       max_nd = std::max(max_nd, d.ndims());
 
    ir.indices.resize(max_nd);
@@ -85,7 +86,7 @@ build_broadcast_ir_right_aligned(const std::vector<TensorDescription> &descs) {
       idx.axis_of_operand.assign(ir.num_operands, -1);
 
       for (std::size_t op = 0; op < ir.num_operands; ++op) {
-         const TensorDescription &d = descs[op];
+         const OperandDescription &d = descs[op];
          const std::size_t pad = max_nd - d.ndims();
 
          if (od < pad) {
@@ -124,14 +125,14 @@ build_broadcast_ir_right_aligned(const std::vector<TensorDescription> &descs) {
    return ir;
 }
 
-IndexSpaceIR build_reduction_ir(const std::vector<TensorDescription> &descs,
+IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
                                 std::size_t axis, bool keepdim) {
    validate_descs_same_itemsize(descs);
    if (descs.size() < 2)
       throw std::runtime_error("reduction: expected at least {out, in}");
 
-   const TensorDescription &out_desc = descs[0];
-   const TensorDescription &in_desc = descs.back();
+   const OperandDescription &out_desc = descs[0];
+   const OperandDescription &in_desc = descs.back();
    const std::size_t in_nd = in_desc.ndims();
 
    for (std::size_t op = 1; op < descs.size(); ++op) {
@@ -200,7 +201,7 @@ IndexSpaceIR build_reduction_ir(const std::vector<TensorDescription> &descs,
 
 std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
-               const std::vector<TensorDescription> &descs,
+               const std::vector<OperandDescription> &descs,
                const std::vector<std::uint32_t> &loop_order) {
    /* TODO: Lower_to_loops currently doesn't set a IndexRole -- FIX */
    if (descs.size() != ir.num_operands)
@@ -238,7 +239,7 @@ lower_to_loops(const IndexSpaceIR &ir,
 
 std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
-               const std::vector<TensorDescription> &descs,
+               const std::vector<OperandDescription> &descs,
                const std::vector<std::uint32_t> &loop_order,
                const std::vector<IndexRole> *role_of_id) {
 
@@ -351,7 +352,7 @@ compute_roles_for_gemm_like(const IndexSpaceIR &ir,
 }
 
 IndexSpaceIR
-build_ir_from_einsum_binding(const std::vector<TensorDescription> &descs,
+build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
                              const EinsumBinding &bind) {
    validate_descs_same_itemsize(descs);
 
@@ -454,24 +455,24 @@ std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
 }
 
 std::vector<std::size_t>
-infer_einsum_out_shape(const std::vector<TensorDescription> &inputs,
+infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
                        const EinsumBinding &binding) {
    if (inputs.size() != 2) {
       throw std::runtime_error("einsum: expected inputs = {A, B}");
    }
    validate_descs_same_itemsize(inputs);
 
-   TensorDescription dummy_out;
+   OperandDescription dummy_out;
    dummy_out.shape.assign(binding.out_labels.size(), 1);
    dummy_out.strides.assign(dummy_out.ndims(), 0);
    dummy_out.itemsize = inputs[0].itemsize;
 
-   std::vector<TensorDescription> tmp = {dummy_out, inputs[0], inputs[1]};
+   std::vector<OperandDescription> tmp = {dummy_out, inputs[0], inputs[1]};
    IndexSpaceIR ir = build_ir_from_einsum_binding(tmp, binding);
    return out_shape_from_ir(ir);
 }
 
-std::int64_t stride_bytes_raw(const TensorDescription &d, std::int32_t axis,
+std::int64_t stride_bytes_raw(const OperandDescription &d, std::int32_t axis,
                               std::size_t itemsize) {
    if (axis < 0)
       return 0;
