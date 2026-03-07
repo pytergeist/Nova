@@ -13,18 +13,18 @@
 template <typename T> struct RawTensor;
 
 enum class BinaryExecKind : std::uint8_t {
-   Generic,
+   GenericStrided,
    FlatContiguous,
-   FlatContiguousBroadcastA,
-   FlatContiguousBroadcastB,
+   FlatContiguousBroadcastLHS,
+   FlatContiguousBroadcastRHS,
 };
 
 struct BinaryEwiseMeta {
-   bool fastpath;
-   std::size_t fast_len;
    std::vector<std::size_t> out_shape;
+   std::size_t fast_len;
    BroadcastPlan plan;
    OperandDescription dA, dB, dOut;
+   BinaryExecKind exec{BinaryExecKind::GenericStrided};
 };
 
 struct UnaryEwiseMeta {
@@ -98,6 +98,20 @@ static OperandDescription make_desc_from_tensor(const RawTensor<T> &t) {
    return d;
 }
 
+inline std::string_view to_string(BinaryExecKind k) noexcept {
+   switch (k) {
+   case BinaryExecKind::GenericStrided:
+      return "GenericStrided";
+   case BinaryExecKind::FlatContiguous:
+      return "FlatContiguous";
+   case BinaryExecKind::FlatContiguousBroadcastLHS:
+      return "FlatContiguousBroadcastLHS";
+   case BinaryExecKind::FlatContiguousBroadcastRHS:
+      return "FlatContiguousBroadcastRHS";
+   }
+   return "Unknown";
+}
+
 template <typename T>
 BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A, const RawTensor<T> &B) {
 
@@ -106,9 +120,9 @@ BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A, const RawTensor<T> &B) {
    const bool cont = A.is_contiguous() && B.is_contiguous();
 
    if (same && cont) {
-      meta.fastpath = true;
       meta.out_shape = A.shape();
       meta.fast_len = A.flat_size();
+      meta.exec = BinaryExecKind::FlatContiguous;
       return meta;
    }
 
@@ -120,7 +134,6 @@ BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A, const RawTensor<T> &B) {
 
    BroadcastPlan plan_in = make_broadcast_plan({dA, dB});
 
-   meta.fastpath = false;
    meta.out_shape.assign(plan_in.out_shape.begin(), plan_in.out_shape.end());
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
 
@@ -129,6 +142,14 @@ BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A, const RawTensor<T> &B) {
    meta.dA = std::move(dA);
    meta.dB = std::move(dB);
    meta.plan = make_broadcast_plan({meta.dOut, meta.dA, meta.dB});
+
+   bool const broadcastLHS{meta.dA.shape != meta.dOut.shape};
+
+   // TODO: evaulate this impl - difficult for others to read
+   meta.exec = meta.plan.all_contiguous_like
+                   ? (broadcastLHS ? BinaryExecKind::FlatContiguousBroadcastLHS
+                                   : BinaryExecKind::FlatContiguousBroadcastRHS)
+                   : BinaryExecKind::GenericStrided;
 
    return meta;
 };

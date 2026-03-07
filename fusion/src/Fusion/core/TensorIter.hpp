@@ -109,7 +109,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
        reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
        reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr()))};
 
-   if (meta.fastpath) {
+   if (meta.exec == BinaryExecKind::FlatContiguous) {
       auto *o = reinterpret_cast<T *>(base[0]);
       const auto *a = reinterpret_cast<const T *>(base[1]);
       const auto *b = reinterpret_cast<const T *>(base[2]);
@@ -128,6 +128,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
            const std::vector<int64_t> &sbytes) {
           const auto step = static_cast<int64_t>(
               sizeof(T)); // sizeof(T) = size of datatype (n bytes)
+          // TODO: make this part of the enum IR structure/exec plan
           const bool out_contig =
               (sbytes[0] == step); // true if s[0] == step (e.g. bytes)
           // below here means that a/b must be either 0 (for broadcast) or same
@@ -156,7 +157,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
                 const bool b_scalar =
                     (sbytes[2] ==
                      0); // true (b is scalar) if s[1] == 0 (broadcast)
-                // if all above true execute the contigous op from simd_traits
+                // if all above true execute the contiguous op from simd_traits
                 simd_traits<Tag, T>::execute_contiguous(
                     a, b, o, static_cast<size_t>(len), a_scalar, b_scalar);
                 return;

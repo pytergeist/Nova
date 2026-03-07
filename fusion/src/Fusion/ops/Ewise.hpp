@@ -67,9 +67,9 @@ inline void sub_inplace(RawTensor<T> &x, const RawTensor<T> &y) {
    // TODO: need to impl_ a way to ignore batch dim in shape check in
    // a sensible way
    BinaryEwiseMeta meta{};
-   meta.fastpath = true;
    meta.out_shape = x.shape();
    meta.fast_len = x.flat_size();
+   meta.exec = BinaryExecKind::FlatContiguous;
    // this impl is unstable for > rank(2) NDtensors
    FUSION_CHECK(meta.out_shape[x.rank() - 1] == x.shape()[x.rank() - 1],
                 "sub_inplace would change tensor shape; "

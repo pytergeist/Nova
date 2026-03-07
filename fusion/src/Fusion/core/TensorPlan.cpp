@@ -1,10 +1,9 @@
+#include "assert.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <stdexcept>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "TensorPlan.h"
@@ -12,6 +11,7 @@
 
 BroadcastPlan
 make_broadcast_plan(const std::vector<OperandDescription> &descs) {
+
    IndexSpaceIR ir = build_broadcast_ir_right_aligned(descs);
 
    BroadcastPlan plan;
@@ -28,6 +28,11 @@ make_broadcast_plan(const std::vector<OperandDescription> &descs) {
    const std::vector<std::uint32_t> &loop_order = ir.out_indices;
 
    plan.loop = lower_to_loops(ir, descs, loop_order);
+
+   plan.all_contiguous_like =
+       std::ranges::all_of(descs, [](const OperandDescription &desc) {
+          return desc.layout == LayoutKind::Dense;
+       });
 
    return plan;
 }

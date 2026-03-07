@@ -26,6 +26,7 @@ struct OperandDescription {
    UpdateKind update{UpdateKind::ReadOnly};
 
    std::size_t ndims() const noexcept { return shape.size(); }
+
 };
 
 #endif // FUSION_CORE_FUIR_DESCS_H
