@@ -24,9 +24,14 @@ ParticlesAoSoADesc make_particles_aosoa_desc(const ParticlesT &particles,
    desc.E = edges.E();
    desc.tile = particles.tile();
    desc.dim = particles.dim();
-   desc.x_contig = particles.x.is_contiguous();
-   desc.f_contig = particles.f.is_contiguous();
-   desc.v_contig = particles.v.is_contiguous();
+
+   OperandDescription dX = make_desc_from_tensor(particles.x);
+   OperandDescription dF = make_desc_from_tensor(particles.v);
+   OperandDescription dV = make_desc_from_tensor(particles.f);
+
+   desc.x_desc = dX;
+   desc.f_desc = dF;
+   desc.v_desc = dV;
    desc.itemsize = sizeof(T);
    return desc;
 }

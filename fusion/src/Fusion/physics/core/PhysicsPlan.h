@@ -23,8 +23,6 @@ struct PairwisePlan {
 
    std::int64_t N{0};
    std::int64_t E{0};
-   bool x_contig{false};
-   bool f_contig{false};
 
    std::size_t itemsize;
 };
@@ -73,16 +71,17 @@ struct ParticlesAoSoADesc {
    std::size_t tile{0};
    std::size_t dim{0};
 
-   bool x_contig{false};
-   bool f_contig{false};
-   bool v_contig{false};
+   OperandDescription x_desc;
+   OperandDescription f_desc;
+   OperandDescription v_desc;
 
    std::size_t itemsize{0};
 };
 
-PairBlockedCRS build_pair_index_blocked_crs(const ParticlesAoSoADesc &pdesc, EdgeList &edges);
+PairBlockedCRS build_pair_index_blocked_crs(const ParticlesAoSoADesc &pdesc,
+                                            EdgeList &edges);
 
 PairwisePlan make_pairwise_plan(const ParticlesAoSoADesc &pdesc,
-                                       EdgeList &edges);
+                                EdgeList &edges);
 
 #endif // FUSION_PHYSICS_PLAN_HPP

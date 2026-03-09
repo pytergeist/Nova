@@ -307,11 +307,6 @@ void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
    auto *out = reinterpret_cast<T *>(out_data.get_ptr());
    std::fill(out, out + out_data.flat_size(), T{0});
 
-   // “fast path” for contraction = “whole plan matches BLAS contract”
-   //    std::cout << "Meta fastpath trigger " << meta.fastpath << std::endl;
-   //    std::cout << "availible trigger " << fusion::blas::blas_traits<BlasTag,
-   //    T>::available << std::endl; std::cout << "Gemm Like trigger " <<
-   //    meta.plan.gemm_like << std::endl;
    if constexpr (fusion::blas::blas_traits<BlasTag, T>::available) {
       if (meta.plan.gemm_like) {
          const auto &g = meta.plan.gemm;
@@ -326,7 +321,6 @@ void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
       }
    }
 
-   // fallback: generic contraction walker (ScalarTag = multiply, etc.)
    std::array<uint8_t *, 3> base = {
        reinterpret_cast<uint8_t *>(out),
        reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
@@ -336,7 +330,7 @@ void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
    for_each_outer_then_inner<ContractionPlan, 3>(
        meta.plan, base,
        [&](auto &p, int64_t len, const std::vector<int64_t> &sbytes) {
-          const int64_t step = (int64_t)sizeof(T);
+          const int64_t step = static_cast<int64_t>(sizeof(T));
 
           auto *o = reinterpret_cast<T *>(p[0]);
           auto *a = reinterpret_cast<const T *>(p[1]);
@@ -347,7 +341,7 @@ void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
           const int64_t sb = (sbytes[2] == 0) ? 0 : (sbytes[2] / step);
 
           tag_fallback_contraction<T, ScalarTag>(o, a, b, so, sa, sb,
-                                                 (std::size_t)len);
+                                                 static_cast<std::size_t>(len));
        });
 }
 

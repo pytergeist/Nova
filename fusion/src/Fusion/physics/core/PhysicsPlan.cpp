@@ -1,9 +1,8 @@
 
 #include "PhysicsPlan.h"
 
-
-PairBlockedCRS
-build_pair_index_blocked_crs(const ParticlesAoSoADesc &pdesc, EdgeList &edges) {
+PairBlockedCRS build_pair_index_blocked_crs(const ParticlesAoSoADesc &pdesc,
+                                            EdgeList &edges) {
    if (!(edges.sorted == SortType::Blockij)) {
       edges.sort_by_blocks(pdesc.tile);
    }
@@ -56,10 +55,8 @@ build_pair_index_blocked_crs(const ParticlesAoSoADesc &pdesc, EdgeList &edges) {
    return bcrs;
 }
 
-
-
 PairwisePlan make_pairwise_plan(const ParticlesAoSoADesc &pdesc,
-                                       EdgeList &edges) {
+                                EdgeList &edges) {
    PairwisePlan plan;
    plan.format = PairIndexFormat::PairBlockedCRS;
    plan.layout = ParticleLayout::AoSoA; // TODO: cur defualting to AoSoA, should
@@ -71,9 +68,6 @@ PairwisePlan make_pairwise_plan(const ParticlesAoSoADesc &pdesc,
 
    plan.N = static_cast<int64_t>(pdesc.N);
    plan.E = static_cast<int64_t>(edges.E());
-
-   plan.x_contig = pdesc.x_contig;
-   plan.f_contig = pdesc.f_contig;
 
    plan.itemsize = pdesc.itemsize;
 
