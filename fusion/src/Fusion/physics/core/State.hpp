@@ -81,6 +81,11 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
    std::size_t nBlocks() { return nBlocks_; };
    std::size_t nBlocks() const { return nBlocks_; };
 
+   std::vector<std::size_t> storage_shape() const {
+      return {DIM, nBlocks_, TILE};
+   }
+   std::vector<std::size_t> logical_shape() const { return {DIM, N_}; }
+
    T *x_block_ptr(const std::size_t c, std::size_t b) {
       assert(c < DIM);
       assert(b < nBlocks_);
