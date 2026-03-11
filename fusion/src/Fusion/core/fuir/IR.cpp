@@ -282,7 +282,7 @@ lower_to_loops(const IndexSpaceIR &ir,
 
 std::vector<IndexRole>
 compute_roles_for_gemm_like(const IndexSpaceIR &ir,
-                            const EinsumBinding &binding) {
+                            const OperandLabelBinding &binding) {
 
    const auto &outL = binding.op_axis_labels[0];
    const auto &aL = binding.op_axis_labels[1];
@@ -353,7 +353,7 @@ compute_roles_for_gemm_like(const IndexSpaceIR &ir,
 
 IndexSpaceIR
 build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
-                             const EinsumBinding &bind) {
+                             const OperandLabelBinding &bind) {
    validate_descs_same_itemsize(descs);
 
    if (bind.op_axis_labels.size() != descs.size()) {
@@ -456,7 +456,7 @@ std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
 
 std::vector<std::size_t>
 infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
-                       const EinsumBinding &binding) {
+                       const OperandLabelBinding &binding) {
    if (inputs.size() != 2) {
       throw std::runtime_error("einsum: expected inputs = {A, B}");
    }

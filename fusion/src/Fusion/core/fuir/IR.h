@@ -20,10 +20,9 @@ enum class IndexRole { Batch, M, N, K };
 /// unification)
 /// - kind: whether the loop is Independent or Reduction (more to be added)
 /// - axis_of_operand[op]: which axis of operand is bound to this index, or -1
-/// if the
-///   operand does not depend on this index.
+/// if the operand does not depend on this index.
 ///
-/// Conventions:
+/// Invariants:
 /// - operand 0 is the output tensor, operands 1...N are inputs.
 /// - axis_of_operand.size() == IndexSpaceIR::num_operands.
 /// - axis_of_operand[op] == -1 implies stride 0 for that operand on this loop.
@@ -87,7 +86,7 @@ struct IndexSpaceIR {
    std::vector<std::uint32_t> out_indices;
 };
 
-struct EinsumBinding {
+struct OperandLabelBinding {
    std::vector<std::vector<Label>> op_axis_labels;
    std::vector<Label> out_labels;
 };
@@ -137,17 +136,17 @@ lower_to_loops(const IndexSpaceIR &ir,
 
 std::vector<IndexRole>
 compute_roles_for_gemm_like(const IndexSpaceIR &ir,
-                            const EinsumBinding &binding);
+                            const OperandLabelBinding &binding);
 
 IndexSpaceIR
 build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
-                             const EinsumBinding &bind);
+                             const OperandLabelBinding &bind);
 
 std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir);
 
 std::vector<std::size_t>
 infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
-                       const EinsumBinding &binding);
+                       const OperandLabelBinding &binding);
 
 std::int64_t stride_bytes_raw(const OperandDescription &d, std::int32_t axis,
                               std::size_t itemsize);

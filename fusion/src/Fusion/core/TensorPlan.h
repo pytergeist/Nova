@@ -69,14 +69,14 @@ ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &desc,
 
 ContractionPlan
 make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
-                             const EinsumBinding &binding);
+                             const OperandLabelBinding &binding);
 
 ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
-                                 const EinsumBinding &binding);
+                                 const OperandLabelBinding &binding);
 
 std::vector<std::size_t>
 infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
-                       const EinsumBinding &binding);
+                       const OperandLabelBinding &binding);
 
 #endif // BROADCAST_ITERATOR_H

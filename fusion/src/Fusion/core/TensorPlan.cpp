@@ -72,7 +72,7 @@ ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
 
 ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
-                                 const EinsumBinding &binding) {
+                                 const OperandLabelBinding &binding) {
    if (descs.size() != 3) {
       throw std::runtime_error("einsum_out: expected descs = {out, A, B}");
    }
@@ -110,7 +110,8 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    plan.out_ndim = descs[0].ndims();
    plan.out_shape = descs[0].shape;
 
-   const auto role_of_id = compute_roles_for_gemm_like(ir, binding);
+   const std::vector<IndexRole> role_of_id =
+       compute_roles_for_gemm_like(ir, binding);
    plan.loop = lower_to_loops(ir, descs, loop_order, &role_of_id);
 
    plan.gemm_like = true;
@@ -188,7 +189,7 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
 
 ContractionPlan
 make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
-                             const EinsumBinding &binding) {
+                             const OperandLabelBinding &binding) {
    if (inputs.size() != 2) {
       throw std::runtime_error("einsum: expected inputs = {A, B}");
    }

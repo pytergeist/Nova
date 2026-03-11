@@ -53,7 +53,7 @@ struct ContractionMeta {
    ContractionPlan plan;
    OperandDescription dA, dB, dOut;
 
-   EinsumBinding binding;
+   OperandLabelBinding binding;
 };
 
 inline std::vector<std::int64_t>
@@ -221,9 +221,9 @@ ReductionMeta make_reduction_meta(const RawTensor<T> &A, const std::size_t axis,
 }
 
 template <typename T>
-ContractionMeta make_contraction_meta_einsum(const RawTensor<T> &A,
-                                             const RawTensor<T> &B,
-                                             const EinsumBinding &binding) {
+ContractionMeta
+make_contraction_meta_einsum(const RawTensor<T> &A, const RawTensor<T> &B,
+                             const OperandLabelBinding &binding) {
    ContractionMeta meta{};
 
    meta.dA = make_desc_from_tensor<T>(A);
