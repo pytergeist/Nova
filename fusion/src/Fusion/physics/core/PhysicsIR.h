@@ -5,6 +5,6 @@
 
 #include "PhysicsDescs.h"
 
-IndexSpaceIR build_index_read_ir(const ParticlesAoSoADesc& p);
+IndexSpaceIR build_gather_and_map_ir(const std::vector<OperandDescription> &descs);
 
 #endif // FUSION_PHYSICS_CORE_PAIRWISE_IR_H
