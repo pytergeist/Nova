@@ -52,7 +52,7 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
    // and invariants to maintain that shouldn't be mutatable post init
    static_assert(DIM > 0);
    static_assert(TILE > 0);
-   std::int64_t N_ = 0;
+   std::int64_t N_ = 0; // TODO: this should probably be uint64_t
    std::size_t nBlocks_ = 0;
    RawTensor<T> x, v, f, m, type;
 
@@ -84,7 +84,7 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
    std::vector<std::size_t> storage_shape() const {
       return {DIM, nBlocks_, TILE};
    }
-   std::vector<std::size_t> logical_shape() const { return {DIM, N_}; }
+   std::vector<std::size_t> logical_shape() const { return {DIM, static_cast<std::size_t>(N_)}; }
 
    T *x_block_ptr(const std::size_t c, std::size_t b) {
       assert(c < DIM);
