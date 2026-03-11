@@ -351,6 +351,36 @@ compute_roles_for_gemm_like(const IndexSpaceIR &ir,
    return role_of_id;
 }
 
+
+   std::uint32_t bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t>& label_to_id, IndexSpaceIR& ir, Label L) {
+      auto it = label_to_id.find(L);
+      if (it != label_to_id.end())
+         return it->second;
+
+      std::uint32_t id = static_cast<std::uint32_t>(ir.indices.size());
+      IndexDef idx;
+      idx.extent = 1;
+      idx.label = L;
+      idx.kind = IndexKind::Reduction;
+      idx.axis_of_operand.assign(ir.num_operands, -1);
+      ir.indices.push_back(std::move(idx));
+      label_to_id.emplace(L, id);
+      return id;
+   };
+
+
+void set_out_labels_from_binding(std::unordered_map<Label, std::uint32_t>& label_to_id, const OperandLabelBinding &bind, IndexSpaceIR &ir) {
+   for (Label L : bind.out_labels) {
+      auto it = label_to_id.find(L);
+      if (it == label_to_id.end()) {
+         throw std::runtime_error(
+             "einsum: output label does not appear in any operand");
+      }
+      const std::uint32_t id = it->second;
+      ir.indices[id].kind = IndexKind::Independent;
+      ir.out_indices.push_back(id);
+   }
+}
 IndexSpaceIR
 build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
                              const OperandLabelBinding &bind) {
@@ -366,22 +396,6 @@ build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
 
    std::unordered_map<Label, std::uint32_t> label_to_id;
    label_to_id.reserve(64);
-
-   auto ensure_label = [&](Label L) -> std::uint32_t {
-      auto it = label_to_id.find(L);
-      if (it != label_to_id.end())
-         return it->second;
-
-      std::uint32_t id = static_cast<std::uint32_t>(ir.indices.size());
-      IndexDef idx;
-      idx.extent = 1;
-      idx.label = L;
-      idx.kind = IndexKind::Reduction;
-      idx.axis_of_operand.assign(ir.num_operands, -1);
-      ir.indices.push_back(std::move(idx));
-      label_to_id.emplace(L, id);
-      return id;
-   };
 
    for (std::size_t op = 0; op < descs.size(); ++op) {
       const auto &d = descs[op];
@@ -405,7 +419,7 @@ build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
 
       for (std::size_t ax = 0; ax < labs.size(); ++ax) {
          Label L = labs[ax];
-         std::uint32_t id = ensure_label(L);
+         std::uint32_t id = bind_idx_to_ir_by_label(label_to_id, ir, L);
          IndexDef &idx = ir.indices[id];
 
          idx.axis_of_operand[op] = static_cast<std::int32_t>(ax);
@@ -417,16 +431,7 @@ build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
    ir.out_indices.clear();
    ir.out_indices.reserve(bind.out_labels.size());
 
-   for (Label L : bind.out_labels) {
-      auto it = label_to_id.find(L);
-      if (it == label_to_id.end()) {
-         throw std::runtime_error(
-             "einsum: output label does not appear in any operand");
-      }
-      const std::uint32_t id = it->second;
-      ir.indices[id].kind = IndexKind::Independent;
-      ir.out_indices.push_back(id);
-   }
+   set_out_labels_from_binding(label_to_id, bind, ir);
 
    {
       const auto &out_labs = bind.op_axis_labels[0];

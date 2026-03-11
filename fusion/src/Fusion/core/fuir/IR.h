@@ -148,6 +148,11 @@ std::vector<std::size_t>
 infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
                        const OperandLabelBinding &binding);
 
+
+std::uint32_t bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t>& label_to_id, IndexSpaceIR& ir, Label L);
+
+void set_out_labels_from_binding(std::unordered_map<Label, std::uint32_t>& label_to_id, const OperandLabelBinding &bind, IndexSpaceIR &ir);
+
 std::int64_t stride_bytes_raw(const OperandDescription &d, std::int32_t axis,
                               std::size_t itemsize);
 
