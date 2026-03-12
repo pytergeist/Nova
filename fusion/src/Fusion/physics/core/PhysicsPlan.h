@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "PhysicsDescs.h"
 #include "Neighbours.hpp"
 #include "State.hpp"
 
@@ -26,6 +27,25 @@ struct PairwisePlan {
 
    std::size_t itemsize;
 };
+
+struct GatherIndexPlan {
+   PairIndexFormat format{PairIndexFormat::PairBlockedCRS};
+   ParticleLayout layout{ParticleLayout::AoSoA};
+
+   EdgeList edges;
+   PairBlockedCRS crs;
+
+   std::int64_t N{0};
+   std::int64_t E{0};
+
+   std::size_t itemsize;
+};
+
+struct NeighbourReductions {};
+
+struct ScatterReductionPlan {};
+
+struct InteractionScatterPlan {};
 
 template <typename T, class ParticlesT>
 inline PairCRS build_pair_index_crs(const ParticlesT &psoa,
@@ -63,19 +83,6 @@ struct Group {
    bool operator==(const Group &g) const {
       return ib_idx == g.ib_idx && jb_idx == g.jb_idx;
    }
-};
-
-struct ParticlesAoSoADesc {
-   std::int64_t N{0};
-   std::size_t E{0};
-   std::size_t tile{0};
-   std::size_t dim{0};
-
-   OperandDescription x_desc;
-   OperandDescription f_desc;
-   OperandDescription v_desc;
-
-   std::size_t itemsize{0};
 };
 
 PairBlockedCRS build_pair_index_blocked_crs(const ParticlesAoSoADesc &pdesc,

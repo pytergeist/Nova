@@ -7,6 +7,7 @@
 
 #include <cstddef>
 
+#include "PhysicsDescs.h"
 #include "PhysicsPlan.h"
 
 template <typename T, class ParticlesT> struct PairwiseMeta {
@@ -15,6 +16,46 @@ template <typename T, class ParticlesT> struct PairwiseMeta {
    std::vector<std::size_t> out_shape;
    PairwisePlan plan;
 };
+
+
+template <typename T, class ParticlesT>
+static OperandDescription make_indexed_desc_from_particles_field(const ParticlesT &p) {
+  OperandDescription d;
+  d.shape = p.logical_shape();
+  d.itemsize = sizeof(T);
+
+  if constexpr (requires { p.x.strides(); }) {
+    d.strides = p.x.strides();
+  } else {
+    d.strides = contig_elem_strides(d.shape);
+  }
+  d.access = AccessKind::Indexed;
+  d.layout = LayoutKind::AoSoA;
+  d.storage = StorageKind::Owned;
+  return d;
+}
+
+
+template <typename T>
+OperandDescription make_indexed_desc_from_shape(const std::vector<std::size_t> &shape,
+                                        const int64_t *strides_elems) {
+   OperandDescription d;
+  std::vector<std::size_t> sz(shape.begin(), shape.end());
+  std::vector<std::int64_t> st;
+  if (strides_elems) {
+    st.assign(strides_elems,
+              strides_elems + static_cast<int64_t>(shape.size()));
+  } else {
+    st = contig_elem_strides(shape);
+  }
+  d.access = AccessKind::Indexed;
+  d.layout = LayoutKind::AoSoA;
+  d.storage = StorageKind::Owned;
+  d.shape = std::move(sz);
+  d.strides = std::move(st);
+  d.itemsize = sizeof(T);
+  return d;
+}
 
 template <typename T, class ParticlesT>
 ParticlesAoSoADesc make_particles_aosoa_desc(const ParticlesT &particles,
@@ -25,6 +66,7 @@ ParticlesAoSoADesc make_particles_aosoa_desc(const ParticlesT &particles,
    desc.tile = particles.tile();
    desc.dim = particles.dim();
 
+   // TODO: this should make indexed the layout
    OperandDescription dX = make_desc_from_tensor(particles.x);
    OperandDescription dF = make_desc_from_tensor(particles.v);
    OperandDescription dV = make_desc_from_tensor(particles.f);
