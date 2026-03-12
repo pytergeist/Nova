@@ -13,6 +13,7 @@ struct BroadcastPlan {
    std::size_t out_ndim;
    std::vector<std::size_t> out_shape;
    std::vector<LoopDim> loop;
+   std::vector<OperandAccess> op_access;
 
    bool all_contiguous_like{false};
    std::size_t vector_bytes{0};
@@ -41,6 +42,7 @@ struct ReductionPlan {
    std::vector<std::size_t> out_shape;
    std::size_t reduction_axis;
    std::vector<LoopDim> loop;
+   std::vector<OperandAccess> op_access;
 
    bool keep_dim{false};
    bool all_contiguous_like{false}; // curr not used - evaluate
@@ -55,6 +57,7 @@ struct ContractionPlan {
    std::vector<std::size_t> out_shape;
 
    std::vector<LoopDim> loop;
+   std::vector<OperandAccess> op_access;
 
    bool gemm_like{false};
    GemmLikeDesc gemm;
