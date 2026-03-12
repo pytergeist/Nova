@@ -91,6 +91,10 @@ struct OperandLabelBinding {
    std::vector<Label> out_labels;
 };
 
+struct AffineAccess {
+   std::vector<std::int64_t> byte_stride_per_loop;
+};
+
 /// Describes one lowered loop dimension in an execution plan.
 ///
 /// LoopDim is produced by lowering the logical index from the IndexSpaceIR
@@ -104,6 +108,18 @@ struct LoopDim {
    std::vector<std::int64_t> stride_bytes;
    IndexKind kind{IndexKind::Independent};
    IndexRole role{IndexRole::Batch};
+};
+
+struct OperandAccess {
+   std::size_t operand_id{0};
+
+   LayoutKind layout{LayoutKind::Dense};
+   StorageKind storage{StorageKind::Owned};
+   UpdateKind update{UpdateKind::ReadOnly};
+
+   AccessKind access{AccessKind::Affine};
+
+   AffineAccess affine{};
 };
 
 void validate_descs_same_itemsize(const std::vector<OperandDescription> &descs);
@@ -133,6 +149,11 @@ lower_to_loops(const IndexSpaceIR &ir,
                const std::vector<OperandDescription> &descs,
                const std::vector<std::uint32_t> &loop_order,
                const std::vector<IndexRole> *role_of_id);
+
+std::vector<OperandAccess>
+lower_operand_access(const IndexSpaceIR &ir,
+                     const std::vector<OperandDescription> &descs,
+                     const std::vector<std::uint32_t> &loop_order);
 
 std::vector<IndexRole>
 compute_roles_for_gemm_like(const IndexSpaceIR &ir,

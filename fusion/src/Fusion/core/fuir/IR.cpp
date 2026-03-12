@@ -199,6 +199,49 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
    return ir;
 }
 
+std::vector<OperandAccess>
+lower_operand_access(const IndexSpaceIR &ir,
+                     const std::vector<OperandDescription> &descs,
+                     const std::vector<std::uint32_t> &loop_order) {
+   std::vector<OperandAccess> op_access;
+   op_access.reserve(ir.num_operands);
+
+   // TODO: currently hardcoded to affine access
+
+   for (std::size_t op = 0; op < ir.num_operands; ++op) {
+      OperandAccess oa;
+      AffineAccess af;
+
+      oa.operand_id = op;
+
+      oa.layout = descs[op].layout;
+      oa.storage = descs[op].storage;
+      oa.update = descs[op].update;
+      oa.access = descs[op].access;
+
+      af.byte_stride_per_loop.resize(loop_order.size());
+
+      for (std::size_t pos = 0; pos < loop_order.size(); ++pos) {
+         if (loop_order[pos]>= ir.indices.size())
+            throw std::runtime_error("lower: bad loop index id");
+
+         if (const IndexDef &idx = ir.indices[loop_order[pos]];
+             op == 0 && idx.kind == IndexKind::Reduction) {
+            af.byte_stride_per_loop[pos] = 0;
+         } else {
+            af.byte_stride_per_loop[pos] = stride_bytes_for_binding(
+                descs[op], idx.axis_of_operand[op], idx.extent, ir.itemsize);
+         }
+      }
+
+      oa.affine = std::move(af);
+      op_access.push_back(oa);
+   }
+
+
+   return op_access;
+}
+
 std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
                const std::vector<OperandDescription> &descs,
@@ -250,8 +293,9 @@ lower_to_loops(const IndexSpaceIR &ir,
    loops.reserve(loop_order.size());
 
    for (std::uint32_t id : loop_order) {
-      if (id >= ir.indices.size())
+      if (id >= ir.indices.size()) {
          throw std::runtime_error("lower: bad loop index id");
+      }
 
       const IndexDef &idx = ir.indices[id];
 
@@ -260,10 +304,11 @@ lower_to_loops(const IndexSpaceIR &ir,
       ld.kind = (idx.kind == IndexKind::Reduction) ? IndexKind::Reduction
                                                    : IndexKind::Independent;
 
-      if (role_of_id)
+      if (role_of_id != nullptr) {
          ld.role = (*role_of_id)[id];
-      else
+      } else {
          ld.role = IndexRole::Batch;
+}
 
       ld.stride_bytes.resize(ir.num_operands);
       for (std::size_t op = 0; op < ir.num_operands; ++op) {
@@ -351,25 +396,27 @@ compute_roles_for_gemm_like(const IndexSpaceIR &ir,
    return role_of_id;
 }
 
+std::uint32_t
+bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t> &label_to_id,
+                        IndexSpaceIR &ir, Label L) {
+   auto it = label_to_id.find(L);
+   if (it != label_to_id.end())
+      return it->second;
 
-   std::uint32_t bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t>& label_to_id, IndexSpaceIR& ir, Label L) {
-      auto it = label_to_id.find(L);
-      if (it != label_to_id.end())
-         return it->second;
+   std::uint32_t id = static_cast<std::uint32_t>(ir.indices.size());
+   IndexDef idx;
+   idx.extent = 1;
+   idx.label = L;
+   idx.kind = IndexKind::Reduction;
+   idx.axis_of_operand.assign(ir.num_operands, -1);
+   ir.indices.push_back(std::move(idx));
+   label_to_id.emplace(L, id);
+   return id;
+};
 
-      std::uint32_t id = static_cast<std::uint32_t>(ir.indices.size());
-      IndexDef idx;
-      idx.extent = 1;
-      idx.label = L;
-      idx.kind = IndexKind::Reduction;
-      idx.axis_of_operand.assign(ir.num_operands, -1);
-      ir.indices.push_back(std::move(idx));
-      label_to_id.emplace(L, id);
-      return id;
-   };
-
-
-void set_out_labels_from_binding(std::unordered_map<Label, std::uint32_t>& label_to_id, const OperandLabelBinding &bind, IndexSpaceIR &ir) {
+void set_out_labels_from_binding(
+    std::unordered_map<Label, std::uint32_t> &label_to_id,
+    const OperandLabelBinding &bind, IndexSpaceIR &ir) {
    for (Label L : bind.out_labels) {
       auto it = label_to_id.find(L);
       if (it == label_to_id.end()) {
