@@ -28,6 +28,7 @@ make_broadcast_plan(const std::vector<OperandDescription> &descs) {
    const std::vector<std::uint32_t> &loop_order = ir.out_indices;
 
    plan.loop = lower_to_loops(ir, descs, loop_order);
+   plan.op_access = lower_operand_access(ir, descs, loop_order);
 
    plan.all_contiguous_like =
        std::ranges::all_of(descs, [](const OperandDescription &desc) {
@@ -66,6 +67,7 @@ ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
    loop_order.push_back(static_cast<std::uint32_t>(ax));
 
    plan.loop = lower_to_loops(ir, descs, loop_order);
+   plan.op_access = lower_operand_access(ir, descs, loop_order);
 
    return plan;
 }
@@ -113,6 +115,7 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    const std::vector<IndexRole> role_of_id =
        compute_roles_for_gemm_like(ir, binding);
    plan.loop = lower_to_loops(ir, descs, loop_order, &role_of_id);
+   plan.op_access = lower_operand_access(ir, descs, loop_order); // TODO: add role to operand access??
 
    plan.gemm_like = true;
    plan.gemm = GemmLikeDesc{};

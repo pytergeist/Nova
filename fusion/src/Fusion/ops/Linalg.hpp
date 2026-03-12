@@ -14,7 +14,7 @@
 
 namespace fusion::math::linalg {
 
-inline EinsumBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
+inline OperandLabelBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
    if (a_nd < 2 || b_nd < 2) {
       throw std::runtime_error("matmul: expected rank >= 2 for both operands");
    }
@@ -49,7 +49,7 @@ inline EinsumBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
    out_labels.push_back(Li);
    out_labels.push_back(Lj);
 
-   EinsumBinding binding;
+   OperandLabelBinding binding;
    binding.op_axis_labels = {out_labels, a_labels, b_labels};
    binding.out_labels = out_labels;
    return binding;
@@ -72,7 +72,7 @@ inline RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
    if (kA != kB)
       throw std::runtime_error("matmul: inner dimension mismatch");
 
-   EinsumBinding binding = make_matmul_binding(a_shape.size(), b_shape.size());
+   OperandLabelBinding binding = make_matmul_binding(a_shape.size(), b_shape.size());
    ContractionMeta meta = make_contraction_meta_einsum<T>(A, B, binding);
 
    RawTensor<T> out = init_out_from_meta(A, B, meta);

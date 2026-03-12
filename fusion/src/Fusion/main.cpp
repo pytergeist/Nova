@@ -6,6 +6,8 @@
 #include "Fusion/physics/Potentials/NonBonded.hpp"
 
 #include "Fusion/physics/autodiff/ADPhysics.hpp"
+#include "Fusion/physics/core/PhysicsPlanMeta.hpp"
+#include "Fusion/physics/core/PhysicsIR.h"
 
 std::string shape_str(std::vector<size_t> shape) {
    std::ostringstream oss;
@@ -99,6 +101,39 @@ int main() {
 
      ADTensor<T> out = lj_energy<T, Layout>(x_diff, psoa, meta, params);
      std::cout << out << std::endl;
+
+     OperandDescription dX = make_indexed_desc_from_particles_field<T, Layout>(psoa);
+     OperandDescription dout = make_indexed_desc_from_shape<T>(std::vector<size_t>{3, edges.E()}, nullptr);
+     const std::vector<OperandDescription> descs{dout, dX};
+
+     std::cout << shape_str(dX.shape) << std::endl;
+     std::cout << shape_str(dout.shape) << std::endl;
+
+     IndexSpaceIR ir = build_gather_and_map_ir(descs);
+
+     std::cout << "Num Operands: " << ir.num_operands << std::endl;
+     std::cout << "item size: " << ir.itemsize << std::endl;
+     std::size_t count = 0;
+     std::cout << "Indices size: " << ir.indices.size() << std::endl;
+     for (auto &i: ir.indices) {
+        std::cout << "Idx: " << count << std::endl;
+        std::cout << "Label: " << i.label << std::endl;
+        std::cout << "extent: " << i.extent << std::endl;
+        std::cout << "[";
+        for (auto idx: i.axis_of_operand) {
+           std::cout << idx << ", ";
+
+        }
+        std::cout << "]" << std::endl;
+        count++;
+     }
+
+     std::cout << "out indices" << std::endl;
+     std::cout << "[";
+     for (auto i: ir.out_indices) {
+        std::cout << i << ", ";
+     }
+     std::cout << std::endl;
 //   RawTensor<T> oute = lj_energy<T,  Layout>(psoa, edges, params);
 //   RawTensor<T> outf = lj_force<T,  Layout>(psoa, edges, params);
 
