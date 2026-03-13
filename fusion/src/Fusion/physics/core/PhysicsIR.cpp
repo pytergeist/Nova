@@ -17,7 +17,6 @@ OperandLabelBinding make_gather_index_label_binding(std::size_t out_nd,
    }
 
    const std::size_t nd_c = out_nd - 2;
-   std::cout << "nd_c: " << nd_c << std::endl;
 
    const Label base = 0;
    const Label Lc = static_cast<Label>(base + nd_c);
@@ -76,12 +75,12 @@ build_gather_and_map_ir(const std::vector<OperandDescription> &descs) {
       max_nd = std::max(max_nd, d.ndims());
 
    std::unordered_map<Label, std::uint32_t> label_to_id;
-   OperandLabelBinding binding =
+   const OperandLabelBinding binding =
        make_gather_index_label_binding(descs[0].ndims(), descs[1].ndims());
 
    for (std::size_t op = 0; op < descs.size(); ++op) {
-      const auto &d = descs[op];
-      const auto &labs = binding.op_axis_labels[op];
+      const OperandDescription &d = descs[op];
+      const std::vector<Label> &labs = binding.op_axis_labels[op];
 
       if (labs.size() != d.ndims()) {
          throw std::runtime_error(
@@ -106,3 +105,4 @@ build_gather_and_map_ir(const std::vector<OperandDescription> &descs) {
 
    return ir;
 }
+

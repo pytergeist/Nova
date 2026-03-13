@@ -77,7 +77,7 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
       return out;
    }
 
-   std::size_t N() const { return N_; };
+   std::int64_t N() const { return N_; };
    std::size_t nBlocks() { return nBlocks_; };
    std::size_t nBlocks() const { return nBlocks_; };
 

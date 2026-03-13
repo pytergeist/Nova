@@ -18,18 +18,6 @@ namespace fusion {
 
 namespace iter {
 
-std::string stride_str(std::vector<int64_t> shape) {
-   std::ostringstream oss;
-   oss << '(';
-   for (size_t i = 0; i < shape.size(); ++i) {
-      oss << shape[i];
-      if (i + 1 < shape.size())
-         oss << ',';
-   }
-   oss << ')';
-   return oss.str();
-}
-
 struct OperandStep {
    AccessKind kind{AccessKind::Affine};
    std::int64_t byte_stride{0};
@@ -89,8 +77,6 @@ void for_each_outer_then_inner(const IterPlan &plan,
                                FnInnermost &&inner)
 
 {
-   // first set the ndim (2 usually, for 2 tensors in loop)
-   // set base ptrs (size=3 here, a, b, out?)
    const int ndim = static_cast<int>(plan.loop.size());
 
    if (ndim == 0) {

@@ -159,16 +159,21 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    std::int64_t a_m = 0, a_k = 0;
    std::int64_t b_k = 0, b_n = 0;
 
-   for (const auto &ld : plan.loop) {
+   std::vector<std::int64_t> out_access = plan.op_access[0].affine.byte_stride_per_loop;
+   std::vector<std::int64_t> a_access = plan.op_access[1].affine.byte_stride_per_loop;
+   std::vector<std::int64_t> b_access = plan.op_access[2].affine.byte_stride_per_loop;
+
+   for (std::size_t pos = 0; pos < plan.loop.size(); ++pos) {
+      const LoopDim &ld = plan.loop[pos];
       if (ld.role == IndexRole::M) {
-         out_m = static_cast<std::int64_t>(ld.stride_bytes[0]) / item;
-         a_m = static_cast<std::int64_t>(ld.stride_bytes[1]) / item;
+         out_m = out_access[pos] / item;
+         a_m = a_access[pos] / item;
       } else if (ld.role == IndexRole::N) {
-         out_n = static_cast<std::int64_t>(ld.stride_bytes[0]) / item;
-         b_n = static_cast<std::int64_t>(ld.stride_bytes[2]) / item;
+         out_n = out_access[pos] / item;
+         b_n = b_access[pos] / item;
       } else if (ld.role == IndexRole::K) {
-         a_k = static_cast<std::int64_t>(ld.stride_bytes[1]) / item;
-         b_k = static_cast<std::int64_t>(ld.stride_bytes[2]) / item;
+         a_k = a_access[pos] / item;
+         b_k = b_access[pos] / item;
       }
    }
 
