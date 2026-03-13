@@ -35,10 +35,13 @@ struct GatherIndexPlan {
    EdgeList edges;
    PairBlockedCRS crs;
 
+   std::vector<LoopDim> loop;
+   std::vector<OperandAccess> op_access;
+
    std::int64_t N{0};
    std::int64_t E{0};
 
-   std::size_t itemsize;
+   std::size_t itemsize{0};
 };
 
 struct NeighbourReductions {};
@@ -85,10 +88,16 @@ struct Group {
    }
 };
 
-PairBlockedCRS build_pair_index_blocked_crs(const ParticlesAoSoADesc &pdesc,
+PairBlockedCRS build_pair_index_blocked_crs_from_particle_field(const ParticlesAoSoADesc &pdesc,
                                             EdgeList &edges);
 
 PairwisePlan make_pairwise_plan(const ParticlesAoSoADesc &pdesc,
                                 EdgeList &edges);
+
+
+GatherIndexPlan
+make_gather_index_plan_with_blocked_crs(const std::vector<OperandDescription> &descs,
+                                        PairBlockedCRS &bcrs,
+                                        EdgeList &edges);
 
 #endif // FUSION_PHYSICS_PLAN_HPP

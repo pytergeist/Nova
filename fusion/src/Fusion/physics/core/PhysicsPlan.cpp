@@ -1,8 +1,9 @@
 
 #include "PhysicsPlan.h"
+#include "PhysicsIR.h"
 
-PairBlockedCRS build_pair_index_blocked_crs(const ParticlesAoSoADesc &pdesc,
-                                            EdgeList &edges) {
+PairBlockedCRS build_pair_index_blocked_crs_from_particle_field(
+    const ParticlesAoSoADesc &pdesc, EdgeList &edges) {
    if (!(edges.sorted == SortType::Blockij)) {
       edges.sort_by_blocks(pdesc.tile);
    }
@@ -62,7 +63,8 @@ PairwisePlan make_pairwise_plan(const ParticlesAoSoADesc &pdesc,
    plan.layout = ParticleLayout::AoSoA; // TODO: cur defualting to AoSoA, should
    // have all options?
 
-   PairBlockedCRS crs = build_pair_index_blocked_crs(pdesc, edges);
+   PairBlockedCRS crs =
+       build_pair_index_blocked_crs_from_particle_field(pdesc, edges);
    plan.crs = crs;
    plan.edges = edges;
 
@@ -74,4 +76,29 @@ PairwisePlan make_pairwise_plan(const ParticlesAoSoADesc &pdesc,
    return plan;
 }
 
+GatherIndexPlan
+make_gather_index_plan_with_blocked_crs(const std::vector<OperandDescription> &descs,
+                                        PairBlockedCRS &bcrs, // TODO: eval const qualifier
+                                        EdgeList &edges) {
+   GatherIndexPlan plan;
+   plan.N = static_cast<int64_t>(bcrs.N);
+   plan.E = static_cast<int64_t>(edges.E());
+   plan.format =
+       PairIndexFormat::PairBlockedCRS; // TODO: This curr doesn't exist in fuir
+   plan.layout = ParticleLayout::AoSoA;
 
+   IndexSpaceIR ir = build_gather_and_map_ir(descs);
+
+   plan.crs = bcrs; // TODO: do we want to move here, who owns bcrs?
+   plan.edges = edges;
+
+   const std::vector<std::uint32_t> &loop_order = ir.out_indices;
+
+   plan.loop = lower_to_loops(ir, descs, loop_order);
+   plan.op_access = lower_operand_access(ir, descs, loop_order);
+
+
+   plan.itemsize = descs[0].itemsize;
+
+   return plan;
+}
