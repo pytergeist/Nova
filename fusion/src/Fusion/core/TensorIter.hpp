@@ -18,28 +18,75 @@ namespace fusion {
 
 namespace iter {
 
+std::string stride_str(std::vector<int64_t> shape) {
+   std::ostringstream oss;
+   oss << '(';
+   for (size_t i = 0; i < shape.size(); ++i) {
+      oss << shape[i];
+      if (i + 1 < shape.size())
+         oss << ',';
+   }
+   oss << ')';
+   return oss.str();
+}
+
+struct OperandStep {
+   AccessKind kind{AccessKind::Affine};
+   std::int64_t byte_stride{0};
+};
+
+template <std::size_t N> struct InnerSegment {
+   std::int64_t len{0};
+   std::array<uint8_t *, N> ptrs;
+   std::array<OperandStep, N> step;
+};
+
+template <typename IterPlan, std::size_t N>
+InnerSegment<N> construct_inner_segment(int inner_dim, const IterPlan &plan,
+                                        std::array<uint8_t *, N> &ptr) {
+   InnerSegment<N> seg;
+   seg.len = static_cast<std::int64_t>(plan.loop[inner_dim].size);
+   seg.ptrs = ptr;
+   for (std::size_t k = 0; k < N; k++) {
+      seg.step[k].kind = plan.op_access[k].access;
+      if (seg.step[k].kind == AccessKind::Affine) {
+         seg.step[k].byte_stride =
+             plan.op_access[k].affine.byte_stride_per_loop[inner_dim];
+      } else {
+         throw std::runtime_error(
+             "Access invalid: currently only affine is unsupported");
+      }
+   }
+   return seg;
+}
+
 template <typename IterPlan, std::size_t N, class InnerFn>
 inline void walk(int dim, const int inn, const IterPlan &plan,
                  std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
    if (dim == inn) {
-      const auto &ld = plan.loop[inn];
-      inner(ptr, ld.size, ld.stride_bytes);
+      InnerSegment<N> seg = construct_inner_segment(inn, plan, ptr);
+      inner(seg);
       return;
    }
-   const auto &ld = plan.loop[dim];
+
+   const LoopDim &ld = plan.loop[dim];
    for (int64_t i = 0; i < ld.size; ++i) {
       walk(dim + 1, inn, plan, ptr, inner);
-      for (int k = 0; k < plan.num_operands; ++k)
-         ptr[k] += ld.stride_bytes[k];
+      for (int k = 0; k < plan.num_operands; ++k) {
+         OperandAccess access = plan.op_access[k];
+         ptr[k] += access.affine.byte_stride_per_loop[dim];
+      }
    }
-   for (int k = 0; k < plan.num_operands; ++k)
-      ptr[k] -= ld.stride_bytes[k] * ld.size;
+   for (int k = 0; k < plan.num_operands; ++k) {
+      OperandAccess access = plan.op_access[k];
+      ptr[k] -= access.affine.byte_stride_per_loop[dim] * ld.size;
+   }
 };
 
 template <typename IterPlan, std::size_t N, typename FnInnermost>
-inline void for_each_outer_then_inner(const IterPlan &plan,
-                                      std::array<uint8_t *, N> &base,
-                                      FnInnermost &&inner)
+void for_each_outer_then_inner(const IterPlan &plan,
+                               std::array<uint8_t *, N> &base,
+                               FnInnermost &&inner)
 
 {
    // first set the ndim (2 usually, for 2 tensors in loop)
@@ -47,12 +94,9 @@ inline void for_each_outer_then_inner(const IterPlan &plan,
    const int ndim = static_cast<int>(plan.loop.size());
 
    if (ndim == 0) {
-      // if ndim = 0 set s vector to num_operands(0)
-      // e.g. if num_operands = 3, s = {0, 0, 0}, we then pass into
-      // the inner func
-      static thread_local std::vector<std::int64_t> zeros;
-      zeros.assign(plan.num_operands, 0);
-      inner(base, 1, zeros);
+      // TODO: evaluate this impl - possibly introducing sutble numerical bugs
+      InnerSegment<N> seg = construct_inner_segment(N, plan, base);
+      inner(seg);
       return;
    }
 
@@ -61,34 +105,34 @@ inline void for_each_outer_then_inner(const IterPlan &plan,
 }
 
 template <typename T, class Tag>
-inline void tag_fallback_binary(T *o, const T *a, const T *b, const int64_t &so,
-                                const int64_t &sa, const int64_t &sb,
-                                const std::size_t len) {
+void tag_fallback_binary(T *o, const T *a, const T *b, const int64_t &so,
+                         const int64_t &sa, const int64_t &sb,
+                         const std::size_t len) {
    Tag tag{};
    for (int64_t i = 0; i < len; ++i)
       o[i * so] = tag(a[i * sa], b[i * sb]);
 }
 
 template <typename T, class Tag>
-inline void tag_fallback_unary(T *o, const T *a, const int64_t &so,
-                               const int64_t &sa, const std::size_t len) {
+void tag_fallback_unary(T *o, const T *a, const int64_t &so, const int64_t &sa,
+                        const std::size_t len) {
    Tag tag{};
    for (int64_t i = 0; i < len; ++i)
       o[i * so] = tag(a[i * sa]);
 }
 
 template <typename T, class Tag>
-inline void tag_fallback_reduction(T *o, const T *a, const int64_t &so,
-                                   const int64_t &sa, const std::size_t len) {
+void tag_fallback_reduction(T *o, const T *a, const int64_t &so,
+                            const int64_t &sa, const std::size_t len) {
    Tag tag{};
    for (int64_t i = 0; i < len; ++i)
       o[i * so] += tag(a[i * sa]);
 }
 
 template <typename T, class Tag>
-inline void tag_fallback_contraction(T *o, const T *a, const T *b,
-                                     const int64_t &so, const int64_t &sa,
-                                     const int64_t &sb, const std::size_t len) {
+void tag_fallback_contraction(T *o, const T *a, const T *b, const int64_t &so,
+                              const int64_t &sa, const int64_t &sb,
+                              const std::size_t len) {
    Tag tag{};
    for (int64_t i = 0; i < static_cast<int64_t>(len); ++i) {
       o[i * so] += tag(a[i * sa], b[i * sb]);
@@ -104,7 +148,6 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
    FUSION_CHECK(A.is_initialised() && B.is_initialised(),
                 "uninitialised tensor");
    std::array<uint8_t *, 3> base = {
-       // TODO: why are you casting and recasting here???
        reinterpret_cast<uint8_t *>(const_cast<T *>(out.get_ptr())),
        reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
        reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr()))};
@@ -121,63 +164,43 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
       }
       return;
    }
-
    for_each_outer_then_inner<BroadcastPlan, 3>(
-       meta.plan, base,
-       [&](std::array<uint8_t *, 3> &p, int64_t len,
-           const std::vector<int64_t> &sbytes) {
-          const auto step = static_cast<int64_t>(
-              sizeof(T)); // sizeof(T) = size of datatype (n bytes)
-          // TODO: make this part of the enum IR structure/exec plan
-          const bool out_contig =
-              (sbytes[0] == step); // true if s[0] == step (e.g. bytes)
-          // below here means that a/b must be either 0 (for broadcast) or same
-          // size as step (e.g. bytes)
-          const bool a_unit =
-              (sbytes[1] == 0 ||
-               sbytes[1] == step); // a_unit = True if s[1] = 0 or s[1] = bytes
-          const bool b_unit =
-              (sbytes[2] == 0 ||
-               sbytes[2] == step); // b_unit = True if s[1] = 0 or s[1] = bytes
+       meta.plan, base, [&](InnerSegment<3> &segment) {
+          const std::int64_t step = sizeof(T);
+          std::int64_t const out_bytes = segment.step[0].byte_stride;
+          std::int64_t const a_bytes = segment.step[1].byte_stride;
+          std::int64_t const b_bytes = segment.step[2].byte_stride;
 
-          auto *o = reinterpret_cast<T *>(
-              p[0]); // takes bytes ptr and treats it as if it were a ptr to T
-          // (dtype from template)
-          const auto *a = reinterpret_cast<const T *>(p[1]); // same as above
-          const auto *b = reinterpret_cast<const T *>(p[2]); // same as above
+          const bool out_contig = out_bytes == step;
+          const bool a_unit = a_bytes == 0 || a_bytes == step;
+          const bool b_unit = b_bytes == 0 || b_bytes == step;
+
+          T *o = reinterpret_cast<T *>(segment.ptrs[0]);
+          const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
+          const T *b = reinterpret_cast<const T *>(segment.ptrs[2]);
 
           if constexpr (simd_traits<Tag, T>::available) {
-             // include simd impl
-             // from traits availible
-             if (out_contig && a_unit && b_unit && len > 0) {
-                // if all true continue
-                const bool a_scalar =
-                    (sbytes[1] ==
-                     0); // true (a is scalar) if s[1] == 0 (broadcast)
-                const bool b_scalar =
-                    (sbytes[2] ==
-                     0); // true (b is scalar) if s[1] == 0 (broadcast)
-                // if all above true execute the contiguous op from simd_traits
+             if (out_contig && a_unit && b_unit && segment.len > 0) {
+                const bool a_scalar = a_bytes == 0;
+                const bool b_scalar = b_bytes == 0;
                 simd_traits<Tag, T>::execute_contiguous(
-                    a, b, o, static_cast<size_t>(len), a_scalar, b_scalar);
+                    a, b, o, static_cast<size_t>(segment.len), a_scalar,
+                    b_scalar);
                 return;
              }
-             const bool a_unit = (sbytes[1] == step);
-             const bool b_unit = (sbytes[2] == step);
              if (out_contig && (a_unit || b_unit)) {
-                const int64_t so = 1;
-                const int64_t sa = sbytes[1] / step;
-                const int64_t sb = sbytes[2] / step;
-                tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, len);
+                const std::int64_t so = 1;
+                const std::int64_t sa = a_bytes / step;
+                const std::int64_t sb = b_bytes / step;
+                tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, segment.len);
                 return;
              }
           }
 
-          const int64_t so = sbytes[0] / step;
-          const int64_t sa = (sbytes[1] == 0) ? 0 : sbytes[1] / step;
-          const int64_t sb = (sbytes[2] == 0) ? 0 : sbytes[2] / step;
-          // uses tag struct from simd tags as fallback
-          tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, len);
+          const int64_t so = out_bytes / step;
+          const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
+          const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
+          tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, segment.len);
        });
 }
 
@@ -203,52 +226,37 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
    }
 
    for_each_outer_then_inner<BroadcastPlan, 2>(
-       meta.plan, base,
-       [&](std::array<uint8_t *, 2> &p, int64_t len,
-           const std::vector<int64_t> &sbytes) {
-          const auto step = static_cast<int64_t>(
-              sizeof(T)); // sizeof(T) = size of datatype (n bytes)
-          const bool out_contig =
-              (sbytes[0] == step); // true if s[0] == step (e.g. bytes)
-          // below here means that a/b must be either 0 (for broadcast) or same
-          // size as step (e.g. bytes)
-          const bool a_unit =
-              (sbytes[1] == 0 ||
-               sbytes[1] ==
-                   step); // a_unit = True if s[1] = 0 or s[1] = bytes (4_
+       meta.plan, base, [&](InnerSegment<2> &segment) {
+          const std::int64_t step = sizeof(T);
+          std::int64_t const out_bytes = segment.step[0].byte_stride;
+          std::int64_t const a_bytes = segment.step[1].byte_stride;
+          const bool out_contig = out_bytes == step;
+          const bool a_unit = a_bytes == 0 || a_bytes == step;
 
-          auto *o = reinterpret_cast<T *>(
-              p[0]); // takes bytes ptr and treats it as if it were a ptr to T
-          // (dtype from template)
-          const auto *a = reinterpret_cast<const T *>(p[1]); // same as above
+          T *o = reinterpret_cast<T *>(segment.ptrs[0]);
+          const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
 
           if constexpr (simd_traits<Tag, T>::available) {
-             // include simd impl
-             // from traits availible
-             if (out_contig && a_unit && len > 0) {
-                // if all true continue
-                const bool a_scalar =
-                    (sbytes[1] ==
-                     0); // true (a is scalar) if s[1] == 0 (broadcast)
-                // if all above true execute the contigous op from simd_traits
+
+             if (out_contig && a_unit && segment.len > 0) {
+                const bool a_scalar = a_bytes == 0;
                 simd_traits<Tag, T>::execute_contiguous(
-                    a, o, static_cast<size_t>(len), a_scalar);
+                    a, o, static_cast<size_t>(segment.len), a_scalar);
                 return;
              }
-             const bool a_unit = (sbytes[1] == step);
+             const bool a_unit = a_bytes == step;
              if (out_contig && a_unit) {
                 const int64_t so = 1;
-                const int64_t sa = sbytes[1] / step;
-                tag_fallback_unary<T, Tag>(o, a, so, sa, len);
+                const int64_t sa = a_bytes / step;
+                tag_fallback_unary<T, Tag>(o, a, so, sa, segment.len);
                 return;
              }
           }
 
-          const int64_t so = sbytes[0] / step;
-          const int64_t sa = (sbytes[1] == 0) ? 0 : sbytes[1] / step;
-          // uses tag struct from simd tags as fallback
+          const int64_t so = a_bytes / step;
+          const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
           Tag tag{};
-          tag_fallback_unary<T, Tag>(o, a, so, sa, len);
+          tag_fallback_unary<T, Tag>(o, a, so, sa, segment.len);
        });
 }
 
@@ -275,28 +283,26 @@ void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
    }
 
    for_each_outer_then_inner<ReductionPlan, 2>(
-       meta.plan, base,
-       [&](std::array<uint8_t *, 2> &p, int64_t len,
-           const std::vector<int64_t> &sbytes) {
-          const auto step = static_cast<int64_t>(sizeof(T));
-          const bool out_contig = (sbytes[0] == 0);
-          const bool a_ok = (sbytes[1] == 0 || sbytes[1] == step);
+       meta.plan, base, [&](InnerSegment<2> &segment) {
+          const std::int64_t step = sizeof(T);
+          std::int64_t const out_bytes = segment.step[0].byte_stride;
+          std::int64_t const a_bytes = segment.step[1].byte_stride;
 
-          auto *o = reinterpret_cast<T *>(p[0]);
-          const auto *a = reinterpret_cast<const T *>(p[1]);
+          T *o = reinterpret_cast<T *>(segment.ptrs[0]);
+          const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
 
           if constexpr (simd_traits<Tag, T>::available) {
-             if (sbytes[0] == 0 && sbytes[1] == step && len > 0) {
+             if (out_bytes == 0 && a_bytes == step && segment.len > 0) {
                 *o += simd_traits<Tag, T>::reduce_contiguous(
-                    a, static_cast<size_t>(len));
+                    a, static_cast<size_t>(segment.len));
                 return;
              }
           }
 
-          const std::int64_t so = sbytes[0] / step;
-          const std::int64_t sa = (sbytes[1] == 0) ? 0 : sbytes[1] / step;
+          const std::int64_t so = out_bytes / step;
+          const std::int64_t sa = (a_bytes == 0) ? 0 : a_bytes / step;
           Tag tag{};
-          tag_fallback_reduction<T, Tag>(o, a, so, sa, len);
+          tag_fallback_reduction<T, Tag>(o, a, so, sa, segment.len);
        });
 }
 
@@ -328,20 +334,22 @@ void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
    };
 
    for_each_outer_then_inner<ContractionPlan, 3>(
-       meta.plan, base,
-       [&](auto &p, int64_t len, const std::vector<int64_t> &sbytes) {
-          const int64_t step = static_cast<int64_t>(sizeof(T));
+       meta.plan, base, [&](InnerSegment<3> &segment) {
+          const int64_t step = sizeof(T);
+          std::int64_t const out_bytes = segment.step[0].byte_stride;
+          std::int64_t const a_bytes = segment.step[1].byte_stride;
+          std::int64_t const b_bytes = segment.step[2].byte_stride;
 
-          auto *o = reinterpret_cast<T *>(p[0]);
-          auto *a = reinterpret_cast<const T *>(p[1]);
-          auto *b = reinterpret_cast<const T *>(p[2]);
+          auto *o = reinterpret_cast<T *>(segment.ptrs[0]);
+          auto *a = reinterpret_cast<const T *>(segment.ptrs[1]);
+          auto *b = reinterpret_cast<const T *>(segment.ptrs[2]);
 
-          const int64_t so = (sbytes[0] == 0) ? 0 : (sbytes[0] / step);
-          const int64_t sa = (sbytes[1] == 0) ? 0 : (sbytes[1] / step);
-          const int64_t sb = (sbytes[2] == 0) ? 0 : (sbytes[2] / step);
+          const int64_t so = out_bytes == 0 ? 0 : out_bytes / step;
+          const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
+          const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
 
-          tag_fallback_contraction<T, ScalarTag>(o, a, b, so, sa, sb,
-                                                 static_cast<std::size_t>(len));
+          tag_fallback_contraction<T, ScalarTag>(
+              o, a, b, so, sa, sb, static_cast<std::size_t>(segment.len));
        });
 }
 
