@@ -9,6 +9,7 @@
 
 /// The execution plan for a broadcast expression
 struct BroadcastPlan {
+   static constexpr std::string_view name = "Broadcast Plan";
    std::size_t num_operands;
    std::size_t out_ndim;
    std::vector<std::size_t> out_shape;
@@ -37,6 +38,7 @@ struct GemmLikeDesc {
 };
 
 struct ReductionPlan {
+   static constexpr std::string_view name = "Reduction Plan";
    std::size_t num_operands;
    std::size_t out_ndim;
    std::vector<std::size_t> out_shape;
@@ -52,6 +54,7 @@ struct ReductionPlan {
 };
 
 struct ContractionPlan {
+   static constexpr std::string_view name = "Contraction Plan";
    std::size_t num_operands{0};
    std::size_t out_ndim{0};
    std::vector<std::size_t> out_shape;

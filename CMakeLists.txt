@@ -158,6 +158,7 @@ target_link_libraries(fusion_autodiff INTERFACE
 add_library(fusion_physics STATIC
         ${FUSION_SRC_DIR}/physics/core/NeighbourSort.cpp
         ${FUSION_SRC_DIR}/physics/core/PhysicsPlan.cpp
+        ${FUSION_SRC_DIR}/physics/core/PhysicsIR.cpp
 
 )
 
