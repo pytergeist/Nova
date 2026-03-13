@@ -263,16 +263,16 @@ lower_to_loops(const IndexSpaceIR &ir,
       ld.size = idx.extent;
       ld.kind = (idx.kind == IndexKind::Reduction) ? IndexKind::Reduction
                                                    : IndexKind::Independent;
-      ld.stride_bytes.resize(ir.num_operands);
-
-      for (std::size_t op = 0; op < ir.num_operands; ++op) {
-         if (op == 0 && idx.kind == IndexKind::Reduction) {
-            ld.stride_bytes[op] = 0;
-         } else {
-            ld.stride_bytes[op] = stride_bytes_for_binding(
-                descs[op], idx.axis_of_operand[op], idx.extent, ir.itemsize);
-         }
-      }
+      // ld.stride_bytes.resize(ir.num_operands);
+      //
+      // for (std::size_t op = 0; op < ir.num_operands; ++op) {
+      //    if (op == 0 && idx.kind == IndexKind::Reduction) {
+      //       ld.stride_bytes[op] = 0;
+      //    } else {
+      //       ld.stride_bytes[op] = stride_bytes_for_binding(
+      //           descs[op], idx.axis_of_operand[op], idx.extent, ir.itemsize);
+      //    }
+      // }
 
       loops.push_back(std::move(ld));
    }
@@ -310,15 +310,6 @@ lower_to_loops(const IndexSpaceIR &ir,
          ld.role = IndexRole::Batch;
 }
 
-      ld.stride_bytes.resize(ir.num_operands);
-      for (std::size_t op = 0; op < ir.num_operands; ++op) {
-         if (op == 0 && idx.kind == IndexKind::Reduction) {
-            ld.stride_bytes[op] = 0;
-         } else {
-            ld.stride_bytes[op] = stride_bytes_for_binding(
-                descs[op], idx.axis_of_operand[op], idx.extent, ir.itemsize);
-         }
-      }
       loops.push_back(std::move(ld));
    }
 

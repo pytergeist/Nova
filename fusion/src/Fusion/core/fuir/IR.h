@@ -95,6 +95,10 @@ struct AffineAccess {
    std::vector<std::int64_t> byte_stride_per_loop;
 };
 
+struct BlockedAccess {};
+
+struct IndexedAccess {};
+
 /// Describes one lowered loop dimension in an execution plan.
 ///
 /// LoopDim is produced by lowering the logical index from the IndexSpaceIR
@@ -105,7 +109,7 @@ struct LoopDim {
    // TODO: IndexKind and IndexRole are currently just set on init - need to add
    // set role/kind to lower_to_loop
    std::size_t size;
-   std::vector<std::int64_t> stride_bytes;
+   // std::vector<std::int64_t> stride_bytes;
    IndexKind kind{IndexKind::Independent};
    IndexRole role{IndexRole::Batch};
 };
@@ -120,6 +124,9 @@ struct OperandAccess {
    AccessKind access{AccessKind::Affine};
 
    AffineAccess affine{};
+   BlockedAccess blocked{};
+   IndexedAccess indexed{};
+
 };
 
 void validate_descs_same_itemsize(const std::vector<OperandDescription> &descs);
