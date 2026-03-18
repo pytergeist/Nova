@@ -7,6 +7,7 @@
 
 #include <cstddef>
 
+#include "Neighbours.hpp"
 #include "PhysicsDescs.h"
 #include "PhysicsPlan.h"
 
@@ -17,44 +18,51 @@ template <typename T, class ParticlesT> struct PairwiseMeta {
    PairwisePlan plan;
 };
 
+template <typename T, class ParticlesT> struct GatherIndexMeta {
+   bool fastpath;
+   std::size_t fast_len;
+   std::vector<std::size_t> out_shape;
+   GatherIndexPlan plan;
+};
 
 template <typename T, class ParticlesT>
-static OperandDescription make_indexed_desc_from_particles_field(const ParticlesT &p) {
-  OperandDescription d;
-  d.shape = p.logical_shape();
-  d.itemsize = sizeof(T);
+static OperandDescription
+make_indexed_desc_from_particles_field(const ParticlesT &p) {
+   OperandDescription d;
+   d.shape = p.logical_shape();
+   d.itemsize = sizeof(T);
 
-  if constexpr (requires { p.x.strides(); }) {
-    d.strides = p.x.strides();
-  } else {
-    d.strides = contig_elem_strides(d.shape);
-  }
-  d.access = AccessKind::Indexed;
-  d.layout = LayoutKind::AoSoA;
-  d.storage = StorageKind::Owned;
-  return d;
+   if constexpr (requires { p.x.strides(); }) {
+      d.strides = p.x.strides();
+   } else {
+      d.strides = contig_elem_strides(d.shape);
+   }
+   d.access = AccessKind::Indexed;
+   d.layout = LayoutKind::AoSoA;
+   d.storage = StorageKind::Owned;
+   return d;
 }
 
-
 template <typename T>
-OperandDescription make_indexed_desc_from_shape(const std::vector<std::size_t> &shape,
-                                        const int64_t *strides_elems) {
+OperandDescription
+make_indexed_desc_from_shape(const std::vector<std::size_t> &shape,
+                             const int64_t *strides_elems) {
    OperandDescription d;
-  std::vector<std::size_t> sz(shape.begin(), shape.end());
-  std::vector<std::int64_t> st;
-  if (strides_elems) {
-    st.assign(strides_elems,
-              strides_elems + static_cast<int64_t>(shape.size()));
-  } else {
-    st = contig_elem_strides(shape);
-  }
-  d.access = AccessKind::Indexed;
-  d.layout = LayoutKind::AoSoA;
-  d.storage = StorageKind::Owned;
-  d.shape = std::move(sz);
-  d.strides = std::move(st);
-  d.itemsize = sizeof(T);
-  return d;
+   std::vector<std::size_t> sz(shape.begin(), shape.end());
+   std::vector<std::int64_t> st;
+   if (strides_elems) {
+      st.assign(strides_elems,
+                strides_elems + static_cast<int64_t>(shape.size()));
+   } else {
+      st = contig_elem_strides(shape);
+   }
+   d.access = AccessKind::Indexed;
+   d.layout = LayoutKind::AoSoA;
+   d.storage = StorageKind::Owned;
+   d.shape = std::move(sz);
+   d.strides = std::move(st);
+   d.itemsize = sizeof(T);
+   return d;
 }
 
 template <typename T, class ParticlesT>
@@ -79,9 +87,9 @@ ParticlesAoSoADesc make_particles_aosoa_desc(const ParticlesT &particles,
 }
 
 template <typename T, class ParticlesT>
-inline PairwiseMeta<T, ParticlesT> make_pairwise_meta(const ParticlesT &psoa,
-                                                      EdgeList &edges,
-                                                      std::size_t channels) {
+PairwiseMeta<T, ParticlesT> make_pairwise_meta(const ParticlesT &psoa,
+                                               EdgeList &edges,
+                                               std::size_t channels) {
    PairwiseMeta<T, ParticlesT> meta;
    ParticlesAoSoADesc pdesc =
        make_particles_aosoa_desc<T, ParticlesT>(psoa, edges);
@@ -89,6 +97,31 @@ inline PairwiseMeta<T, ParticlesT> make_pairwise_meta(const ParticlesT &psoa,
    meta.plan = make_pairwise_plan(pdesc, edges);
    meta.out_shape = std::vector<std::size_t>{
        channels, static_cast<std::size_t>(meta.plan.E)};
+   bool fcond = meta.plan.format == PairIndexFormat::PairBlockedCRS;
+   bool lcond = meta.plan.layout == ParticleLayout::AoSoA;
+   meta.fastpath = fcond && lcond;
+   return meta;
+}
+
+template <typename T, class ParticlesT>
+GatherIndexMeta<T, ParticlesT>
+construct_gather_index_meta(const ParticlesT &particles, EdgeList &edges) {
+   std::size_t channels = ParticlesT::dim();
+   GatherIndexMeta<T, ParticlesT> meta;
+   OperandDescription x_desc =
+       make_indexed_desc_from_particles_field<T, ParticlesT>(particles);
+   OperandDescription out_desc = make_indexed_desc_from_shape<T>(
+       std::vector<std::size_t>{channels, edges.E()}, nullptr);
+   const std::vector<OperandDescription> descs{out_desc, x_desc};
+   ParticlesAoSoADesc pdesc =
+       make_particles_aosoa_desc<T, ParticlesT>(particles, edges);
+   PairBlockedCRS crs =
+       build_pair_index_blocked_crs_from_particle_field(pdesc, edges);
+   GatherIndexPlan plan =
+       make_gather_index_plan_with_blocked_crs(descs, crs, edges);
+   meta.fast_len = edges.E();
+   meta.plan = std::move(plan);
+   meta.out_shape = std::vector<std::size_t>{channels, edges.E()};
    bool fcond = meta.plan.format == PairIndexFormat::PairBlockedCRS;
    bool lcond = meta.plan.layout == ParticleLayout::AoSoA;
    meta.fastpath = fcond && lcond;
