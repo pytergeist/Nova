@@ -80,7 +80,7 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    }
    validate_descs_same_itemsize(descs);
 
-   IndexSpaceIR ir = build_ir_from_einsum_binding(descs, binding);
+   IndexSpaceIR ir = build_ir_from_label_binding(descs, binding);
 
    const std::vector<std::size_t> expected = out_shape_from_ir(ir);
    if (descs[0].shape != expected) {
@@ -115,7 +115,8 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    const std::vector<IndexRole> role_of_id =
        compute_roles_for_gemm_like(ir, binding);
    plan.loop = lower_to_loops(ir, descs, loop_order, &role_of_id);
-   plan.op_access = lower_operand_access(ir, descs, loop_order); // TODO: add role to operand access??
+   plan.op_access = lower_operand_access(
+       ir, descs, loop_order); // TODO: add role to operand access??
 
    plan.gemm_like = true;
    plan.gemm = GemmLikeDesc{};
@@ -159,9 +160,12 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    std::int64_t a_m = 0, a_k = 0;
    std::int64_t b_k = 0, b_n = 0;
 
-   std::vector<std::int64_t> out_access = plan.op_access[0].affine.byte_stride_per_loop;
-   std::vector<std::int64_t> a_access = plan.op_access[1].affine.byte_stride_per_loop;
-   std::vector<std::int64_t> b_access = plan.op_access[2].affine.byte_stride_per_loop;
+   std::vector<std::int64_t> out_access =
+       plan.op_access[0].affine.byte_stride_per_loop;
+   std::vector<std::int64_t> a_access =
+       plan.op_access[1].affine.byte_stride_per_loop;
+   std::vector<std::int64_t> b_access =
+       plan.op_access[2].affine.byte_stride_per_loop;
 
    for (std::size_t pos = 0; pos < plan.loop.size(); ++pos) {
       const LoopDim &ld = plan.loop[pos];
@@ -209,7 +213,7 @@ make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
    dummy_out.itemsize = inputs[0].itemsize;
 
    std::vector<OperandDescription> tmp = {dummy_out, inputs[0], inputs[1]};
-   IndexSpaceIR ir = build_ir_from_einsum_binding(tmp, binding);
+   IndexSpaceIR ir = build_ir_from_label_binding(tmp, binding);
 
    const std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
 

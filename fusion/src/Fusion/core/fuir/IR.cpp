@@ -222,7 +222,7 @@ lower_operand_access(const IndexSpaceIR &ir,
       af.byte_stride_per_loop.resize(loop_order.size());
 
       for (std::size_t pos = 0; pos < loop_order.size(); ++pos) {
-         if (loop_order[pos]>= ir.indices.size())
+         if (loop_order[pos] >= ir.indices.size())
             throw std::runtime_error("lower: bad loop index id");
 
          if (const IndexDef &idx = ir.indices[loop_order[pos]];
@@ -237,7 +237,6 @@ lower_operand_access(const IndexSpaceIR &ir,
       oa.affine = std::move(af);
       op_access.push_back(oa);
    }
-
 
    return op_access;
 }
@@ -308,7 +307,7 @@ lower_to_loops(const IndexSpaceIR &ir,
          ld.role = (*role_of_id)[id];
       } else {
          ld.role = IndexRole::Batch;
-}
+      }
 
       loops.push_back(std::move(ld));
    }
@@ -420,9 +419,9 @@ void set_out_labels_from_binding(
    }
 }
 IndexSpaceIR
-build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
-                             const OperandLabelBinding &bind) {
-   validate_descs_same_itemsize(descs);
+build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
+                            const OperandLabelBinding &bind) {
+   // validate_descs_same_itemsize(descs);
 
    if (bind.op_axis_labels.size() != descs.size()) {
       throw std::runtime_error("einsum: binding operand count mismatch");
@@ -511,7 +510,7 @@ infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
    dummy_out.itemsize = inputs[0].itemsize;
 
    std::vector<OperandDescription> tmp = {dummy_out, inputs[0], inputs[1]};
-   IndexSpaceIR ir = build_ir_from_einsum_binding(tmp, binding);
+   IndexSpaceIR ir = build_ir_from_label_binding(tmp, binding);
    return out_shape_from_ir(ir);
 }
 

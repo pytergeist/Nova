@@ -126,7 +126,6 @@ struct OperandAccess {
    AffineAccess affine{};
    BlockedAccess blocked{};
    IndexedAccess indexed{};
-
 };
 
 void validate_descs_same_itemsize(const std::vector<OperandDescription> &descs);
@@ -167,8 +166,8 @@ compute_roles_for_gemm_like(const IndexSpaceIR &ir,
                             const OperandLabelBinding &binding);
 
 IndexSpaceIR
-build_ir_from_einsum_binding(const std::vector<OperandDescription> &descs,
-                             const OperandLabelBinding &bind);
+build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
+                            const OperandLabelBinding &bind);
 
 std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir);
 
@@ -176,10 +175,13 @@ std::vector<std::size_t>
 infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
                        const OperandLabelBinding &binding);
 
+std::uint32_t
+bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t> &label_to_id,
+                        IndexSpaceIR &ir, Label L);
 
-std::uint32_t bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t>& label_to_id, IndexSpaceIR& ir, Label L);
-
-void set_out_labels_from_binding(std::unordered_map<Label, std::uint32_t>& label_to_id, const OperandLabelBinding &bind, IndexSpaceIR &ir);
+void set_out_labels_from_binding(
+    std::unordered_map<Label, std::uint32_t> &label_to_id,
+    const OperandLabelBinding &bind, IndexSpaceIR &ir);
 
 std::int64_t stride_bytes_raw(const OperandDescription &d, std::int32_t axis,
                               std::size_t itemsize);
