@@ -1,6 +1,7 @@
 #ifndef FUSION_CORE_FUIR_IR_H
 #define FUSION_CORE_FUIR_IR_H
 
+#include "DescContraints.h"
 #include "Descs.h"
 
 /// Symbolic identifier for a logical index (e.g. i, j, k in Einstein notation)
@@ -139,11 +140,14 @@ std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
                                       std::size_t index_extent,
                                       std::size_t itemsize);
 
-IndexSpaceIR
-build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs);
+IndexSpaceIR build_broadcast_ir_right_aligned(
+    const std::vector<OperandDescription> &descs,
+    const ItemSizeGroupConstraint constraint);
 
-IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
-                                std::size_t axis, bool keepdim);
+IndexSpaceIR
+build_reduction_ir(const std::vector<OperandDescription> &descs,
+                   std::size_t axis, bool keepdim,
+                   const ItemSizeGroupConstraint constraint);
 
 std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
@@ -167,12 +171,13 @@ compute_roles_for_gemm_like(const IndexSpaceIR &ir,
 
 IndexSpaceIR
 build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
-                            const OperandLabelBinding &bind);
+                            const OperandLabelBinding &bind,
+                            const ItemSizeGroupConstraint constraint);
 
 std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir);
 
 std::vector<std::size_t>
-infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
+infer_out_shape_from_binding(const std::vector<OperandDescription> &inputs,
                        const OperandLabelBinding &binding);
 
 std::uint32_t

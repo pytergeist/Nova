@@ -7,16 +7,24 @@
 #include <vector>
 
 #include "IR.h"
+#include "Descs.h"
+#include "DescContraints.h"
+
+#include <sstream>
 
 using value_type = std::ptrdiff_t;
 
-void validate_descs_same_itemsize(
-    const std::vector<OperandDescription> &descs) {
-   if (descs.empty())
+void validate_descs_itemsize_group(
+    const std::vector<OperandDescription> &descs, const ItemSizeGroupConstraint constraint) {
+   if (descs.empty()) {
       throw std::runtime_error("broadcast: no operands");
+   }
    const std::size_t itemsize = descs[0].itemsize;
 
    for (const OperandDescription &d : descs) {
+      if (constraint == ItemSizeGroupConstraint::TopologyAllowed && d.type == OperandDescType::Topology) {
+         continue;
+      }
       if (d.itemsize != itemsize)
          throw std::runtime_error(
              "You are trying to broadcast mixed datatype Tensors");
@@ -45,7 +53,6 @@ std::size_t broadcast_dim(std::size_t a, std::size_t b) {
    throw std::runtime_error("broadcast: dimension mismatch");
 }
 
-/// HERE
 
 std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
                                       std::int32_t axis,
@@ -65,8 +72,8 @@ std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
 }
 
 IndexSpaceIR
-build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs) {
-   validate_descs_same_itemsize(descs);
+build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs, const ItemSizeGroupConstraint constraint) {
+   validate_descs_itemsize_group(descs, constraint);
 
    IndexSpaceIR ir;
    ir.num_operands = descs.size();
@@ -126,8 +133,9 @@ build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs) {
 }
 
 IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
-                                std::size_t axis, bool keepdim) {
-   validate_descs_same_itemsize(descs);
+                                std::size_t axis, bool keepdim,
+                                const ItemSizeGroupConstraint constraint) {
+   validate_descs_itemsize_group(descs, constraint);
    if (descs.size() < 2)
       throw std::runtime_error("reduction: expected at least {out, in}");
 
@@ -285,13 +293,14 @@ lower_to_loops(const IndexSpaceIR &ir,
                const std::vector<std::uint32_t> &loop_order,
                const std::vector<IndexRole> *role_of_id) {
 
-   if (descs.size() != ir.num_operands)
+   if (descs.size() != ir.num_operands) {
       throw std::runtime_error("lower: desc count mismatch");
+}
 
    std::vector<LoopDim> loops;
    loops.reserve(loop_order.size());
 
-   for (std::uint32_t id : loop_order) {
+   for (std::uint32_t const id : loop_order) {
       if (id >= ir.indices.size()) {
          throw std::runtime_error("lower: bad loop index id");
       }
@@ -393,7 +402,7 @@ bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t> &label_to_id,
    if (it != label_to_id.end())
       return it->second;
 
-   std::uint32_t id = static_cast<std::uint32_t>(ir.indices.size());
+   std::uint32_t const id = static_cast<std::uint32_t>(ir.indices.size());
    IndexDef idx;
    idx.extent = 1;
    idx.label = L;
@@ -420,8 +429,10 @@ void set_out_labels_from_binding(
 }
 IndexSpaceIR
 build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
-                            const OperandLabelBinding &bind) {
-   // validate_descs_same_itemsize(descs);
+                            const OperandLabelBinding &bind,
+                            const ItemSizeGroupConstraint constraint) {
+
+   validate_descs_itemsize_group(descs, constraint);
 
    if (bind.op_axis_labels.size() != descs.size()) {
       throw std::runtime_error("einsum: binding operand count mismatch");
@@ -497,12 +508,14 @@ std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
 }
 
 std::vector<std::size_t>
-infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
+infer_out_shape_from_binding(const std::vector<OperandDescription> &inputs,
                        const OperandLabelBinding &binding) {
    if (inputs.size() != 2) {
       throw std::runtime_error("einsum: expected inputs = {A, B}");
    }
-   validate_descs_same_itemsize(inputs);
+   // TODO: The below is hardcoded to homoItemSize
+   ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
+   validate_descs_itemsize_group(inputs, constraint);
 
    OperandDescription dummy_out;
    dummy_out.shape.assign(binding.out_labels.size(), 1);
@@ -510,7 +523,7 @@ infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
    dummy_out.itemsize = inputs[0].itemsize;
 
    std::vector<OperandDescription> tmp = {dummy_out, inputs[0], inputs[1]};
-   IndexSpaceIR ir = build_ir_from_label_binding(tmp, binding);
+   IndexSpaceIR ir = build_ir_from_label_binding(tmp, binding, constraint);
    return out_shape_from_ir(ir);
 }
 
