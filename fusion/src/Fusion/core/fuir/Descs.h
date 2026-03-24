@@ -9,6 +9,8 @@ enum class AccessKind { Affine, Indexed, Segmented, Blocked };
 enum class StorageKind { Owned, View };
 enum class UpdateKind { ReadOnly, Overwrite, Accumulate, ScatterAdd };
 
+enum class OperandDescType {Tensor, Topology, Index};
+
 /// OperandDescription stores the meta-data of a single operand participating in
 /// an expression.
 struct OperandDescription {
@@ -24,6 +26,9 @@ struct OperandDescription {
    AccessKind access{AccessKind::Affine};
    StorageKind storage{StorageKind::Owned};
    UpdateKind update{UpdateKind::ReadOnly};
+
+   /// Operand semantic type
+   OperandDescType type{OperandDescType::Tensor};
 
    std::size_t ndims() const noexcept { return shape.size(); }
 
