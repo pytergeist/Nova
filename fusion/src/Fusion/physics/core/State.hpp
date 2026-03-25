@@ -84,7 +84,13 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
    std::vector<std::size_t> storage_shape() const {
       return {DIM, nBlocks_, TILE};
    }
-   std::vector<std::size_t> logical_shape() const { return {DIM, static_cast<std::size_t>(N_)}; }
+   std::vector<std::size_t> logical_shape() const {
+      return {DIM, static_cast<std::size_t>(N_)};
+   }
+
+   std::vector<std::int64_t> logical_strides() const {
+      return {static_cast<std::int64_t>(nBlocks_ * TILE), 1};
+   }
 
    T *x_block_ptr(const std::size_t c, std::size_t b) {
       assert(c < DIM);

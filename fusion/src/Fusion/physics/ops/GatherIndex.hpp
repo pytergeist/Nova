@@ -6,7 +6,7 @@
 #include "Fusion/physics/core/PhysicsPlanMeta.hpp"
 
 template <typename T, class ParticlesT>
-inline RawTensor<T>
+RawTensor<T>
 pair_delta_from_meta(const RawTensor<T> &x, const ParticlesT &p,
                      const GatherIndexMeta<T, ParticlesT> &meta,
                      NoParams params) {
