@@ -8,8 +8,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "PhysicsDescs.h"
 #include "Neighbours.hpp"
+#include "PhysicsDescs.h"
 #include "State.hpp"
 
 enum class PairIndexFormat { EdgeList, PairCRS, PairBlockedCRS };
@@ -25,21 +25,26 @@ struct PairwisePlan {
    std::int64_t N{0};
    std::int64_t E{0};
 
-   std::size_t itemsize;
+   std::size_t itemsize{};
+};
+
+struct PairTopologyView {
+   EdgeList edges;
+   PairBlockedCRS crs;
+   PairIndexFormat format{PairIndexFormat::PairBlockedCRS};
+   ParticleLayout layout{ParticleLayout::AoSoA};
+   std::int64_t N{0};
+   std::int64_t E{0};
 };
 
 struct GatherIndexPlan {
-   PairIndexFormat format{PairIndexFormat::PairBlockedCRS};
-   ParticleLayout layout{ParticleLayout::AoSoA};
+   std::size_t num_operands;
 
-   EdgeList edges;
-   PairBlockedCRS crs;
+   std::vector<std::size_t> out_shape;
+   PairTopologyView topology;
 
    std::vector<LoopDim> loop;
    std::vector<OperandAccess> op_access;
-
-   std::int64_t N{0};
-   std::int64_t E{0};
 
    std::size_t itemsize{0};
 };
@@ -88,16 +93,21 @@ struct Group {
    }
 };
 
-PairBlockedCRS build_pair_index_blocked_crs_from_particle_field(const ParticlesAoSoADesc &pdesc,
-                                            EdgeList &edges);
+PairBlockedCRS build_pair_index_blocked_crs_from_particle_field(
+    const ParticlesAoSoADesc &pdesc, EdgeList &edges);
 
 PairwisePlan make_pairwise_plan(const ParticlesAoSoADesc &pdesc,
                                 EdgeList &edges);
 
+GatherIndexPlan make_gather_index_plan_with_blocked_crs(
+    const std::vector<OperandDescription> &descs, PairBlockedCRS &bcrs,
+    EdgeList &edges);
 
-GatherIndexPlan
-make_gather_index_plan_with_blocked_crs(const std::vector<OperandDescription> &descs,
-                                        PairBlockedCRS &bcrs,
-                                        EdgeList &edges);
+GatherIndexPlan make_gather_index_plan_from_binding_and_topo(
+    const std::vector<OperandDescription> &inputs,
+    const PairTopologyView &topology, const OperandLabelBinding &binding);
+
+PairTopologyView make_pair_topology_view(const EdgeList &edges,
+                                         const PairBlockedCRS &crs);
 
 #endif // FUSION_PHYSICS_PLAN_HPP
