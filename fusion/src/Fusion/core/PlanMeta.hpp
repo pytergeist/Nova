@@ -70,6 +70,7 @@ contig_elem_strides(const std::vector<std::size_t> &shape) {
 template <typename T>
 OperandDescription make_desc_from_shape(const std::vector<std::size_t> &shape,
                                         const int64_t *strides_elems) {
+   // TODO: Add IR update, access kind etc
    std::vector<std::size_t> sz(shape.begin(), shape.end());
    std::vector<std::int64_t> st;
    if (strides_elems) {
@@ -95,6 +96,7 @@ static OperandDescription make_desc_from_tensor(const RawTensor<T> &t) {
    d.access = AccessKind::Affine;
    d.layout = t.is_contiguous() ? LayoutKind::Dense : LayoutKind::Strided;
    d.storage = !t.is_view() ? StorageKind::Owned : StorageKind::View;
+   d.type = OperandDescType::Tensor;
    return d;
 }
 
@@ -232,7 +234,7 @@ make_contraction_meta_einsum(const RawTensor<T> &A, const RawTensor<T> &B,
    meta.dA.update = UpdateKind::ReadOnly;
    meta.dA.update = UpdateKind::ReadOnly;
 
-   meta.out_shape = infer_einsum_out_shape({meta.dA, meta.dB}, binding);
+   meta.out_shape = infer_out_shape_from_binding({meta.dA, meta.dB}, binding);
 
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
 
