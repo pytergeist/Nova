@@ -12,7 +12,8 @@
 BroadcastPlan
 make_broadcast_plan(const std::vector<OperandDescription> &descs) {
 
-   IndexSpaceIR ir = build_broadcast_ir_right_aligned(descs);
+   constexpr ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
+   IndexSpaceIR ir = build_broadcast_ir_right_aligned(descs, constraint);
 
    BroadcastPlan plan;
    plan.num_operands = ir.num_operands;
@@ -47,7 +48,9 @@ ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
    const std::size_t in_nd = in_desc.ndims();
    const std::size_t ax = norm_axis(static_cast<std::int64_t>(axis), in_nd);
 
-   IndexSpaceIR ir = build_reduction_ir(descs, ax, keepdim);
+   constexpr ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
+
+   IndexSpaceIR ir = build_reduction_ir(descs, ax, keepdim, constraint);
 
    ReductionPlan plan;
    plan.num_operands = descs.size();
@@ -78,9 +81,10 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    if (descs.size() != 3) {
       throw std::runtime_error("einsum_out: expected descs = {out, A, B}");
    }
-   validate_descs_same_itemsize(descs);
 
-   IndexSpaceIR ir = build_ir_from_label_binding(descs, binding);
+   constexpr ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
+
+   IndexSpaceIR ir = build_ir_from_label_binding(descs, binding, constraint);
 
    const std::vector<std::size_t> expected = out_shape_from_ir(ir);
    if (descs[0].shape != expected) {
@@ -205,7 +209,8 @@ make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
    if (inputs.size() != 2) {
       throw std::runtime_error("einsum: expected inputs = {A, B}");
    }
-   validate_descs_same_itemsize(inputs);
+
+   constexpr ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
 
    OperandDescription dummy_out;
    dummy_out.shape.assign(binding.out_labels.size(), 1);
@@ -213,7 +218,7 @@ make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
    dummy_out.itemsize = inputs[0].itemsize;
 
    std::vector<OperandDescription> tmp = {dummy_out, inputs[0], inputs[1]};
-   IndexSpaceIR ir = build_ir_from_label_binding(tmp, binding);
+   IndexSpaceIR ir = build_ir_from_label_binding(tmp, binding, constraint);
 
    const std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
 

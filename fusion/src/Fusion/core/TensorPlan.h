@@ -81,8 +81,4 @@ ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
                                  const OperandLabelBinding &binding);
 
-std::vector<std::size_t>
-infer_einsum_out_shape(const std::vector<OperandDescription> &inputs,
-                       const OperandLabelBinding &binding);
-
 #endif // BROADCAST_ITERATOR_H

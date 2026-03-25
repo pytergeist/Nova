@@ -3,8 +3,7 @@
 
 #include "Fusion/core/fuir/IR.h"
 
-#include "PhysicsDescs.h"
-
-IndexSpaceIR build_gather_and_map_ir(const std::vector<OperandDescription> &descs);
+OperandLabelBinding make_gather_index_label_binding(std::size_t inp_nd,
+                                                    std::size_t top_nd);
 
 #endif // FUSION_PHYSICS_CORE_PAIRWISE_IR_H
