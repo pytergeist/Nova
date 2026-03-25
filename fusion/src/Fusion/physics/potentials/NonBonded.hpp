@@ -1,17 +1,12 @@
 #ifndef FUSION_PHYSICS_POTENTIALS_NONBONDED_H
 #define FUSION_PHYSICS_POTENTIALS_NONBONDED_H
 
+#include "Fusion/physics/ops/Utils.hpp"
 #include "Fusion/physics/core/Neighbours.hpp"
 #include "Fusion/physics/core/PhysicsIter.hpp"
 #include "Fusion/physics/core/PhysicsPlanMeta.hpp"
 
 #include "Fusion/core/RawTensor.hpp"
-
-template <typename T, class ParticlesT>
-inline RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
-                                       const PairwiseMeta<T, ParticlesT> &m) {
-   return RawTensor<T>(m.out_shape, x.dtype(), x.device());
-}
 
 template <typename T, class ParticlesT>
 inline RawTensor<T> lj_energy(ParticlesT &p, EdgeList &edges,
