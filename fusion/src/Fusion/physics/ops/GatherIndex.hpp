@@ -6,14 +6,13 @@
 #include "Fusion/physics/core/PhysicsPlanMeta.hpp"
 
 template <typename T, class ParticlesT>
-RawTensor<T>
-pair_delta_from_meta(const RawTensor<T> &x, const ParticlesT &p,
-                     const GatherIndexMeta<T, ParticlesT> &meta,
-                     NoParams params) {
+RawTensor<T> pair_delta3_from_meta(const RawTensor<T> &x, ParticlesT &p,
+                                   const GatherIndexMeta<T, ParticlesT> &meta,
+                                   NoParams params) {
    RawTensor<T> out = init_out_from_meta(x, meta);
    auto pv = make_view_x(p, x);
-   fusion::physics::iter::gather_index_tag<PairDelta3, T>(meta, pv, out,
-                                                          params);
+   fusion::physics::iter::gather_index_tag<PairDelta3SIMD, T>(meta, pv, out,
+                                                              params);
    return out;
 }
 

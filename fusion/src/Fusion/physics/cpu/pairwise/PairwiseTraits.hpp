@@ -10,23 +10,23 @@ template <class Tag, typename T, class ParticlesT> struct pairwise_traits {
 };
 
 template <typename T, class ParticlesT>
-struct pairwise_traits<PairDelta3, T, ParticlesT> {
+struct pairwise_traits<PairDelta3SIMD, T, ParticlesT> {
    static constexpr bool available = true;
 
    static void can_execute(const ParticlesT &particles,
                            const PairBlockedCRS &crs, T *out, std::uint64_t E,
-                           params_type_t<PairDelta3, T> = {}) {
+                           params_type_t<PairDelta3SIMD, T> = {}) {
       pairwise::pair_delta<T, ParticlesT>(particles, crs, out, E);
    }
 };
 
 template <typename T, class ParticlesT>
-struct pairwise_traits<PairR2, T, ParticlesT> {
+struct pairwise_traits<PairR2SIMD, T, ParticlesT> {
    static constexpr bool available = true;
 
    static void can_execute(const ParticlesT &particles,
                            const PairBlockedCRS &crs, T *out, std::uint64_t E,
-                           params_type_t<PairDelta3, T> = {}) {
+                           params_type_t<PairDelta3SIMD, T> = {}) {
       pairwise::pair_r2<T, ParticlesT>(particles, crs, out, E);
    }
 };

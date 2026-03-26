@@ -1,17 +1,12 @@
 #ifndef FUSION_PHYSICS_ITER_HPP
 #define FUSION_PHYSICS_ITER_HPP
 
-#include <array>
 #include <cstddef>
 #include <cstdint>
 
-#include "Fusion/cpu/simd/SimdTraits.hpp"
-
 #include "Fusion/physics/cpu/pairwise/PairwiseParams.hpp"
 #include "Fusion/physics/cpu/pairwise/PairwiseTraits.hpp"
-#include "Fusion/physics/cpu/pairwise/Vec3GatherSub.hpp"
 
-#include "PhysicsPlan.h"
 #include "PhysicsPlanMeta.hpp"
 
 namespace fusion::physics::iter {
@@ -32,9 +27,14 @@ void pairwise_tag(const PairwiseMeta<T, ParticlesT> &meta,
                   ParticlesView &particles, TensorT &out,
                   params_type_t<Tag, T> params) {
 
+   //      if (!meta.plan->topology.crs) {
+   //    throw std::runtime_error("gather_index_tag: missing topology CRS");
+   //}
+
    if (meta.fastpath) {
       pairwise_traits<Tag, T, ParticlesView>::can_execute(
-          particles, meta.plan.crs, out.get_ptr(), meta.plan.E, params);
+          particles, meta.plan.topology.crs, out.get_ptr(),
+          meta.plan.topology.E, params);
       return;
    }
    // return;
@@ -48,7 +48,8 @@ void gather_index_tag(const GatherIndexMeta<T, ParticlesT> &meta,
 
    if (meta.fastpath) {
       pairwise_traits<Tag, T, ParticlesView>::can_execute(
-          particles, meta.plan.crs, out.get_ptr(), meta.plan.E, params);
+          particles, meta.plan.topology.crs, out.get_ptr(),
+          meta.plan.topology.E, params);
       return;
    }
    // return;
