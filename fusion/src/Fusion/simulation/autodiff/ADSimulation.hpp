@@ -5,10 +5,10 @@
 
 #include "Fusion/core/RawTensor.hpp"
 
-#include "Fusion/physics/core/PhysicsPlan.h"
-#include "Fusion/physics/core/PhysicsPlanMeta.hpp"
-#include "Fusion/physics/cpu/pairwise/PairwiseParams.hpp"
-#include "ParamPlan.hpp"
+#include "Fusion/simulation/core/InteractionPlan.h"
+#include "Fusion/simulation/core/InteractionPlanMeta.hpp"
+#include "Fusion/simulation/cpu/pairwise/PairwiseParams.hpp"
+#include "SimParamPlan.hpp"
 #include "registry/pairwise/LJ.hpp"
 #include "registry/pairwise/PairDelta3.hpp"
 

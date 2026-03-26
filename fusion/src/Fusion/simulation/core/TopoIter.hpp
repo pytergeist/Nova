@@ -4,10 +4,10 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "Fusion/physics/cpu/pairwise/PairwiseParams.hpp"
-#include "Fusion/physics/cpu/pairwise/PairwiseTraits.hpp"
+#include "Fusion/simulation/cpu/pairwise/PairwiseParams.hpp"
+#include "Fusion/simulation/cpu/pairwise/PairwiseTraits.hpp"
 
-#include "PhysicsPlanMeta.hpp"
+#include "InteractionPlanMeta.hpp"
 
 namespace fusion::physics::iter {
 

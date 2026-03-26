@@ -3,7 +3,7 @@
 #include <unordered_set>
 
 #include "Fusion/core/fuir/IR.h"
-#include "PhysicsIR.h"
+#include "InteractionIR.h"
 
 OperandLabelBinding make_gather_index_label_binding(std::size_t inp_nd,
                                                     std::size_t top_nd) {

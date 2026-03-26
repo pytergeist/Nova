@@ -2,7 +2,7 @@
 #define FUSION_PHYSICS_CPU_PAIRWISE_FUSED_LJ
 
 #include "Fusion/cpu/simd/backend/BackendConcept.hpp"
-#include "Fusion/physics/cpu/pairwise/PairwiseParams.hpp"
+#include "Fusion/simulation/cpu/pairwise/PairwiseParams.hpp"
 
 template <typename T, BackendConcept Backend> struct LJEnergyKernel {
 

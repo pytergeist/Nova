@@ -1,10 +1,10 @@
 #ifndef FUSION_PHYSICS_POTENTIALS_NONBONDED_H
 #define FUSION_PHYSICS_POTENTIALS_NONBONDED_H
 
-#include "Fusion/physics/ops/Utils.hpp"
-#include "Fusion/physics/core/Neighbours.hpp"
-#include "Fusion/physics/core/PhysicsIter.hpp"
-#include "Fusion/physics/core/PhysicsPlanMeta.hpp"
+#include "Fusion/simulation/ops/Utils.hpp"
+#include "Fusion/simulation/core/Neighbours.hpp"
+#include "Fusion/simulation/core/TopoIter.hpp"
+#include "Fusion/simulation/core/InteractionPlanMeta.hpp"
 
 #include "Fusion/core/RawTensor.hpp"
 

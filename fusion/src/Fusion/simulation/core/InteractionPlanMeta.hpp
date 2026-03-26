@@ -1,4 +1,4 @@
-// PhysicsPlanMeta.hpp
+// InteractionPlanMeta.hpp
 // Umbrella header for physics dispatch/runtime metadata structs (PairwiseMeta,
 // ...)
 
@@ -9,9 +9,9 @@
 
 #include "Fusion/core/fuir/Descs.h"
 #include "Neighbours.hpp"
-#include "PhysicsDescs.h"
-#include "PhysicsPlan.h"
-#include "PhysicsIR.h"
+#include "ParticleDescs.h"
+#include "InteractionPlan.h"
+#include "InteractionIR.h"
 
 template <typename T, class ParticlesT> struct PairwiseMeta {
    bool fastpath;

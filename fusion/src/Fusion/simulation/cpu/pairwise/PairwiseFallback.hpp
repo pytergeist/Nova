@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <utility>
 
-#include "Fusion/physics/core/Neighbours.hpp"
+#include "Fusion/simulation/core/Neighbours.hpp"
 
 template <typename T, class ParticleT, class Kernel,class Store>
 void blocked_crs_walk(const ParticleT &particles, const PairBlockedCRS &crs,

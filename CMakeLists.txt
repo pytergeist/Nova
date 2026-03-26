@@ -153,17 +153,17 @@ target_link_libraries(fusion_autodiff INTERFACE
 
 
 # ------------------------------------------------------------
-# physics
+# simulation
 # ------------------------------------------------------------
-add_library(fusion_physics STATIC
-        ${FUSION_SRC_DIR}/physics/core/NeighbourSort.cpp
-        ${FUSION_SRC_DIR}/physics/core/PhysicsPlan.cpp
-        ${FUSION_SRC_DIR}/physics/core/PhysicsIR.cpp
+add_library(fusion_simulation STATIC
+        ${FUSION_SRC_DIR}/simulation/core/NeighbourSort.cpp
+        ${FUSION_SRC_DIR}/simulation/core/InteractionPlan.cpp
+        ${FUSION_SRC_DIR}/simulation/core/InteractionIR.cpp
 
 )
 
-target_include_directories(fusion_physics PUBLIC ${FUSION_INCLUDE_ROOT})
-target_link_libraries(fusion_physics PUBLIC
+target_include_directories(fusion_simulation PUBLIC ${FUSION_INCLUDE_ROOT})
+target_link_libraries(fusion_simulation PUBLIC
         fusion_autodiff
         fusion_ops
         fusion_core
@@ -182,7 +182,7 @@ pybind11_add_module(fusion
 )
 
 target_link_libraries(fusion PRIVATE
-        fusion_physics
+        fusion_simulation
         fusion_autodiff
         fusion_ops
         fusion_core
@@ -211,7 +211,7 @@ if(NOVA_BUILD_CLI)
           ${FUSION_SRC_DIR}/main.cpp
   )
   target_link_libraries(FusionExecutable PRIVATE fusion_core)
-  target_link_libraries(FusionExecutable PRIVATE fusion_physics)
+  target_link_libraries(FusionExecutable PRIVATE fusion_simulation)
 endif()
 
 # ============================================================

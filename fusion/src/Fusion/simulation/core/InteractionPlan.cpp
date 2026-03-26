@@ -1,7 +1,7 @@
 
-#include "PhysicsPlan.h"
+#include "InteractionPlan.h"
 #include "Fusion/core/fuir/IR.h"
-#include "PhysicsIR.h"
+#include "InteractionIR.h"
 
 #include <Fusion/core/fuir/DescContraints.h>
 

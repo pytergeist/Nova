@@ -1,4 +1,4 @@
-// PhysicsPlan.h
+// InteractionPlan.h
 // Umbrella header for physics execution plan structs (PairwisePlan, BondedPlan,
 // ...)
 
@@ -9,8 +9,8 @@
 #include <cstdint>
 
 #include "Neighbours.hpp"
-#include "PhysicsDescs.h"
-#include "State.hpp"
+#include "ParticleDescs.h"
+#include "ParticleState.hpp"
 
 enum class PairIndexFormat { EdgeList, PairCRS, PairBlockedCRS };
 enum class ParticleLayout { SoA, AoS, AoSoA };

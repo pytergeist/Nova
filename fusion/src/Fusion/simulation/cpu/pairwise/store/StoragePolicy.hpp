@@ -3,9 +3,9 @@
 
 #include <cstdint>
 
-#include "Fusion/physics/cpu/pairwise/kernels/PairDelta.hpp"
-#include "Fusion/physics/cpu/pairwise/kernels/PairR2.hpp"
-#include "Fusion/physics/cpu/pairwise/kernels/LJ.hpp"
+#include "Fusion/simulation/cpu/pairwise/kernels/PairDelta.hpp"
+#include "Fusion/simulation/cpu/pairwise/kernels/PairR2.hpp"
+#include "Fusion/simulation/cpu/pairwise/kernels/LJ.hpp"
 
 #include "Fusion/cpu/simd/backend/BackendConcept.hpp"
 

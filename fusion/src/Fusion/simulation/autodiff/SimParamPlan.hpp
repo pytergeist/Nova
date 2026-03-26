@@ -3,9 +3,9 @@
 
 #include <memory>
 
-#include "Fusion/physics/core/PhysicsPlan.h"
-#include "Fusion/physics/core/PhysicsPlanMeta.hpp"
-#include "Fusion/physics/cpu/pairwise/PairwiseParams.hpp"
+#include "Fusion/simulation/core/InteractionPlan.h"
+#include "Fusion/simulation/core/InteractionPlanMeta.hpp"
+#include "Fusion/simulation/cpu/pairwise/PairwiseParams.hpp"
 
 template <typename T, class ParticlesT> struct LJParamPlan {
    PairwiseMeta<T, ParticlesT> meta;

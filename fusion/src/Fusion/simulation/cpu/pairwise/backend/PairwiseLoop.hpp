@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "Fusion/physics/core/Neighbours.hpp"
-#include "Fusion/physics/core/State.hpp"
+#include "Fusion/simulation/core/Neighbours.hpp"
+#include "Fusion/simulation/core/ParticleState.hpp"
 
 #include "Fusion/cpu/simd/backend/BackendConcept.hpp"
 #include "Fusion/cpu/simd/backend/BackendNeon128.hpp"

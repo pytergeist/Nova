@@ -2,8 +2,8 @@
 #define FUSION_PHYSICS_OPS_GATHER_INDEX_HPP
 
 #include "Fusion/core/RawTensor.hpp"
-#include "Fusion/physics/core/PhysicsIter.hpp"
-#include "Fusion/physics/core/PhysicsPlanMeta.hpp"
+#include "Fusion/simulation/core/TopoIter.hpp"
+#include "Fusion/simulation/core/InteractionPlanMeta.hpp"
 
 template <typename T, class ParticlesT>
 RawTensor<T> pair_delta3_from_meta(const RawTensor<T> &x, ParticlesT &p,

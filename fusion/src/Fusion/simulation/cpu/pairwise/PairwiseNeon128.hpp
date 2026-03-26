@@ -3,13 +3,13 @@
 
 #include "backend/PairwiseLoop.hpp"
 
-#include "fusion/physics/cpu/pairwise/kernels/PairDelta.hpp"
-#include "fusion/physics/cpu/pairwise/kernels/PairR2.hpp"
+#include "fusion/simulation/cpu/pairwise/kernels/PairDelta.hpp"
+#include "fusion/simulation/cpu/pairwise/kernels/PairR2.hpp"
 
-#include "fusion/physics/cpu/pairwise/store/StoragePolicy.hpp"
+#include "fusion/simulation/cpu/pairwise/store/StoragePolicy.hpp"
 
-#include "Fusion/physics/core/State.hpp"
-#include "Fusion/physics/cpu/pairwise/kernels/LJ.hpp"
+#include "Fusion/simulation/core/ParticleState.hpp"
+#include "Fusion/simulation/cpu/pairwise/kernels/LJ.hpp"
 
 #include "Fusion/cpu/simd/backend/BackendNeon128.hpp"
 

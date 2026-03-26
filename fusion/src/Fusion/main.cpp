@@ -1,14 +1,15 @@
 #include "Fusion/core/RawTensor.hpp"
-#include "Fusion/physics/Potentials/NonBonded.hpp"
-#include "Fusion/physics/core/Neighbours.hpp"
-#include "Fusion/physics/core/PhysicsIter.hpp"
-#include "Fusion/physics/core/State.hpp"
-#include "Fusion/physics/cpu/pairwise/PairwiseTraits.hpp"
+#include "Fusion/simulation/Potentials/NonBonded.hpp"
+#include "Fusion/simulation/core/Neighbours.hpp"
+#include "Fusion/simulation/core/TopoIter.hpp"
+#include "Fusion/simulation/core/ParticleState.hpp"
+#include "Fusion/simulation/cpu/pairwise/PairwiseTraits.hpp"
 
-#include "Fusion/physics/autodiff/ADPhysics.hpp"
-#include "Fusion/physics/core/PhysicsIR.h"
-#include "Fusion/physics/core/PhysicsPlan.h"
-#include "Fusion/physics/core/PhysicsPlanMeta.hpp"
+#include "Fusion/simulation/autodiff/ADSimulation.hpp"
+#include "Fusion/simulation/core/InteractionIR.h"
+#include "Fusion/simulation/core/InteractionPlan.h"
+#include "Fusion/simulation/core/InteractionPlanMeta.hpp"
+#include "Fusion/simulation/ops/GatherIndex.hpp"
 
 std::string shape_str(std::vector<size_t> shape) {
    std::ostringstream oss;
@@ -22,21 +23,21 @@ std::string shape_str(std::vector<size_t> shape) {
    return oss.str();
 }
 
-    std::string print_format(PairIndexFormat format) {
-         std::ostringstream oss;
-      if (format == PairIndexFormat::PairBlockedCRS) {
-         oss << "PairBlockedCRS" << std::endl;
-         }
-      return oss.str();
-   };
-
-   std::string print_layout(ParticleLayout layout) {
-      std::ostringstream oss;
-      if (layout == ParticleLayout::AoSoA) {
-         oss << "AoSoA" << std::endl;
-         }
-      return oss.str();
+std::string print_format(PairIndexFormat format) {
+   std::ostringstream oss;
+   if (format == PairIndexFormat::PairBlockedCRS) {
+      oss << "PairBlockedCRS" << std::endl;
    }
+   return oss.str();
+};
+
+std::string print_layout(ParticleLayout layout) {
+   std::ostringstream oss;
+   if (layout == ParticleLayout::AoSoA) {
+      oss << "AoSoA" << std::endl;
+   }
+   return oss.str();
+}
 
 int main() {
    using T = float;
@@ -80,7 +81,7 @@ int main() {
 
    Layout psoa = Layout::from_three_n_raw_tensor(8, X, X, X, X);
 
-   LJParams<T> params{0.2f, 0.7f};
+//   LJParams<T> params{0.2f, 0.7f};
    //   NoParams params;
 
    EdgeList edges{std::vector<uint32_t>{
@@ -103,84 +104,12 @@ int main() {
                       2, 7,       // j for i=6
                       3, 4, 6     // j for i=7
                   }};
-   PairwiseMeta<T, Layout> meta = make_pairwise_meta<T, Layout>(psoa, edges, 1);
-
+   NoParams params;
+   GatherIndexMeta<T, Layout> meta = construct_gather_index_meta<T, Layout>(psoa, edges);
    ADTensor<T> x_diff{psoa.x};
-
-   //     auto desc = make_particles_aosoa_desc<Layout>(psoa, edges);
-   //     std::cout << desc.N << std::endl;
-   //     std::cout << desc.E << std::endl;
-   //     std::cout << desc.tile << std::endl;
-   //     std::cout << desc.dim << std::endl;
-
-   ADTensor<T> out = lj_energy<T, Layout>(x_diff, psoa, meta, params);
+   ADTensor<T> out = pair_delta3<T, Layout>(x_diff, psoa, meta, params);
    std::cout << out << std::endl;
 
-   OperandDescription dX =
-       make_indexed_desc_from_particles_field<T, Layout>(psoa);
-   OperandDescription dout = make_indexed_desc_from_shape<T>(
-       std::vector<size_t>{3, edges.E()}, nullptr);
-   const std::vector<OperandDescription> descs{dout, dX};
-
-   std::cout << shape_str(dX.shape) << std::endl;
-   std::cout << shape_str(dout.shape) << std::endl;
-
-   IndexSpaceIR ir = build_gather_and_map_ir(descs);
-
-   std::cout << "Num Operands: " << ir.num_operands << std::endl;
-   std::cout << "item size: " << ir.itemsize << std::endl;
-   std::size_t count = 0;
-   std::cout << "Indices size: " << ir.indices.size() << std::endl;
-   for (auto &i : ir.indices) {
-      std::cout << "Idx: " << count << std::endl;
-      std::cout << "Label: " << i.label << std::endl;
-      std::cout << "extent: " << i.extent << std::endl;
-      std::cout << "[";
-      for (auto idx : i.axis_of_operand) {
-         std::cout << idx << ", ";
-      }
-      std::cout << "]" << std::endl;
-      count++;
-   }
-
-   std::cout << "out indices" << std::endl;
-   std::cout << "[";
-   for (auto i : ir.out_indices) {
-      std::cout << i << ", ";
-   }
-   std::cout << std::endl;
-   ParticlesAoSoADesc pdesc = make_particles_aosoa_desc<T, Layout>(psoa, edges);
-   PairBlockedCRS crs =
-       build_pair_index_blocked_crs_from_particle_field(pdesc, edges);
-   GatherIndexPlan plan =
-       make_gather_index_plan_with_blocked_crs(descs, crs, edges);
-
-   std::cout << "GatherIndexPlan" << std::endl;
-   std::cout << print_format(plan.format);
-   std::cout << print_layout(plan.layout);
-
-   std::cout << plan.N << std::endl;
-   std::cout << plan.E << std::endl;
-   std::cout << plan.loop.size() << std::endl;
-   std::cout << plan.op_access.size() << std::endl;
-
-   //   RawTensor<T> oute = lj_energy<T,  Layout>(psoa, edges, params);
-   //   RawTensor<T> outf = lj_force<T,  Layout>(psoa, edges, params);
-
-   //   std::cout << oute << std::endl;
-   //   std::cout << outf << std::endl;
-   //   std::cout << typeid(out).name() << std::endl;
-   //   RawTensor<T> inv_r2 = out.reciprocal();
-   //   RawTensor<T> inv_r6 = inv_r2.pow(3);
-   //   RawTensor<T> sr2 = inv_r2 * (lj_params.sigma * lj_params.sigma);
-   //   RawTensor<T> sr6 = sr2.pow(3);
-   //   RawTensor<T> e_pair = (sr6 + sr6 - 1) * 4 * lj_params.epsilon;
-   //   std::cout << shape_str(out.shape()) << std::endl;
-   //   std::cout << inv_r2 << std::endl;
-   //   std::cout << inv_r6 << std::endl;
-   //   std::cout << sr2 << std::endl;
-   //   std::cout << sr6 << std::endl;
-   //   std::cout << e_pair << std::endl;
 
    return 0;
 };

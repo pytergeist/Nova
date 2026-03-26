@@ -2,8 +2,8 @@
 #define FUSION_PHYSICS_VEC3_GATHER_SUB
 
 #include "Fusion/common/Hints.hpp"
-#include "Fusion/physics/core/Neighbours.hpp"
-#include "Fusion/physics/core/State.hpp"
+#include "Fusion/simulation/core/Neighbours.hpp"
+#include "Fusion/simulation/core/ParticleState.hpp"
 
 #if defined(FUSION_ENABLE_NEON) &&                                             \
     (defined(__ARM_NEON) || defined(__ARM_NEON__))
