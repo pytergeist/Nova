@@ -13,13 +13,13 @@ protected:
 
 TEST_F(PoolAllocatorTest, AllocateReturnsNonNull) {
    void* ptr = alloc.allocate(64, Alignment{64});
-   EXPECT_NE(ptr, nullptr);
+   ASSERT_NE(ptr, nullptr);
 }
 
 
 TEST_F(PoolAllocatorTest, ZeroSizeAllocationSucceeds) {
    void* ptr = alloc.allocate(0, Alignment{64});
-   EXPECT_NE(ptr, nullptr);
+   ASSERT_NE(ptr, nullptr);
 }
 
 TEST_F(PoolAllocatorTest, DeallocateNullptrDoesNothing) {
@@ -28,7 +28,7 @@ TEST_F(PoolAllocatorTest, DeallocateNullptrDoesNothing) {
 
 TEST_F(PoolAllocatorTest, AllocatedChunkIsMarkedInUse) {
    void* ptr = alloc.allocate(64, Alignment{64});
-   EXPECT_NE(ptr, nullptr);
+   ASSERT_NE(ptr, nullptr);
 
    bool found = false;
    for (Chunk& chunk: alloc.chunks()) {
@@ -43,7 +43,7 @@ TEST_F(PoolAllocatorTest, AllocatedChunkIsMarkedInUse) {
 
 TEST_F(PoolAllocatorTest, ExactPowerOfTwoRequestKeepsRequestedSize) {
    void* ptr = alloc.allocate(128, Alignment{64});
-   EXPECT_NE(ptr, nullptr);
+   ASSERT_NE(ptr, nullptr);
 
    bool found = false;
    for (Chunk& chunk: alloc.chunks()) {
@@ -59,7 +59,7 @@ TEST_F(PoolAllocatorTest, ExactPowerOfTwoRequestKeepsRequestedSize) {
 
 TEST_F(PoolAllocatorTest, NonPowerOfTwoRequestRoundsUp) {
    void* ptr = alloc.allocate(100, Alignment{64});
-   EXPECT_NE(ptr, nullptr);
+   ASSERT_NE(ptr, nullptr);
 
    bool found = false;
    for (Chunk& chunk: alloc.chunks()) {
@@ -76,7 +76,7 @@ TEST_F(PoolAllocatorTest, NonPowerOfTwoRequestRoundsUp) {
 
 TEST_F(PoolAllocatorTest, DeallocateMarksChunkAsFree) {
    void* ptr = alloc.allocate(100, Alignment{64});
-   EXPECT_NE(ptr, nullptr);
+   ASSERT_NE(ptr, nullptr);
 
    alloc.deallocate(ptr);
 
@@ -100,7 +100,7 @@ TEST_F(PoolAllocatorTest, ReusesFreedChunkForSameSizeAllocation) {
 
    void* ptr2 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr2, nullptr);
-   ASSERT_EQ(ptr1, ptr2);
+   EXPECT_EQ(ptr1, ptr2);
 }
 
 TEST_F(PoolAllocatorTest, DeallocatingForeignPointerThrows) {
