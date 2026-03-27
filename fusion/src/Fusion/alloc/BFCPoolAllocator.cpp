@@ -99,6 +99,10 @@ void PoolAllocator::deallocate(void *ptr) {
    ChunkID chunk_id = region_manager_.get_chunkid_from_ptr(ptr);
    Chunk &chunk = get_chunk_from_id(chunk_id);
 
+   if (!chunk.in_use) {
+      throw std::runtime_error("PoolAllocator: double free detected");
+   }
+
    chunk.in_use = false;
    chunk.requested_size = 0;
 

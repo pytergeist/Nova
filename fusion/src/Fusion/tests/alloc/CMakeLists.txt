@@ -1,6 +1,6 @@
 add_executable(fusion_alloc_tests
         test_region_manager.cpp
-        test_pool_allocator_basic.cpp
+        test_pool_allocator_api.cpp
         test_pool_allocator_buckets.cpp
         test_pool_allocator_split_merge.cpp
         test_pool_allocator_fuzz.cpp
