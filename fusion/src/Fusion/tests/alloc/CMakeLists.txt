@@ -4,6 +4,7 @@ add_executable(fusion_alloc_tests
         test_pool_allocator_buckets.cpp
         test_pool_allocator_split_merge.cpp
         test_pool_allocator_fuzz.cpp
+        test_pool_allocator_fragmentation.cpp
 )
 
 target_include_directories(fusion_alloc_tests PRIVATE
