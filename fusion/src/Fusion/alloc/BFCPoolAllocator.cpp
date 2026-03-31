@@ -349,7 +349,7 @@ ChunkID PoolAllocator::free_and_maybe_coalesce(ChunkID chunk_id) {
       Chunk &chunk = get_chunk_from_id(current_id);
 
       if (chunk.next == kInvalidChunkID) {
-         status break;
+         break;
       }
 
       Chunk &next_chunk = get_chunk_from_id(chunk.next);
