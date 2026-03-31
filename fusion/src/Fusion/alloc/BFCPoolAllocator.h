@@ -87,8 +87,8 @@ class PoolAllocator final : public IAllocator {
 
    ChunkID merge_chunks(Chunk &left, Chunk &right);
    ChunkID free_and_maybe_coalesce(ChunkID chunk_id);
+   ChunkID leftmost_mergeable_chunk(ChunkID chunk_id);
 
- private:
    std::unique_ptr<ISubAllocator> sub_allocator_;
    std::vector<Chunk> chunks_;
    RegionManager region_manager_;
