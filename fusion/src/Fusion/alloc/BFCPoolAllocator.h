@@ -1,3 +1,49 @@
+// -----------------------------------------------------------------------------
+// PoolAllocator invariants / current behavior
+//
+// Invariants:
+// - chunks_ is indexed by ChunkID; chunk_id is expected to match the index into
+//   chunks_ for all live and decpricated chunks.
+// - A chunk with size == 0 is considered depricated and must have:
+//     ptr == nullptr
+//     requested_size == 0
+//     in_use == false
+//     prev == kInvalidChunkID
+//     next == kInvalidChunkID
+// - A non-deleted chunk must have ptr != nullptr.
+// - Free chunks must have in_use == false and requested_size == 0.
+// - Allocated chunks must have in_use == true.
+// - merge_chunks(left, right) is directional:
+//     left survives, right is depricated.
+// - Coalescing is only valid for physically adjacent chunks; prev/next linkage
+//   alone is not sufficient.
+// - Buckets contain only free, non-deleted chunks and are keyed by
+//   round_down_pow2(chunk.size).
+// - RegionManager::ptr_chunk_map_ must map live chunk base pointers to the
+//   current owning ChunkID.
+// - On merge, the right chunk pointer mapping must be erased.
+//
+// Current design notes:
+// - Region growth policy is conservative: repeated small allocations may create
+//   separate root regions instead of sibling chunks from a shared larger slab.
+// - Coalescing currently works within a grown region when adjacent split
+//   siblings become free.
+// - Double free detection is implemented via chunk.in_use checks in deallocate().
+//
+// TODOs:
+// - Revisit growth policy so small allocations are more often sourced from
+//   larger reusable slabs.
+// - Separate "request rounding policy" from "region growth policy".
+// - Add a helper for mergeability (e.g. adjacency + free-state) to avoid
+//   duplicating merge precondition logic.
+// - Consider adding a debug_validate() routine for allocator structural
+//   invariants, bucket consistency, and non-overlap checks.
+// - Revisit whether requested_size should store the original user request or
+//   the rounded allocation size.
+// - Review bucket cleanup / structural consistency under more aggressive fuzz
+//   and fragmentation scenarios.
+// -----------------------------------------------------------------------------
+
 #ifndef POOL_ALLOCATOR_H
 #define POOL_ALLOCATOR_H
 

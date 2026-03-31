@@ -361,7 +361,7 @@ ChunkID PoolAllocator::free_and_maybe_coalesce(ChunkID chunk_id) {
       const ChunkID new_id = merge_chunks(chunk, next_chunk);
 
       if (new_id == current_id) {
-         break;
+         return current_id;
       }
 
       current_id = new_id;

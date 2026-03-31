@@ -146,9 +146,14 @@ TEST_F(PoolAllocatorSplitMergeTest, NextMergedChunkAppearsInLargerBucket) {
 
 
 TEST_F(PoolAllocatorSplitMergeTest, AdjacentFreedChunksShouldCoalesceRegardlessOfFreeOrder) {
-   void *ptr1 = alloc.allocate(64, Alignment{64});
+   // TODO: seed allocation curr needed due to strict rounding and fitting in allocator layer
+   void* seed = alloc.allocate(128, Alignment{64});
+   ASSERT_NE(seed, nullptr);
+
+   void* ptr1 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
-   void *ptr2 = alloc.allocate(64, Alignment{64});
+
+   void* ptr2 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr2, nullptr);
 
    alloc.deallocate(ptr2);
@@ -157,17 +162,47 @@ TEST_F(PoolAllocatorSplitMergeTest, AdjacentFreedChunksShouldCoalesceRegardlessO
    int total_free = 0;
    int nonzero_free_chunks = 0;
 
-   for (const Chunk &chunk : alloc.chunks()) {
+   for (const Chunk& chunk : alloc.chunks()) {
       if (chunk.size == 0) {
          continue;
       }
       if (!chunk.in_use) {
-         total_free += chunk.size;
+         total_free += static_cast<int>(chunk.size);
          nonzero_free_chunks++;
       }
    }
-	EXPECT_EQ(nonzero_free_chunks, 1);
-	EXPECT_GE(total_free, 128);
+
+   EXPECT_EQ(nonzero_free_chunks, 1);
+   EXPECT_GE(total_free, 128);
 }
 
+TEST_F(PoolAllocatorSplitMergeTest, AdjacentFreedChunksShouldCoalesceInReverseOrder) {
+   // TODO: seed allocation curr needed due to strict rounding and fitting in allocator layer
+   void* seed = alloc.allocate(128, Alignment{64});
+   ASSERT_NE(seed, nullptr);
 
+   void* ptr1 = alloc.allocate(64, Alignment{64});
+   ASSERT_NE(ptr1, nullptr);
+
+   void* ptr2 = alloc.allocate(64, Alignment{64});
+   ASSERT_NE(ptr2, nullptr);
+
+   alloc.deallocate(ptr1);
+   alloc.deallocate(ptr2);
+
+   int total_free = 0;
+   int nonzero_free_chunks = 0;
+
+   for (const Chunk& chunk : alloc.chunks()) {
+      if (chunk.size == 0) {
+         continue;
+      }
+      if (!chunk.in_use) {
+         total_free += static_cast<int>(chunk.size);
+         nonzero_free_chunks++;
+      }
+   }
+
+   EXPECT_EQ(nonzero_free_chunks, 1);
+   EXPECT_GE(total_free, 128);
+}
