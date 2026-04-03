@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "Fusion/storage/TensorBuffer.hpp"
 #include "Fusion/alloc/AllocatorInterface.h"
 
 class CountingAllocator final : public IAllocator {
