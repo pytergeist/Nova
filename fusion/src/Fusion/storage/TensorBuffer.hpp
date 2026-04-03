@@ -10,10 +10,12 @@
 #include <vector>
 
 #include "Fusion/common/Log.hpp"
+#include "Fusion/common/Checks.hpp"
 
 #include "Fusion/alloc/AllocTypes.h"
 #include "Fusion/alloc/AllocatorInterface.h"
 
+// TODO: this is only used in tests - move somewhere else
 inline void *aligned_alloc_bytes(size_t alignment, size_t size) {
    if (alignment < alignof(void *) || (alignment & (alignment - 1)) != 0) {
       throw std::invalid_argument(
@@ -29,7 +31,7 @@ inline void *aligned_alloc_bytes(size_t alignment, size_t size) {
 }
 
 struct AlignedFree {
-   inline void operator()(void *ptr) const noexcept { std::free(ptr); }
+   void operator()(void *ptr) const noexcept { std::free(ptr); }
 };
 
 class TensorBuffer {
