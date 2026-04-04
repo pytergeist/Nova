@@ -78,7 +78,7 @@ class TensorBuffer {
    }
 
    template <typename T> const T *data() const noexcept {
-      return reinterpret_cast<T *>(static_cast<std::byte *>(ptr_.get()));
+      return reinterpret_cast<const T *>(static_cast<std::byte *>(ptr_.get()));
    }
 
    template <typename T> T *data_ptr(std::size_t elem_off = 0) noexcept {
