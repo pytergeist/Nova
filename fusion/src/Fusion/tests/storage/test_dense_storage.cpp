@@ -6,7 +6,7 @@
 #include "Fusion/device/Device.h"
 #include "Fusion/storage/DenseStorage.hpp"
 
-TEST(DenseStorageTest, ConstructFromCountAllocatesRequestedElements) {
+TEST(DenseStorageTest, construct_from_count_allocates_requested_elements) {
    CountingAllocator alloc;
    std::vector<std::size_t> shape{2, 3};
    NDTensorStorage<float> storage(shape, 6, Device{DeviceType::CPU, 0}, &alloc);
@@ -19,7 +19,7 @@ TEST(DenseStorageTest, ConstructFromCountAllocatesRequestedElements) {
    EXPECT_EQ(alloc.last_size(), 6 * sizeof(float));
 }
 
-TEST(DenseStorageTest, SizeReturnsElementCount) {
+TEST(DenseStorageTest, size_returns_element_count) {
    CountingAllocator alloc;
    std::vector<std::size_t> shape{4};
    std::vector<float> values{2, 3, 5, 7};
@@ -28,7 +28,7 @@ TEST(DenseStorageTest, SizeReturnsElementCount) {
    EXPECT_EQ(storage.size(), values.size());
 }
 
-TEST(DenseStorageTest, DeviceReturnsConstructorDevice) {
+TEST(DenseStorageTest, device_returns_constructor_device) {
    CountingAllocator alloc;
    std::vector<std::size_t> shape{4};
    std::vector<float> values{2, 3, 5, 7};
@@ -37,7 +37,7 @@ TEST(DenseStorageTest, DeviceReturnsConstructorDevice) {
    EXPECT_EQ(storage.device(), device);
 }
 
-TEST(DenseStorageTest, DataAccessorReturnsUnderlyingBuffer) {
+TEST(DenseStorageTest, data_accessor_returns_underlying_buffer) {
    CountingAllocator alloc;
    std::vector<std::size_t> shape{4};
    std::vector<float> values{2, 3, 5, 7};
@@ -51,7 +51,7 @@ TEST(DenseStorageTest, DataAccessorReturnsUnderlyingBuffer) {
    EXPECT_EQ(buffer.data<float>(), storage.data_ptr());
 }
 
-TEST(DenseStorageTest, ConstDataPtrReturnsTypedPointer) {
+TEST(DenseStorageTest, const_data_ptr_returns_typed_pointer) {
    CountingAllocator alloc;
    std::vector<std::size_t> shape{4};
    std::vector<float> values{2, 3, 5, 7};
@@ -66,7 +66,7 @@ TEST(DenseStorageTest, ConstDataPtrReturnsTypedPointer) {
    EXPECT_EQ(ptr[3], values[3]);
 }
 
-TEST(DenseStorageTest, DestructorReturnsMemoryToAllocator) {
+TEST(DenseStorageTest, destructor_returns_memory_to_allocator) {
    CountingAllocator alloc;
    {
       std::vector<std::size_t> shape{4};

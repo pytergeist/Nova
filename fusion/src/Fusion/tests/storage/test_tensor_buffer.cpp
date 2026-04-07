@@ -3,7 +3,7 @@
 #include "Fusion/storage/TensorBuffer.hpp"
 #include "counting_allocator.h"
 
-TEST(TensorBufferTest, DefaultConstructedBufferIsEmpty) {
+TEST(TensorBufferTest, default_constructed_buffer_is_empty) {
    TensorBuffer buffer;
 
    EXPECT_TRUE(buffer.empty());
@@ -12,7 +12,7 @@ TEST(TensorBufferTest, DefaultConstructedBufferIsEmpty) {
    EXPECT_EQ(buffer.data(), nullptr);
 }
 
-TEST(TensorBufferTest, AllocateWithCreatesNonEmptyBuffer) {
+TEST(TensorBufferTest, allocate_with_creates_non_empty_buffer) {
    CountingAllocator alloc;
    TensorBuffer buffer =
        TensorBuffer::allocate_with(&alloc, 128, Alignment{64});
@@ -28,7 +28,7 @@ TEST(TensorBufferTest, AllocateWithCreatesNonEmptyBuffer) {
    EXPECT_EQ(alloc.last_alignment(), 64);
 }
 
-TEST(TensorBufferTest, AllocateElementsWithUsesElementCount) {
+TEST(TensorBufferTest, allocate_elements_with_uses_element_count) {
    CountingAllocator alloc;
    TensorBuffer buffer =
        TensorBuffer::allocate_elements_with<float>(&alloc, 16, Alignment{64});
@@ -39,7 +39,7 @@ TEST(TensorBufferTest, AllocateElementsWithUsesElementCount) {
    EXPECT_NE(buffer.data(), nullptr);
 }
 
-TEST(TensorBufferTest, ZeroSizeAllocationReturnsEmptyBuffer) {
+TEST(TensorBufferTest, zero_size_allocation_returns_empty_buffer) {
    CountingAllocator alloc;
    TensorBuffer buffer = TensorBuffer::allocate_with(&alloc, 0, Alignment{64});
 
@@ -49,7 +49,7 @@ TEST(TensorBufferTest, ZeroSizeAllocationReturnsEmptyBuffer) {
    EXPECT_EQ(buffer.data(), nullptr);
 }
 
-TEST(TensorBufferTest, CopyFromCopiesValuesIntoBuffer) {
+TEST(TensorBufferTest, copy_from_copies_values_into_buffer) {
    CountingAllocator alloc;
    TensorBuffer buffer =
        TensorBuffer::allocate_elements_with<float>(&alloc, 4, Alignment{64});
@@ -64,7 +64,7 @@ TEST(TensorBufferTest, CopyFromCopiesValuesIntoBuffer) {
    EXPECT_EQ(ptr[3], 4);
 }
 
-TEST(TensorBufferTest, CopyFromWithOffsetCopiesToCorrectLocation) {
+TEST(TensorBufferTest, copy_from_with_offset_copies_to_correct_location) {
    CountingAllocator alloc;
    TensorBuffer buffer =
        TensorBuffer::allocate_elements_with<int>(&alloc, 5, Alignment{64});
@@ -84,7 +84,7 @@ TEST(TensorBufferTest, CopyFromWithOffsetCopiesToCorrectLocation) {
    EXPECT_EQ(ptr[4], 50);
 }
 
-TEST(TensorBufferTest, CopyFromThrowsWhenDestinationTooSmall) {
+TEST(TensorBufferTest, copy_from_throws_when_destination_too_small) {
    CountingAllocator alloc;
    TensorBuffer buffer =
        TensorBuffer::allocate_elements_with<int>(&alloc, 4, Alignment{64});
@@ -94,7 +94,7 @@ TEST(TensorBufferTest, CopyFromThrowsWhenDestinationTooSmall) {
    EXPECT_THROW(buffer.copy_from(initial), std::out_of_range);
 }
 
-TEST(TensorBufferTest, CopyFromThrowsWhenSourceIsEmpty) {
+TEST(TensorBufferTest, copy_from_throws_when_source_is_empty) {
    CountingAllocator alloc;
    TensorBuffer buffer =
        TensorBuffer::allocate_elements_with<int>(&alloc, 2, Alignment{64});
@@ -104,7 +104,7 @@ TEST(TensorBufferTest, CopyFromThrowsWhenSourceIsEmpty) {
    EXPECT_THROW(buffer.copy_from(src), std::out_of_range);
 }
 
-TEST(TensorBufferTest, DataPtrRespectsElementOffset) {
+TEST(TensorBufferTest, data_ptr_respects_element_offset) {
    CountingAllocator alloc;
    TensorBuffer buffer =
        TensorBuffer::allocate_elements_with<int>(&alloc, 4, Alignment{64});
@@ -120,7 +120,7 @@ TEST(TensorBufferTest, DataPtrRespectsElementOffset) {
    EXPECT_EQ(offset, base + 2);
 }
 
-TEST(TensorBufferTest, BeginAndEndSpanWholeBuffer) {
+TEST(TensorBufferTest, begin_and_end_spans_whole_buffer) {
    CountingAllocator alloc;
    TensorBuffer buffer =
        TensorBuffer::allocate_elements_with<int>(&alloc, 3, Alignment{64});
@@ -137,7 +137,7 @@ TEST(TensorBufferTest, BeginAndEndSpanWholeBuffer) {
    EXPECT_EQ(end - begin, 3);
 }
 
-TEST(TensorBufferTest, DestructorReturnsMemoryToAllocator) {
+TEST(TensorBufferTest, destructor_returns_memory_to_allocator) {
    CountingAllocator alloc;
    void *raw_ptr = nullptr;
 
@@ -155,7 +155,8 @@ TEST(TensorBufferTest, DestructorReturnsMemoryToAllocator) {
    EXPECT_EQ(alloc.last_deallocated_ptr(), raw_ptr);
 }
 
-TEST(TensorBufferTest, MoveConstructionTransfersOwnershipWithoutDoubleFree) {
+TEST(TensorBufferTest,
+     move_construction_transfers_ownership_without_double_free) {
    CountingAllocator alloc;
    void *raw_ptr = nullptr;
    {
@@ -171,7 +172,8 @@ TEST(TensorBufferTest, MoveConstructionTransfersOwnershipWithoutDoubleFree) {
    EXPECT_EQ(alloc.active_allocations(), 0);
 }
 
-TEST(TensorBufferTest, MoveAssignmentTransfersOwnershipWithoutDoubleFree) {
+TEST(TensorBufferTest,
+     move_assignment_transfers_ownership_without_double_free) {
    CountingAllocator alloc;
    void *raw_ptr = nullptr;
    {
@@ -188,7 +190,7 @@ TEST(TensorBufferTest, MoveAssignmentTransfersOwnershipWithoutDoubleFree) {
    EXPECT_EQ(alloc.active_allocations(), 0);
 }
 
-TEST(TensorBufferTest, SwapExchangesContentsAndSizes) {
+TEST(TensorBufferTest, swap_exchanges_contents_and_sizes) {
    CountingAllocator alloc;
 
    TensorBuffer a =
@@ -226,7 +228,7 @@ TEST(TensorBufferTest, SwapExchangesContentsAndSizes) {
    EXPECT_EQ(b_data[1], 2);
 }
 
-TEST(TensorBufferTest, MultipleBuffersEachReleaseExactlyOnce) {
+TEST(TensorBufferTest, multiple_buffers_each_release_exactly_once) {
    CountingAllocator alloc;
    {
       TensorBuffer a = TensorBuffer::allocate_with(&alloc, 128, Alignment{64});
@@ -240,18 +242,18 @@ TEST(TensorBufferTest, MultipleBuffersEachReleaseExactlyOnce) {
    EXPECT_EQ(alloc.active_allocations(), 0);
 }
 
-TEST(TensorBufferTest, DefaultConstructedBufferHasNoOwnership) {
+TEST(TensorBufferTest, default_constructed_buffer_has_no_ownership) {
    TensorBuffer buffer;
    EXPECT_EQ(buffer.use_count(), 0);
 }
 
-TEST(TensorBufferTest, AllocatedBufferHasSingleOwnership) {
+TEST(TensorBufferTest, allocated_buffer_has_single_ownership) {
    CountingAllocator alloc;
    TensorBuffer buffer = TensorBuffer::allocate_with(&alloc, 64, Alignment{64});
    EXPECT_EQ(buffer.use_count(), 1);
 }
 
-TEST(TensorBufferTest, MoveConstructionTransfersSingleOwnership) {
+TEST(TensorBufferTest, move_construction_transfers_single_ownership) {
    CountingAllocator alloc;
 
    TensorBuffer buffer =
@@ -262,7 +264,7 @@ TEST(TensorBufferTest, MoveConstructionTransfersSingleOwnership) {
    EXPECT_EQ(buffer.use_count(), 0);
 }
 
-TEST(TensorBufferTest, MoveAssignmentTransfersSingleOwnership) {
+TEST(TensorBufferTest, move_assignment_transfers_single_ownership) {
    CountingAllocator alloc;
 
    TensorBuffer buffer =
