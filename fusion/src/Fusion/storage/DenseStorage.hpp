@@ -12,6 +12,8 @@
 
 #include <cstddef>
 
+
+// TODO: Who owns shapes and strides here? should it be storage layer or Tensor wrappers?
 template <typename T> class NDTensorStorage : public ITensorStorage<T> {
  private:
    std::vector<size_t> shape_, strides_;
