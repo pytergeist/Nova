@@ -78,7 +78,8 @@ static void validate_allocator_invariants(const PoolAllocator &alloc) {
    }
 }
 
-TEST_F(PoolAllocatorFuzzTest, RandomAllocateFreeSequenceMaintainsInvariants) {
+TEST_F(PoolAllocatorFuzzTest,
+       random_allocate_free_seqwuence_maintains_invariants) {
    std::mt19937 rng(420420);
    std::uniform_int_distribution<int> coin(0, 1);
    std::uniform_int_distribution<int> size_pick(0, 9);
@@ -115,7 +116,7 @@ TEST_F(PoolAllocatorFuzzTest, RandomAllocateFreeSequenceMaintainsInvariants) {
    }
 }
 
-TEST_F(PoolAllocatorFuzzTest, RandomFreeOrderMaintainsInvariants) {
+TEST_F(PoolAllocatorFuzzTest, random_free_order_maintains_invariants) {
    std::mt19937 rng(420420);
    std::uniform_int_distribution<int> size_pick(0, 6);
 
@@ -141,7 +142,8 @@ TEST_F(PoolAllocatorFuzzTest, RandomFreeOrderMaintainsInvariants) {
    }
 }
 
-TEST_F(PoolAllocatorFuzzTest, RepeatedSameSizeAllocateFreeMaintainsInvariants) {
+TEST_F(PoolAllocatorFuzzTest,
+       repeated_same_size_allocate_free_maintains_invariants) {
    for (int i = 0; i < 500; ++i) {
       void *ptr = alloc.allocate(64, Alignment{64});
       ASSERT_NE(ptr, nullptr);

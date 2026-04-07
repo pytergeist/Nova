@@ -22,7 +22,8 @@ static const Chunk *find_chunk_by_ptr(const PoolAllocator &alloc, void *ptr) {
    return nullptr;
 }
 
-TEST_F(PoolAllocatorSplitMergeTest, AllocationSplitsChunkWhenRemainderIsLargeEnough) {
+TEST_F(PoolAllocatorSplitMergeTest,
+       allocation_splits_chunk_when_remainder_is_large_enough) {
    void *ptr1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
 
@@ -43,8 +44,8 @@ TEST_F(PoolAllocatorSplitMergeTest, AllocationSplitsChunkWhenRemainderIsLargeEno
    EXPECT_EQ(free_chunk_count, 1);
 }
 
-
-TEST_F(PoolAllocatorSplitMergeTest, AllocationDoesNotSplitWhenRemainderTooSmall) {
+TEST_F(PoolAllocatorSplitMergeTest,
+       allocation_does_not_split_when_remainder_too_small) {
    void *ptr1 = alloc.allocate(16, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
 
@@ -58,18 +59,18 @@ TEST_F(PoolAllocatorSplitMergeTest, AllocationDoesNotSplitWhenRemainderTooSmall)
    EXPECT_EQ(nonzero_chunks, 1);
 }
 
-
-TEST_F(PoolAllocatorSplitMergeTest, FreeingChunkCanMergeWithNextFreeChunk) {
-   void* p1 = alloc.allocate(128, Alignment{64});
+TEST_F(PoolAllocatorSplitMergeTest,
+       freeing_chunk_can_merge_with_next_free_chunk) {
+   void *p1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(p1, nullptr);
 
-   void* p2 = alloc.allocate(64, Alignment{64});
+   void *p2 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(p2, nullptr);
 
    alloc.deallocate(p2);
 
    bool found_free_128 = false;
-   for (const auto& chunk : alloc.chunks()) {
+   for (const auto &chunk : alloc.chunks()) {
       if (chunk.size == 128 && !chunk.in_use) {
          found_free_128 = true;
       }
@@ -78,14 +79,15 @@ TEST_F(PoolAllocatorSplitMergeTest, FreeingChunkCanMergeWithNextFreeChunk) {
    EXPECT_TRUE(found_free_128);
 }
 
-TEST_F(PoolAllocatorSplitMergeTest, FreeingChunkCanMergeWithPreviousFreeChunk) {
+TEST_F(PoolAllocatorSplitMergeTest,
+       freeing_chunk_can_merge_with_previous_free_chunk) {
    void *ptr1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
 
    void *ptr2 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr2, nullptr);
 
-   void* ptr3 = alloc.allocate(64, Alignment{64});
+   void *ptr3 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr3, nullptr);
 
    alloc.deallocate(ptr2);
@@ -108,15 +110,15 @@ TEST_F(PoolAllocatorSplitMergeTest, FreeingChunkCanMergeWithPreviousFreeChunk) {
    EXPECT_EQ(free_64_count, 0);
 }
 
-
-TEST_F(PoolAllocatorSplitMergeTest, PreviousMergedChunkAppearsInLargerBucket) {
+TEST_F(PoolAllocatorSplitMergeTest,
+       previous_merged_chunk_appears_in_larger_bucket) {
    void *ptr1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
 
    void *ptr2 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr2, nullptr);
 
-   void* ptr3 = alloc.allocate(64, Alignment{64});
+   void *ptr3 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr3, nullptr);
 
    alloc.deallocate(ptr2);
@@ -128,8 +130,8 @@ TEST_F(PoolAllocatorSplitMergeTest, PreviousMergedChunkAppearsInLargerBucket) {
    EXPECT_TRUE(free_chunks_64.empty());
 }
 
-
-TEST_F(PoolAllocatorSplitMergeTest, NextMergedChunkAppearsInLargerBucket) {
+TEST_F(PoolAllocatorSplitMergeTest,
+       next_merged_chunk_appears_in_larger_bucket) {
    void *ptr1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
 
@@ -144,16 +146,17 @@ TEST_F(PoolAllocatorSplitMergeTest, NextMergedChunkAppearsInLargerBucket) {
    EXPECT_TRUE(free_chunks_64.empty());
 }
 
-
-TEST_F(PoolAllocatorSplitMergeTest, AdjacentFreedChunksShouldCoalesceRegardlessOfFreeOrder) {
-   // TODO: seed allocation curr needed due to strict rounding and fitting in allocator layer
-   void* seed = alloc.allocate(128, Alignment{64});
+TEST_F(PoolAllocatorSplitMergeTest,
+       adjacent_freed_chunk_should_coalesce_regardless_of_free_order) {
+   // TODO: seed allocation curr needed due to strict rounding and fitting in
+   // allocator layer
+   void *seed = alloc.allocate(128, Alignment{64});
    ASSERT_NE(seed, nullptr);
 
-   void* ptr1 = alloc.allocate(64, Alignment{64});
+   void *ptr1 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
 
-   void* ptr2 = alloc.allocate(64, Alignment{64});
+   void *ptr2 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr2, nullptr);
 
    alloc.deallocate(ptr2);
@@ -162,7 +165,7 @@ TEST_F(PoolAllocatorSplitMergeTest, AdjacentFreedChunksShouldCoalesceRegardlessO
    int total_free = 0;
    int nonzero_free_chunks = 0;
 
-   for (const Chunk& chunk : alloc.chunks()) {
+   for (const Chunk &chunk : alloc.chunks()) {
       if (chunk.size == 0) {
          continue;
       }
@@ -176,15 +179,17 @@ TEST_F(PoolAllocatorSplitMergeTest, AdjacentFreedChunksShouldCoalesceRegardlessO
    EXPECT_GE(total_free, 128);
 }
 
-TEST_F(PoolAllocatorSplitMergeTest, AdjacentFreedChunksShouldCoalesceInReverseOrder) {
-   // TODO: seed allocation curr needed due to strict rounding and fitting in allocator layer
-   void* seed = alloc.allocate(128, Alignment{64});
+TEST_F(PoolAllocatorSplitMergeTest,
+       adjacent_freed_chunks_should_coalesce_in_reverse_order) {
+   // TODO: seed allocation curr needed due to strict rounding and fitting in
+   // allocator layer
+   void *seed = alloc.allocate(128, Alignment{64});
    ASSERT_NE(seed, nullptr);
 
-   void* ptr1 = alloc.allocate(64, Alignment{64});
+   void *ptr1 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
 
-   void* ptr2 = alloc.allocate(64, Alignment{64});
+   void *ptr2 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr2, nullptr);
 
    alloc.deallocate(ptr1);
@@ -193,7 +198,7 @@ TEST_F(PoolAllocatorSplitMergeTest, AdjacentFreedChunksShouldCoalesceInReverseOr
    int total_free = 0;
    int nonzero_free_chunks = 0;
 
-   for (const Chunk& chunk : alloc.chunks()) {
+   for (const Chunk &chunk : alloc.chunks()) {
       if (chunk.size == 0) {
          continue;
       }

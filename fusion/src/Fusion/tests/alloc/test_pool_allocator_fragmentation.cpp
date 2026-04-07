@@ -1,18 +1,19 @@
+#include <cstddef>
 #include <gtest/gtest.h>
 #include <vector>
-#include <cstddef>
 
 #include "Fusion/alloc/AllocTypes.h"
-#include "Fusion/alloc/Pool.h"
 #include "Fusion/alloc/BFCPoolAllocator.h"
+#include "Fusion/alloc/Pool.h"
 
 class PoolAllocatorFragmentationTest : public ::testing::Test {
-protected:
+ protected:
    PoolAllocator alloc;
 };
 
-TEST_F(PoolAllocatorFragmentationTest, AlternatingFreePatternLeavesFragmentedFreeSpace) {
-   std::vector<void*> ptrs;
+TEST_F(PoolAllocatorFragmentationTest,
+       alternating_free_pattern_leaves_fragmented_free_space) {
+   std::vector<void *> ptrs;
    for (int i = 0; i < 8; ++i) {
       ptrs.push_back(alloc.allocate(64, Alignment{64}));
       ASSERT_NE(ptrs.back(), nullptr);
@@ -23,7 +24,7 @@ TEST_F(PoolAllocatorFragmentationTest, AlternatingFreePatternLeavesFragmentedFre
    }
 
    int free_64_chunks = 0;
-   for (const auto& chunk : alloc.chunks()) {
+   for (const auto &chunk : alloc.chunks()) {
       if (chunk.size == 64 && !chunk.in_use) {
          free_64_chunks++;
       }
@@ -32,12 +33,13 @@ TEST_F(PoolAllocatorFragmentationTest, AlternatingFreePatternLeavesFragmentedFre
    EXPECT_GE(free_64_chunks, 4);
 }
 
-TEST_F(PoolAllocatorFragmentationTest, FreeOrderShouldNotAffectCoalescingOutcome) {
-   void* seed = alloc.allocate(128, Alignment{64});
+TEST_F(PoolAllocatorFragmentationTest,
+       free_order_should_not_affect_coalescing_outcome) {
+   void *seed = alloc.allocate(128, Alignment{64});
    ASSERT_NE(seed, nullptr);
 
-   void* ptr1 = alloc.allocate(64, Alignment{64});
-   void* ptr2 = alloc.allocate(64, Alignment{64});
+   void *ptr1 = alloc.allocate(64, Alignment{64});
+   void *ptr2 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
    ASSERT_NE(ptr2, nullptr);
 
@@ -47,7 +49,7 @@ TEST_F(PoolAllocatorFragmentationTest, FreeOrderShouldNotAffectCoalescingOutcome
    int free_64 = 0;
    int free_128 = 0;
 
-   for (const auto& chunk : alloc.chunks()) {
+   for (const auto &chunk : alloc.chunks()) {
       if (chunk.size == 0 || chunk.in_use) {
          continue;
       }
@@ -63,12 +65,13 @@ TEST_F(PoolAllocatorFragmentationTest, FreeOrderShouldNotAffectCoalescingOutcome
    EXPECT_EQ(free_128, 1);
 }
 
-TEST_F(PoolAllocatorFragmentationTest, LargeAllocationReusesCoalescedSpaceWithoutGrowingPool) {
-   void* seed = alloc.allocate(128, Alignment{64});
+TEST_F(PoolAllocatorFragmentationTest,
+       large_allocation_reuese_coalesced_space_without_growing_pool) {
+   void *seed = alloc.allocate(128, Alignment{64});
    ASSERT_NE(seed, nullptr);
 
-   void* a = alloc.allocate(64, Alignment{64});
-   void* b = alloc.allocate(64, Alignment{64});
+   void *a = alloc.allocate(64, Alignment{64});
+   void *b = alloc.allocate(64, Alignment{64});
    ASSERT_NE(a, nullptr);
    ASSERT_NE(b, nullptr);
 
@@ -77,7 +80,7 @@ TEST_F(PoolAllocatorFragmentationTest, LargeAllocationReusesCoalescedSpaceWithou
 
    const std::size_t chunk_count_before = alloc.chunks().size();
 
-   void* big = alloc.allocate(128, Alignment{64});
+   void *big = alloc.allocate(128, Alignment{64});
    ASSERT_NE(big, nullptr);
 
    const std::size_t chunk_count_after = alloc.chunks().size();
