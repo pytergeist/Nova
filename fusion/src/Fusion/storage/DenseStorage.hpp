@@ -15,11 +15,6 @@
 
 // TODO: Who owns shapes and strides here? should it be storage layer or Tensor wrappers?
 template <typename T> class NDTensorStorage : public ITensorStorage<T> {
- private:
-   std::vector<size_t> shape_, strides_;
-   TensorBuffer data_;
-   IAllocator *allocator_;
-   Device device_;
 
  public: // TODO: Be careful here - do we want this ptr to be mutable?
    explicit NDTensorStorage(std::vector<size_t> shape, std::vector<T> data,
@@ -64,8 +59,15 @@ template <typename T> class NDTensorStorage : public ITensorStorage<T> {
    T *data_ptr() override { return data_.data<T>(); }
    const T *data_ptr() const override { return data_.data<T>(); }
 
+
    [[nodiscard]] std::size_t size() const override { return data_.size<T>(); }
    [[nodiscard]] Device device() const override { return device_; }
+
+ private:
+   std::vector<size_t> shape_, strides_;
+   TensorBuffer data_;
+   IAllocator *allocator_;
+   Device device_;
 };
 
 #endif // DENSE_STORAGE_H

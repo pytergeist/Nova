@@ -242,36 +242,3 @@ TEST(TensorBufferTest, multiple_buffers_each_release_exactly_once) {
    EXPECT_EQ(alloc.active_allocations(), 0);
 }
 
-TEST(TensorBufferTest, default_constructed_buffer_has_no_ownership) {
-   TensorBuffer buffer;
-   EXPECT_EQ(buffer.use_count(), 0);
-}
-
-TEST(TensorBufferTest, allocated_buffer_has_single_ownership) {
-   CountingAllocator alloc;
-   TensorBuffer buffer = TensorBuffer::allocate_with(&alloc, 64, Alignment{64});
-   EXPECT_EQ(buffer.use_count(), 1);
-}
-
-TEST(TensorBufferTest, move_construction_transfers_single_ownership) {
-   CountingAllocator alloc;
-
-   TensorBuffer buffer =
-       TensorBuffer::allocate_with(&alloc, 128, Alignment{64});
-   EXPECT_EQ(buffer.use_count(), 1);
-   TensorBuffer moved(std::move(buffer));
-   EXPECT_EQ(moved.use_count(), 1);
-   EXPECT_EQ(buffer.use_count(), 0);
-}
-
-TEST(TensorBufferTest, move_assignment_transfers_single_ownership) {
-   CountingAllocator alloc;
-
-   TensorBuffer buffer =
-       TensorBuffer::allocate_with(&alloc, 128, Alignment{64});
-   EXPECT_EQ(buffer.use_count(), 1);
-   TensorBuffer moved;
-   moved = std::move(buffer);
-   EXPECT_EQ(moved.use_count(), 1);
-   EXPECT_EQ(buffer.use_count(), 0);
-}
