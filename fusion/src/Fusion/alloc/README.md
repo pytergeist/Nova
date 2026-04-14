@@ -4,7 +4,7 @@ The alloc layer provides the raw memory management foundation for Fusion. Its re
 - acquire raw memory regions from backend sub-allocators 
 - manage reuse of those regions efficiently 
 - support multiple allocation strategies for different workload lifetimes
-- remain independent from tensor semantics, physics semantics, and kernel logic This layer should allocate bytes, not own layout meaning.
+- remain independent of tensor semantics, physics semantics, and kernel logic This layer should allocate bytes, not own layout meaning.
 
 ## Current design 
 

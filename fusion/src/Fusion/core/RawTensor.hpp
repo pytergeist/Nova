@@ -102,6 +102,7 @@ template <typename T> class RawTensor {
 
    std::shared_ptr<ITensorStorage<T>> &storage() { return storage_; }
    std::shared_ptr<ITensorStorage<T>> &storage() const { return storage_; }
+   std::size_t storage_use_count() const noexcept {return storage_.use_count();}
 
    TensorBuffer &raw_data() { return storage_->data(); }
    const TensorBuffer &raw_data() const { return storage_->data(); }

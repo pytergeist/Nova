@@ -5,8 +5,6 @@
 
 #include "TensorPlan.h"
 
-#include "RawTensor.hpp"
-
 /* TODO: OPTIMIZE LATER: implament shape caching for broadcast plans, you need
  * to figure out what to cache and when. This will reduce the amount of plan
  * construction. Unodered_map impl? Also consider moving to a faster (poss
@@ -125,7 +123,7 @@ inline UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
    UnaryEwiseMeta meta{};
    const bool cont = A.is_contiguous();
 
-   if (cont) {
+   if (cont) { // TODO: this fastpath should also check is_view?
       meta.fastpath = true;
       meta.out_shape = A.shape();
       meta.fast_len = A.flat_size();
