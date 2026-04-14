@@ -9,10 +9,9 @@
 #include "Fusion/common/Checks.hpp"
 #include "Fusion/cpu/blas/BlasTraits.hpp"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
-#include "Fusion/cpu/simd/VecNeon128.hpp"
 
-#include "PlanMeta.hpp"
 #include "TensorPlan.h"
+#include "PlanMeta.hpp"
 
 namespace fusion {
 

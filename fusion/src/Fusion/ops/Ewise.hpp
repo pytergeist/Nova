@@ -54,18 +54,6 @@ inline RawTensor<T> pow(const RawTensor<T> &x, const RawTensor<T> &y) {
    return out;
 }
 
-std::string shape_str(std::vector<size_t> shape) {
-   std::ostringstream oss;
-   oss << '(';
-   for (size_t i = 0; i < shape.size(); ++i) {
-      oss << shape[i];
-      if (i + 1 < shape.size())
-         oss << ',';
-   }
-   oss << ')';
-   return oss.str();
-}
-
 template <typename T>
 inline void sub_inplace(RawTensor<T> &x, const RawTensor<T> &y) {
    // TODO: need to impl_ a way to ignore batch dim in shape check in
