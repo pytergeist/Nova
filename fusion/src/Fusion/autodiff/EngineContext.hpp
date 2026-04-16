@@ -18,7 +18,6 @@ template <typename T> class EngineContext {
 
    static void set(Engine<T> *engine) { instance_ = engine; }
 
-   static bool has_instance() noexcept { return instance_ != nullptr; }
 
  private:
    inline static thread_local Engine<T> *instance_ = nullptr;
@@ -49,7 +48,7 @@ template <typename T> struct EngineScope {
       active_ = false;
    }
 
-   Engine<T> eng() { return eng_; }
+   Engine<T>& eng() { return eng_; }
    bool active() const { return active_; }
 
  private:
