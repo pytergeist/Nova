@@ -1,0 +1,164 @@
+#include <gtest/gtest.h>
+
+#include "Fusion/autodiff/ADTensor.hpp"
+#include "Fusion/autodiff/AutodiffMode.hpp"
+#include "Fusion/autodiff/Engine.hpp"
+#include "Fusion/autodiff/EngineContext.hpp"
+
+ADTensor<float> make_test_tensor(bool requires_grad) {
+   return ADTensor<float>({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+                          DType::FLOAT32, Device{DeviceType::CPU, 0},
+                          requires_grad);
+}
+
+struct EngineContextReset {
+   ~EngineContextReset() { EngineContext<float>::set(nullptr); }
+};
+
+TEST(AutodiffModeTest, no_grad_guard_disables_grad) {
+   EXPECT_TRUE(autodiff::grad_enabled());
+   autodiff::NoGradGuard _;
+   EXPECT_FALSE(autodiff::grad_enabled());
+}
+
+TEST(AutodiffModeTest, no_grad_guard_enables_grad_after_disable_out_of_scope) {
+   {
+      EXPECT_TRUE(autodiff::grad_enabled());
+      autodiff::NoGradGuard _;
+      EXPECT_FALSE(autodiff::grad_enabled());
+   }
+   EXPECT_TRUE(autodiff::grad_enabled());
+}
+
+TEST(AutodiffModeTest, nested_no_grad_guards_restore_previous_state) {
+   EXPECT_TRUE(autodiff::grad_enabled());
+
+   {
+      autodiff::NoGradGuard g1;
+      EXPECT_FALSE(autodiff::grad_enabled());
+
+      {
+         autodiff::NoGradGuard g2;
+         EXPECT_FALSE(autodiff::grad_enabled());
+      }
+
+      EXPECT_FALSE(autodiff::grad_enabled());
+   }
+
+   EXPECT_TRUE(autodiff::grad_enabled());
+}
+
+TEST(AutodiffModeTest,
+     should_trace_unary_returns_true_when_engine_set_and_not_guarded) {
+   ADTensor<float> t = make_test_tensor(true);
+
+   Engine<float> enginet;
+   EngineContext<float>::set(&enginet);
+
+   EXPECT_TRUE(autodiff::should_trace(t));
+   EngineContextReset reset;
+}
+
+TEST(AutodiffModeTest, should_trace_unary_returns_false_when_engine_not_set) {
+   ADTensor<float> t = make_test_tensor(true);
+
+   Engine<float> enginet;
+   EXPECT_FALSE(autodiff::should_trace(t));
+}
+
+TEST(AutodiffModeTest,
+     should_trace_unary_returns_false_when_engine_is_nullptr) {
+   ADTensor<float> t = make_test_tensor(true);
+
+   Engine<float> enginet;
+   EngineContext<float>::set(nullptr);
+   EXPECT_FALSE(autodiff::should_trace(t));
+   EngineContextReset reset;
+}
+
+TEST(AutodiffModeTest,
+     should_trace_unary_returns_false_when_requires_grad_false) {
+   ADTensor<float> t = make_test_tensor(false);
+
+   Engine<float> enginet;
+   EngineContext<float>::set(&enginet);
+   EXPECT_FALSE(autodiff::should_trace(t));
+   EngineContextReset reset;
+}
+
+TEST(AutodiffModeTest, should_trace_unary_returns_false_when_no_grad_guard) {
+   ADTensor<float> t = make_test_tensor(true);
+
+   autodiff::NoGradGuard _;
+
+   Engine<float> enginet;
+   EngineContext<float>::set(&enginet);
+   EXPECT_FALSE(autodiff::should_trace(t));
+   EngineContextReset reset;
+}
+
+TEST(
+    AutodiffModeTest,
+    should_trace_binary_returns_true_when_engine_set_and_not_guarded_lhs_req_grad) {
+   ADTensor<float> t1 = make_test_tensor(false);
+   ADTensor<float> t2 = make_test_tensor(true);
+
+   Engine<float> enginet;
+   EngineContext<float>::set(&enginet);
+   EXPECT_TRUE(autodiff::should_trace(t1, t2));
+   EngineContextReset reset;
+}
+
+TEST(
+    AutodiffModeTest,
+    should_trace_binary_returns_true_when_engine_set_and_not_guarded_rhs_req_grad) {
+   ADTensor<float> t1 = make_test_tensor(true);
+   ADTensor<float> t2 = make_test_tensor(false);
+
+   Engine<float> enginet;
+   EngineContext<float>::set(&enginet);
+   EXPECT_TRUE(autodiff::should_trace(t1, t2));
+   EngineContextReset reset;
+}
+
+TEST(AutodiffModeTest, should_trace_binary_returns_false_when_engine_not_set) {
+   ADTensor<float> t1 = make_test_tensor(true);
+   ADTensor<float> t2 = make_test_tensor(true);
+
+   Engine<float> enginet;
+   EXPECT_FALSE(autodiff::should_trace(t1, t2));
+}
+
+TEST(AutodiffModeTest,
+     should_trace_binary_returns_false_when_both_requires_grad_false) {
+   ADTensor<float> t1 = make_test_tensor(false);
+   ADTensor<float> t2 = make_test_tensor(false);
+
+   Engine<float> enginet;
+   EngineContext<float>::set(&enginet);
+   EXPECT_FALSE(autodiff::should_trace(t1, t2));
+   EngineContextReset reset;
+}
+
+TEST(AutodiffModeTest, should_trace_binary_returns_false_when_no_grad_guard) {
+   ADTensor<float> t1 = make_test_tensor(true);
+   ADTensor<float> t2 = make_test_tensor(true);
+
+   autodiff::NoGradGuard _;
+
+   Engine<float> enginet;
+   EngineContext<float>::set(&enginet);
+   EXPECT_FALSE(autodiff::should_trace(t1, t2));
+   EngineContextReset reset;
+}
+
+TEST(AutodiffModeTest,
+     should_trace_binary_returns_false_when_engine_is_nullptr) {
+   ADTensor<float> t1 = make_test_tensor(true);
+   ADTensor<float> t2 = make_test_tensor(true);
+
+   Engine<float> enginet;
+   EngineContext<float>::set(nullptr);
+   EXPECT_FALSE(autodiff::should_trace(t1, t2));
+   EngineContextReset reset;
+}
