@@ -4,6 +4,8 @@
 
 #include "Fusion/core/RawTensor.hpp"
 
+// TODO: create a make_tensor helper
+
 TEST(RawTensorTest, default_constructed_tensor_is_uninitialised) {
    RawTensor<float> t;
 

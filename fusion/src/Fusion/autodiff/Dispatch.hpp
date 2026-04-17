@@ -2,9 +2,6 @@
 #define DISPATCH_HPP
 
 #include <memory>
-#include <string>
-#include <unordered_map>
-#include <variant>
 
 #include "AutodiffMeta.hpp"
 #include "Engine.hpp"
@@ -15,7 +12,7 @@
 namespace autodiff {
 
 template <typename T>
-inline AutodiffMeta<T> construct_meta(
+AutodiffMeta<T> construct_meta(
     const ADTensor<T> &x,   // NOLINT(bugprone-easily-swappable-parameters)
     const ADTensor<T> &y) { // NOLINT(bugprone-easily-swappable-parameters)
    AutodiffMeta<T> meta;
@@ -25,14 +22,14 @@ inline AutodiffMeta<T> construct_meta(
 }
 
 template <typename T>
-inline AutodiffMeta<T> construct_meta(const ADTensor<T> &x) {
+AutodiffMeta<T> construct_meta(const ADTensor<T> &x) {
    AutodiffMeta<T> meta;
    meta.push_back(x.raw());
    return meta;
 }
 
 template <typename T, typename Param>
-inline AutodiffMeta<T> construct_meta(const ADTensor<T> &x,
+AutodiffMeta<T> construct_meta(const ADTensor<T> &x,
                                       const Param &param) {
    AutodiffMeta<T> meta;
    meta.push_back(x.raw());
