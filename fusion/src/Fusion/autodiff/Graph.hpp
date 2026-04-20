@@ -10,6 +10,7 @@
 static constexpr NodeID kNoNode = NodeID{-1};
 
 template <typename T> class Engine;
+template <typename T> class GraphHarness;
 
 template <typename T> class Graph {
  public:
@@ -53,6 +54,7 @@ template <typename T> class Graph {
 
  private:
    friend class Engine<T>;
+   friend class GraphHarness<T>;
 
    std::vector<std::vector<ConsumerInfo>> consumed_by_;
    std::vector<INode<T>> nodes_{};
@@ -101,8 +103,8 @@ template <typename T> class Graph {
       edges_.emplace_back(src_nid, dst_nid);
    }
 
-   void append_producer_table(INode<T> &node, NodeID nid) {
-      size_t num = node.get_static_num_outputs();
+   void append_producer_table(INode<T> &node, const NodeID nid) {
+      const size_t num = node.get_static_num_outputs();
       for (size_t i = 0; i < num; i++) {
          ValueID vid{value_counter_++};
          node.set_output(i, vid);

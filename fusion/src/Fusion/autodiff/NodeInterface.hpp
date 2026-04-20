@@ -89,14 +89,14 @@ template <typename T> class INode {
       outputs_[idx] = vid;
    };
 
-   void add_input(ValueID vid) { inputs_.push_back(vid); }
-   void add_output(ValueID vid) { outputs_.push_back(vid); }
+   void add_input(const ValueID vid) { inputs_.push_back(vid); }
+   void add_output(const ValueID vid) { outputs_.push_back(vid); }
 
-   void reserve_inputs(std::size_t n) { inputs_.reserve(n); }
-   void reserve_outputs(std::size_t n) { outputs_.reserve(n); }
+   void reserve_inputs(const std::size_t n) { inputs_.reserve(n); }
+   void reserve_outputs(const std::size_t n) { outputs_.reserve(n); }
 
-   void resize_inputs(std::size_t n) { inputs_.resize(n); }
-   void resize_outputs(std::size_t n) { inputs_.resize(n); }
+   void resize_inputs(const std::size_t n) { inputs_.resize(n); }
+   void resize_outputs(const std::size_t n) { outputs_.resize(n); }
 
    // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
    struct NodeConcept {
