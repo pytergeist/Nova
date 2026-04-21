@@ -11,8 +11,7 @@ namespace fusion {
 
 namespace math {
 
-template <typename T>
-   RawTensor<T> sqrt(const RawTensor<T> &x) {
+template <typename T> RawTensor<T> sqrt(const RawTensor<T> &x) {
    require_ewise_unary_out_of_place<SqrtTag>();
    UnaryEwiseMeta meta = make_unary_meta(x);
    RawTensor<T> out = init_out_from_meta(x, meta);
@@ -20,8 +19,7 @@ template <typename T>
    return out;
 }
 
-template <typename T>
-   RawTensor<T> log(const RawTensor<T> &x) {
+template <typename T> RawTensor<T> log(const RawTensor<T> &x) {
    require_ewise_unary_out_of_place<LogTag>();
    UnaryEwiseMeta meta = make_unary_meta(x);
    RawTensor<T> out = init_out_from_meta(x, meta);
@@ -29,8 +27,7 @@ template <typename T>
    return out;
 }
 
-template <typename T>
-   RawTensor<T> exp(const RawTensor<T> &x) {
+template <typename T> RawTensor<T> exp(const RawTensor<T> &x) {
    require_ewise_unary_out_of_place<ExpTag>();
    UnaryEwiseMeta meta = make_unary_meta(x);
    RawTensor<T> out = init_out_from_meta(x, meta);

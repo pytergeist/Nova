@@ -108,8 +108,7 @@ RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
 }
 
 template <typename T>
-RawTensor<T> swapaxes(const RawTensor<T> &x, const int axis1,
-                             const int axis2) {
+RawTensor<T> swapaxes(const RawTensor<T> &x, const int axis1, const int axis2) {
    std::vector<size_t> out_shape = x.shape();
    const int nd = static_cast<int>(out_shape.size());
    if (nd < 2) {

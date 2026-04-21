@@ -11,7 +11,7 @@
 #include "Fusion/common/Checks.hpp"
 
 template <typename T> struct Maximum {
-   static constexpr std::string_view name = "Maximum";
+   using tag = MaximumTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

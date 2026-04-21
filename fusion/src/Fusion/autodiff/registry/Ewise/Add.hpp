@@ -11,7 +11,8 @@
 #include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Add {
-   static constexpr std::string_view name = "Add";
+   using tag = AddTag;
+
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

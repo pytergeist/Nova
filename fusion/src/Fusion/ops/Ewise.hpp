@@ -3,7 +3,6 @@
 
 #include <string_view>
 
-
 #include "Fusion/core/PlanMeta.hpp"
 #include "Fusion/core/RawTensor.hpp"
 #include "Fusion/core/TensorIter.hpp"
@@ -59,8 +58,7 @@ RawTensor<T> pow(const RawTensor<T> &x, const RawTensor<T> &y) {
    return out;
 }
 
-template <typename T>
-void sub_inplace(RawTensor<T> &x, const RawTensor<T> &y) {
+template <typename T> void sub_inplace(RawTensor<T> &x, const RawTensor<T> &y) {
    // TODO: need to impl_ a way to ignore batch dim in shape check in
    // a sensible way
    // UNSAFE CODE

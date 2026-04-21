@@ -11,7 +11,7 @@
 #include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Log {
-   static constexpr std::string_view name = "Log";
+   using tag = LogTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

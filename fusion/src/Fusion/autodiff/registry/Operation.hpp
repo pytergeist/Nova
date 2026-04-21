@@ -40,10 +40,14 @@ template <typename T> struct Context {
 
 template <typename T, class Op> class Operation {
  public:
+   using tag = typename Op::tag;
    using In = typename Op::In;
    using Out = typename Op::Out;
    using GradIn = typename Op::GradIn;
    using GradOut = typename Op::GradOut;
+
+   static constexpr std::string_view name = OpTraits<tag>::name;
+   static constexpr OpSchema schema = OpTraits<tag>::schema;
 
    Operation() = default;
    explicit Operation(Op op) : op_(std::move(op)) {}
@@ -54,8 +58,6 @@ template <typename T, class Op> class Operation {
    GradIn backward(Context<T> &context, GradOut &grad_out) {
       return op_.backward(context, grad_out);
    };
-
-   static constexpr std::string_view name = Op::name;
 
  private:
    Op op_;

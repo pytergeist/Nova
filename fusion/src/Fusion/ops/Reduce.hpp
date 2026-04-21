@@ -17,7 +17,7 @@ namespace math {
 
 template <typename T>
 RawTensor<T> sum(const RawTensor<T> &x, const std::size_t axis,
-                        const bool keep_dim) {
+                 const bool keep_dim) {
    require_reduction_out_of_place<SumTag>();
    ReductionMeta meta = make_reduction_meta(x, axis, keep_dim);
    RawTensor<T> out = init_out_from_meta(x, meta);
@@ -27,7 +27,7 @@ RawTensor<T> sum(const RawTensor<T> &x, const std::size_t axis,
 
 template <typename T>
 RawTensor<T> mean(const RawTensor<T> &x, const std::size_t axis,
-                         const bool keep_dim) {
+                  const bool keep_dim) {
    require_reduction_out_of_place<MeanTag>();
    ReductionMeta meta = make_reduction_meta(x, axis, keep_dim);
    RawTensor<T> out = init_out_from_meta(x, meta);

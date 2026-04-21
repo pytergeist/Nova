@@ -24,8 +24,7 @@ RawTensor<T> greater(const RawTensor<T> &x, const RawTensor<T> &y) {
 }
 
 template <typename T>
-RawTensor<T> greater_equal(const RawTensor<T> &x,
-                                  const RawTensor<T> &y) {
+RawTensor<T> greater_equal(const RawTensor<T> &x, const RawTensor<T> &y) {
    require_ewise_binary_out_of_place<GreaterEqualTag>();
    BinaryEwiseMeta meta = make_binary_meta(x, y);
    RawTensor<T> out = init_out_from_meta(x, y, meta);
