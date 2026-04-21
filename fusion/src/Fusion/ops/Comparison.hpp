@@ -15,7 +15,8 @@ namespace fusion {
 namespace math {
 
 template <typename T>
-inline RawTensor<T> greater(const RawTensor<T> &x, const RawTensor<T> &y) {
+RawTensor<T> greater(const RawTensor<T> &x, const RawTensor<T> &y) {
+   require_ewise_binary_out_of_place<GreaterTag>();
    BinaryEwiseMeta meta = make_binary_meta(x, y);
    RawTensor<T> out = init_out_from_meta(x, y, meta);
    fusion::iter::binary_ewise_tag<T, GreaterThanSIMD>(x, y, meta, out);
@@ -23,8 +24,9 @@ inline RawTensor<T> greater(const RawTensor<T> &x, const RawTensor<T> &y) {
 }
 
 template <typename T>
-inline RawTensor<T> greater_equal(const RawTensor<T> &x,
+RawTensor<T> greater_equal(const RawTensor<T> &x,
                                   const RawTensor<T> &y) {
+   require_ewise_binary_out_of_place<GreaterEqualTag>();
    BinaryEwiseMeta meta = make_binary_meta(x, y);
    RawTensor<T> out = init_out_from_meta(x, y, meta);
    fusion::iter::binary_ewise_tag<T, GreaterThanEqualSIMD>(x, y, meta, out);
@@ -32,7 +34,8 @@ inline RawTensor<T> greater_equal(const RawTensor<T> &x,
 }
 
 template <typename T>
-inline RawTensor<T> maximum(const RawTensor<T> &x, const RawTensor<T> &y) {
+RawTensor<T> maximum(const RawTensor<T> &x, const RawTensor<T> &y) {
+   require_ewise_binary_out_of_place<MaximumTag>();
    BinaryEwiseMeta meta = make_binary_meta(x, y);
    RawTensor<T> out = init_out_from_meta(x, y, meta);
    fusion::iter::binary_ewise_tag<T, MaximumSIMD>(x, y, meta, out);

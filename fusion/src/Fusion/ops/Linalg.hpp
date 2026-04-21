@@ -74,11 +74,12 @@ inline EinsumBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
 }
 
 template <typename T>
-inline RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
+RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
    FUSION_CHECK(A.is_initialised(), "matmul: A uninitialised");
    FUSION_CHECK(B.is_initialised(), "matmul: B uninitialised");
    FUSION_CHECK(A.dtype() == B.dtype(), "matmul: dtype mismatch");
    FUSION_CHECK(A.device() == B.device(), "matmul: device mismatch");
+   require_contraction_out_of_place<MatMulTag>();
 
    const auto &a_shape = A.shape();
    const auto &b_shape = B.shape();
@@ -107,7 +108,7 @@ inline RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
 }
 
 template <typename T>
-inline RawTensor<T> swapaxes(const RawTensor<T> &x, const int axis1,
+RawTensor<T> swapaxes(const RawTensor<T> &x, const int axis1,
                              const int axis2) {
    std::vector<size_t> out_shape = x.shape();
    const int nd = static_cast<int>(out_shape.size());
