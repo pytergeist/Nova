@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "fusion/benchmarks/fusion",
+		"source" : "fusion/benchmarks/fusion"
+	}
+}

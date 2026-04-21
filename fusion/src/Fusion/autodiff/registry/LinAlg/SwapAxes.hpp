@@ -12,7 +12,7 @@
 #include "Fusion/ops/OpParams.hpp"
 
 template <typename T> struct SwapAxes {
-   static constexpr std::string_view name = "SwapAxes";
+   using tag = SwapAxesTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

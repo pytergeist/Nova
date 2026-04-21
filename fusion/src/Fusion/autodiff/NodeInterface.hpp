@@ -7,9 +7,6 @@
 #include "AutodiffMeta.hpp"
 #include "Node.hpp"
 
-/* TODO: Find a way to remove the static arity from the INode interface/Node,
- * the get_static_output() method here is currently used in Graph<T>, during */
-
 template <typename T> class Graph;
 
 template <typename T> class INode {
@@ -20,6 +17,7 @@ template <typename T> class INode {
    const std::type_info &grad_out_type() const {
       return self_->grad_out_type();
    }
+
    std::string_view name() const { return self_->name(); }
 
    std::vector<ValueID> inputs() const { return inputs_; }
@@ -66,11 +64,11 @@ template <typename T> class INode {
       return gin;
    }
 
-   std::size_t get_static_num_outputs() {
-      return self_->get_static_num_outputs();
+   std::size_t get_output_arity() {
+      return self_->get_output_arity();
    };
-   std::size_t get_static_num_inputs() {
-      return self_->get_static_num_inputs();
+   std::size_t get_input_arity() {
+      return self_->get_input_arity();
    };
 
  private:
@@ -95,8 +93,8 @@ template <typename T> class INode {
    void reserve_inputs(const std::size_t n) { inputs_.reserve(n); }
    void reserve_outputs(const std::size_t n) { outputs_.reserve(n); }
 
-   void resize_inputs(const std::size_t n) { inputs_.resize(n); }
-   void resize_outputs(const std::size_t n) { outputs_.resize(n); }
+   void resize_inputs(std::size_t n) { inputs_.resize(n); }
+   void resize_outputs(std::size_t n) { outputs_.resize(n); }
 
    // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
    struct NodeConcept {
@@ -123,10 +121,10 @@ template <typename T> class INode {
 
       virtual std::string_view name() const = 0;
 
-      virtual size_t get_static_num_outputs() const = 0;
-      virtual size_t get_static_num_inputs() const = 0;
+      virtual size_t get_output_arity() const = 0;
+      virtual size_t get_input_arity() const = 0;
    };
-   template <class Op> struct NodeModel : NodeConcept {
+   template <class Op> struct NodeModel final : NodeConcept {
 
       using In = typename Op::In;
       using Out = typename Op::Out;
@@ -150,12 +148,12 @@ template <typename T> class INode {
          return grad_in;
       }
 
-      std::size_t get_static_num_outputs() const override {
-         return node_.KStaticNumOutputs;
+      std::size_t get_output_arity() const override {
+         return Op::output_arity();
       }
 
-      std::size_t get_static_num_inputs() const override {
-         return node_.KStaticNumInputs;
+      std::size_t get_input_arity() const override {
+         return Op::input_arity();
       }
 
       const std::type_info &in_type() const override { return typeid(In); };

@@ -11,7 +11,7 @@
 #include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Sqrt {
-   static constexpr std::string_view name = "Sqrt";
+   using tag = SqrtTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

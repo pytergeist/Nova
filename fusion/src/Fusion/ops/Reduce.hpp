@@ -16,8 +16,9 @@ namespace fusion {
 namespace math {
 
 template <typename T>
-inline RawTensor<T> sum(const RawTensor<T> &x, const std::size_t axis,
-                        const bool keep_dim) {
+RawTensor<T> sum(const RawTensor<T> &x, const std::size_t axis,
+                 const bool keep_dim) {
+   require_reduction_out_of_place<SumTag>();
    ReductionMeta meta = make_reduction_meta(x, axis, keep_dim);
    RawTensor<T> out = init_out_from_meta(x, meta);
    fusion::iter::reduction_tag<T, SumSIMD>(x, meta, out);
@@ -25,8 +26,9 @@ inline RawTensor<T> sum(const RawTensor<T> &x, const std::size_t axis,
 }
 
 template <typename T>
-inline RawTensor<T> mean(const RawTensor<T> &x, const std::size_t axis,
-                         const bool keep_dim) {
+RawTensor<T> mean(const RawTensor<T> &x, const std::size_t axis,
+                  const bool keep_dim) {
+   require_reduction_out_of_place<MeanTag>();
    ReductionMeta meta = make_reduction_meta(x, axis, keep_dim);
    RawTensor<T> out = init_out_from_meta(x, meta);
    fusion::iter::reduction_tag<T, SumSIMD>(x, meta, out);

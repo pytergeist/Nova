@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "fusion/benchmarks/eigen",
+		"source" : "fusion/benchmarks/eigen"
+	}
+}

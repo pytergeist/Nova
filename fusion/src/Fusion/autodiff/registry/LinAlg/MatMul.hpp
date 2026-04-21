@@ -19,7 +19,7 @@ auto transpose_last2(const RawTensor<T> &t) -> RawTensor<T> {
 };
 
 template <typename T> struct MatMul {
-   static constexpr std::string_view name = "MatMul";
+   using tag = MatMulTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

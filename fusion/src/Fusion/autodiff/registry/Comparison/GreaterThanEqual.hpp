@@ -11,7 +11,7 @@
 #include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct GreaterThanEqual {
-   static constexpr std::string_view name = "GreaterThanEqual";
+   using tag = GreaterEqualTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

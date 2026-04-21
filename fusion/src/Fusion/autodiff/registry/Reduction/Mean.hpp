@@ -10,7 +10,7 @@
 #include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Mean {
-   static constexpr std::string_view name = "Mean";
+   using tag = MeanTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
