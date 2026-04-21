@@ -10,7 +10,7 @@
 #include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Multiply {
-   static constexpr std::string_view name = "Multiply";
+   using tag = MulTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

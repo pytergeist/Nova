@@ -11,7 +11,7 @@
 #include "Fusion/common/Checks.hpp"
 
 template <typename T> struct GreaterThan {
-   static constexpr std::string_view name = "GreaterThan";
+   using tag = GreaterTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
