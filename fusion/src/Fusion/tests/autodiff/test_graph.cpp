@@ -49,9 +49,50 @@ public:
     }
 };
 
+/// the below code is to be moved to fixture files on creation of opschema/op layer
+/// test suite
+
+struct UnaryTag{};
+struct BinaryTag{};
+struct SplitTag{};
+
+template <> struct OpTraits<UnaryTag> {
+   static constexpr std::string_view name = "TestUnaryOp";
+   static constexpr OpSchema schema{
+      .category = OpCategory::EwiseUnary,
+      .inputs = {.kind=ArityKind::Fixed, .arity=1},
+      .outputs = {.kind=ArityKind::Fixed, .arity=1},
+      .mutation = MutationKind::OutOfPlace,
+  };
+};
+
+
+template <> struct OpTraits<BinaryTag> {
+   static constexpr std::string_view name = "TestBinaryOp";
+   static constexpr OpSchema schema{
+      .category = OpCategory::EwiseBinary,
+      .inputs = {.kind=ArityKind::Fixed, .arity=2},
+      .outputs = {.kind=ArityKind::Fixed, .arity=1},
+      .mutation = MutationKind::OutOfPlace,
+  };
+};
+
+
+template <> struct OpTraits<SplitTag> {
+   static constexpr std::string_view name = "TestSplitOp";
+   static constexpr OpSchema schema{
+      .category = OpCategory::EwiseBinary,
+      .inputs = {.kind=ArityKind::Fixed, .arity=2},
+      .outputs = {.kind=ArityKind::Fixed, .arity=2},
+      .mutation = MutationKind::OutOfPlace,
+  };
+};
+
+
+
 template <typename T>
 struct TestUnaryOp {
-      static constexpr std::string_view name = "TestUnaryOp";
+      using tag = UnaryTag;
       using In = AutodiffMeta<T>;
       using Out = AutodiffMeta<T>;
       using GradIn = AutodiffMeta<T>;
@@ -70,7 +111,7 @@ struct TestUnaryOp {
 
 template <typename T>
 struct TestBinaryOp {
-    static constexpr std::string_view name = "TestBinaryOp";
+    using tag = BinaryTag;
     using In = AutodiffMeta<T>;
     using Out = AutodiffMeta<T>;
     using GradIn = AutodiffMeta<T>;
@@ -90,7 +131,7 @@ struct TestBinaryOp {
 
 template <typename T>
 struct TestSplitOp {
-   static constexpr std::string_view name = "TestBinaryOp";
+   using tag = SplitTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
@@ -106,6 +147,8 @@ struct TestSplitOp {
       return g;
    }
 };
+
+
 
 
 class GraphTest : public ::testing::Test {
