@@ -52,6 +52,20 @@ template <typename T, class Op> class Operation {
    Operation() = default;
    explicit Operation(Op op) : op_(std::move(op)) {}
 
+   static std::size_t input_arity() {
+      if (op_has_fixed_inputs_v<tag>) {
+         return op_inputs_v<tag>.arity;
+      }
+      throw std::runtime_error("Variadic input arity: Not implemented");
+   }
+
+   static std::size_t output_arity() {
+      if (op_has_fixed_outputs_v<tag>) {
+         return op_outputs_v<tag>.arity;
+      }
+      throw std::runtime_error("Variadic output arity: Not implemented");
+   }
+
    Out forward(Context<T> &context, In &input) {
       return op_.forward(context, input);
    };
