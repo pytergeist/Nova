@@ -96,11 +96,15 @@ template <typename T> class ADTensor {
    bool is_initialised() const noexcept { return raw_.is_initialised(); }
    const void *get_storage() const noexcept { return raw_.get_storage(); }
 
-   std::vector<size_t> shape() const { return raw_.shape(); }
+   std::vector<std::size_t> shape() const { return raw_.shape(); }
+   std::vector<std::int64_t> strides() const { return raw_.strides(); }
+
    std::size_t ndims() const { return raw_.ndims(); }
    size_t size() const { return raw_.size(); }
+
    Device device() const { return raw_.device(); }
    DType dtype() const { return raw_.dtype(); }
+
    std::size_t flat_size() const { return raw_.flat_size(); }
    std::size_t rank() const { return raw_.rank(); }
 

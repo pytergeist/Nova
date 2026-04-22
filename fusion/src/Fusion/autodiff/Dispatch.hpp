@@ -37,9 +37,48 @@ AutodiffMeta<T> construct_meta(const ADTensor<T> &x,
    return meta;
 }
 
+template <class Op>
+static constexpr bool require_ewise_binary_op() {
+   return op_category_v<typename Op::tag> == OpCategory::EwiseBinary;
+}
+
+template <class Op>
+static constexpr bool require_ewise_unary_op() {
+   return op_category_v<typename Op::tag> == OpCategory::EwiseUnary;
+}
+
+template <class Op>
+static constexpr bool require_reduction_op() {
+   return op_category_v<typename Op::tag> == OpCategory::Reduction;
+}
+
+template <class Op>
+static constexpr bool require_contraction_op() {
+   return op_category_v<typename Op::tag> == OpCategory::Contraction;
+}
+
+template <class Op>
+static constexpr bool require_movement_op() {
+   return op_category_v<typename Op::tag> == OpCategory::Movement;
+}
+
+template <class Op>
+consteval void assert_op_valid_for_unary_dispatch() {
+   static_assert(require_ewise_unary_op<Op>() || require_reduction_op<Op>() || require_movement_op<Op>(),
+      "Invalid operation in binary dispatch path");
+}
+
+template <class Op>
+consteval void assert_op_valid_for_binary_dispatch() {
+   static_assert(require_ewise_binary_op<Op>() || require_contraction_op<Op>(),
+      "Invalid operation in binary dispatch path");
+}
+
 template <typename T, class Op, typename Param, class EagerFn>
-inline ADTensor<T> unary(const ADTensor<T> &x, const Param &params,
+ADTensor<T> unary(const ADTensor<T> &x, const Param &params,
                          EagerFn &&eager) {
+   assert_op_valid_for_unary_dispatch<Op>();
+
    EagerFn feager = std::forward<EagerFn>(eager);
    const bool needs_grad = grad_enabled() && x.requires_grad();
    if (!needs_grad || !should_trace(x)) {
@@ -57,7 +96,9 @@ inline ADTensor<T> unary(const ADTensor<T> &x, const Param &params,
 }
 
 template <typename T, class Op, class EagerFn>
-inline ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
+ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
+   assert_op_valid_for_unary_dispatch<Op>();
+
    EagerFn feager = std::forward<EagerFn>(eager);
    const bool needs_grad = grad_enabled() && x.requires_grad();
    if (!needs_grad || !should_trace(x)) {
@@ -77,8 +118,10 @@ inline ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
 }
 
 template <typename T, class Op, class EagerFn>
-inline ADTensor<T> binary(const ADTensor<T> &x, const ADTensor<T> &y,
+ADTensor<T> binary(const ADTensor<T> &x, const ADTensor<T> &y,
                           EagerFn &&eager) {
+   assert_op_valid_for_binary_dispatch<Op>();
+
    EagerFn feager = std::forward<EagerFn>(eager);
    const bool needs_grad =
        grad_enabled() && (x.requires_grad() || y.requires_grad());
