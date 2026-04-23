@@ -45,6 +45,14 @@ template <typename T> class Engine {
 
    ~Engine() = default;
 
+   bool val_buffer_is_empty() const noexcept {
+      return val_buff_.empty();
+   }
+
+   bool grad_buffer_is_empty() const noexcept {
+      return grad_buff_.empty();
+   }
+
    template <class Op>
    ValueID apply(AutodiffMeta<T> &payload, std::vector<ValueID> &vids) {
       NodeID nid = create_node_and_bind_inputs<Op>(payload, vids);
@@ -195,6 +203,7 @@ template <typename T> class Engine {
    std::vector<RawTensor<T>> grad_buff_{};
    // TODO: make ValueID hashable so it can be used in the below unordered_set
    std::unordered_set<std::int64_t> requires_grad_set_{};
+
 
    void ensure_value_capacity(ValueID vid) {
       if (val_buff_.size() <= static_cast<size_t>(vid)) {

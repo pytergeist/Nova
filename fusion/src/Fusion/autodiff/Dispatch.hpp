@@ -11,32 +11,6 @@
 
 namespace autodiff {
 
-template <typename T>
-AutodiffMeta<T> construct_meta(
-    const ADTensor<T> &x,   // NOLINT(bugprone-easily-swappable-parameters)
-    const ADTensor<T> &y) { // NOLINT(bugprone-easily-swappable-parameters)
-   AutodiffMeta<T> meta;
-   meta.push_back(x.raw());
-   meta.push_back(y.raw());
-   return meta;
-}
-
-template <typename T>
-AutodiffMeta<T> construct_meta(const ADTensor<T> &x) {
-   AutodiffMeta<T> meta;
-   meta.push_back(x.raw());
-   return meta;
-}
-
-template <typename T, typename Param>
-AutodiffMeta<T> construct_meta(const ADTensor<T> &x,
-                                      const Param &param) {
-   AutodiffMeta<T> meta;
-   meta.push_back(x.raw());
-   meta.op_param = param;
-   return meta;
-}
-
 template <class Op>
 static constexpr bool require_ewise_binary_op() {
    return op_category_v<typename Op::tag> == OpCategory::EwiseBinary;
@@ -72,6 +46,33 @@ template <class Op>
 consteval void assert_op_valid_for_binary_dispatch() {
    static_assert(require_ewise_binary_op<Op>() || require_contraction_op<Op>(),
       "Invalid operation in binary dispatch path");
+}
+
+
+template <typename T>
+AutodiffMeta<T> construct_meta(
+    const ADTensor<T> &x,   // NOLINT(bugprone-easily-swappable-parameters)
+    const ADTensor<T> &y) { // NOLINT(bugprone-easily-swappable-parameters)
+   AutodiffMeta<T> meta;
+   meta.push_back(x.raw());
+   meta.push_back(y.raw());
+   return meta;
+}
+
+template <typename T>
+AutodiffMeta<T> construct_meta(const ADTensor<T> &x) {
+   AutodiffMeta<T> meta;
+   meta.push_back(x.raw());
+   return meta;
+}
+
+template <typename T, typename Param>
+AutodiffMeta<T> construct_meta(const ADTensor<T> &x,
+                                      const Param &param) {
+   AutodiffMeta<T> meta;
+   meta.push_back(x.raw());
+   meta.op_param = param;
+   return meta;
 }
 
 template <typename T, class Op, typename Param, class EagerFn>

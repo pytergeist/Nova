@@ -1,7 +1,0 @@
-# CMake generated Testfile for 
-# Source directory: /Users/tompope/Documents/tom_personal_devs/Nova
-# Build directory: /Users/tompope/Documents/tom_personal_devs/Nova/cmake-build-debug
-# 
-# This file includes the relevant testing commands required for 
-# testing this directory and lists subdirectories to be tested as well.
-subdirs("fusion/benchmarks")

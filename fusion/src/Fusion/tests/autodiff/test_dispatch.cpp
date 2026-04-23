@@ -81,10 +81,7 @@ TEST(AutodiffDispatchTest,
                                                                       eager);
    EXPECT_TRUE(eager_called);
    EXPECT_FALSE(out.requires_grad());
-   EXPECT_EQ(out.shape(), t1.shape());
-   EXPECT_EQ(out.strides(), t1.strides());
-   EXPECT_EQ(out.dtype(), t1.dtype());
-   EXPECT_EQ(out.device(), t1.device());
+   EXPECT_TENSOR_EQ(out.raw(), t1.raw());
 }
 
 TEST(AutodiffDispatchTest, unary_dispatch_uses_eager_when_not_requires_grad) {
@@ -99,10 +96,7 @@ TEST(AutodiffDispatchTest, unary_dispatch_uses_eager_when_not_requires_grad) {
        autodiff::unary<float, Operation<float, TestUnaryOp<float>>>(t, eager);
    EXPECT_TRUE(eager_called);
    EXPECT_FALSE(out.requires_grad());
-   EXPECT_EQ(out.shape(), t.shape());
-   EXPECT_EQ(out.strides(), t.strides());
-   EXPECT_EQ(out.dtype(), t.dtype());
-   EXPECT_EQ(out.device(), t.device());
+   EXPECT_TENSOR_EQ(out.raw(), t.raw());
 }
 
 TEST(AutodiffDispatchTest,
@@ -120,10 +114,7 @@ TEST(AutodiffDispatchTest,
            t, p, eager);
    EXPECT_TRUE(eager_called);
    EXPECT_FALSE(out.requires_grad());
-   EXPECT_EQ(out.shape(), t.shape());
-   EXPECT_EQ(out.strides(), t.strides());
-   EXPECT_EQ(out.dtype(), t.dtype());
-   EXPECT_EQ(out.device(), t.device());
+   EXPECT_TENSOR_EQ(out.raw(), t.raw());
 }
 
 TEST(AutodiffDispatchTest,
@@ -141,10 +132,7 @@ TEST(AutodiffDispatchTest,
        autodiff::unary<float, Operation<float, TestUnaryOp<float>>>(t, eager);
 
    EXPECT_TRUE(eager_called);
-   EXPECT_EQ(out.shape(), t.shape());
-   EXPECT_EQ(out.strides(), t.strides());
-   EXPECT_EQ(out.dtype(), t.dtype());
-   EXPECT_EQ(out.device(), t.device());
+   EXPECT_TENSOR_EQ(out.raw(), t.raw());
 }
 
 TEST(
@@ -165,10 +153,7 @@ TEST(
                                                                       eager);
 
    EXPECT_TRUE(eager_called);
-   EXPECT_EQ(out.shape(), t2.shape());
-   EXPECT_EQ(out.strides(), t2.strides());
-   EXPECT_EQ(out.dtype(), t2.dtype());
-   EXPECT_EQ(out.device(), t2.device());
+   EXPECT_TENSOR_EQ(out.raw(), t2.raw());
 }
 
 TEST(
@@ -189,8 +174,5 @@ TEST(
                                                                       eager);
 
    EXPECT_TRUE(eager_called);
-   EXPECT_EQ(out.shape(), t2.shape());
-   EXPECT_EQ(out.strides(), t2.strides());
-   EXPECT_EQ(out.dtype(), t2.dtype());
-   EXPECT_EQ(out.device(), t2.device());
+   EXPECT_TENSOR_EQ(out.raw(), t2.raw());
 }
