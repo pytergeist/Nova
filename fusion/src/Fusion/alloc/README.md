@@ -27,7 +27,6 @@ Storage / Tensor / Physics
 - `CPUSubAllocator` - CPU implementation of the sub-allocator backend 
 - `PoolAllocator` / `BFCPoolAllocator` - pooled split/coalesce allocator over acquired regions - manages chunks, free buckets, and coalescing 
 - `ArenaAllocator` - intended scratch / temporary allocator path 
-- 
 
 ### Current behavior 
 - requests are rounded to power-of-two chunk sizes 
