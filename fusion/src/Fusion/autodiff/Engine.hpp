@@ -54,7 +54,7 @@ template <typename T> class Engine {
    }
 
    template <class Op>
-   ValueID apply(AutodiffMeta<T> &payload, std::vector<ValueID> &vids) {
+   std::vector<ValueID> apply_multi(AutodiffMeta<T> &payload, std::vector<ValueID> &vids) {
       NodeID nid = create_node_and_bind_inputs<Op>(payload, vids);
 
       INode<T> &node = graph_.get_node(nid);
@@ -66,8 +66,17 @@ template <typename T> class Engine {
       ensure_node_outputs_allocated(nid, out.size());
       write_forward_results(nid, out);
 
-      // TODO: need to eventually return all outputs? (vector<ValueID>)
-      return node.get_output(0);
+      return node.outputs();
+   }
+
+   template <typename Op>
+   ValueID apply_single(AutodiffMeta<T> &payload, std::vector<ValueID> &vids) {
+      const std::vector<ValueID> out = apply_multi<Op>(payload, vids);
+      constexpr std::size_t allowed_outputs = 1;
+      if (op_num_outputs_v<typename Op::tag> == allowed_outputs && out.size() == allowed_outputs) {
+         return out.front();
+      }
+      throw std::runtime_error("Engine::apply_single: invalid number of operation outputs produced");
    }
 
    BackwardResult<T> backward(ValueID seed_vid, bool materialise = true,

@@ -14,9 +14,11 @@ inline ADTensor<float> make_test_tensor(bool requires_grad) {
                           requires_grad);
 }
 
-inline AutodiffMeta<float> make_test_meta_forward_result(bool requires_grad) {
+inline AutodiffMeta<float> make_test_meta_forward_result(bool requires_grad, int num_tensors) {
    AutodiffMeta<float> meta;
-   meta.push_back(make_test_tensor(requires_grad).raw());
+   for (int i = 0; i < num_tensors; ++i) {
+      meta.push_back(make_test_tensor(requires_grad).raw());
+   }
    return meta;
 }
 
@@ -147,7 +149,7 @@ struct PopTestUnaryOp {
    using GradOut = AutodiffMeta<T>;
 
    Out forward(Context<T> &context, const In &input) {
-      Out out = make_test_meta_forward_result(false);
+      Out out = make_test_meta_forward_result(false, 1);
       return out;
    }
 
@@ -166,7 +168,26 @@ struct PopTestBinaryOp {
    using GradOut = AutodiffMeta<T>;
 
    Out forward(Context<T> &context, const In &input) {
-      Out out = make_test_meta_forward_result(false);
+      Out out = make_test_meta_forward_result(false, 1);
+      return out;
+   }
+
+   GradIn backward(Context<T> &context, GradOut &grad_out) {
+      GradIn g;
+      return g;
+   }
+};
+
+template <typename T>
+struct PopTestSplitOp {
+   using tag = SplitTag;
+   using In = AutodiffMeta<T>;
+   using Out = AutodiffMeta<T>;
+   using GradIn = AutodiffMeta<T>;
+   using GradOut = AutodiffMeta<T>;
+
+   Out forward(Context<T> &context, const In &input) {
+      Out out = make_test_meta_forward_result(false, 2);
       return out;
    }
 

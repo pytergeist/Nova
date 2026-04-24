@@ -89,7 +89,7 @@ ADTensor<T> unary(const ADTensor<T> &x, const Param &params,
    ValueID vx = const_cast<ADTensor<T> &>(x).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, params);
    std::vector<ValueID> vids{vx};
-   ValueID out = eng.template apply<Op>(meta, vids);
+   ValueID out = eng.template apply_single<Op>(meta, vids);
    RawTensor<T> raw = eng.materialise(out);
    ADTensor<T> result(std::move(raw), x.requires_grad());
    result.set_vid(out);
@@ -111,7 +111,7 @@ ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
            .ensure_vid(); // NOLINT(cppcoreguidelines-pro-type-const-cast)
    AutodiffMeta<T> meta = construct_meta<T>(x);
    std::vector<ValueID> vids{vx};
-   ValueID out = eng.template apply<Op>(meta, vids);
+   ValueID out = eng.template apply_single<Op>(meta, vids);
    RawTensor<T> raw = eng.materialise(out);
    ADTensor<T> result(std::move(raw), needs_grad);
    result.set_vid(out);
@@ -134,7 +134,7 @@ ADTensor<T> binary(const ADTensor<T> &x, const ADTensor<T> &y,
    ValueID vy = const_cast<ADTensor<T> &>(y).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, y);
    std::vector<ValueID> vids{vx, vy};
-   ValueID out = eng.template apply<Op>(meta, vids);
+   ValueID out = eng.template apply_single<Op>(meta, vids);
    RawTensor<T> raw = eng.materialise(out);
    ADTensor<T> result(std::move(raw), needs_grad);
    result.set_vid(out);
