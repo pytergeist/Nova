@@ -28,7 +28,6 @@ Storage / Tensor / Physics
 - `PoolAllocator` / `BFCPoolAllocator` - pooled split/coalesce allocator over acquired regions - manages chunks, free buckets, and coalescing 
 - `ArenaAllocator` - intended scratch / temporary allocator path 
 - 
---- ## Current pooled allocator model The current pool allocator is closer to a **BFC-style pooled allocator** than to a pure slab allocator.
 
 ### Current behavior 
 - requests are rounded to power-of-two chunk sizes 
