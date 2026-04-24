@@ -2,22 +2,44 @@
 #define FUSION_TESTS_AUTODIFF_HELPERS_H_
 
 #include <gtest/gtest.h>
+#include <random>
 
 #include "Fusion/autodiff/ADTensor.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/Engine.hpp"
 #include "Fusion/autodiff/EngineContext.hpp"
 
-inline ADTensor<float> make_test_tensor(bool requires_grad) {
-   return ADTensor<float>({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+
+inline std::vector<float> generate_random_vector(std::vector<std::size_t> shape, std::uint32_t seed, float min = 0.0, float max = 10.0) {
+   std::mt19937 engine_;
+   engine_.seed(seed);
+   size_t total =
+    std::accumulate(shape.begin(), shape.end(), static_cast<size_t>(1),
+                    std::multiplies<>());
+
+   std::vector<float> data;
+   data.reserve(total);
+
+   std::uniform_real_distribution<float> dist(min, max);
+   for (size_t i = 0; i < total; ++i) {
+      data.push_back(dist(engine_));
+   }
+   return data;
+ }
+
+inline ADTensor<float> make_test_tensor(bool requires_grad, uint32_t seed = 42,
+                                         std::vector<std::size_t> shape = std::vector<size_t>{2, 3}) {
+   std::vector<float> data = generate_random_vector(shape, seed);
+   return ADTensor<float>(shape, data,
                           DType::FLOAT32, Device{DeviceType::CPU, 0},
                           requires_grad);
 }
 
-inline AutodiffMeta<float> make_test_meta_forward_result(bool requires_grad, int num_tensors) {
+inline AutodiffMeta<float> make_test_meta_forward_result(bool requires_grad, int num_tensors, uint32_t seed = 42) {
    AutodiffMeta<float> meta;
    for (int i = 0; i < num_tensors; ++i) {
-      meta.push_back(make_test_tensor(requires_grad).raw());
+      meta.push_back(make_test_tensor(requires_grad, seed).raw());
+      seed += 1;
    }
    return meta;
 }

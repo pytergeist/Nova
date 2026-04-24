@@ -81,8 +81,9 @@ TEST(AutodiffEngineTest, apply_single_split_op_returns_vector_forward_result_of_
    EXPECT_EQ(out_vids[1], ValueID{3});
    RawTensor<float> forward_result1 = engine.materialise(out_vids[0]);
    RawTensor<float> forward_result2 = engine.materialise(out_vids[1]);
-   EXPECT_TENSOR_EQ(forward_result1,  make_test_tensor(false).raw());
-   EXPECT_TENSOR_EQ(forward_result1,  make_test_tensor(false).raw());
+   // TODO: set seed globally for fixtures, not with magic numbers
+   EXPECT_TENSOR_EQ(forward_result1,  make_test_tensor(false, 42).raw());
+   EXPECT_TENSOR_EQ(forward_result2,  make_test_tensor(false, 43).raw());
 }
 
 
@@ -172,6 +173,8 @@ TEST(AutodiffEngineTest, apply_single_split_op_throws) {
    using Op = Operation<float, TestSplitOp<float>>;
    EXPECT_THROW(engine.apply_single<Op>(meta, vids), std::runtime_error);
 }
+
+
 
 
 
