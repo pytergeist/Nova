@@ -9,6 +9,49 @@
 #include "Fusion/autodiff/Engine.hpp"
 #include "Fusion/autodiff/EngineContext.hpp"
 
+template <typename T> class GraphHarness {
+public:
+   Graph<T> graph;
+
+   NodeID make_node_id() { return graph.make_node_id(); }
+
+   ValueID new_input_value() { return graph.new_input_value(); }
+
+   ValueID new_intermediate_value() { return graph.new_intermediate_value(); }
+
+   void add_edge(NodeID src_nid, NodeID dst_nid) {
+      graph.add_edge(src_nid, dst_nid);
+   }
+
+   template <typename ConcreteOp> NodeID build_node() {
+      return graph.template build_node<ConcreteOp>();
+   }
+
+   void append_consumer_table(NodeID dst_nid, ValueID vid, size_t slot) {
+      graph.append_consumer_table(dst_nid, vid, slot);
+   }
+
+   void set_produced_by(ValueID vid, NodeID nid, size_t out_slot) {
+      graph.set_produced_by(vid, nid, out_slot);
+   }
+
+   void set_node_input(INode<T> &node, ValueID vid) {
+      graph.set_node_input(node, vid);
+   }
+
+   void set_node_output(INode<T> &node, ValueID vid) {
+      graph.set_node_output(node, vid);
+   }
+
+   const auto &edges() const { return graph.edges_; }
+};
+
+class GraphTest : public ::testing::Test {
+protected:
+   using T = float;
+   GraphHarness<T> h;
+};
+
 
 inline std::vector<float> generate_random_vector(std::vector<std::size_t> shape, std::uint32_t seed, float min = 0.0, float max = 10.0) {
    std::mt19937 engine_;

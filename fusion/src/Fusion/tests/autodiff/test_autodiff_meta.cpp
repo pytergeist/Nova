@@ -4,7 +4,7 @@
 
 #include "Fusion/core/RawTensor.hpp"
 
-#include "helpers.h"
+#include "fixtures.h"
 
 TEST(AutodiffMetaTest, default_constructor_produces_empty_data) {
    AutodiffMeta<float> meta{};

@@ -3,7 +3,7 @@
 #include "Fusion/autodiff/Engine.hpp"
 #include "Fusion/autodiff/EngineContext.hpp"
 
-#include "helpers.h"
+#include "fixtures.h"
 
 TEST(EngineContextTest, engine_context_set_and_get_returns_engine_instance) {
    EngineContextReset reset;

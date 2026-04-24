@@ -5,7 +5,7 @@
 #include "Fusion/autodiff/Engine.hpp"
 #include "Fusion/autodiff/EngineContext.hpp"
 
-#include "helpers.h"
+#include "fixtures.h"
 
 TEST(AutodiffModeTest, no_grad_guard_disables_grad) {
    EXPECT_TRUE(autodiff::grad_enabled());

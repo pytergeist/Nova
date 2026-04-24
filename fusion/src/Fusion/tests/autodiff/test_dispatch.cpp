@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "helpers.h"
+#include "fixtures.h"
 
 #include "Fusion/autodiff/Dispatch.hpp"
 
