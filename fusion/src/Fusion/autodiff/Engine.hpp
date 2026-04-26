@@ -91,13 +91,14 @@ template <typename T> class Engine {
       for (auto it = order.rbegin(); it != order.rend(); ++it) {
          INode<T> &n = graph_.get_node(NodeID{it->idx});
          FUSION_CHECK(n.has_outputs(), "node has no outputs in backward()");
-
-         const ValueID out_vid = n.get_output(0);
-         validate_forward_value_exists(n, out_vid);
-         ensure_output_grad_slot(out_vid);
-
          AutodiffMeta<T> grad_in;
-         grad_in.push_back(grad_buff_[out_vid]);
+         for (size_t i = 0; i < n.num_outputs(); ++i) {
+            ValueID out_vid = n.get_output(i);
+            validate_forward_value_exists(n, out_vid);
+            ensure_output_grad_slot(out_vid);
+            grad_in.push_back(grad_buff_[out_vid]);
+         }
+
          AutodiffMeta<T> grad_out = safe_apply_backward(n, grad_in);
 
          FUSION_CHECK(grad_out.size() == n.num_inputs(),
@@ -127,6 +128,7 @@ template <typename T> class Engine {
    BackwardResult<T> materialise_leaf_grads() {
       BackwardResult<T> result;
       for (std::int64_t vid : requires_grad_set_) {
+         FUSION_BOUNDS_CHECK(vid, grad_buff_.size());
          result.grads.try_emplace(vid, grad_buff_[vid]);
       }
       FUSION_CHECK(!result.empty(),
@@ -143,6 +145,7 @@ template <typename T> class Engine {
    }
 
    RawTensor<T> materialise(ValueID vid) {
+      FUSION_BOUNDS_CHECK(vid, val_buff_.size());
       const RawTensor<T> &src = val_buff_[vid];
 
       std::vector<T> data(src.begin(), src.end());
@@ -151,7 +154,7 @@ template <typename T> class Engine {
    }
 
    RawTensor<T> get_grad(ValueID vid) {
-      FUSION_BOUNDS_CHECK(vid, val_buff_.size());
+      FUSION_BOUNDS_CHECK(vid, grad_buff_.size());
       return grad_buff_[vid];
    }
 
@@ -212,7 +215,6 @@ template <typename T> class Engine {
    std::vector<RawTensor<T>> grad_buff_{};
    // TODO: make ValueID hashable so it can be used in the below unordered_set
    std::unordered_set<std::int64_t> requires_grad_set_{};
-
 
    void ensure_value_capacity(ValueID vid) {
       if (val_buff_.size() <= static_cast<size_t>(vid)) {
