@@ -11,12 +11,13 @@ class DeviceType(Enum):
 
 
 class Device:
-    def __init__(self, device: DeviceType, index: int = -1):
+    def __init__(self, device: DeviceType, index: int = 0):
         self.type = device
         self.index = index
 
 
 def parse_device(spec: str | None) -> tuple[DeviceType, int]:
+    # TODO: this spec is out of line with cpp device layer. Migrate to iterative IDs
     if spec is None:
         return Device(DeviceType.CPU, 0)
 
