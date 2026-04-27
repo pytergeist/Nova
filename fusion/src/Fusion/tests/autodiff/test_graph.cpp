@@ -4,7 +4,6 @@
 
 #include "Fusion/autodiff/Graph.hpp"
 
-
 TEST_F(GraphTest, default_constructed_graph_is_empty) {
    EXPECT_TRUE(h.graph.nodes().empty());
    EXPECT_TRUE(h.graph.node_ids().empty());

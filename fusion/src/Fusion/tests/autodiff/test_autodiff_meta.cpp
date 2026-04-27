@@ -111,7 +111,6 @@ TEST(RawTensorTest, begin_end_span_whole_tensor) {
 
    EXPECT_EQ(meta.end() - meta.begin(), 2);
 
-
    EXPECT_TENSOR_EQ(meta.begin()[0], t1);
    EXPECT_TENSOR_EQ(meta.begin()[1], t2);
 }
