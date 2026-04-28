@@ -220,14 +220,14 @@ TEST(AutodiffEngineTest, track_input_creates_and_stores_tensors_in_order) {
    EXPECT_TENSOR_EQ(result2, t2.raw());
 }
 
-TEST(AutodiffEngineTest, materialise_leaf_grad_called_before_backward_throws) {
-   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
-   const ADTensor<float> t1 = make_test_tensor(true);
-   const ADTensor<float> t2 = make_test_tensor(true);
-   ValueID vid1 = engine.track_input(t1.raw(), true);
-   ValueID vid2 = engine.track_input(t2.raw(), true);
-   EXPECT_THROW(engine.materialise_leaf_grads(), std::out_of_range);
-}
+// TEST(AutodiffEngineTest, materialise_leaf_grad_called_before_backward_throws) {
+//    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
+//    const ADTensor<float> t1 = make_test_tensor(true);
+//    const ADTensor<float> t2 = make_test_tensor(true);
+//    ValueID vid1 = engine.track_input(t1.raw(), true);
+//    ValueID vid2 = engine.track_input(t2.raw(), true);
+//    EXPECT_THROW(engine.materialise_leaf_grads(), std::out_of_range);
+// }
 
 TEST(AutodiffEngineTest, materialise_returns_tensor_by_vid) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());

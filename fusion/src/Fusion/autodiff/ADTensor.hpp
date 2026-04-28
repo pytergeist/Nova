@@ -1,10 +1,7 @@
 #ifndef AD_TENSOR_HPP
 #define AD_TENSOR_HPP
 
-#include <cstring>
 #include <memory>
-#include <ostream>
-#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -13,7 +10,6 @@
 #include "AutodiffContext.hpp"
 #include "AutodiffMode.hpp"
 #include "Dispatch.hpp"
-#include "Engine.hpp"
 #include "registry/Comparison/Comparison.h"
 #include "registry/Ewise/Ewise.h"
 #include "registry/LinAlg/LinAlg.h"
@@ -34,16 +30,8 @@ template <typename T> struct ADTensor;
 
 // TODO: this doesn't follow the rule of 5
 
-/* TODO: Refactor this logic into the engine context - this should be done on
- * exit of the EngineContext manager. The longer term fix for this issue is to
- * write intrusive_ptr classes to retain the graph while a tensor relies on it -
- * but this would require changing the ownership model so this should only be
- * done when the core/invariants are stable. */
 template <typename T>
-inline thread_local std::vector<ADTensor<T> *> leaf_tensors;
-
-template <typename T>
-static inline ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
+static ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
    if (t.eng_ == &eng && t.vid() >= 0) {
       return t.vid();
    }
@@ -53,8 +41,8 @@ static inline ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
    return vid;
 }
 
-template <typename T> // TODO: need to either pass in device somehow?
-inline ADTensor<T> ad_scalar_t(const T scalar, const DType dtype,
+template <typename T>
+ADTensor<T> ad_scalar_t(const T scalar, const DType dtype,
                                Device device) {
    return ADTensor<T>{{1}, {scalar}, dtype, device, false};
 }
@@ -86,11 +74,6 @@ template <typename T> class ADTensor {
        : raw_(std::move(shape), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}
 
-   ~ADTensor() {
-      auto &vec = leaf_tensors<T>;
-      vec.erase(std::remove(vec.begin(), vec.end(), this), vec.end());
-   }
-
    const RawTensor<T> &raw() const noexcept { return raw_; }
    RawTensor<T> &raw() noexcept { return raw_; }
 
@@ -117,23 +100,21 @@ template <typename T> class ADTensor {
 
    bool has_vid() const noexcept { return vid_ >= 0; }
 
-   void set_leaf() {
-      if (requires_grad_) {
-         leaf_tensors<T>.push_back(this);
-      }
-   }
-
    ValueID ensure_vid() {
       Engine<T> &eng = AutodiffContext<T>::get();
 
       if (vid_ >= 0) {
          if (eng.has_value(vid_)) {
-            set_leaf();
             return vid_;
          }
       }
+
       vid_ = eng.track_input(raw_, requires_grad_);
-      set_leaf();
+
+      if (requires_grad_) {
+         grad_slot_id_ = eng.get_grad_slot(vid_);
+      }
+
       return vid_;
    }
 
@@ -143,27 +124,17 @@ template <typename T> class ADTensor {
    void backward() {
       Engine<T> &eng = AutodiffContext<T>::get();
       ValueID vid = ensure_vid();
-      BackwardResult<T> result = eng.backward(vid);
-      attatch_grads(result);
+      eng.backward(vid);
    }
 
-   void attatch_grads(BackwardResult<T> &res) const {
-      for (ADTensor<T> *leaf : leaf_tensors<T>) {
-         if (!leaf->has_vid())
-            continue;
-         auto it = res.grads.find(leaf->vid());
-         if (it != res.grads.end()) {
-            leaf->grad_ = std::make_shared<RawTensor<T>>(it->second);
-         }
-      }
-      leaf_tensors<T>.clear();
-   }
 
    std::optional<ADTensor<T>> grad() const noexcept {
-      if (!grad_ || !grad_->is_initialised()) {
+      if (grad_slot_id_ == -1 || !requires_grad_) {
          return std::nullopt;
       }
-      return ADTensor<T>(*grad_, false);
+      GradStore<T>& store = AutodiffContext<T>::runtime().grad_store();
+      RawTensor<T> grad = store.get(grad_slot_id_);
+      return ADTensor<T>(grad, false);
    }
 
    void ensure_grad() {
@@ -313,6 +284,7 @@ template <typename T> class ADTensor {
    RawTensor<T> raw_;
    mutable std::shared_ptr<RawTensor<T>> grad_;
    ValueID vid_{-1};
+   GradSlotID grad_slot_id_{-1};
    bool requires_grad_;
 
    static bool grad_flow(const ADTensor &x, const ADTensor &y) {

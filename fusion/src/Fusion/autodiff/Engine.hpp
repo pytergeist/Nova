@@ -3,17 +3,14 @@
 
 #include <iostream>
 #include <memory>
-#include <optional>
-#include <ostream>
 #include <stdexcept>
-#include <unordered_set>
+#include <unordered_map>
 
 #include "Fusion/TensorFactory.hpp"
 #include "Fusion/common/Checks.hpp"
 
 #include "ADTypes.h"
 #include "AutodiffMeta.hpp"
-#include "BackwardResult.hpp"
 #include "Graph.hpp"
 #include "Sort.hpp"
 
@@ -76,8 +73,8 @@ template <typename T> class Engine {
           "Engine::apply_single: invalid number of operation outputs produced");
    }
 
-   BackwardResult<T> backward(ValueID seed_vid, bool materialise = true,
-                              bool retain_graph = false) {
+   void backward(const ValueID seed_vid, const bool materialise = true,
+                              const bool retain_graph = false) {
       prepare_grad_buffers();
 
       std::vector<NodeID> order = topo_sort_for_backward();
@@ -103,34 +100,39 @@ template <typename T> class Engine {
          accum_input_grads(n, grad_out);
       }
 
-      BackwardResult<T> result;
-
       if (materialise) {
-         result = materialise_leaf_grads();
-         return result;
+         export_leaf_grads();
       }
 
       if (retain_graph) {
          throw std::logic_error("retain_graph not implemented");
       }
-      return result;
    }
+
+   void export_leaf_grads() {
+      for (auto [vid, binding] : requires_grad_set_) {
+         RawTensor<T> &grad = grad_buff_[vid];
+         grad_store_.set(binding.slot, grad);
+      }
+   }
+
 
    void maybe_mark_leaf(ValueID vid, const bool requires_grad) {
       if (graph_.get_produced_by(vid).nid == -1 && requires_grad) {
-         requires_grad_set_.insert(vid);
+         const GradSlotID slot = grad_store_.allocate();
+         const LeafGradBinding binding{vid, slot};
+         requires_grad_set_.insert({vid, binding});
       }
    }
 
-   BackwardResult<T> materialise_leaf_grads() {
-      BackwardResult<T> result;
-      for (std::int64_t vid : requires_grad_set_) {
-         FUSION_BOUNDS_CHECK(vid, grad_buff_.size());
-         result.grads.try_emplace(vid, grad_buff_[vid]);
+   GradSlotID get_grad_slot(const ValueID vid) const {
+      auto it = requires_grad_set_.find(vid);
+      if (it != requires_grad_set_.end()) {
+         LeafGradBinding binding = it->second;
+         FUSION_CHECK(vid == binding.vid, "ValueID out of sync with GradBindings");
+         return binding.slot;
       }
-      FUSION_CHECK(!result.empty(),
-                   "backward result is empty - no gradients to attatch");
-      return result;
+      throw std::runtime_error("Gradient not found in persistent grad storage");
    }
 
    ValueID track_input(const RawTensor<T> &raw, const bool requires_grad) {
@@ -212,7 +214,7 @@ template <typename T> class Engine {
    std::vector<RawTensor<T>> grad_buff_{};
    GradStore<T> &grad_store_{};
    // TODO: make ValueID hashable so it can be used in the below unordered_set
-   std::unordered_set<std::int64_t> requires_grad_set_{};
+   std::unordered_map<ValueID, LeafGradBinding> requires_grad_set_{};
 
    void ensure_value_capacity(ValueID vid) {
       if (val_buff_.size() <= static_cast<size_t>(vid)) {

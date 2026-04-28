@@ -38,6 +38,11 @@ template <typename T> class GradStore {
       return static_cast<GradSlotID>(slots_.size() - 1);
    }
 
+   RawTensor<T> get(const GradSlotID slot) {
+      FUSION_CHECK(has(slot), "No gradient available in GradStore");
+      return slots_[static_cast<std::size_t>(slot)].value();
+   }
+
    bool has(const GradSlotID slot) const noexcept {
       return slot <= slots_.size();
    }
