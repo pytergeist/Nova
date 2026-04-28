@@ -11,43 +11,36 @@
 
 namespace autodiff {
 
-template <class Op>
-static constexpr bool require_ewise_binary_op() {
+template <class Op> static constexpr bool require_ewise_binary_op() {
    return op_category_v<typename Op::tag> == OpCategory::EwiseBinary;
 }
 
-template <class Op>
-static constexpr bool require_ewise_unary_op() {
+template <class Op> static constexpr bool require_ewise_unary_op() {
    return op_category_v<typename Op::tag> == OpCategory::EwiseUnary;
 }
 
-template <class Op>
-static constexpr bool require_reduction_op() {
+template <class Op> static constexpr bool require_reduction_op() {
    return op_category_v<typename Op::tag> == OpCategory::Reduction;
 }
 
-template <class Op>
-static constexpr bool require_contraction_op() {
+template <class Op> static constexpr bool require_contraction_op() {
    return op_category_v<typename Op::tag> == OpCategory::Contraction;
 }
 
-template <class Op>
-static constexpr bool require_movement_op() {
+template <class Op> static constexpr bool require_movement_op() {
    return op_category_v<typename Op::tag> == OpCategory::Movement;
 }
 
-template <class Op>
-consteval void assert_op_valid_for_unary_dispatch() {
-   static_assert(require_ewise_unary_op<Op>() || require_reduction_op<Op>() || require_movement_op<Op>(),
-      "Invalid operation in binary dispatch path");
+template <class Op> consteval void assert_op_valid_for_unary_dispatch() {
+   static_assert(require_ewise_unary_op<Op>() || require_reduction_op<Op>() ||
+                     require_movement_op<Op>(),
+                 "Invalid operation in binary dispatch path");
 }
 
-template <class Op>
-consteval void assert_op_valid_for_binary_dispatch() {
+template <class Op> consteval void assert_op_valid_for_binary_dispatch() {
    static_assert(require_ewise_binary_op<Op>() || require_contraction_op<Op>(),
-      "Invalid operation in binary dispatch path");
+                 "Invalid operation in binary dispatch path");
 }
-
 
 template <typename T>
 AutodiffMeta<T> construct_meta(
@@ -59,16 +52,14 @@ AutodiffMeta<T> construct_meta(
    return meta;
 }
 
-template <typename T>
-AutodiffMeta<T> construct_meta(const ADTensor<T> &x) {
+template <typename T> AutodiffMeta<T> construct_meta(const ADTensor<T> &x) {
    AutodiffMeta<T> meta;
    meta.push_back(x.raw());
    return meta;
 }
 
 template <typename T, typename Param>
-AutodiffMeta<T> construct_meta(const ADTensor<T> &x,
-                                      const Param &param) {
+AutodiffMeta<T> construct_meta(const ADTensor<T> &x, const Param &param) {
    AutodiffMeta<T> meta;
    meta.push_back(x.raw());
    meta.op_param = param;
@@ -76,8 +67,7 @@ AutodiffMeta<T> construct_meta(const ADTensor<T> &x,
 }
 
 template <typename T, class Op, typename Param, class EagerFn>
-ADTensor<T> unary(const ADTensor<T> &x, const Param &params,
-                         EagerFn &&eager) {
+ADTensor<T> unary(const ADTensor<T> &x, const Param &params, EagerFn &&eager) {
    assert_op_valid_for_unary_dispatch<Op>();
 
    EagerFn feager = std::forward<EagerFn>(eager);
@@ -120,7 +110,7 @@ ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
 
 template <typename T, class Op, class EagerFn>
 ADTensor<T> binary(const ADTensor<T> &x, const ADTensor<T> &y,
-                          EagerFn &&eager) {
+                   EagerFn &&eager) {
    assert_op_valid_for_binary_dispatch<Op>();
 
    EagerFn feager = std::forward<EagerFn>(eager);

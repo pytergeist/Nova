@@ -12,8 +12,8 @@
 
 #include <cstddef>
 
-
-// TODO: Who owns shapes and strides here? should it be storage layer or Tensor wrappers?
+// TODO: Who owns shapes and strides here? should it be storage layer or Tensor
+// wrappers?
 template <typename T> class NDTensorStorage : public ITensorStorage<T> {
 
  public: // TODO: Be careful here - do we want this ptr to be mutable?
@@ -58,7 +58,6 @@ template <typename T> class NDTensorStorage : public ITensorStorage<T> {
    const TensorBuffer &data() const override { return data_; }
    T *data_ptr() override { return data_.data<T>(); }
    const T *data_ptr() const override { return data_.data<T>(); }
-
 
    [[nodiscard]] std::size_t size() const override { return data_.size<T>(); }
    [[nodiscard]] Device device() const override { return device_; }

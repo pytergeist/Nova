@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "Fusion/autodiff/ADTensor.hpp"
+#include "Fusion/autodiff/AutodiffContext.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/Engine.hpp"
-#include "Fusion/autodiff/AutodiffContext.hpp"
 
 #include "fixtures.h"
 
@@ -45,7 +45,7 @@ TEST(AutodiffModeTest,
    AutodiffContextReset reset;
    ADTensor<float> t = make_test_tensor(true);
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
 
    EXPECT_TRUE(autodiff::should_trace(t));
@@ -54,7 +54,7 @@ TEST(AutodiffModeTest,
 TEST(AutodiffModeTest, should_trace_unary_returns_false_when_engine_not_set) {
    ADTensor<float> t = make_test_tensor(true);
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    EXPECT_FALSE(autodiff::should_trace(t));
 }
 
@@ -63,7 +63,7 @@ TEST(AutodiffModeTest,
    AutodiffContextReset reset;
    ADTensor<float> t = make_test_tensor(true);
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
    AutodiffContext<float>::pop();
    EXPECT_FALSE(autodiff::should_trace(t));
@@ -74,7 +74,7 @@ TEST(AutodiffModeTest,
    AutodiffContextReset reset;
    ADTensor<float> t = make_test_tensor(false);
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
    EXPECT_FALSE(autodiff::should_trace(t));
 }
@@ -85,7 +85,7 @@ TEST(AutodiffModeTest, should_trace_unary_returns_false_when_no_grad_guard) {
 
    autodiff::NoGradGuard _;
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
    EXPECT_FALSE(autodiff::should_trace(t));
 }
@@ -97,7 +97,7 @@ TEST(
    ADTensor<float> t1 = make_test_tensor(false);
    ADTensor<float> t2 = make_test_tensor(true);
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
    EXPECT_TRUE(autodiff::should_trace(t1, t2));
 }
@@ -109,7 +109,7 @@ TEST(
    ADTensor<float> t1 = make_test_tensor(true);
    ADTensor<float> t2 = make_test_tensor(false);
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
    EXPECT_TRUE(autodiff::should_trace(t1, t2));
 }
@@ -118,7 +118,7 @@ TEST(AutodiffModeTest, should_trace_binary_returns_false_when_engine_not_set) {
    ADTensor<float> t1 = make_test_tensor(true);
    ADTensor<float> t2 = make_test_tensor(true);
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    EXPECT_FALSE(autodiff::should_trace(t1, t2));
 }
 
@@ -128,7 +128,7 @@ TEST(AutodiffModeTest,
    ADTensor<float> t1 = make_test_tensor(false);
    ADTensor<float> t2 = make_test_tensor(false);
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
    EXPECT_FALSE(autodiff::should_trace(t1, t2));
 }
@@ -140,7 +140,7 @@ TEST(AutodiffModeTest, should_trace_binary_returns_false_when_no_grad_guard) {
 
    autodiff::NoGradGuard _;
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
    EXPECT_FALSE(autodiff::should_trace(t1, t2));
 }
@@ -151,7 +151,7 @@ TEST(AutodiffModeTest,
    ADTensor<float> t1 = make_test_tensor(true);
    ADTensor<float> t2 = make_test_tensor(true);
 
-   Engine<float> enginet;
+   Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
    AutodiffContext<float>::pop();
    EXPECT_FALSE(autodiff::should_trace(t1, t2));

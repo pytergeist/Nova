@@ -35,8 +35,7 @@ struct ShapeHash {
 
 template <typename T> class Engine {
  public:
-
-   Engine(GradStore<T>& grad_store) : grad_store_(grad_store) {};
+   Engine(GradStore<T> &grad_store) : grad_store_(grad_store) {};
 
    Engine(const Engine &) = delete;
    Engine &operator=(const Engine &) = delete;
@@ -44,16 +43,13 @@ template <typename T> class Engine {
    Engine(Engine &&) = delete;
    Engine &operator=(Engine &&) = delete;
 
-   bool val_buffer_is_empty() const noexcept {
-      return val_buff_.empty();
-   }
+   bool val_buffer_is_empty() const noexcept { return val_buff_.empty(); }
 
-   bool grad_buffer_is_empty() const noexcept {
-      return grad_buff_.empty();
-   }
+   bool grad_buffer_is_empty() const noexcept { return grad_buff_.empty(); }
 
    template <class Op>
-   std::vector<ValueID> apply_multi(AutodiffMeta<T> &payload, std::vector<ValueID> &vids) {
+   std::vector<ValueID> apply_multi(AutodiffMeta<T> &payload,
+                                    std::vector<ValueID> &vids) {
       NodeID nid = create_node_and_bind_inputs<Op>(payload, vids);
 
       INode<T> &node = graph_.get_node(nid);
@@ -72,10 +68,12 @@ template <typename T> class Engine {
    ValueID apply_single(AutodiffMeta<T> &payload, std::vector<ValueID> &vids) {
       const std::vector<ValueID> out = apply_multi<Op>(payload, vids);
       constexpr std::size_t allowed_outputs = 1;
-      if (op_num_outputs_v<typename Op::tag> == allowed_outputs && out.size() == allowed_outputs) {
+      if (op_num_outputs_v<typename Op::tag> == allowed_outputs &&
+          out.size() == allowed_outputs) {
          return out.front();
       }
-      throw std::runtime_error("Engine::apply_single: invalid number of operation outputs produced");
+      throw std::runtime_error(
+          "Engine::apply_single: invalid number of operation outputs produced");
    }
 
    BackwardResult<T> backward(ValueID seed_vid, bool materialise = true,
@@ -212,7 +210,7 @@ template <typename T> class Engine {
    Graph<T> graph_{};
    std::vector<RawTensor<T>> val_buff_{};
    std::vector<RawTensor<T>> grad_buff_{};
-   GradStore<T>& grad_store_{};
+   GradStore<T> &grad_store_{};
    // TODO: make ValueID hashable so it can be used in the below unordered_set
    std::unordered_set<std::int64_t> requires_grad_set_{};
 

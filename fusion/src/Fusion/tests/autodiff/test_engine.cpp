@@ -6,7 +6,7 @@
 
 TEST(AutodiffEngineTest,
      default_constructed_engine_has_empty_grad_and_val_buffers) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    EXPECT_TRUE(engine.val_buffer_is_empty());
    EXPECT_TRUE(engine.grad_buffer_is_empty());
 }
@@ -16,7 +16,7 @@ TEST(AutodiffEngineTest,
    const ADTensor<float> t1 = make_test_tensor(true);
    const ADTensor<float> t2 = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t1.raw());
@@ -41,7 +41,7 @@ TEST(AutodiffEngineTest,
      apply_single_unary_op_returns_single_forward_result_vid) {
    const ADTensor<float> t1 = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t1.raw());
@@ -63,7 +63,7 @@ TEST(AutodiffEngineTest, apply_multi_split_op_returns_all_output_vids) {
    const ADTensor<float> t1 = make_test_tensor(true);
    const ADTensor<float> t2 = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t1.raw());
@@ -92,7 +92,7 @@ TEST(AutodiffEngineTest, apply_single_throws_when_forward_result_empty) {
    const ADTensor<float> t1 = make_test_tensor(true);
    const ADTensor<float> t2 = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t1.raw());
@@ -110,7 +110,7 @@ TEST(AutodiffEngineTest, apply_single_throws_when_forward_result_empty) {
 TEST(AutodiffEngineTest, apply_multi_throws_when_forward_result_empty) {
    const ADTensor<float> t = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t.raw());
@@ -126,7 +126,7 @@ TEST(AutodiffEngineTest, apply_multi_throws_when_forward_result_empty) {
 TEST(AutodiffEngineTest, apply_single_throws_when_op_returns_multiple_outputs) {
    const ADTensor<float> t = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t.raw());
@@ -140,7 +140,7 @@ TEST(AutodiffEngineTest, apply_single_throws_when_op_returns_multiple_outputs) {
 }
 
 TEST(AutodiffEngineTest, track_input_with_requires_grad_true_marks_leaf) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    const ADTensor<float> t = make_test_tensor(true);
    ValueID vid = engine.track_input(t.raw(), true);
@@ -152,7 +152,7 @@ TEST(AutodiffEngineTest, track_input_with_requires_grad_true_marks_leaf) {
 
 TEST(AutodiffEngineTest,
      track_input_with_requires_grad_false_does_not_mark_leaf) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    const ADTensor<float> t = make_test_tensor(false);
    ValueID vid = engine.track_input(t.raw(), false);
@@ -162,7 +162,7 @@ TEST(AutodiffEngineTest,
 
 TEST(AutodiffEngineTest,
      maybe_mark_leaf_on_intermediate_value_does_not_mark_leaf) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    const ADTensor<float> t1 = make_test_tensor(true);
    const ADTensor<float> t2 = make_test_tensor(true);
@@ -186,7 +186,7 @@ TEST(AutodiffEngineTest,
 
 TEST(AutodiffEngineTest,
      maybe_mark_leaf_marks_unproduced_value_when_requires_grad_true) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    const ADTensor<float> t = make_test_tensor(false);
    ValueID vid = engine.track_input(t.raw(), false);
@@ -198,7 +198,7 @@ TEST(AutodiffEngineTest,
 }
 
 TEST(AutodiffEngineTest, track_input_create_new_vid_and_adds_tensor_to_buffer) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    const ADTensor<float> t = make_test_tensor(true);
    ValueID vid = engine.track_input(t.raw(), true);
    RawTensor<float> result = engine.materialise(vid);
@@ -207,7 +207,7 @@ TEST(AutodiffEngineTest, track_input_create_new_vid_and_adds_tensor_to_buffer) {
 }
 
 TEST(AutodiffEngineTest, track_input_creates_and_stores_tensors_in_order) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    const ADTensor<float> t1 = make_test_tensor(true, 42);
    const ADTensor<float> t2 = make_test_tensor(true, 43);
    ValueID vid1 = engine.track_input(t1.raw(), true);
@@ -221,7 +221,7 @@ TEST(AutodiffEngineTest, track_input_creates_and_stores_tensors_in_order) {
 }
 
 TEST(AutodiffEngineTest, materialise_leaf_grad_called_before_backward_throws) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    const ADTensor<float> t1 = make_test_tensor(true);
    const ADTensor<float> t2 = make_test_tensor(true);
    ValueID vid1 = engine.track_input(t1.raw(), true);
@@ -230,7 +230,7 @@ TEST(AutodiffEngineTest, materialise_leaf_grad_called_before_backward_throws) {
 }
 
 TEST(AutodiffEngineTest, materialise_returns_tensor_by_vid) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    const ADTensor<float> t1 = make_test_tensor(true, 42);
    const ADTensor<float> t2 = make_test_tensor(true, 43);
    ValueID vid1 = engine.track_input(t1.raw(), true);
@@ -245,7 +245,7 @@ TEST(AutodiffEngineTest,
      backward_single_unary_op_returns_unary_backward_result) {
    const ADTensor<float> t1 = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t1.raw());
@@ -271,7 +271,7 @@ TEST(AutodiffEngineTest,
    const ADTensor<float> t1 = make_test_tensor(true);
    const ADTensor<float> t2 = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t1.raw());
@@ -304,7 +304,7 @@ TEST(AutodiffEngineTest,
    const ADTensor<float> t1 = make_test_tensor(true);
    const ADTensor<float> t2 = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t1.raw());
@@ -336,7 +336,7 @@ TEST(AutodiffEngineTest,
 TEST(AutodiffEngineTest, get_grad_returns_grad_from_vid) {
    const ADTensor<float> t = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t.raw());
@@ -359,7 +359,7 @@ TEST(AutodiffEngineTest, get_grad_returns_grad_from_vid) {
 TEST(AutodiffEngineTest, get_grad_throws_when_no_grad_exists) {
    const ADTensor<float> t = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t.raw());
@@ -379,7 +379,7 @@ TEST(AutodiffEngineTest, get_grad_throws_when_no_grad_exists) {
 TEST(AutodiffEngineTest, has_value_returns_true_when_val_in_buffer) {
    const ADTensor<float> t = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
    meta.push_back(t.raw());
@@ -389,14 +389,14 @@ TEST(AutodiffEngineTest, has_value_returns_true_when_val_in_buffer) {
 }
 
 TEST(AutodiffEngineTest, has_value_returns_false_when_val_not_in_buffer) {
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    EXPECT_FALSE(engine.has_value(ValueID{0}));
 }
 
 TEST(AutodiffEngineTest,
      backward_accumulates_gradients_when_same_leaf_feeds_two_branches) {
    const ADTensor<float> x = make_test_tensor(true);
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    ValueID x_vid = engine.track_input(x.raw(), true);
    ASSERT_EQ(x_vid, ValueID{0});
@@ -436,21 +436,21 @@ TEST(AutodiffEngineTest,
 
 TEST(AutodiffEngineTest, has_value_returns_false_for_negative_vid) {
    const ADTensor<float> t = make_test_tensor(true);
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    ValueID vid = engine.track_input(t.raw(), true);
    EXPECT_FALSE(engine.has_value(ValueID{-1}));
 }
 
 TEST(AutodiffEngineTest, materialise_called_with_negative_vid_throws) {
    const ADTensor<float> t = make_test_tensor(true);
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    ValueID vid = engine.track_input(t.raw(), true);
    EXPECT_THROW(engine.materialise(ValueID{-1}), std::out_of_range);
 }
 
 TEST(AutodiffEngineTest, materialise_called_with_out_of_range_vid_throws) {
    const ADTensor<float> t = make_test_tensor(true);
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    ValueID vid = engine.track_input(t.raw(), true);
    EXPECT_THROW(engine.materialise(ValueID{5}), std::out_of_range);
 }
@@ -459,7 +459,7 @@ TEST(AutodiffEngineTest,
      get_grad_on_intermediate_tensor_returns_intermediate_grad) {
    const ADTensor<float> x = make_test_tensor(true);
 
-   Engine<float> engine{};
+   Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    ValueID x_vid = engine.track_input(x.raw(), true);
    ASSERT_EQ(x_vid, ValueID{0});

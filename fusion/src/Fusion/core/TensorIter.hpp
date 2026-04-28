@@ -10,8 +10,8 @@
 #include "Fusion/cpu/blas/BlasTraits.hpp"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 
-#include "TensorPlan.h"
 #include "PlanMeta.hpp"
+#include "TensorPlan.h"
 
 namespace fusion {
 

@@ -48,8 +48,8 @@ template <> struct OpTraits<GreaterTag> {
    static constexpr std::string_view name = "GreaterThan";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseBinary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=2},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 2},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -58,8 +58,8 @@ template <> struct OpTraits<GreaterEqualTag> {
    static constexpr std::string_view name = "GreaterThanEqual";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseBinary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=2},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 2},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -68,8 +68,8 @@ template <> struct OpTraits<MaximumTag> {
    static constexpr std::string_view name = "Maximum";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseBinary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=2},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 2},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -79,8 +79,8 @@ template <> struct OpTraits<AddTag> {
    static constexpr std::string_view name = "Add";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseBinary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=2},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 2},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -89,8 +89,8 @@ template <> struct OpTraits<SubTag> {
    static constexpr std::string_view name = "Sub";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseBinary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=2},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 2},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -99,8 +99,8 @@ template <> struct OpTraits<MulTag> {
    static constexpr std::string_view name = "Mul";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseBinary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=2},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 2},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -109,8 +109,8 @@ template <> struct OpTraits<DivTag> {
    static constexpr std::string_view name = "Div";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseBinary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=2},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 2},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -119,8 +119,8 @@ template <> struct OpTraits<PowTag> {
    static constexpr std::string_view name = "Pow";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseBinary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=2},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 2},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -130,8 +130,8 @@ template <> struct OpTraits<MatMulTag> {
    static constexpr std::string_view name = "MatMul";
    static constexpr OpSchema schema{
        .category = OpCategory::Contraction,
-       .inputs = {.kind=ArityKind::Fixed, .arity=2},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 2},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -140,8 +140,8 @@ template <> struct OpTraits<SwapAxesTag> {
    static constexpr std::string_view name = "SwapAxes";
    static constexpr OpSchema schema{
        .category = OpCategory::Movement,
-       .inputs = {.kind=ArityKind::Fixed, .arity=1},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 1},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -151,8 +151,8 @@ template <> struct OpTraits<SumTag> {
    static constexpr std::string_view name = "Sum";
    static constexpr OpSchema schema{
        .category = OpCategory::Reduction,
-       .inputs = {.kind=ArityKind::Fixed, .arity=1},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 1},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -161,8 +161,8 @@ template <> struct OpTraits<MeanTag> {
    static constexpr std::string_view name = "Mean";
    static constexpr OpSchema schema{
        .category = OpCategory::Reduction,
-       .inputs = {.kind=ArityKind::Fixed, .arity=1},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 1},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -172,8 +172,8 @@ template <> struct OpTraits<SqrtTag> {
    static constexpr std::string_view name = "Sqrt";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseUnary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=1},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 1},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -182,8 +182,8 @@ template <> struct OpTraits<LogTag> {
    static constexpr std::string_view name = "Log";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseUnary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=1},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 1},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };
@@ -192,8 +192,8 @@ template <> struct OpTraits<ExpTag> {
    static constexpr std::string_view name = "Exp";
    static constexpr OpSchema schema{
        .category = OpCategory::EwiseUnary,
-       .inputs = {.kind=ArityKind::Fixed, .arity=1},
-       .outputs = {.kind=ArityKind::Fixed, .arity=1},
+       .inputs = {.kind = ArityKind::Fixed, .arity = 1},
+       .outputs = {.kind = ArityKind::Fixed, .arity = 1},
        .mutation = MutationKind::OutOfPlace,
    };
 };

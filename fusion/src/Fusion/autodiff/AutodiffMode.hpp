@@ -31,8 +31,7 @@ class NoGradGuard {
 
 inline bool grad_enabled() { return g_enable_grad; }
 
-template <typename T>
-bool should_trace(const ADTensor<T> &x) {
+template <typename T> bool should_trace(const ADTensor<T> &x) {
    return grad_enabled() && x.requires_grad() && AutodiffContext<T>::has();
 }
 
@@ -41,7 +40,6 @@ bool should_trace(const ADTensor<T> &x, const ADTensor<T> &y) {
    return grad_enabled() && (x.requires_grad() || y.requires_grad()) &&
           AutodiffContext<T>::has();
 }
-
 
 } // namespace autodiff
 

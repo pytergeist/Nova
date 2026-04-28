@@ -64,12 +64,8 @@ template <typename T> class INode {
       return gin;
    }
 
-   std::size_t get_output_arity() {
-      return self_->get_output_arity();
-   };
-   std::size_t get_input_arity() {
-      return self_->get_input_arity();
-   };
+   std::size_t get_output_arity() { return self_->get_output_arity(); };
+   std::size_t get_input_arity() { return self_->get_input_arity(); };
 
  private:
    friend Graph<T>;
@@ -152,9 +148,7 @@ template <typename T> class INode {
          return Op::output_arity();
       }
 
-      std::size_t get_input_arity() const override {
-         return Op::input_arity();
-      }
+      std::size_t get_input_arity() const override { return Op::input_arity(); }
 
       const std::type_info &in_type() const override { return typeid(In); };
       const std::type_info &out_type() const override { return typeid(Out); };

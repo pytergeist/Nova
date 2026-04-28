@@ -241,4 +241,3 @@ TEST(TensorBufferTest, multiple_buffers_each_release_exactly_once) {
    EXPECT_EQ(alloc.deallocate_calls(), 3);
    EXPECT_EQ(alloc.active_allocations(), 0);
 }
-

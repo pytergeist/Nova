@@ -41,8 +41,9 @@ inline std::size_t normalise_axis(int axis, size_t ndim) {
    return static_cast<size_t>(axis < 0 ? nd + axis : axis);
 }
 
-inline std::vector<size_t> linear_to_coord(size_t idx, size_t stride1, size_t stride2,
-                                    size_t dim1, size_t dim2) {
+inline std::vector<size_t> linear_to_coord(size_t idx, size_t stride1,
+                                           size_t stride2, size_t dim1,
+                                           size_t dim2) {
    // Convert linear coordinate to 2d matrix coordinate based on
    // strides, dims and linear index:
    // i_k = [L//s_k] % N_k
@@ -55,8 +56,9 @@ inline std::vector<size_t> linear_to_coord(size_t idx, size_t stride1, size_t st
    return dst;
 }
 
-inline std::vector<size_t> unravel_idx(size_t idx, const std::vector<size_t> &strides,
-                                const std::vector<size_t> &shape) {
+inline std::vector<size_t> unravel_idx(size_t idx,
+                                       const std::vector<size_t> &strides,
+                                       const std::vector<size_t> &shape) {
    const size_t n = shape.size();
    std::vector<size_t> coord(n);
 
@@ -67,7 +69,7 @@ inline std::vector<size_t> unravel_idx(size_t idx, const std::vector<size_t> &st
 }
 
 inline std::size_t ravel_idx(const std::vector<size_t> &coord,
-                 const std::vector<size_t> &strides) {
+                             const std::vector<size_t> &strides) {
    size_t idx = 0;
    for (size_t k = 0; k < coord.size(); k++)
       idx += coord[k] * strides[k];
@@ -75,8 +77,8 @@ inline std::size_t ravel_idx(const std::vector<size_t> &coord,
 }
 
 inline std::size_t coord_to_linear(std::vector<size_t> &coords,
-                       std::vector<size_t> &strides, size_t axis1,
-                       size_t axis2) {
+                                   std::vector<size_t> &strides, size_t axis1,
+                                   size_t axis2) {
    // Convert 2d matrix coordinate to linear coordinate based on
    // strides, and cords:
    // L = i * s_i + j * s_j

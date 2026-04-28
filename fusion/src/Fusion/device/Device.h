@@ -8,7 +8,8 @@
 #include "Fusion/common/Log.hpp"
 
 struct Device final {
-   explicit Device(const DeviceType type, const DeviceIdx index = -1) : type_(type), index_(index) {
+   explicit Device(const DeviceType type, const DeviceIdx index = -1)
+       : type_(type), index_(index) {
       validate_device();
    }
 

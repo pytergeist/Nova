@@ -21,15 +21,15 @@ template <typename T, class Op> class Node {
 
    void set_inputs(In inputs) { inputs_ = std::move(inputs); };
 
-  Out run_forward(In &input) {
-    fwd_done_ = true;
-    return op_.forward(ctx_, input);
-  }
+   Out run_forward(In &input) {
+      fwd_done_ = true;
+      return op_.forward(ctx_, input);
+   }
 
-  GradIn run_backward(GradOut &grad_out) {
-    bwd_done_ = true;
-    return op_.backward(ctx_, grad_out);
-  }
+   GradIn run_backward(GradOut &grad_out) {
+      bwd_done_ = true;
+      return op_.backward(ctx_, grad_out);
+   }
 
  private:
    Op op_{};

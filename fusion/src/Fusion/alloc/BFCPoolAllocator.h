@@ -28,7 +28,8 @@
 //   separate root regions instead of sibling chunks from a shared larger slab.
 // - Coalescing currently works within a grown region when adjacent split
 //   siblings become free.
-// - Double free detection is implemented via chunk.in_use checks in deallocate().
+// - Double free detection is implemented via chunk.in_use checks in
+// deallocate().
 //
 // TODOs:
 // - Revisit growth policy so small allocations are more often sourced from

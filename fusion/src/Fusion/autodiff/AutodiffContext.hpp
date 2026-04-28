@@ -11,8 +11,7 @@ template <typename T> class Engine;
 
 template <typename T> class AutodiffContext {
  public:
-
-   static AutodiffRunTime<T>& runtime() {
+   static AutodiffRunTime<T> &runtime() {
       static AutodiffRunTime<T> rt{};
       return rt;
    }
@@ -34,9 +33,7 @@ template <typename T> class AutodiffContext {
       instance_.pop_back();
    }
 
-   static void clear() noexcept {
-      instance_.clear();
-   }
+   static void clear() noexcept { instance_.clear(); }
 
  private:
    inline static thread_local std::vector<Engine<T> *> instance_;
