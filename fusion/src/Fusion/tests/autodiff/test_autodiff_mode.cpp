@@ -59,12 +59,13 @@ TEST(AutodiffModeTest, should_trace_unary_returns_false_when_engine_not_set) {
 }
 
 TEST(AutodiffModeTest,
-     should_trace_unary_returns_false_when_engine_is_nullptr) {
+     should_trace_unary_returns_false_when_no_engine_set_in_context) {
    EngineContextReset reset;
    ADTensor<float> t = make_test_tensor(true);
 
    Engine<float> enginet;
-   EngineContext<float>::set(nullptr);
+   EngineContext<float>::set(&enginet);
+   EngineContext<float>::pop();
    EXPECT_FALSE(autodiff::should_trace(t));
 }
 
@@ -145,12 +146,13 @@ TEST(AutodiffModeTest, should_trace_binary_returns_false_when_no_grad_guard) {
 }
 
 TEST(AutodiffModeTest,
-     should_trace_binary_returns_false_when_engine_is_nullptr) {
+     should_trace_binary_returns_false_when_no_engine_set_in_context) {
    EngineContextReset reset;
    ADTensor<float> t1 = make_test_tensor(true);
    ADTensor<float> t2 = make_test_tensor(true);
 
    Engine<float> enginet;
-   EngineContext<float>::set(nullptr);
+   EngineContext<float>::set(&enginet);
+   EngineContext<float>::pop();
    EXPECT_FALSE(autodiff::should_trace(t1, t2));
 }

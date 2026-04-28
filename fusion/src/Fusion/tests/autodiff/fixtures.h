@@ -103,7 +103,7 @@ inline void EXPECT_TENSOR_EQ(const RawTensor<float> &actual,
 }
 
 struct EngineContextReset {
-   inline ~EngineContextReset() { EngineContext<float>::set(nullptr); }
+   ~EngineContextReset() { EngineContext<float>::clear(); }
 };
 
 struct UnaryTag {};
