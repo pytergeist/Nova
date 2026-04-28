@@ -44,6 +44,13 @@ private:
    std::vector<std::optional<RawTensor<T>>> slots_{};
 };
 
+template <typename T>
+class AutodiffRunTime {
+   public:
+      GradStore<T>& grad_store () {return grad_store_;}
+   private:
+      GradStore<T> grad_store_;
+};
 
 
-#endif FUSION_AUTODIFF_GRAD_STORE_HPP
+#endif // FUSION_AUTODIFF_GRAD_STORE_HPP

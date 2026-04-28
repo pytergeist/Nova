@@ -3,9 +3,9 @@
 
 #include <memory>
 
+#include "AutodiffContext.hpp"
 #include "AutodiffMeta.hpp"
 #include "Engine.hpp"
-#include "EngineContext.hpp"
 
 // TODO: find a way around using const_cast to remove cv qualifier
 
@@ -85,7 +85,7 @@ ADTensor<T> unary(const ADTensor<T> &x, const Param &params,
    if (!needs_grad || !should_trace(x)) {
       return feager(x, params);
    }
-   Engine<T> &eng = EngineContext<T>::get();
+   Engine<T> &eng = AutodiffContext<T>::get();
    ValueID vx = const_cast<ADTensor<T> &>(x).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, params);
    std::vector<ValueID> vids{vx};
@@ -105,7 +105,7 @@ ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
    if (!needs_grad || !should_trace(x)) {
       return feager(x);
    }
-   Engine<T> &eng = EngineContext<T>::get();
+   Engine<T> &eng = AutodiffContext<T>::get();
    ValueID vx =
        const_cast<ADTensor<T> &>(x)
            .ensure_vid(); // NOLINT(cppcoreguidelines-pro-type-const-cast)
@@ -129,7 +129,7 @@ ADTensor<T> binary(const ADTensor<T> &x, const ADTensor<T> &y,
    if (!needs_grad || !should_trace(x, y)) {
       return feager(x, y);
    }
-   Engine<T> &eng = EngineContext<T>::get();
+   Engine<T> &eng = AutodiffContext<T>::get();
    ValueID vx = const_cast<ADTensor<T> &>(x).ensure_vid();
    ValueID vy = const_cast<ADTensor<T> &>(y).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, y);

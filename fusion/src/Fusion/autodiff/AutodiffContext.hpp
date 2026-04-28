@@ -1,14 +1,22 @@
-#ifndef ENGINE_CONTEXT_HPP
-#define ENGINE_CONTEXT_HPP
+#ifndef FUSION_AUTODIFF_AUTODIFF_CONTEXT_HPP
+#define FUSION_AUTODIFF_AUTODIFF_CONTEXT_HPP
 
 #include <vector>
 
 #include "Fusion/common/Checks.hpp"
 
+#include "GradStore.hpp"
+
 template <typename T> class Engine;
 
-template <typename T> class EngineContext {
+template <typename T> class AutodiffContext {
  public:
+
+   static AutodiffRunTime<T>& runtime() {
+      static AutodiffRunTime<T> rt{};
+      return rt;
+   }
+
    static Engine<T> &get() {
       FUSION_CHECK(!instance_.empty(), "No Engine instance set in context");
       return *instance_.back();
@@ -36,7 +44,7 @@ template <typename T> class EngineContext {
 
 template <typename T> struct EngineScope {
 
-   EngineScope() = default;
+   EngineScope() : eng_(AutodiffContext<T>::runtime().grad_store()) {};
 
    EngineScope(const EngineScope &) = delete;
    EngineScope &operator=(const EngineScope &) = delete;
@@ -51,11 +59,11 @@ template <typename T> struct EngineScope {
    }
 
    void enter() {
-      EngineContext<T>::set(&eng_);
+      AutodiffContext<T>::set(&eng_);
       active_ = true;
    }
    void exit() {
-      EngineContext<T>::pop();
+      AutodiffContext<T>::pop();
       active_ = false;
    }
 
@@ -67,4 +75,4 @@ template <typename T> struct EngineScope {
    bool active_{false};
 };
 
-#endif // ENGINE_CONTEXT_HPP
+#endif // FUSION_AUTODIFF_AUTODIFF_CONTEXT_HPP

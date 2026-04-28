@@ -5,9 +5,9 @@
 #include <random>
 
 #include "Fusion/autodiff/ADTensor.hpp"
+#include "Fusion/autodiff/AutodiffContext.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/Engine.hpp"
-#include "Fusion/autodiff/EngineContext.hpp"
 
 template <typename T> class GraphHarness {
  public:
@@ -102,8 +102,8 @@ inline void EXPECT_TENSOR_EQ(const RawTensor<float> &actual,
    }
 }
 
-struct EngineContextReset {
-   ~EngineContextReset() { EngineContext<float>::clear(); }
+struct AutodiffContextReset {
+   ~AutodiffContextReset() { AutodiffContext<float>::clear(); }
 };
 
 struct UnaryTag {};

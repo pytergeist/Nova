@@ -35,15 +35,14 @@ struct ShapeHash {
 
 template <typename T> class Engine {
  public:
-   Engine() = default;
+
+   Engine(GradStore<T>& grad_store) : grad_store_(grad_store) {};
 
    Engine(const Engine &) = delete;
    Engine &operator=(const Engine &) = delete;
 
    Engine(Engine &&) = delete;
    Engine &operator=(Engine &&) = delete;
-
-   ~Engine() = default;
 
    bool val_buffer_is_empty() const noexcept {
       return val_buff_.empty();
@@ -213,6 +212,7 @@ template <typename T> class Engine {
    Graph<T> graph_{};
    std::vector<RawTensor<T>> val_buff_{};
    std::vector<RawTensor<T>> grad_buff_{};
+   GradStore<T>& grad_store_{};
    // TODO: make ValueID hashable so it can be used in the below unordered_set
    std::unordered_set<std::int64_t> requires_grad_set_{};
 

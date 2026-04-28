@@ -1,9 +1,8 @@
 #ifndef AUTODIFF_MODE_HPP
 #define AUTODIFF_MODE_HPP
 
-#include <memory>
-
-#include "EngineContext.hpp"
+#include "AutodiffContext.hpp"
+#include "GradStore.hpp"
 
 template <typename T> class ADTensor;
 
@@ -34,14 +33,16 @@ inline bool grad_enabled() { return g_enable_grad; }
 
 template <typename T>
 bool should_trace(const ADTensor<T> &x) {
-   return grad_enabled() && x.requires_grad() && EngineContext<T>::has();
+   return grad_enabled() && x.requires_grad() && AutodiffContext<T>::has();
 }
 
 template <typename T>
 bool should_trace(const ADTensor<T> &x, const ADTensor<T> &y) {
    return grad_enabled() && (x.requires_grad() || y.requires_grad()) &&
-          EngineContext<T>::has();
+          AutodiffContext<T>::has();
 }
+
+
 } // namespace autodiff
 
 #endif // AUTODIFF_MODE_HPP

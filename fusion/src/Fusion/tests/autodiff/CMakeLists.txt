@@ -6,7 +6,7 @@ add_executable(fusion_autodiff_tests
         test_autodiff_mode.cpp
         test_dispatch.cpp
         test_engine.cpp
-        test_engine_context.cpp
+        test_autodiff_context.cpp
         test_grad_store.cpp
         test_graph.cpp
 

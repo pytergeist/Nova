@@ -4,8 +4,8 @@
 #include <pybind11/pytypes.h>
 
 #include "Fusion/autodiff/AutodiffBridge.hpp"
+#include "Fusion/autodiff/AutodiffContext.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
-#include "Fusion/autodiff/EngineContext.hpp"
 
 #include "factory/BindFactory.hpp"
 #include "random/BindRandom.hpp"

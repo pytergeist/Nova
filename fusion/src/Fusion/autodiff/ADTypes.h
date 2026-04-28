@@ -14,6 +14,11 @@ struct NodeID {
    operator std::int64_t() const noexcept { return idx; }
 };
 
+struct GradSlotID {
+   std::int64_t idx;
+   operator std::int64_t() const noexcept { return idx; }
+};
+
 // NOLINTBEGIN(misc-non-private-member-variables-in-classes,
 // bugprone-easily-swappable-parameters)
 struct Edge {

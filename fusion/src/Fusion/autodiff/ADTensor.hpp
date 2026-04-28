@@ -10,10 +10,10 @@
 
 #include "Fusion/common/Checks.hpp"
 
+#include "AutodiffContext.hpp"
 #include "AutodiffMode.hpp"
 #include "Dispatch.hpp"
 #include "Engine.hpp"
-#include "EngineContext.hpp"
 #include "registry/Comparison/Comparison.h"
 #include "registry/Ewise/Ewise.h"
 #include "registry/LinAlg/LinAlg.h"
@@ -31,6 +31,8 @@
 #include "Fusion/alloc/DefaultAllocator.h"
 
 template <typename T> struct ADTensor;
+
+// TODO: this doesn't follow the rule of 5
 
 /* TODO: Refactor this logic into the engine context - this should be done on
  * exit of the EngineContext manager. The longer term fix for this issue is to
@@ -122,7 +124,7 @@ template <typename T> class ADTensor {
    }
 
    ValueID ensure_vid() {
-      Engine<T> &eng = EngineContext<T>::get();
+      Engine<T> &eng = AutodiffContext<T>::get();
 
       if (vid_ >= 0) {
          if (eng.has_value(vid_)) {
@@ -139,7 +141,7 @@ template <typename T> class ADTensor {
    void set_requires_grad(bool v) noexcept { requires_grad_ = v; }
 
    void backward() {
-      Engine<T> &eng = EngineContext<T>::get();
+      Engine<T> &eng = AutodiffContext<T>::get();
       ValueID vid = ensure_vid();
       BackwardResult<T> result = eng.backward(vid);
       attatch_grads(result);
