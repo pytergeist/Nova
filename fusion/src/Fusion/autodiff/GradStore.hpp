@@ -10,6 +10,19 @@
 struct LeafGradBinding {
    ValueID vid;
    GradSlotID slot;
+
+   bool operator==(const LeafGradBinding& other) const noexcept {
+      return vid == other.vid && slot == other.slot;
+   }
+};
+
+struct LeafGradBindingHash {
+   std::size_t operator()(const LeafGradBinding& b) const noexcept {
+      std::size_t h1 = std::hash<ValueID>{}(b.vid);
+      std::size_t h2 = std::hash<GradSlotID>{}(b.slot);
+
+      return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1 << 6) + (h1 >> 2));
+   }
 };
 
 template <typename T> class GradStore {
@@ -22,7 +35,7 @@ template <typename T> class GradStore {
 
    GradSlotID allocate() {
       slots_.emplace_back(std::nullopt);
-      return slots_.size() - 1;
+      return static_cast<GradSlotID>(slots_.size() - 1);
    }
 
    bool has(const GradSlotID slot) const noexcept {
