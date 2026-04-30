@@ -14,22 +14,6 @@
 #include "Graph.hpp"
 #include "Sort.hpp"
 
-// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-inline void hash_combine(std::size_t &seed, std::size_t v) noexcept {
-   seed ^= v + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
-}
-// NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
-
-struct ShapeHash {
-   std::size_t
-   operator()(const std::vector<std::size_t> &shape) const noexcept {
-      std::size_t seed = 0; // NOLINT(misc-const-correctness)
-      for (auto s : shape)
-         hash_combine(seed, s);
-      return seed;
-   }
-};
-
 template <typename T> class Engine {
  public:
    Engine(GradStore<T> &grad_store) : grad_store_(grad_store) {};
@@ -55,7 +39,9 @@ template <typename T> class Engine {
       FUSION_CHECK(!out.empty(),
                    "Engine::apply: forward produced empty outputs");
 
-      ensure_node_outputs_allocated(nid, out.size());
+      const bool output_requires_grad = any_input_requires_grad(vids);
+
+      ensure_node_outputs_allocated(nid, out.size(), output_requires_grad);
       write_forward_results(nid, out);
 
       return node.outputs();
@@ -74,7 +60,12 @@ template <typename T> class Engine {
    }
 
    void backward(const ValueID seed_vid, const bool materialise = true,
-                              const bool retain_graph = false) {
+                 const bool retain_graph = false) {
+      FUSION_CHECK(has_value(seed_vid),
+                   "backward() seed ValueID does not refer to a valid value");
+      FUSION_CHECK(
+          requires_grad_buff_[seed_vid],
+          "backward() Invalid call on tensor marked as requires_grad = False");
       prepare_grad_buffers();
 
       std::vector<NodeID> order = topo_sort_for_backward();
@@ -110,26 +101,27 @@ template <typename T> class Engine {
    }
 
    void export_leaf_grads() {
-      for (auto [vid, binding] : requires_grad_set_) {
-         RawTensor<T> &grad = grad_buff_[vid];
+      for (auto [vid, binding] : leaf_grad_map_) {
+         RawTensor<T> &grad = grad_buff_.at(vid);
          grad_store_.set(binding.slot, grad);
       }
    }
 
-
    void maybe_mark_leaf(ValueID vid, const bool requires_grad) {
       if (graph_.get_produced_by(vid).nid == -1 && requires_grad) {
          const GradSlotID slot = grad_store_.allocate();
-         const LeafGradBinding binding{vid, slot};
-         requires_grad_set_.insert({vid, binding});
+         const LeafGradBinding binding{.vid = vid, .slot = slot};
+         leaf_grad_map_.insert({vid, binding});
+         requires_grad_buff_[static_cast<std::size_t>(vid)] = requires_grad;
       }
    }
 
    GradSlotID get_grad_slot(const ValueID vid) const {
-      auto it = requires_grad_set_.find(vid);
-      if (it != requires_grad_set_.end()) {
-         LeafGradBinding binding = it->second;
-         FUSION_CHECK(vid == binding.vid, "ValueID out of sync with GradBindings");
+      auto it = leaf_grad_map_.find(vid);
+      if (it != leaf_grad_map_.end()) {
+         const LeafGradBinding binding = it->second;
+         FUSION_CHECK(vid == binding.vid,
+                      "ValueID out of sync with GradBindings");
          return binding.slot;
       }
       throw std::runtime_error("Gradient not found in persistent grad storage");
@@ -139,6 +131,7 @@ template <typename T> class Engine {
       const ValueID vid = graph_.new_input_value();
       ensure_value_capacity(vid);
       val_buff_[vid] = raw;
+      requires_grad_buff_[vid] = requires_grad;
       maybe_mark_leaf(vid, requires_grad);
       return vid;
    }
@@ -157,7 +150,7 @@ template <typename T> class Engine {
       return grad_buff_[vid];
    }
 
-   bool has_value(ValueID vid) const noexcept {
+   bool has_value(const ValueID vid) const noexcept {
       if (vid < 0) {
          return false;
       }
@@ -212,13 +205,18 @@ template <typename T> class Engine {
    Graph<T> graph_{};
    std::vector<RawTensor<T>> val_buff_{};
    std::vector<RawTensor<T>> grad_buff_{};
+   std::vector<bool> requires_grad_buff_{};
    GradStore<T> &grad_store_{};
    // TODO: make ValueID hashable so it can be used in the below unordered_set
-   std::unordered_map<ValueID, LeafGradBinding> requires_grad_set_{};
+   std::unordered_map<ValueID, LeafGradBinding> leaf_grad_map_;
 
-   void ensure_value_capacity(ValueID vid) {
+   void ensure_value_capacity(const ValueID vid) {
       if (val_buff_.size() <= static_cast<size_t>(vid)) {
          val_buff_.resize(static_cast<size_t>(vid) + 1);
+      }
+
+      if (requires_grad_buff_.size() <= static_cast<size_t>(vid)) {
+         requires_grad_buff_.resize(static_cast<size_t>(vid) + 1);
       }
    }
 
@@ -226,20 +224,28 @@ template <typename T> class Engine {
       return static_cast<size_t>(vid) < graph_.produced_by().size();
    }
 
+   bool value_requires_grad(ValueID vid) const noexcept {
+      if (vid < 0) {
+         return false;
+      }
+
+      const auto idx = static_cast<std::size_t>(vid);
+      return idx < requires_grad_buff_.size() && requires_grad_buff_[idx];
+   }
+
+   bool
+   any_input_requires_grad(const std::vector<ValueID> &vids) const noexcept {
+      for (const ValueID vid : vids) {
+         if (value_requires_grad(vid)) {
+            return true;
+         }
+      }
+      return false;
+   }
+
    const RawTensor<T> &grad(ValueID vid) const {
       FUSION_BOUNDS_CHECK(vid, grad_buff_.size());
       return grad_buff_[vid];
-   }
-
-   template <class Op> ValueID feed(AutodiffMeta<T> v) {
-      NodeID dst_nid = graph_.template build_node<Op>(v);
-      INode<T> &node = graph_.get_node(dst_nid);
-      // Arbitrily set to 0 for single tensor feed
-      // TODO: make return type vec<ValueID> to allow for multi output??? Not
-      // sure this is needed
-      ValueID vid = node.outputs.at(0);
-      write_val(vid, v[0]);
-      return vid;
    }
 
    void set_grad_buff_size() { grad_buff_.resize(val_buff_.size()); }
@@ -251,6 +257,8 @@ template <typename T> class Engine {
    template <class Op>
    NodeID create_node_and_bind_inputs(AutodiffMeta<T> &payload,
                                       std::vector<ValueID> &input_vids) {
+      FUSION_CHECK(input_vids.size() == payload.size(),
+                   "Engine::apply: input_vids size must match payload size");
       NodeID dst = graph_.template build_node<Op>();
       INode<T> &node = graph_.get_node(dst);
 
@@ -267,10 +275,16 @@ template <typename T> class Engine {
       return dst;
    }
 
-   void ensure_node_outputs_allocated(NodeID nid, size_t arity) {
+   void ensure_node_outputs_allocated(NodeID nid, const std::size_t arity,
+                                      const bool output_requires_grad) {
       INode<T> &node = graph_.get_node(nid);
       if (node.has_outputs()) {
          FUSION_CHECK(node.num_outputs() == arity, "node output size mismatch");
+         for (size_t i = 0; i < arity; ++i) {
+            const ValueID out_vid = node.get_output(i);
+            ensure_value_capacity(out_vid);
+            requires_grad_buff_[out_vid] = output_requires_grad;
+         }
          return;
       }
       for (size_t i = 0; i < arity; ++i) {
@@ -278,6 +292,7 @@ template <typename T> class Engine {
          graph_.set_produced_by(vid, nid, i);
          graph_.set_node_output(node, vid);
          ensure_value_capacity(vid);
+         requires_grad_buff_[vid] = output_requires_grad;
       }
    }
 
@@ -297,8 +312,9 @@ template <typename T> class Engine {
    void prepare_grad_buffers() {
       set_grad_buff_size();
       for (auto &g : grad_buff_) {
-         if (g.is_initialised())
+         if (g.is_initialised()) {
             g.clear();
+         }
       }
    }
 
