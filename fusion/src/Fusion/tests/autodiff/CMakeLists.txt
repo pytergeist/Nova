@@ -1,11 +1,12 @@
 add_executable(fusion_autodiff_tests
-        test_adtensor_backward.cpp
+        test_adtensor_core.cpp
         test_adtensor_eager.cpp
         test_adtensor_trace.cpp
         test_autodiff_meta.cpp
         test_autodiff_mode.cpp
         test_dispatch.cpp
         test_engine.cpp
+        test_grad_store.cpp
         test_autodiff_context.cpp
         test_grad_store.cpp
         test_graph.cpp

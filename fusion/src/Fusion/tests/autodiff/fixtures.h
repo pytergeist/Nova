@@ -1,6 +1,7 @@
 #ifndef FUSION_TESTS_AUTODIFF_HELPERS_H_
 #define FUSION_TESTS_AUTODIFF_HELPERS_H_
 
+
 #include <gtest/gtest.h>
 #include <random>
 
@@ -71,6 +72,14 @@ inline std::vector<float> generate_random_vector(std::vector<std::size_t> shape,
    return data;
 }
 
+inline RawTensor<float>
+make_test_raw_tensor(uint32_t seed = 42,
+                 std::vector<std::size_t> shape = std::vector<size_t>{2, 3}) {
+   std::vector<float> data = generate_random_vector(shape, seed);
+   return RawTensor<float>(shape, data, DType::FLOAT32,
+                          Device{DeviceType::CPU, 0});
+}
+
 inline ADTensor<float>
 make_test_tensor(bool requires_grad, uint32_t seed = 42,
                  std::vector<std::size_t> shape = std::vector<size_t>{2, 3}) {
@@ -96,6 +105,7 @@ inline void EXPECT_TENSOR_EQ(const RawTensor<float> &actual,
    EXPECT_EQ(actual.dtype(), expected.dtype());
    EXPECT_EQ(actual.device(), expected.device());
    EXPECT_EQ(actual.size(), expected.size());
+   EXPECT_EQ(actual.is_contiguous(), expected.is_contiguous());
 
    for (size_t i = 0; i < actual.size(); ++i) {
       EXPECT_FLOAT_EQ(actual[i], expected[i]);
@@ -103,7 +113,11 @@ inline void EXPECT_TENSOR_EQ(const RawTensor<float> &actual,
 }
 
 struct AutodiffContextReset {
-   ~AutodiffContextReset() { AutodiffContext<float>::clear(); }
+   // TODO: this can be made a feature with setup/teardown -- cleaner
+   ~AutodiffContextReset() {
+      AutodiffContext<float>::clear();
+      AutodiffContext<float>::clear_runtime();
+   }
 };
 
 struct UnaryTag {};

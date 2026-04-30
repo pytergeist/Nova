@@ -12,6 +12,7 @@ TEST(RawTensorTest, default_constructed_tensor_is_uninitialised) {
    EXPECT_FALSE(t.is_initialised());
    EXPECT_TRUE(t.empty());
    EXPECT_TRUE(t.shape().empty());
+   EXPECT_TRUE(t.strides().empty());
 }
 
 TEST(RawTensorTest, construct_from_shape_and_data_initialises_storage) {
@@ -29,8 +30,8 @@ TEST(RawTensorTest, construct_from_shape_and_data_preserves_shape_and_strides) {
 
    EXPECT_EQ(t.shape(), (std::vector<std::size_t>{2, 3}));
    EXPECT_EQ(t.strides(), (std::vector<std::int64_t>{3, 1}));
-   EXPECT_EQ(t.rank(), 2U);
-   EXPECT_EQ(t.ndims(), 2U);
+   EXPECT_EQ(t.rank(), 2);
+   EXPECT_EQ(t.ndims(), 2);
    EXPECT_TRUE(t.is_contiguous());
 }
 
