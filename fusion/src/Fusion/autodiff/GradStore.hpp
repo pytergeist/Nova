@@ -18,8 +18,8 @@ struct LeafGradBinding {
 
 struct LeafGradBindingHash {
    std::size_t operator()(const LeafGradBinding& b) const noexcept {
-      std::size_t h1 = std::hash<ValueID>{}(b.vid);
-      std::size_t h2 = std::hash<GradSlotID>{}(b.slot);
+      const std::size_t h1 = std::hash<ValueID>{}(b.vid);
+      const std::size_t h2 = std::hash<GradSlotID>{}(b.slot);
 
       return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1 << 6) + (h1 >> 2));
    }
@@ -44,17 +44,28 @@ template <typename T> class GradStore {
    }
 
    bool has(const GradSlotID slot) const noexcept {
-      return slot <= slots_.size();
+      if (slot < 0) {
+         return false;
+      }
+      const auto idx = static_cast<std::size_t>(slot);
+      return idx < slots_.size() && slots_[idx].has_value();
    }
+
    void set(const GradSlotID slot, const RawTensor<T> &grad) {
       FUSION_BOUNDS_CHECK(slot, slots_.size());
       slots_[slot] = grad;
    }
 
-   void clear(const GradSlotID slot) {
+   void reset_slot(const GradSlotID slot) {
       FUSION_BOUNDS_CHECK(slot, slots_.size());
       slots_[slot].reset();
    }
+
+   void clear_all() {
+      slots_.clear();
+   }
+
+   bool empty() const {return slots_.empty();}
 
  private:
    std::vector<std::optional<RawTensor<T>>> slots_{};
