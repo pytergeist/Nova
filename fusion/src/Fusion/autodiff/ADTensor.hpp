@@ -5,8 +5,6 @@
 #include <utility>
 #include <vector>
 
-#include "Fusion/common/Checks.hpp"
-
 #include "AutodiffContext.hpp"
 #include "AutodiffMode.hpp"
 #include "Dispatch.hpp"
@@ -16,13 +14,7 @@
 #include "registry/Reduction/ReductionPolicy.h"
 #include "registry/Transcendental/Transcendental.h"
 
-#include "Fusion/ops/Comparison.hpp"
-#include "Fusion/ops/Ewise.hpp"
-#include "Fusion/ops/Helpers.hpp"
-#include "Fusion/ops/Linalg.hpp"
 #include "Fusion/ops/OpParams.hpp"
-#include "Fusion/ops/Reduce.hpp"
-#include "Fusion/ops/Transcendental.hpp"
 
 #include "Fusion/alloc/DefaultAllocator.h"
 
@@ -55,8 +47,8 @@ template <typename T> class ADTensor {
 
    ADTensor() : raw_(), requires_grad_(false) {}
 
-   explicit ADTensor(Raw &&raw, bool requires_grad = false)
-       : raw_(std::move(raw)), requires_grad_(requires_grad) {}
+   // explicit ADTensor(Raw &&raw, bool requires_grad = false)
+   //     : raw_(std::move(raw)), requires_grad_(requires_grad) {}
 
    explicit ADTensor(const Raw &raw, bool requires_grad = false)
        : raw_(raw), requires_grad_(requires_grad) {}
@@ -136,16 +128,6 @@ template <typename T> class ADTensor {
       RawTensor<T> grad = store.get(grad_slot_id_);
       return ADTensor<T>(grad, false);
    }
-
-   void ensure_grad() {
-      if (!has_grad()) {
-         std::vector<T> z(this->size(), T(0));
-         grad_ = std::make_shared<RawTensor<T>>(raw_.shape(), std::move(z),
-                                                raw_.dtype(), raw_.device());
-      }
-   }
-
-   bool has_grad() const noexcept { return grad_ && grad_->is_initialised(); };
 
    ADTensor operator+(const T scalar) const {
       ADTensor other = ad_scalar_t(scalar, raw_.dtype(), raw_.device());
@@ -282,7 +264,6 @@ template <typename T> class ADTensor {
 
  private:
    RawTensor<T> raw_;
-   mutable std::shared_ptr<RawTensor<T>> grad_;
    ValueID vid_{-1};
    GradSlotID grad_slot_id_{-1};
    bool requires_grad_;
