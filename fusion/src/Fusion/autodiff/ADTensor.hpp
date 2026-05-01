@@ -23,19 +23,7 @@ template <typename T> struct ADTensor;
 // TODO: this doesn't follow the rule of 5
 
 template <typename T>
-static ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
-   if (t.eng_ == &eng && t.vid() >= 0) {
-      return t.vid();
-   }
-   ValueID vid = eng.track_input(t, t.requires_grad());
-   t.eng_ = &eng; // TODO: make this a setter
-   t.set_vid(vid);
-   return vid;
-}
-
-template <typename T>
-ADTensor<T> ad_scalar_t(const T scalar, const DType dtype,
-                               Device device) {
+ADTensor<T> ad_scalar_t(const T scalar, const DType dtype, Device device) {
    return ADTensor<T>{{1}, {scalar}, dtype, device, false};
 }
 
@@ -47,9 +35,6 @@ template <typename T> class ADTensor {
 
    ADTensor() : raw_(), requires_grad_(false) {}
 
-   // explicit ADTensor(Raw &&raw, bool requires_grad = false)
-   //     : raw_(std::move(raw)), requires_grad_(requires_grad) {}
-
    explicit ADTensor(const Raw &raw, bool requires_grad = false)
        : raw_(raw), requires_grad_(requires_grad) {}
 
@@ -60,7 +45,7 @@ template <typename T> class ADTensor {
        : raw_(std::move(shape), std::move(data), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}
 
-   explicit ADTensor(std::vector<size_t> shape, Device device, DType dtype,
+   explicit ADTensor(std::vector<std::size_t> shape, DType dtype, Device device,
                      bool requires_grad = false,
                      IAllocator *allocator = nullptr)
        : raw_(std::move(shape), dtype, device, allocator),
@@ -88,7 +73,10 @@ template <typename T> class ADTensor {
    ValueID vid() { return vid_; }
    ValueID vid() const { return vid_; }
 
-   ValueID set_vid(ValueID vid) noexcept { return vid_ = vid; }
+   ValueID set_vid(const ValueID vid) {
+      FUSION_CHECK(vid_ < 0, "Trying to overwrite Autodiff ValueID");
+      return vid_ = vid;
+   }
 
    bool has_vid() const noexcept { return vid_ >= 0; }
 
@@ -111,7 +99,9 @@ template <typename T> class ADTensor {
    }
 
    bool requires_grad() const noexcept { return requires_grad_; }
-   void set_requires_grad(bool v) noexcept { requires_grad_ = v; }
+   void set_requires_grad(const bool requires_grad) noexcept {
+      requires_grad_ = requires_grad;
+   }
 
    void backward() {
       Engine<T> &eng = AutodiffContext<T>::get();
@@ -119,12 +109,11 @@ template <typename T> class ADTensor {
       eng.backward(vid);
    }
 
-
    std::optional<ADTensor<T>> grad() const noexcept {
       if (grad_slot_id_ == -1 || !requires_grad_) {
          return std::nullopt;
       }
-      GradStore<T>& store = AutodiffContext<T>::runtime().grad_store();
+      GradStore<T> &store = AutodiffContext<T>::runtime().grad_store();
       RawTensor<T> grad = store.get(grad_slot_id_);
       return ADTensor<T>(grad, false);
    }
