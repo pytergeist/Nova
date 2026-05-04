@@ -273,7 +273,7 @@ template <typename T> class ADTensor {
 
              Raw out = ff(xb, yb);
 
-             bool req_grad = grad_flow(x, y);
+             bool req_grad = grad_flow(x, y) && autodiff::grad_enabled();
              return ADTensor(std::move(out), req_grad);
           });
    }
@@ -285,7 +285,7 @@ template <typename T> class ADTensor {
       return autodiff::unary<T, Op>(self, [&](const ADTensor &x) {
          const Raw &xb = x.raw();
          Raw out = ff(xb);
-         bool req_grad = x.requires_grad();
+         bool req_grad = x.requires_grad() && autodiff::grad_enabled();
          return ADTensor(std::move(out), req_grad);
       });
    }
@@ -299,7 +299,7 @@ template <typename T> class ADTensor {
           self, p, [&](const ADTensor &x, const Param &param) {
              const Raw &xb = x.raw();
              Raw out = ff(xb, param);
-             bool req_grad = x.requires_grad();
+             bool req_grad = x.requires_grad() && autodiff::grad_enabled();
              return ADTensor(std::move(out), req_grad);
           });
    }
