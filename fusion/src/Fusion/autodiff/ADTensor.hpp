@@ -113,7 +113,11 @@ template <typename T> class ADTensor {
       if (grad_slot_id_ == -1 || !requires_grad_) {
          return std::nullopt;
       }
+
       GradStore<T> &store = AutodiffContext<T>::runtime().grad_store();
+      if (!store.has(grad_slot_id_)) {
+         return std::nullopt;
+      }
       RawTensor<T> grad = store.get(grad_slot_id_);
       return ADTensor<T>(grad, false);
    }

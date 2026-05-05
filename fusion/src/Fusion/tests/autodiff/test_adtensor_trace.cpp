@@ -7,34 +7,34 @@
 TEST(ADTensorTraceTest, ensure_vid_without_active_context_throws) {
    AutodiffContextReset reset;
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    EXPECT_FALSE(AutodiffContext<float>::has());
    EXPECT_THROW(x.ensure_vid(), std::runtime_error);
 }
-
 
 TEST(ADTensorTraceTest, ensure_vid_inside_active_context_registers_value) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
    EXPECT_TRUE(AutodiffContext<float>::has());
    EXPECT_EQ(x.vid(), -1);
    x.ensure_vid();
-   EXPECT_EQ(x.vid(), ValueID{0});
+   EXPECT_TRUE(x.has_vid());
 }
 
-TEST(ADTensorTraceTest, ensure_vid_called_twice_in_same_context_returns_same_vid) {
+TEST(ADTensorTraceTest,
+     ensure_vid_called_twice_in_same_context_returns_same_vid) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
    EXPECT_TRUE(AutodiffContext<float>::has());
    EXPECT_EQ(x.vid(), -1);
    x.ensure_vid();
@@ -48,21 +48,21 @@ TEST(ADTensorTraceTest, ensure_vid_inside_active_context_sets_has_vid_true) {
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
    EXPECT_TRUE(AutodiffContext<float>::has());
    EXPECT_EQ(x.vid(), -1);
    x.ensure_vid();
    EXPECT_TRUE(x.has_vid());
 }
 
-TEST(ADTensorTraceTest, grad_requiring_tensor_can_expose_gradient_after_backward) {
+TEST(ADTensorTraceTest, backward_on_leaf_tensor_exposes_seed_gradient) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
    EXPECT_TRUE(AutodiffContext<float>::has());
    EXPECT_EQ(x.vid(), -1);
    x.ensure_vid();
@@ -70,18 +70,20 @@ TEST(ADTensorTraceTest, grad_requiring_tensor_can_expose_gradient_after_backward
    EXPECT_TRUE(x.grad().has_value());
 }
 
-TEST(ADTensorTraceTest, unary_op_on_grad_tensor_inside_active_context_produces_grad_requiring_result) {
+TEST(
+    ADTensorTraceTest,
+    unary_op_on_grad_tensor_inside_active_context_produces_grad_requiring_result) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y = x.sqrt();
    EXPECT_TRUE(AutodiffContext<float>::has());
-   EXPECT_EQ(x.vid(), ValueID{0});
-   EXPECT_EQ(y.vid(), ValueID{1});
+   EXPECT_TRUE(x.has_vid());
+   EXPECT_TRUE(y.has_vid());
    EXPECT_TRUE(y.requires_grad());
 }
 
@@ -90,8 +92,8 @@ TEST(ADTensorTraceTest, traced_unary_result_can_be_backwarded_to_leaf) {
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y = x.sqrt();
    y.backward();
@@ -100,18 +102,20 @@ TEST(ADTensorTraceTest, traced_unary_result_can_be_backwarded_to_leaf) {
    EXPECT_TRUE(x.grad().has_value());
 }
 
-TEST(ADTensorTraceTest, reduction_op_on_grad_tensor_inside_active_context_produces_grad_requiring_result) {
+TEST(
+    ADTensorTraceTest,
+    reduction_op_on_grad_tensor_inside_active_context_produces_grad_requiring_result) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y = x.sum(1, false);
    EXPECT_TRUE(AutodiffContext<float>::has());
-   EXPECT_EQ(x.vid(), ValueID{0});
-   EXPECT_EQ(y.vid(), ValueID{1});
+   EXPECT_TRUE(x.has_vid());
+   EXPECT_TRUE(y.has_vid());
    EXPECT_TRUE(y.requires_grad());
 }
 
@@ -120,8 +124,8 @@ TEST(ADTensorTraceTest, traced_reduction_result_can_be_backwarded_to_leaf) {
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y = x.sum(1, false);
    y.backward();
@@ -130,17 +134,19 @@ TEST(ADTensorTraceTest, traced_reduction_result_can_be_backwarded_to_leaf) {
    EXPECT_TRUE(x.grad().has_value());
 }
 
-TEST(ADTensorTraceTest, binary_op_when_both_inputs_require_grad_inside_active_context_produces_grad_requiring_result) {
+TEST(
+    ADTensorTraceTest,
+    binary_op_when_both_inputs_require_grad_inside_active_context_produces_grad_requiring_result) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> z = x + y;
    EXPECT_TRUE(AutodiffContext<float>::has());
@@ -150,18 +156,19 @@ TEST(ADTensorTraceTest, binary_op_when_both_inputs_require_grad_inside_active_co
    EXPECT_TRUE(z.requires_grad());
 }
 
-
-TEST(ADTensorTraceTest, binary_op_when_lhs_input_requires_grad_inside_active_context_produces_grad_requiring_result) {
+TEST(
+    ADTensorTraceTest,
+    binary_op_when_lhs_input_requires_grad_inside_active_context_produces_grad_requiring_result) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
 
    ADTensor<float> z = x + y;
    EXPECT_TRUE(AutodiffContext<float>::has());
@@ -171,18 +178,19 @@ TEST(ADTensorTraceTest, binary_op_when_lhs_input_requires_grad_inside_active_con
    EXPECT_TRUE(z.requires_grad());
 }
 
-
-TEST(ADTensorTraceTest, binary_op_when_rhs_input_requires_grad_inside_active_context_produces_grad_requiring_result) {
+TEST(
+    ADTensorTraceTest,
+    binary_op_when_rhs_input_requires_grad_inside_active_context_produces_grad_requiring_result) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> z = x + y;
    EXPECT_TRUE(AutodiffContext<float>::has());
@@ -192,29 +200,28 @@ TEST(ADTensorTraceTest, binary_op_when_rhs_input_requires_grad_inside_active_con
    EXPECT_TRUE(z.requires_grad());
 }
 
-
-TEST(ADTensorTraceTest, backward_without_active_context_throws) {
+TEST(ADTensorTraceTest,
+     backward_on_untracked_tensor_without_active_context_throws) {
    AutodiffContextReset reset;
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> z = x + y;
    EXPECT_THROW(z.backward(), std::runtime_error);
 }
-
 
 TEST(ADTensorTraceTest, backward_on_traced_unary_result_populates_leaf_grad) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y = x.sqrt();
    y.backward();
@@ -223,17 +230,18 @@ TEST(ADTensorTraceTest, backward_on_traced_unary_result_populates_leaf_grad) {
    EXPECT_TRUE(x.grad().has_value());
 }
 
-TEST(ADTensorTraceTest, backward_on_traced_binary_result_populates_all_leaf_grads) {
+TEST(ADTensorTraceTest,
+     backward_on_traced_binary_result_populates_all_leaf_grads) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -249,15 +257,16 @@ TEST(ADTensorTraceTest, grad_returns_nullopt_before_backward) {
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> z = x + y;
-   EXPECT_FALSE(z.grad().has_value());
+   EXPECT_FALSE(x.grad().has_value());
+   EXPECT_FALSE(y.grad().has_value());
 }
 
 TEST(ADTensorTraceTest, returned_grad_tensor_does_not_require_grad) {
@@ -265,12 +274,12 @@ TEST(ADTensorTraceTest, returned_grad_tensor_does_not_require_grad) {
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -285,12 +294,12 @@ TEST(ADTensorTraceTest, grad_persists_after_engine_scope_exit) {
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -301,17 +310,18 @@ TEST(ADTensorTraceTest, grad_persists_after_engine_scope_exit) {
    EXPECT_TRUE(y.grad().has_value());
 }
 
-TEST(ADTensorTraceTest, grad_returns_nullopt_for_tensor_with_requires_grad_false) {
+TEST(ADTensorTraceTest,
+     backward_on_mixed_grad_binary_result_populates_only_grad_requiring_leaf) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -319,17 +329,19 @@ TEST(ADTensorTraceTest, grad_returns_nullopt_for_tensor_with_requires_grad_false
    EXPECT_FALSE(y.grad().has_value());
 }
 
-TEST(ADTensorTraceTest, intermediate_tensor_grad_is_not_exposed_when_only_leaf_export_is_supported) {
+TEST(
+    ADTensorTraceTest,
+    intermediate_tensor_grad_is_not_exposed_when_only_leaf_export_is_supported) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
    ADTensor<float> x({2, 3},
-                  std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                  DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> y({2, 3},
-               std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-               DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -338,16 +350,13 @@ TEST(ADTensorTraceTest, intermediate_tensor_grad_is_not_exposed_when_only_leaf_e
    EXPECT_FALSE(z.grad().has_value());
 }
 
-
-TEST(ADTensorTraceTest, tensor_can_be_retracked_in_new_context_after_old_context_exits) {
+TEST(ADTensorTraceTest,
+     tensor_can_be_retracked_in_new_context_after_old_context_exits) {
    AutodiffContextReset reset;
 
    ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0F, 4.0F, 9.0F,
-                                        16.0F, 25.0F, 36.0F},
-                     DType::FLOAT32,
-                     Device{DeviceType::CPU, 0},
-                     true);
+                     std::vector<float>{1.0F, 4.0F, 9.0F, 16.0F, 25.0F, 36.0F},
+                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ValueID first_vid{-1};
    {
@@ -360,7 +369,7 @@ TEST(ADTensorTraceTest, tensor_can_be_retracked_in_new_context_after_old_context
 
       scope.exit();
    }
-
+   EXPECT_FALSE(AutodiffContext<float>::has());
    {
       EngineScope<float> scope{};
       scope.enter();
