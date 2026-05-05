@@ -5,6 +5,8 @@
 
 #include "fixtures.h"
 
+// TODO: abstract tensor creation out of tests
+
 TEST(ADTensorEagerTest,
      unary_op_on_non_grad_tensor_uses_eager_path_without_context) {
    ADTensor<float> x({2, 3},
@@ -228,5 +230,3 @@ TEST(
 
    scope.exit();
 }
-
-// TODO: Unary dispatch with Params??
