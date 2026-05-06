@@ -16,8 +16,9 @@ template <typename T, class Op> class Node {
    Node() = default;
    Node(Op op) : op_(std::move(op)) {};
 
-   static constexpr std::string_view KName = Op::name;
-   static constexpr OpSchema KSchema = Op::schema;
+   static constexpr std::string_view KName = OpTraits<typename Op::tag>::name;
+   static constexpr OpSchema KSchema = OpTraits<typename Op::tag>::schema;
+
 
    void set_inputs(In inputs) { inputs_ = std::move(inputs); };
 

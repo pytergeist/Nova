@@ -149,7 +149,8 @@ TEST(AutodiffEngineTest, track_input_with_requires_grad_true_marks_leaf) {
    engine.backward(vid);
 
    const GradSlotID slot = engine.get_grad_slot(vid);
-   const GradStore<float>& store = AutodiffContext<float>::runtime().grad_store();
+   const GradStore<float> &store =
+       AutodiffContext<float>::runtime().grad_store();
 
    EXPECT_TRUE(store.has(slot));
 }
@@ -200,7 +201,8 @@ TEST(AutodiffEngineTest,
 
    engine.backward(vid);
    const GradSlotID slot = engine.get_grad_slot(vid);
-   const GradStore<float>& store = AutodiffContext<float>::runtime().grad_store();
+   const GradStore<float> &store =
+       AutodiffContext<float>::runtime().grad_store();
 
    EXPECT_TRUE(store.has(slot));
 }
@@ -260,7 +262,7 @@ TEST(AutodiffEngineTest,
    EXPECT_TRUE(engine.has_value(out_vid));
    engine.backward(out_vid);
    const GradSlotID slot = engine.get_grad_slot(leaf_vid);
-   GradStore<float>& store = AutodiffContext<float>::runtime().grad_store();
+   GradStore<float> &store = AutodiffContext<float>::runtime().grad_store();
 
    EXPECT_TRUE(store.has(slot));
    RawTensor<float> grad = store.get(slot);
@@ -292,7 +294,7 @@ TEST(AutodiffEngineTest,
    engine.backward(out_vid);
    const GradSlotID slot1 = engine.get_grad_slot(leaf_vid1);
    const GradSlotID slot2 = engine.get_grad_slot(leaf_vid2);
-   GradStore<float>& store = AutodiffContext<float>::runtime().grad_store();
+   GradStore<float> &store = AutodiffContext<float>::runtime().grad_store();
 
    EXPECT_TRUE(store.has(slot1));
    EXPECT_TRUE(store.has(slot2));
@@ -330,7 +332,7 @@ TEST(AutodiffEngineTest,
    engine.backward(out_vids[1]);
    const GradSlotID slot1 = engine.get_grad_slot(leaf_vid1);
    const GradSlotID slot2 = engine.get_grad_slot(leaf_vid2);
-   GradStore<float>& store = AutodiffContext<float>::runtime().grad_store();
+   GradStore<float> &store = AutodiffContext<float>::runtime().grad_store();
 
    EXPECT_TRUE(store.has(slot1));
    EXPECT_TRUE(store.has(slot2));
@@ -479,7 +481,8 @@ TEST(AutodiffEngineTest,
    EXPECT_TENSOR_EQ(grad, make_test_tensor(false, seed).raw());
 }
 
-TEST(AutodiffEngineTest, export_leaf_does_not_add_intermediate_grads_to_grad_store) {
+TEST(AutodiffEngineTest,
+     export_leaf_does_not_add_intermediate_grads_to_grad_store) {
    const ADTensor<float> x = make_test_tensor(true);
 
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());

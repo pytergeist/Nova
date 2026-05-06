@@ -4,6 +4,8 @@
 
 #include "fixtures.h"
 
+// TODO: Abstract tensor creation into helper
+
 TEST(ADTensorTraceTest, ensure_vid_without_active_context_throws) {
    AutodiffContextReset reset;
    ADTensor<float> x({2, 3},
@@ -355,7 +357,7 @@ TEST(ADTensorTraceTest,
    AutodiffContextReset reset;
 
    ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0F, 4.0F, 9.0F, 16.0F, 25.0F, 36.0F},
+                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
                      DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
 
    ValueID first_vid{-1};

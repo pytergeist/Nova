@@ -153,11 +153,9 @@ TEST(ADTensorCoreTest, raw_nonconst_accessor_allows_mutation_via_clear) {
    EXPECT_TENSOR_EQ(t.raw(), expected);
 }
 
-
-
 TEST(ADTensorCoreTest, begin_end_span_whole_tensor) {
    ADTensor<float> t({2, 2}, std::vector<float>{1, 2, 3, 4}, DType::FLOAT32,
-                      Device{DeviceType::CPU, 0}, false);
+                     Device{DeviceType::CPU, 0}, false);
 
    EXPECT_EQ(t.end() - t.begin(), 4);
    EXPECT_FLOAT_EQ(t.begin()[0], 1.0);

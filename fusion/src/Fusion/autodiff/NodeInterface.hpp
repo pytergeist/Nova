@@ -132,7 +132,7 @@ template <typename T> class INode {
 
       explicit NodeModel(Op op) : node_(std::move(op)) {}
 
-      std::string_view name() const override { return Op::name; }
+      std::string_view name() const override { return node_.KName; }
 
       AutodiffMeta<T> forward(AutodiffMeta<T> &input) override {
          auto y = node_.run_forward(input);
@@ -145,10 +145,10 @@ template <typename T> class INode {
       }
 
       std::size_t get_output_arity() const override {
-         return Op::output_arity();
+         return node_.KSchema.outputs.arity;
       }
 
-      std::size_t get_input_arity() const override { return Op::input_arity(); }
+      std::size_t get_input_arity() const override { return node_.KSchema.inputs.arity; }
 
       const std::type_info &in_type() const override { return typeid(In); };
       const std::type_info &out_type() const override { return typeid(Out); };

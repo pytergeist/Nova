@@ -10,6 +10,8 @@ add_executable(fusion_autodiff_tests
         test_autodiff_context.cpp
         test_grad_store.cpp
         test_graph.cpp
+        test_node.cpp
+        test_node_interface.cpp
 
 )
 
