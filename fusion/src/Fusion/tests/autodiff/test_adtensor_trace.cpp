@@ -3,14 +3,13 @@
 #include "Fusion/autodiff/ADTensor.hpp"
 
 #include "fixtures.h"
+#include "test_builders.h"
 
 // TODO: Abstract tensor creation into helper
 
 TEST(ADTensorTraceTest, ensure_vid_without_active_context_throws) {
    AutodiffContextReset reset;
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
 
    EXPECT_FALSE(AutodiffContext<float>::has());
    EXPECT_THROW(x.ensure_vid(), std::runtime_error);
@@ -20,9 +19,7 @@ TEST(ADTensorTraceTest, ensure_vid_inside_active_context_registers_value) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
    EXPECT_TRUE(AutodiffContext<float>::has());
    EXPECT_EQ(x.vid(), -1);
    x.ensure_vid();
@@ -34,9 +31,7 @@ TEST(ADTensorTraceTest,
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
    EXPECT_TRUE(AutodiffContext<float>::has());
    EXPECT_EQ(x.vid(), -1);
    x.ensure_vid();
@@ -49,9 +44,7 @@ TEST(ADTensorTraceTest, ensure_vid_inside_active_context_sets_has_vid_true) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
    EXPECT_TRUE(AutodiffContext<float>::has());
    EXPECT_EQ(x.vid(), -1);
    x.ensure_vid();
@@ -62,9 +55,7 @@ TEST(ADTensorTraceTest, backward_on_leaf_tensor_exposes_seed_gradient) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
    EXPECT_TRUE(AutodiffContext<float>::has());
    EXPECT_EQ(x.vid(), -1);
    x.ensure_vid();
@@ -78,9 +69,7 @@ TEST(
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
 
    ADTensor<float> y = x.sqrt();
    EXPECT_TRUE(AutodiffContext<float>::has());
@@ -93,9 +82,7 @@ TEST(ADTensorTraceTest, traced_unary_result_can_be_backwarded_to_leaf) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
 
    ADTensor<float> y = x.sqrt();
    y.backward();
@@ -110,9 +97,7 @@ TEST(
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
 
    ADTensor<float> y = x.sum(1, false);
    EXPECT_TRUE(AutodiffContext<float>::has());
@@ -125,9 +110,7 @@ TEST(ADTensorTraceTest, traced_reduction_result_can_be_backwarded_to_leaf) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
 
    ADTensor<float> y = x.sum(1, false);
    y.backward();
@@ -142,13 +125,8 @@ TEST(
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
+   ADTensor<float> y = test_builders::ad_square_inputs(true);
 
    ADTensor<float> z = x + y;
    EXPECT_TRUE(AutodiffContext<float>::has());
@@ -164,13 +142,8 @@ TEST(
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
+   ADTensor<float> y = test_builders::ad_square_inputs(false);
 
    ADTensor<float> z = x + y;
    EXPECT_TRUE(AutodiffContext<float>::has());
@@ -186,13 +159,8 @@ TEST(
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(false);
+   ADTensor<float> y = test_builders::ad_square_inputs(true);
 
    ADTensor<float> z = x + y;
    EXPECT_TRUE(AutodiffContext<float>::has());
@@ -205,13 +173,8 @@ TEST(
 TEST(ADTensorTraceTest,
      backward_on_untracked_tensor_without_active_context_throws) {
    AutodiffContextReset reset;
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(false);
+   ADTensor<float> y = test_builders::ad_square_inputs(false);
 
    ADTensor<float> z = x + y;
    EXPECT_THROW(z.backward(), std::runtime_error);
@@ -221,9 +184,7 @@ TEST(ADTensorTraceTest, backward_on_traced_unary_result_populates_leaf_grad) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
 
    ADTensor<float> y = x.sqrt();
    y.backward();
@@ -237,13 +198,8 @@ TEST(ADTensorTraceTest,
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
+   ADTensor<float> y = test_builders::ad_square_inputs(true);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -258,13 +214,8 @@ TEST(ADTensorTraceTest, grad_returns_nullopt_before_backward) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
+   ADTensor<float> y = test_builders::ad_square_inputs(true);
 
    ADTensor<float> z = x + y;
    EXPECT_FALSE(x.grad().has_value());
@@ -275,13 +226,8 @@ TEST(ADTensorTraceTest, returned_grad_tensor_does_not_require_grad) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+ADTensor<float> x = test_builders::ad_square_inputs(true);
+   ADTensor<float> y = test_builders::ad_square_inputs(true);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -295,13 +241,8 @@ TEST(ADTensorTraceTest, grad_persists_after_engine_scope_exit) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
+   ADTensor<float> y = test_builders::ad_square_inputs(true);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -317,13 +258,8 @@ TEST(ADTensorTraceTest,
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
+   ADTensor<float> y = test_builders::ad_square_inputs(false);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -337,13 +273,8 @@ TEST(
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
-
-   ADTensor<float> y({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
+   ADTensor<float> y = test_builders::ad_square_inputs(true);
 
    ADTensor<float> z = x + y;
    z.backward();
@@ -356,9 +287,7 @@ TEST(ADTensorTraceTest,
      tensor_can_be_retracked_in_new_context_after_old_context_exits) {
    AutodiffContextReset reset;
 
-   ADTensor<float> x({2, 3},
-                     std::vector<float>{1.0, 4.0, 9.0, 16.0, 25.0, 36.0},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
 
    ValueID first_vid{-1};
    {

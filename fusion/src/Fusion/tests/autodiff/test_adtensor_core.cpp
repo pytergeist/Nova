@@ -3,6 +3,7 @@
 #include "Fusion/autodiff/ADTensor.hpp"
 
 #include "fixtures.h"
+#include "test_builders.h"
 
 TEST(ADTensorCoreTest, default_constructed_tensor_is_uninitialised) {
    const ADTensor<float> t;
@@ -81,8 +82,7 @@ TEST(ADTensorCoreTest,
 }
 
 TEST(ADTensorCoreTest, size_and_flat_size_forward_to_raw_tensor) {
-   ADTensor<float> t({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
+   ADTensor<float> t = test_builders::ad_linear_inputs(false);
 
    EXPECT_EQ(t.size(), 6);
    EXPECT_EQ(t.flat_size(), 6);
