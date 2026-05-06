@@ -11,9 +11,9 @@ template <typename T> class Engine;
 
 template <typename T> class AutodiffContext {
  public:
-   static AutodiffRunTime<T> &runtime() {
-      static AutodiffRunTime<T> rt{};
-      return rt;
+   static AutodiffRunTime<T>& runtime() {
+      static auto* rt = new AutodiffRunTime<T>{};
+      return *rt;
    }
 
    static Engine<T> &get() {
@@ -56,9 +56,13 @@ template <typename T> struct EngineScope {
    EngineScope(EngineScope &&) = delete;
    EngineScope &operator=(EngineScope &&) = delete;
 
-   ~EngineScope() {
+   ~EngineScope() noexcept {
       if (active_) {
-         exit();
+         try {
+            exit();
+         } catch (...) {
+            std::terminate();
+         }
       }
    }
 
