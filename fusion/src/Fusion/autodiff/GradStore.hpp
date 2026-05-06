@@ -74,6 +74,9 @@ template <typename T> class GradStore {
 template <typename T> class AutodiffRunTime {
  public:
    GradStore<T> &grad_store() { return grad_store_; }
+   ~AutodiffRunTime() {
+      grad_store_.clear_all();
+   }
 
  private:
    GradStore<T> grad_store_;
