@@ -53,12 +53,12 @@ template <typename T> class GradStore {
 
    void set(const GradSlotID slot, const RawTensor<T> &grad) {
       FUSION_BOUNDS_CHECK(slot, slots_.size());
-      slots_[slot] = grad;
+      slots_[static_cast<std::size_t>(slot)] = grad;
    }
 
    void reset_slot(const GradSlotID slot) {
       FUSION_BOUNDS_CHECK(slot, slots_.size());
-      slots_[slot].reset();
+      slots_[static_cast<std::size_t>(slot)].reset();
    }
 
    void clear_all() {
@@ -74,9 +74,11 @@ template <typename T> class GradStore {
 template <typename T> class AutodiffRunTime {
  public:
    GradStore<T> &grad_store() { return grad_store_; }
-   ~AutodiffRunTime() {
+
+   void clear() noexcept {
       grad_store_.clear_all();
    }
+
 
  private:
    GradStore<T> grad_store_;
