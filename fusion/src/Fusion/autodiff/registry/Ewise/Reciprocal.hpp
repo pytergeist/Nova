@@ -11,7 +11,7 @@
 #include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Reciprocal {
-   static constexpr std::string_view name = "Reciprocal";
+   using tag = ReciprocalTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

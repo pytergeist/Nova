@@ -8,7 +8,8 @@
 #include "Fusion/common/Log.hpp"
 
 struct Device final {
-   Device(DeviceType type, DeviceIdx index = -1) : type_(type), index_(index) {
+   explicit Device(const DeviceType type, const DeviceIdx index = -1)
+       : type_(type), index_(index) {
       validate_device();
    }
 
@@ -20,16 +21,26 @@ struct Device final {
    }
 
    bool is_cpu() const { return type_ == DeviceType::CPU; }
-   bool is_gpu() const { return type_ == DeviceType::CUDA; }
    bool is_cuda() const { return type_ == DeviceType::CUDA; }
    bool is_meta() const { return type_ == DeviceType::METAL; }
+   bool is_gpu() const {
+      return type_ == DeviceType::CUDA || type_ == DeviceType::METAL;
+   }
 
  private:
    DeviceType type_;
    DeviceIdx index_;
 
    void validate_device() const {
-      FUSION_CHECK(index_ <= 0, "Invalid device index");
+      switch (type_) {
+      case DeviceType::CPU:
+         FUSION_CHECK(index_ == 0, "CPU device must use index 0");
+         break;
+      case DeviceType::CUDA:
+      case DeviceType::METAL:
+         FUSION_CHECK(index_ >= 0, "Accelerator device index must be > 0");
+         break;
+      }
    }
 };
 

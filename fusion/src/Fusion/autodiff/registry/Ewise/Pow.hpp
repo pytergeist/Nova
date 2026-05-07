@@ -11,7 +11,7 @@
 #include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Pow {
-   static constexpr std::string_view name = "Pow";
+   using tag = PowTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

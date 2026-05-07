@@ -160,7 +160,7 @@ template <typename T> UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
    UnaryEwiseMeta meta{};
    const bool cont = A.is_contiguous();
 
-   if (cont) {
+   if (cont) { // TODO: this fastpath should also check is_view?
       meta.fastpath = true;
       meta.out_shape = A.shape();
       meta.fast_len = A.flat_size();

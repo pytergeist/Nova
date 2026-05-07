@@ -39,7 +39,7 @@ template <typename T> class RawTensor {
    using value_type = T;
 
    RawTensor()
-       : storage_(nullptr), device_(Device{DeviceType::CPU, 0}), shape_{} {}
+       : storage_(nullptr), device_(Device{DeviceType::CPU, 0}) {}
 
    RawTensor(const RawTensor &) = default;
    RawTensor &operator=(const RawTensor &) = default;
@@ -76,7 +76,7 @@ template <typename T> class RawTensor {
    }
 
    DType dtype() const noexcept { return dtype_; }
-   std::size_t dtype_size() const noexcept { return get_dtype_size(dtype_); }
+   std::size_t dtype_size() const { return get_dtype_size(dtype_); }
 
    std::size_t rank() const { return shape_.size(); }
    std::size_t ndims() const { return shape_.size(); }
@@ -100,8 +100,10 @@ template <typename T> class RawTensor {
    ITensorStorage<T> *get_storage() { return storage_.get(); }
    const ITensorStorage<T> *get_storage() const { return storage_.get(); }
 
-   std::shared_ptr<ITensorStorage<T>> &storage() { return storage_; }
    std::shared_ptr<ITensorStorage<T>> &storage() const { return storage_; }
+   std::size_t storage_use_count() const noexcept {
+      return storage_.use_count();
+   }
 
    TensorBuffer &raw_data() { return storage_->data(); }
    const TensorBuffer &raw_data() const { return storage_->data(); }

@@ -1,59 +1,29 @@
 #ifndef AD_TENSOR_HPP
 #define AD_TENSOR_HPP
 
-#include <cstring>
 #include <memory>
-#include <ostream>
-#include <stdexcept>
 #include <utility>
 #include <vector>
 
-#include "Fusion/common/Checks.hpp"
-
+#include "AutodiffContext.hpp"
 #include "AutodiffMode.hpp"
 #include "Dispatch.hpp"
-#include "Engine.hpp"
-#include "EngineContext.hpp"
 #include "registry/Comparison/Comparison.h"
 #include "registry/Ewise/Ewise.h"
 #include "registry/LinAlg/LinAlg.h"
 #include "registry/Reduction/ReductionPolicy.h"
 #include "registry/Transcendental/Transcendental.h"
 
-#include "Fusion/ops/Comparison.hpp"
-#include "Fusion/ops/Ewise.hpp"
-#include "Fusion/ops/Helpers.hpp"
-#include "Fusion/ops/Linalg.hpp"
 #include "Fusion/ops/OpParams.hpp"
-#include "Fusion/ops/Reduce.hpp"
-#include "Fusion/ops/Transcendental.hpp"
 
 #include "Fusion/alloc/DefaultAllocator.h"
 
 template <typename T> struct ADTensor;
 
-/* TODO: Refactor this logic into the engine context - this should be done on
- * exit of the EngineContext manager. The longer term fix for this issue is to
- * write intrusive_ptr classes to retain the graph while a tensor relies on it -
- * but this would require changing the ownership model so this should only be
- * done when the core/invariants are stable. */
-template <typename T>
-inline thread_local std::vector<ADTensor<T> *> leaf_tensors;
+// TODO: this doesn't follow the rule of 5
 
 template <typename T>
-static inline ValueID ensure_handle(Engine<T> &eng, ADTensor<T> &t) {
-   if (t.eng_ == &eng && t.vid() >= 0) {
-      return t.vid();
-   }
-   ValueID vid = eng.track_input(t, t.requires_grad());
-   t.eng_ = &eng; // TODO: make this a setter
-   t.set_vid(vid);
-   return vid;
-}
-
-template <typename T> // TODO: need to either pass in device somehow?
-inline ADTensor<T> ad_scalar_t(const T scalar, const DType dtype,
-                               Device device) {
+ADTensor<T> ad_scalar_t(const T scalar, const DType dtype, Device device) {
    return ADTensor<T>{{1}, {scalar}, dtype, device, false};
 }
 
@@ -65,9 +35,6 @@ template <typename T> class ADTensor {
 
    ADTensor() : raw_(), requires_grad_(false) {}
 
-   explicit ADTensor(Raw &&raw, bool requires_grad = false)
-       : raw_(std::move(raw)), requires_grad_(requires_grad) {}
-
    explicit ADTensor(const Raw &raw, bool requires_grad = false)
        : raw_(raw), requires_grad_(requires_grad) {}
 
@@ -78,16 +45,11 @@ template <typename T> class ADTensor {
        : raw_(std::move(shape), std::move(data), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}
 
-   explicit ADTensor(std::vector<size_t> shape, Device device, DType dtype,
+   explicit ADTensor(std::vector<std::size_t> shape, DType dtype, Device device,
                      bool requires_grad = false,
                      IAllocator *allocator = nullptr)
        : raw_(std::move(shape), dtype, device, allocator),
          requires_grad_(std::move(requires_grad)) {}
-
-   ~ADTensor() {
-      auto &vec = leaf_tensors<T>;
-      vec.erase(std::remove(vec.begin(), vec.end(), this), vec.end());
-   }
 
    const RawTensor<T> &raw() const noexcept { return raw_; }
    RawTensor<T> &raw() noexcept { return raw_; }
@@ -96,79 +58,69 @@ template <typename T> class ADTensor {
    bool is_initialised() const noexcept { return raw_.is_initialised(); }
    const void *get_storage() const noexcept { return raw_.get_storage(); }
 
-   std::vector<size_t> shape() const { return raw_.shape(); }
+   std::vector<std::size_t> shape() const { return raw_.shape(); }
+   std::vector<std::int64_t> strides() const { return raw_.strides(); }
+
    std::size_t ndims() const { return raw_.ndims(); }
    size_t size() const { return raw_.size(); }
+
    Device device() const { return raw_.device(); }
    DType dtype() const { return raw_.dtype(); }
+
    std::size_t flat_size() const { return raw_.flat_size(); }
    std::size_t rank() const { return raw_.rank(); }
 
    ValueID vid() { return vid_; }
    ValueID vid() const { return vid_; }
 
-   ValueID set_vid(ValueID vid) noexcept { return vid_ = vid; }
+   ValueID set_vid(const ValueID vid) {
+      FUSION_CHECK(vid_ < 0, "Trying to overwrite Autodiff ValueID");
+      return vid_ = vid;
+   }
 
    bool has_vid() const noexcept { return vid_ >= 0; }
 
-   void set_leaf() {
-      if (requires_grad_) {
-         leaf_tensors<T>.push_back(this);
-      }
-   }
-
    ValueID ensure_vid() {
-      Engine<T> &eng = EngineContext<T>::get();
+      Engine<T> &eng = AutodiffContext<T>::get();
 
       if (vid_ >= 0) {
          if (eng.has_value(vid_)) {
-            set_leaf();
             return vid_;
          }
       }
+
       vid_ = eng.track_input(raw_, requires_grad_);
-      set_leaf();
+
+      if (requires_grad_) {
+         grad_slot_id_ = eng.get_grad_slot(vid_);
+      }
+
       return vid_;
    }
 
    bool requires_grad() const noexcept { return requires_grad_; }
-   void set_requires_grad(bool v) noexcept { requires_grad_ = v; }
-
-   void backward() {
-      Engine<T> &eng = EngineContext<T>::get();
-      ValueID vid = ensure_vid();
-      BackwardResult<T> result = eng.backward(vid);
-      attatch_grads(result);
+   void set_requires_grad(const bool requires_grad) noexcept {
+      requires_grad_ = requires_grad;
    }
 
-   void attatch_grads(BackwardResult<T> &res) const {
-      for (ADTensor<T> *leaf : leaf_tensors<T>) {
-         if (!leaf->has_vid())
-            continue;
-         auto it = res.grads.find(leaf->vid());
-         if (it != res.grads.end()) {
-            leaf->grad_ = std::make_shared<RawTensor<T>>(it->second);
-         }
-      }
-      leaf_tensors<T>.clear();
+   void backward() {
+      Engine<T> &eng = AutodiffContext<T>::get();
+      ValueID vid = ensure_vid();
+      eng.backward(vid);
    }
 
    std::optional<ADTensor<T>> grad() const noexcept {
-      if (!grad_ || !grad_->is_initialised()) {
+      if (grad_slot_id_ == -1 || !requires_grad_) {
          return std::nullopt;
       }
-      return ADTensor<T>(*grad_, false);
-   }
 
-   void ensure_grad() {
-      if (!has_grad()) {
-         std::vector<T> z(this->size(), T(0));
-         grad_ = std::make_shared<RawTensor<T>>(raw_.shape(), std::move(z),
-                                                raw_.dtype(), raw_.device());
+      GradStore<T> &store = AutodiffContext<T>::runtime().grad_store();
+      if (!store.has(grad_slot_id_)) {
+         return std::nullopt;
       }
+      RawTensor<T> grad = store.get(grad_slot_id_);
+      return ADTensor<T>(grad, false);
    }
-
-   bool has_grad() const noexcept { return grad_ && grad_->is_initialised(); };
 
    ADTensor operator+(const T scalar) const {
       ADTensor other = ad_scalar_t(scalar, raw_.dtype(), raw_.device());
@@ -252,7 +204,7 @@ template <typename T> class ADTensor {
           other, [](const Raw &x, const Raw &y) { return x.pow(y); });
    }
 
-   ADTensor reciprocal() const { // TODO: write policy for reciprocal
+   ADTensor reciprocal() const {
       return apply_unary_op<Reciprocal<T>>(
           [](const Raw &x) { return x.reciprocal(); });
    }
@@ -324,8 +276,8 @@ template <typename T> class ADTensor {
 
  private:
    RawTensor<T> raw_;
-   mutable std::shared_ptr<RawTensor<T>> grad_;
    ValueID vid_{-1};
+   GradSlotID grad_slot_id_{-1};
    bool requires_grad_;
 
    static bool grad_flow(const ADTensor &x, const ADTensor &y) {
@@ -344,7 +296,7 @@ template <typename T> class ADTensor {
 
              Raw out = ff(xb, yb);
 
-             bool req_grad = grad_flow(x, y);
+             bool req_grad = grad_flow(x, y) && autodiff::grad_enabled();
              return ADTensor(std::move(out), req_grad);
           });
    }
@@ -356,7 +308,7 @@ template <typename T> class ADTensor {
       return autodiff::unary<T, Op>(self, [&](const ADTensor &x) {
          const Raw &xb = x.raw();
          Raw out = ff(xb);
-         bool req_grad = x.requires_grad();
+         bool req_grad = x.requires_grad() && autodiff::grad_enabled();
          return ADTensor(std::move(out), req_grad);
       });
    }
@@ -370,7 +322,7 @@ template <typename T> class ADTensor {
           self, p, [&](const ADTensor &x, const Param &param) {
              const Raw &xb = x.raw();
              Raw out = ff(xb, param);
-             bool req_grad = x.requires_grad();
+             bool req_grad = x.requires_grad() && autodiff::grad_enabled();
              return ADTensor(std::move(out), req_grad);
           });
    }

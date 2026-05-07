@@ -10,7 +10,7 @@
 #include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct Sum {
-   static constexpr std::string_view name = "Sum";
+   using tag = SumTag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;

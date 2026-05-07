@@ -10,6 +10,7 @@
 static constexpr NodeID kNoNode = NodeID{-1};
 
 template <typename T> class Engine;
+template <typename T> class GraphHarness;
 
 template <typename T> class Graph {
  public:
@@ -53,6 +54,7 @@ template <typename T> class Graph {
 
  private:
    friend class Engine<T>;
+   friend class GraphHarness<T>;
 
    std::vector<std::vector<ConsumerInfo>> consumed_by_;
    std::vector<INode<T>> nodes_{};
@@ -102,13 +104,16 @@ template <typename T> class Graph {
    }
 
    void append_producer_table(INode<T> &node, NodeID nid) {
-      size_t num = node.get_static_num_outputs();
+      size_t num = node.get_output_arity();
       for (size_t i = 0; i < num; i++) {
          ValueID vid{value_counter_++};
          node.set_output(i, vid);
 
          if (produced_by_.size() <= static_cast<size_t>(vid)) {
             produced_by_.resize(static_cast<size_t>(vid) + 1);
+         }
+         if (consumed_by_.size() <= static_cast<size_t>(vid)) {
+            consumed_by_.resize(static_cast<size_t>(vid) + 1);
          }
          produced_by_[vid] = ProducerInfo{.nid = nid, .out_slot = i};
       }

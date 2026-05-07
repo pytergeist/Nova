@@ -122,6 +122,8 @@ target_link_libraries(fusion_core PUBLIC
         fusion_alloc
         ${BLAS_LIBRARIES}
         ${ACCELERATE_FRAMEWORK}
+        OpenBLAS::OpenBLAS
+        Eigen3::Eigen
 )
 
 if(TARGET sleef::sleef)
@@ -226,14 +228,7 @@ option(NOVA_BUILD_TEST "Build tests" OFF)
 
 if(NOVA_BUILD_TEST)
   enable_testing()
-  add_executable(fusion_test
-          ${FUSION_SRC_DIR}/tests/tensor/cpu/operations.cpp
-  )
-  target_link_libraries(fusion_test PRIVATE
-          fusion_core
-          GTest::gtest
-          GTest::gtest_main
-  )
+  find_package(GTest REQUIRED)
   include(GoogleTest)
-  gtest_discover_tests(fusion_test)
+  add_subdirectory(fusion/src/Fusion/tests)
 endif()

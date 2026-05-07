@@ -34,7 +34,7 @@ get_contiguous_strides(const std::vector<size_t> &shape) {
    return strides;
 }
 
-inline size_t normalise_axis(int axis, size_t ndim) {
+inline std::size_t normalise_axis(int axis, size_t ndim) {
    const int nd = static_cast<int>(ndim);
    if (axis < -nd || axis >= nd)
       throw std::runtime_error("input axis out of range");
