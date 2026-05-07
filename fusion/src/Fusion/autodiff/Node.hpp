@@ -16,20 +16,21 @@ template <typename T, class Op> class Node {
    Node() = default;
    Node(Op op) : op_(std::move(op)) {};
 
-   static constexpr std::string_view KName = Op::name;
-   static constexpr OpSchema KSchema = Op::schema;
+   static constexpr std::string_view KName = OpTraits<typename Op::tag>::name;
+   static constexpr OpSchema KSchema = OpTraits<typename Op::tag>::schema;
+
 
    void set_inputs(In inputs) { inputs_ = std::move(inputs); };
 
-  Out run_forward(In &input) {
-    fwd_done_ = true;
-    return op_.forward(ctx_, input);
-  }
+   Out run_forward(In &input) {
+      fwd_done_ = true;
+      return op_.forward(ctx_, input);
+   }
 
-  GradIn run_backward(GradOut &grad_out) {
-    bwd_done_ = true;
-    return op_.backward(ctx_, grad_out);
-  }
+   GradIn run_backward(GradOut &grad_out) {
+      bwd_done_ = true;
+      return op_.backward(ctx_, grad_out);
+   }
 
  private:
    Op op_{};

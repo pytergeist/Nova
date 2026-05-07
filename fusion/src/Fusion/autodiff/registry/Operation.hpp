@@ -12,6 +12,7 @@
 template <typename U> class RawTensor;
 
 template <typename T, typename Enable = void>
+// TODO: Need to move to dynamic arity for ops such as CONCAT(X1, X2,.. Xn) etc
 struct static_arity : std::integral_constant<std::size_t, 0> {};
 
 template <typename T> struct Context {

@@ -9,11 +9,13 @@
 #include <stdexcept>
 #include <vector>
 
+#include "Fusion/common/Checks.hpp"
 #include "Fusion/common/Log.hpp"
 
 #include "Fusion/alloc/AllocTypes.h"
 #include "Fusion/alloc/AllocatorInterface.h"
 
+// TODO: this is only used in tests - move somewhere else
 inline void *aligned_alloc_bytes(size_t alignment, size_t size) {
    if (alignment < alignof(void *) || (alignment & (alignment - 1)) != 0) {
       throw std::invalid_argument(
@@ -29,7 +31,7 @@ inline void *aligned_alloc_bytes(size_t alignment, size_t size) {
 }
 
 struct AlignedFree {
-   inline void operator()(void *ptr) const noexcept { std::free(ptr); }
+   void operator()(void *ptr) const noexcept { std::free(ptr); }
 };
 
 class TensorBuffer {
@@ -76,7 +78,7 @@ class TensorBuffer {
    }
 
    template <typename T> const T *data() const noexcept {
-      return reinterpret_cast<T *>(static_cast<std::byte *>(ptr_.get()));
+      return reinterpret_cast<const T *>(static_cast<std::byte *>(ptr_.get()));
    }
 
    template <typename T> T *data_ptr(std::size_t elem_off = 0) noexcept {
@@ -101,7 +103,6 @@ class TensorBuffer {
    bool empty() const noexcept { return size_ == 0; };
    std::size_t alignment() const noexcept { return alignment_; };
    explicit operator bool() const noexcept { return ptr_ != nullptr; };
-   std::size_t use_count() const noexcept { return ptr_.use_count(); }
 
    template <typename T>
    void copy_from(const std::vector<T> &src, std::size_t dst_elem_offset = 0) {
@@ -149,7 +150,7 @@ class TensorBuffer {
          }
       }
    };
-   std::shared_ptr<void> ptr_{};
+   std::unique_ptr<void, Deleter> ptr_{nullptr, Deleter{}};
    size_t size_{0};
    size_t alignment_{alignof(std::max_align_t)};
    IAllocator *allocator_{nullptr};

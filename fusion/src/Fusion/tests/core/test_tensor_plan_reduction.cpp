@@ -1,0 +1,373 @@
+#include <gtest/gtest.h>
+
+#include <cstdint>
+#include <stdexcept>
+#include <vector>
+
+#include "Fusion/core/TensorPlan.h"
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_keepdim_false_reduces_middle_axis) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {2, 4},
+       .strides = {4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   ReductionPlan plan = make_reduction_plan({out, in}, 1, false);
+
+   EXPECT_EQ(plan.num_operands, 2);
+   EXPECT_EQ(plan.out_ndim, 2);
+   EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 4}));
+   EXPECT_EQ(plan.reduction_axis, 1);
+   EXPECT_FALSE(plan.keep_dim);
+   EXPECT_EQ(plan.itemsize, sizeof(float));
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_keepdim_true_reduces_middle_axis) {
+   TensorDescription out{
+       .ndims = 3,
+       .shape = {2, 1, 4},
+       .strides = {4, 1, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   ReductionPlan plan = make_reduction_plan({out, in}, 1, true);
+
+   EXPECT_EQ(plan.num_operands, 2);
+   EXPECT_EQ(plan.out_ndim, 3);
+   EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 1, 4}));
+   EXPECT_EQ(plan.reduction_axis, 1);
+   EXPECT_TRUE(plan.keep_dim);
+   EXPECT_EQ(plan.itemsize, sizeof(float));
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_keepdim_true_rejects_bad_out_shape) {
+   TensorDescription out{
+       .ndims = 3,
+       .shape = {2, 4},
+       .strides = {4, 1, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   EXPECT_THROW(make_reduction_plan({out, in}, 1, true), std::runtime_error);
+}
+
+TEST(TensorPlanReductionTest, make_reduction_plan_normalises_negative_axis) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {2, 3},
+       .strides = {3, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   ReductionPlan plan =
+       make_reduction_plan({out, in}, static_cast<std::size_t>(-1), false);
+
+   EXPECT_EQ(plan.reduction_axis, 2);
+   EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3}));
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_builds_independent_loops_then_reduction_loop) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {2, 4},
+       .strides = {4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   ReductionPlan plan = make_reduction_plan({out, in}, 1, false);
+
+   ASSERT_EQ(plan.loop.size(), 3);
+
+   EXPECT_EQ(plan.loop[0].size, 2);
+   EXPECT_EQ(plan.loop[0].kind, LoopKind::Independent);
+
+   EXPECT_EQ(plan.loop[1].size, 4);
+   EXPECT_EQ(plan.loop[1].kind, LoopKind::Independent);
+
+   EXPECT_EQ(plan.loop[2].size, 3);
+   EXPECT_EQ(plan.loop[2].kind, LoopKind::Reduction);
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_sets_stride_bytes_for_keepdim_false) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {2, 4},
+       .strides = {4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   ReductionPlan plan = make_reduction_plan({out, in}, 1, false);
+
+   ASSERT_EQ(plan.loop.size(), 3);
+
+   const std::size_t item = static_cast<std::int64_t>(sizeof(float));
+
+   EXPECT_EQ(plan.loop[0].stride_bytes,
+             (std::vector<std::int64_t>{4 * item, 12 * item}));
+
+   EXPECT_EQ(plan.loop[1].stride_bytes,
+             (std::vector<std::int64_t>{1 * item, 1 * item}));
+
+   EXPECT_EQ(plan.loop[2].stride_bytes,
+             (std::vector<std::int64_t>{0, 4 * item}));
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_sets_stride_bytes_for_keepdim_true) {
+   TensorDescription out{
+       .ndims = 3,
+       .shape = {2, 1, 4},
+       .strides = {4, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   ReductionPlan plan = make_reduction_plan({out, in}, 1, true);
+
+   ASSERT_EQ(plan.loop.size(), 3);
+
+   const std::size_t item = static_cast<std::int64_t>(sizeof(float));
+
+   EXPECT_EQ(plan.loop[0].stride_bytes,
+             (std::vector<std::int64_t>{4 * item, 12 * item}));
+   EXPECT_EQ(plan.loop[1].stride_bytes,
+             (std::vector<std::int64_t>{1 * item, 1 * item}));
+   EXPECT_EQ(plan.loop[2].stride_bytes,
+             (std::vector<std::int64_t>{0 * item, 4 * item}));
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_reducing_first_axis_without_keepdim_is_valid) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {3, 4},
+       .strides = {4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   ReductionPlan plan = make_reduction_plan({out, in}, 0, false);
+
+   EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{3, 4}));
+   EXPECT_EQ(plan.reduction_axis, 0);
+
+   ASSERT_EQ(plan.loop.size(), 3);
+   EXPECT_EQ(plan.loop[0].size, 3);
+   EXPECT_EQ(plan.loop[1].size, 4);
+   EXPECT_EQ(plan.loop[2].size, 2);
+   EXPECT_EQ(plan.loop[2].kind, LoopKind::Reduction);
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_reducing_last_axis_without_keepdim_is_valid) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {2, 3},
+       .strides = {3, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   ReductionPlan plan = make_reduction_plan({out, in}, 2, false);
+
+   EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3}));
+   EXPECT_EQ(plan.reduction_axis, 2);
+
+   ASSERT_EQ(plan.loop.size(), 3);
+   EXPECT_EQ(plan.loop[0].size, 2);
+   EXPECT_EQ(plan.loop[1].size, 3);
+   EXPECT_EQ(plan.loop[2].size, 4);
+   EXPECT_EQ(plan.loop[2].kind, LoopKind::Reduction);
+}
+
+TEST(TensorPlanReductionTest, make_reduction_plan_rejects_empty_descs) {
+   EXPECT_THROW(make_reduction_plan({}, 0, false), std::runtime_error);
+}
+
+TEST(TensorPlanReductionTest, make_reduction_plan_rejects_axis_out_of_range) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {2, 4},
+       .strides = {4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   EXPECT_THROW(make_reduction_plan({out, in}, 3, false), std::runtime_error);
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_rejects_keepdim_false_with_wrong_output_rank) {
+   TensorDescription out{
+       .ndims = 3,
+       .shape = {2, 1, 4},
+       .strides = {4, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   EXPECT_THROW(make_reduction_plan({out, in}, 1, false), std::runtime_error);
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_rejects_keepdim_true_with_wrong_output_rank) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {2, 4},
+       .strides = {4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   EXPECT_THROW(make_reduction_plan({out, in}, 1, true), std::runtime_error);
+}
+
+TEST(
+    TensorPlanReductionTest,
+    make_reduction_plan_rejects_keepdim_true_when_reduced_axis_not_one_in_output) {
+   TensorDescription out{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   EXPECT_THROW(make_reduction_plan({out, in}, 1, true), std::runtime_error);
+}
+
+TEST(TensorPlanReductionTest, make_reduction_plan_rejects_mixed_itemsize) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {2, 4},
+       .strides = {4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(double),
+   };
+
+   EXPECT_THROW(make_reduction_plan({out, in}, 1, false), std::runtime_error);
+}
+
+TEST(TensorPlanReductionTest,
+     make_reduction_plan_rejects_input_rank_mismatch_across_inputs) {
+   TensorDescription out{
+       .ndims = 2,
+       .shape = {2, 4},
+       .strides = {4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in0{
+       .ndims = 3,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   TensorDescription in1{
+       .ndims = 2,
+       .shape = {3, 4},
+       .strides = {4, 1},
+       .itemsize = sizeof(float),
+   };
+
+   EXPECT_THROW(make_reduction_plan({out, in0, in1}, 1, false),
+                std::runtime_error);
+}

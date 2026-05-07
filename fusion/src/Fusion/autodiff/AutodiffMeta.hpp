@@ -13,11 +13,13 @@
 
 template <typename U> class RawTensor;
 
+// TODO: the below struct should be a class
+
 // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
 template <typename T> struct AutodiffMeta {
    std::vector<RawTensor<T>> data;
    // NB: in the current impl, params are type erased in meta
-   // but must be strongly typed at call site. This means strongtypes
+   // but must be strongly typed at call site. This means strong types
    // must be defined for each ops param type (curr defs in ops/OpParams.h)
    std::any op_param;
 

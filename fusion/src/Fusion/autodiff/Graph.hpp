@@ -10,6 +10,7 @@
 static constexpr NodeID kNoNode = NodeID{-1};
 
 template <typename T> class Engine;
+template <typename T> class GraphHarness;
 
 template <typename T> class Graph {
  public:
@@ -53,6 +54,7 @@ template <typename T> class Graph {
 
  private:
    friend class Engine<T>;
+   friend class GraphHarness<T>;
 
    std::vector<std::vector<ConsumerInfo>> consumed_by_;
    std::vector<INode<T>> nodes_{};

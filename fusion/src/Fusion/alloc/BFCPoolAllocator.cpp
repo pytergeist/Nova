@@ -99,6 +99,10 @@ void PoolAllocator::deallocate(void *ptr) {
    ChunkID chunk_id = region_manager_.get_chunkid_from_ptr(ptr);
    Chunk &chunk = get_chunk_from_id(chunk_id);
 
+   if (!chunk.in_use) {
+      throw std::runtime_error("PoolAllocator: double free detected");
+   }
+
    chunk.in_use = false;
    chunk.requested_size = 0;
 
@@ -310,25 +314,54 @@ ChunkID PoolAllocator::merge_chunks(Chunk &lchunk, Chunk &rchunk) {
    return rchunk.chunk_id;
 }
 
-ChunkID PoolAllocator::free_and_maybe_coalesce(ChunkID chunk_id) {
+ChunkID PoolAllocator::leftmost_mergeable_chunk(ChunkID chunk_id) {
    ChunkID current_id = chunk_id;
 
    while (true) {
       Chunk &chunk = get_chunk_from_id(current_id);
 
       if (chunk.prev == kInvalidChunkID) {
-         break;
+         return current_id;
       }
 
       Chunk &prev_chunk = get_chunk_from_id(chunk.prev);
+
       if (prev_chunk.in_use) {
+         return current_id;
+      }
+
+      const std::byte *prev_base = static_cast<std::byte *>(prev_chunk.ptr);
+      const std::byte *curr_base = static_cast<std::byte *>(chunk.ptr);
+
+      if (prev_base + prev_chunk.size != curr_base) {
+         return current_id;
+      }
+
+      current_id = prev_chunk.chunk_id;
+   }
+}
+
+ChunkID PoolAllocator::free_and_maybe_coalesce(ChunkID chunk_id) {
+
+   ChunkID current_id = leftmost_mergeable_chunk(chunk_id);
+
+   while (true) {
+      Chunk &chunk = get_chunk_from_id(current_id);
+
+      if (chunk.next == kInvalidChunkID) {
          break;
       }
 
-      const ChunkID new_id = merge_chunks(prev_chunk, chunk);
+      Chunk &next_chunk = get_chunk_from_id(chunk.next);
+
+      if (next_chunk.in_use) {
+         break;
+      }
+
+      const ChunkID new_id = merge_chunks(chunk, next_chunk);
 
       if (new_id == current_id) {
-         break;
+         return current_id;
       }
 
       current_id = new_id;

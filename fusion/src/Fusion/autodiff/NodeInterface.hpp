@@ -64,12 +64,8 @@ template <typename T> class INode {
       return gin;
    }
 
-   std::size_t get_output_arity() {
-      return self_->get_output_arity();
-   };
-   std::size_t get_input_arity() {
-      return self_->get_input_arity();
-   };
+   std::size_t get_output_arity() { return self_->get_output_arity(); };
+   std::size_t get_input_arity() { return self_->get_input_arity(); };
 
  private:
    friend Graph<T>;
@@ -87,11 +83,11 @@ template <typename T> class INode {
       outputs_[idx] = vid;
    };
 
-   void add_input(ValueID vid) { inputs_.push_back(vid); }
-   void add_output(ValueID vid) { outputs_.push_back(vid); }
+   void add_input(const ValueID vid) { inputs_.push_back(vid); }
+   void add_output(const ValueID vid) { outputs_.push_back(vid); }
 
-   void reserve_inputs(std::size_t n) { inputs_.reserve(n); }
-   void reserve_outputs(std::size_t n) { outputs_.reserve(n); }
+   void reserve_inputs(const std::size_t n) { inputs_.reserve(n); }
+   void reserve_outputs(const std::size_t n) { outputs_.reserve(n); }
 
    void resize_inputs(std::size_t n) { inputs_.resize(n); }
    void resize_outputs(std::size_t n) { outputs_.resize(n); }
@@ -136,7 +132,7 @@ template <typename T> class INode {
 
       explicit NodeModel(Op op) : node_(std::move(op)) {}
 
-      std::string_view name() const override { return Op::name; }
+      std::string_view name() const override { return node_.KName; }
 
       AutodiffMeta<T> forward(AutodiffMeta<T> &input) override {
          auto y = node_.run_forward(input);
@@ -149,12 +145,10 @@ template <typename T> class INode {
       }
 
       std::size_t get_output_arity() const override {
-         return Op::output_arity();
+         return node_.KSchema.outputs.arity;
       }
 
-      std::size_t get_input_arity() const override {
-         return Op::input_arity();
-      }
+      std::size_t get_input_arity() const override { return node_.KSchema.inputs.arity; }
 
       const std::type_info &in_type() const override { return typeid(In); };
       const std::type_info &out_type() const override { return typeid(Out); };

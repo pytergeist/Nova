@@ -147,6 +147,16 @@ test:
 	@echo "==> Running tests in $(BUILD_DIR)/"
 	@$(CTEST) --test-dir "$(BUILD_DIR)" -j
 
+test-build:
+	@echo "==> Fresh dev configure & build with tests"
+	@rm -rf "$(BUILD_DIR)"
+	@$(CMAKE) --preset "$(PRESET)" $(CMAKE_CONFIGURE_FLAGS) -D NOVA_BUILD_TEST=ON
+	@$(CMAKE) --build --preset "$(PRESET)" -j
+	@if [ -f "$(COMPILE_DB_BUILD)" ]; then \
+		ln -sf "$(COMPILE_DB_BUILD)" "$(COMPILE_DB_ROOT)"; \
+		echo "Symlinked $(COMPILE_DB_BUILD) -> $(COMPILE_DB_ROOT)"; \
+	fi
+
 # ---------------- Compile DB helpers ----------------
 compdb:
 	@echo "==> Copying compile_commands.json to project root (if build DB exists)"
