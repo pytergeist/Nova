@@ -7,21 +7,29 @@
 #include "Fusion/core/TensorPlan.h"
 
 TEST(TensorPlanContractionTest, infer_einsum_out_shape_returns_matmul_shape) {
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -32,35 +40,47 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_returns_matmul_shape) {
    };
 
    const std::vector<std::size_t> out_shape =
-       infer_einsum_out_shape({a, b}, binding);
+       infer_out_shape_from_binding({a, b}, binding);
 
    EXPECT_EQ(out_shape, (std::vector<std::size_t>{2, 3}));
 }
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_sets_output_shape) {
-   TensorDescription out{
-       .ndims = 2,
+   OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -80,28 +100,40 @@ TEST(TensorPlanContractionTest,
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_builds_three_loops_for_matmul) {
-   TensorDescription out{
-       .ndims = 2,
+   OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -117,39 +149,51 @@ TEST(TensorPlanContractionTest,
    ASSERT_EQ(plan.loop.size(), 3);
 
    EXPECT_EQ(plan.loop[0].size, 2);
-   EXPECT_EQ(plan.loop[0].kind, LoopKind::Independent);
+   EXPECT_EQ(plan.loop[0].kind, IndexKind::Independent);
 
    EXPECT_EQ(plan.loop[1].size, 3);
-   EXPECT_EQ(plan.loop[1].kind, LoopKind::Independent);
+   EXPECT_EQ(plan.loop[1].kind, IndexKind::Independent);
 
    EXPECT_EQ(plan.loop[2].size, 4);
-   EXPECT_EQ(plan.loop[2].kind, LoopKind::Reduction);
+   EXPECT_EQ(plan.loop[2].kind, IndexKind::Reduction);
 }
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_assigns_m_n_k_roles_for_matmul) {
-   TensorDescription out{
-       .ndims = 2,
+   OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -164,35 +208,47 @@ TEST(TensorPlanContractionTest,
 
    ASSERT_EQ(plan.loop.size(), 3);
 
-   EXPECT_EQ(plan.loop[0].role, LoopRole::M);
-   EXPECT_EQ(plan.loop[1].role, LoopRole::N);
-   EXPECT_EQ(plan.loop[2].role, LoopRole::K);
+   EXPECT_EQ(plan.loop[0].role, IndexRole::M);
+   EXPECT_EQ(plan.loop[1].role, IndexRole::N);
+   EXPECT_EQ(plan.loop[2].role, IndexRole::K);
 }
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_detects_gemm_like_matmul) {
-   TensorDescription out{
-       .ndims = 2,
+   OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -224,28 +280,40 @@ TEST(TensorPlanContractionTest,
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_rejects_wrong_output_shape) {
-   TensorDescription out{
-       .ndims = 2,
+   OperandDescription out{
        .shape = {2, 4}, // incorrect shape (should be {2, 3}
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -261,21 +329,29 @@ TEST(TensorPlanContractionTest,
 
 TEST(TensorPlanContractionTest,
      infer_einsum_out_shape_rejects_mismatched_contract_dimension) {
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {2, 5},
        .strides = {5, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -285,25 +361,33 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
    // cannot infer out shape from input operand shapes
-   EXPECT_THROW(infer_einsum_out_shape({a, b}, binding), std::runtime_error);
+   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding), std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(double),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -313,26 +397,34 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
        .out_labels = {0, 1},
    };
 
-   EXPECT_THROW(infer_einsum_out_shape({a, b}, binding), std::runtime_error);
+   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding), std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest,
      infer_einsum_out_shape_rejects_repeated_label_within_operand) {
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {4, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 0}, // repeated label
@@ -342,26 +434,34 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
 
-   EXPECT_THROW(infer_einsum_out_shape({a, b}, binding), std::runtime_error);
+   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding), std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest,
      infer_einsum_out_shape_rejects_output_label_missing_from_operands) {
-   TensorDescription a{
-       .ndims = 2,
+   OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   TensorDescription b{
-       .ndims = 2,
+   OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
+      .layout = LayoutKind::Dense,
+      .access = AccessKind::Affine,
+      .storage = StorageKind::Owned,
+      .update = UpdateKind::ReadOnly,
+      .type = OperandDescType::Tensor,
    };
 
-   EinsumBinding binding{
+   OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 0},
@@ -370,5 +470,5 @@ TEST(TensorPlanContractionTest,
            },
        .out_labels = {0, 9},
    };
-   EXPECT_THROW(infer_einsum_out_shape({a, b}, binding), std::runtime_error);
+   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding), std::runtime_error);
 }

@@ -3,17 +3,17 @@
 #include <vector>
 
 #include "Fusion/alloc/AllocTypes.h"
-#include "Fusion/alloc/BFCPoolAllocator.h"
+#include "Fusion/alloc/FUAllocator.h"
 #include "Fusion/alloc/Pool.h"
 
 #include "Fusion/common/Log.hpp"
 
-class PoolAllocatorSplitMergeTest : public ::testing::Test {
+class FUAllocatorSplitMergeTest : public ::testing::Test {
  protected:
-   PoolAllocator alloc;
+   FUAllocator alloc;
 };
 
-static const Chunk *find_chunk_by_ptr(const PoolAllocator &alloc, void *ptr) {
+static const Chunk *find_chunk_by_ptr(const FUAllocator &alloc, void *ptr) {
    for (const auto &chunk : alloc.chunks()) {
       if (chunk.ptr == ptr && chunk.size > 0) {
          return &chunk;
@@ -22,7 +22,7 @@ static const Chunk *find_chunk_by_ptr(const PoolAllocator &alloc, void *ptr) {
    return nullptr;
 }
 
-TEST_F(PoolAllocatorSplitMergeTest,
+TEST_F(FUAllocatorSplitMergeTest,
        allocation_splits_chunk_when_remainder_is_large_enough) {
    void *ptr1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
@@ -44,7 +44,7 @@ TEST_F(PoolAllocatorSplitMergeTest,
    EXPECT_EQ(free_chunk_count, 1);
 }
 
-TEST_F(PoolAllocatorSplitMergeTest,
+TEST_F(FUAllocatorSplitMergeTest,
        allocation_does_not_split_when_remainder_too_small) {
    void *ptr1 = alloc.allocate(16, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
@@ -59,7 +59,7 @@ TEST_F(PoolAllocatorSplitMergeTest,
    EXPECT_EQ(nonzero_chunks, 1);
 }
 
-TEST_F(PoolAllocatorSplitMergeTest,
+TEST_F(FUAllocatorSplitMergeTest,
        freeing_chunk_can_merge_with_next_free_chunk) {
    void *p1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(p1, nullptr);
@@ -79,7 +79,7 @@ TEST_F(PoolAllocatorSplitMergeTest,
    EXPECT_TRUE(found_free_128);
 }
 
-TEST_F(PoolAllocatorSplitMergeTest,
+TEST_F(FUAllocatorSplitMergeTest,
        freeing_chunk_can_merge_with_previous_free_chunk) {
    void *ptr1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
@@ -110,7 +110,7 @@ TEST_F(PoolAllocatorSplitMergeTest,
    EXPECT_EQ(free_64_count, 0);
 }
 
-TEST_F(PoolAllocatorSplitMergeTest,
+TEST_F(FUAllocatorSplitMergeTest,
        previous_merged_chunk_appears_in_larger_bucket) {
    void *ptr1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
@@ -130,7 +130,7 @@ TEST_F(PoolAllocatorSplitMergeTest,
    EXPECT_TRUE(free_chunks_64.empty());
 }
 
-TEST_F(PoolAllocatorSplitMergeTest,
+TEST_F(FUAllocatorSplitMergeTest,
        next_merged_chunk_appears_in_larger_bucket) {
    void *ptr1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
@@ -146,7 +146,7 @@ TEST_F(PoolAllocatorSplitMergeTest,
    EXPECT_TRUE(free_chunks_64.empty());
 }
 
-TEST_F(PoolAllocatorSplitMergeTest,
+TEST_F(FUAllocatorSplitMergeTest,
        adjacent_freed_chunk_should_coalesce_regardless_of_free_order) {
    // TODO: seed allocation curr needed due to strict rounding and fitting in
    // allocator layer
@@ -179,7 +179,7 @@ TEST_F(PoolAllocatorSplitMergeTest,
    EXPECT_GE(total_free, 128);
 }
 
-TEST_F(PoolAllocatorSplitMergeTest,
+TEST_F(FUAllocatorSplitMergeTest,
        adjacent_freed_chunks_should_coalesce_in_reverse_order) {
    // TODO: seed allocation curr needed due to strict rounding and fitting in
    // allocator layer

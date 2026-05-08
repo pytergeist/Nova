@@ -3,15 +3,15 @@
 #include <vector>
 
 #include "Fusion/alloc/AllocTypes.h"
-#include "Fusion/alloc/BFCPoolAllocator.h"
+#include "Fusion/alloc/FUAllocator.h"
 #include "Fusion/alloc/Pool.h"
 
-class PoolAllocatorFragmentationTest : public ::testing::Test {
+class FUAllocatorFragmentationTest : public ::testing::Test {
  protected:
-   PoolAllocator alloc;
+   FUAllocator alloc;
 };
 
-TEST_F(PoolAllocatorFragmentationTest,
+TEST_F(FUAllocatorFragmentationTest,
        alternating_free_pattern_leaves_fragmented_free_space) {
    std::vector<void *> ptrs;
    for (int i = 0; i < 8; ++i) {
@@ -33,7 +33,7 @@ TEST_F(PoolAllocatorFragmentationTest,
    EXPECT_GE(free_64_chunks, 4);
 }
 
-TEST_F(PoolAllocatorFragmentationTest,
+TEST_F(FUAllocatorFragmentationTest,
        free_order_should_not_affect_coalescing_outcome) {
    void *seed = alloc.allocate(128, Alignment{64});
    ASSERT_NE(seed, nullptr);
@@ -65,7 +65,7 @@ TEST_F(PoolAllocatorFragmentationTest,
    EXPECT_EQ(free_128, 1);
 }
 
-TEST_F(PoolAllocatorFragmentationTest,
+TEST_F(FUAllocatorFragmentationTest,
        large_allocation_reuese_coalesced_space_without_growing_pool) {
    void *seed = alloc.allocate(128, Alignment{64});
    ASSERT_NE(seed, nullptr);

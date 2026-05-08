@@ -38,7 +38,7 @@ TEST(AutodiffContextTest, returns_correct_engine_after_multiple_set_and_pop) {
    Engine<float> engine2(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&engine1);
    AutodiffContext<float>::set(&engine2);
-   AutodiffContext<float>::pop();
+   AutodiffContext<float>::pop_noexcept();
    EXPECT_EQ(&AutodiffContext<float>::get(), &engine1);
 }
 

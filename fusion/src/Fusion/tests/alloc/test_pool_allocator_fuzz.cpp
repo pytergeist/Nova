@@ -5,11 +5,11 @@
 #include <random>
 #include <vector>
 
-#include "Fusion/alloc/BFCPoolAllocator.h"
+#include "Fusion/alloc/FUAllocator.h"
 
-class PoolAllocatorFuzzTest : public ::testing::Test {
+class FUAllocatorFuzzTest : public ::testing::Test {
  protected:
-   PoolAllocator alloc;
+   FUAllocator alloc;
 };
 
 static bool overlaps(const Chunk &a, const Chunk &b) {
@@ -21,7 +21,7 @@ static bool overlaps(const Chunk &a, const Chunk &b) {
    return (a_begin < b_end) && (b_begin < a_end);
 }
 
-static void validate_allocator_invariants(const PoolAllocator &alloc) {
+static void validate_allocator_invariants(const FUAllocator &alloc) {
    const std::vector<Chunk> chunks = alloc.chunks();
 
    for (const Chunk &chunk : chunks) {
@@ -78,7 +78,7 @@ static void validate_allocator_invariants(const PoolAllocator &alloc) {
    }
 }
 
-TEST_F(PoolAllocatorFuzzTest,
+TEST_F(FUAllocatorFuzzTest,
        random_allocate_free_seqwuence_maintains_invariants) {
    std::mt19937 rng(420420);
    std::uniform_int_distribution<int> coin(0, 1);
@@ -116,7 +116,7 @@ TEST_F(PoolAllocatorFuzzTest,
    }
 }
 
-TEST_F(PoolAllocatorFuzzTest, random_free_order_maintains_invariants) {
+TEST_F(FUAllocatorFuzzTest, random_free_order_maintains_invariants) {
    std::mt19937 rng(420420);
    std::uniform_int_distribution<int> size_pick(0, 6);
 
@@ -142,7 +142,7 @@ TEST_F(PoolAllocatorFuzzTest, random_free_order_maintains_invariants) {
    }
 }
 
-TEST_F(PoolAllocatorFuzzTest,
+TEST_F(FUAllocatorFuzzTest,
        repeated_same_size_allocate_free_maintains_invariants) {
    for (int i = 0; i < 500; ++i) {
       void *ptr = alloc.allocate(64, Alignment{64});

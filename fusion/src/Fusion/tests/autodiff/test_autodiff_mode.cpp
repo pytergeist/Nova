@@ -65,7 +65,7 @@ TEST(AutodiffModeTest,
 
    Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
-   AutodiffContext<float>::pop();
+   AutodiffContext<float>::pop_noexcept();
    EXPECT_FALSE(autodiff::should_trace(t));
 }
 
@@ -153,6 +153,6 @@ TEST(AutodiffModeTest,
 
    Engine<float> enginet(AutodiffContext<float>::runtime().grad_store());
    AutodiffContext<float>::set(&enginet);
-   AutodiffContext<float>::pop();
+   AutodiffContext<float>::pop_noexcept();
    EXPECT_FALSE(autodiff::should_trace(t1, t2));
 }

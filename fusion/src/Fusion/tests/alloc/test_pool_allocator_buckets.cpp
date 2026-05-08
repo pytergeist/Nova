@@ -3,19 +3,19 @@
 #include <vector>
 
 #include "Fusion/alloc/AllocTypes.h"
-#include "Fusion/alloc/BFCPoolAllocator.h"
+#include "Fusion/alloc/FUAllocator.h"
 #include "Fusion/alloc/Pool.h"
 
-class PoolAllocatorBucketTest : public ::testing::Test {
+class FUAllocatorBucketTest : public ::testing::Test {
  protected:
-   PoolAllocator alloc;
+   FUAllocator alloc;
 };
 
 static bool contains_id(const std::vector<ChunkID> &ids, ChunkID id) {
    return std::find(ids.begin(), ids.end(), id) != ids.end();
 }
 
-TEST_F(PoolAllocatorBucketTest, freed_chunk_is_inserted_into_matching_bucket) {
+TEST_F(FUAllocatorBucketTest, freed_chunk_is_inserted_into_matching_bucket) {
    void *ptr = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr, nullptr);
    ChunkID id = kInvalidChunkID;
@@ -32,7 +32,7 @@ TEST_F(PoolAllocatorBucketTest, freed_chunk_is_inserted_into_matching_bucket) {
    EXPECT_TRUE(contains_id(free_chunks, id));
 }
 
-TEST_F(PoolAllocatorBucketTest, reallocated_chunk_is_removed_from_free_bucket) {
+TEST_F(FUAllocatorBucketTest, reallocated_chunk_is_removed_from_free_bucket) {
    void *ptr = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr, nullptr);
    ChunkID id = kInvalidChunkID;
@@ -55,12 +55,12 @@ TEST_F(PoolAllocatorBucketTest, reallocated_chunk_is_removed_from_free_bucket) {
    EXPECT_FALSE(contains_id(free_after, id));
 }
 
-TEST_F(PoolAllocatorBucketTest, missing_bucket_returns_empty_vector) {
+TEST_F(FUAllocatorBucketTest, missing_bucket_returns_empty_vector) {
    std::vector<ChunkID> free_chunks = alloc.get_free_chunks(64);
    EXPECT_TRUE(free_chunks.empty());
 }
 
-TEST_F(PoolAllocatorBucketTest,
+TEST_F(FUAllocatorBucketTest,
        larger_free_bucket_can_satisfy_smaller_request) {
    void *ptr = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr, nullptr);
@@ -75,7 +75,7 @@ TEST_F(PoolAllocatorBucketTest,
    EXPECT_EQ(sptr, ptr);
 }
 
-TEST_F(PoolAllocatorBucketTest, larger_free_bucket_split_by_smaller_request) {
+TEST_F(FUAllocatorBucketTest, larger_free_bucket_split_by_smaller_request) {
    void *ptr = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 
@@ -92,7 +92,7 @@ TEST_F(PoolAllocatorBucketTest, larger_free_bucket_split_by_smaller_request) {
    EXPECT_EQ(free_64_chunks.size(), 1);
 }
 
-TEST_F(PoolAllocatorBucketTest, exact_size_chunk_returns_to_expected_bucket) {
+TEST_F(FUAllocatorBucketTest, exact_size_chunk_returns_to_expected_bucket) {
    void *ptr = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 
@@ -109,7 +109,7 @@ TEST_F(PoolAllocatorBucketTest, exact_size_chunk_returns_to_expected_bucket) {
    EXPECT_TRUE(contains_id(free_chunks, id));
 }
 
-TEST_F(PoolAllocatorBucketTest, bucket_contains_only_free_chunks) {
+TEST_F(FUAllocatorBucketTest, bucket_contains_only_free_chunks) {
    void *ptr1 = alloc.allocate(64, Alignment{64});
    void *ptr2 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
@@ -127,7 +127,7 @@ TEST_F(PoolAllocatorBucketTest, bucket_contains_only_free_chunks) {
    }
 }
 
-TEST_F(PoolAllocatorBucketTest,
+TEST_F(FUAllocatorBucketTest,
        freed_bucket_matches_actual_free_chunks_of_bucket_size) {
    void *p1 = alloc.allocate(64, Alignment{64});
    void *p2 = alloc.allocate(128, Alignment{64});

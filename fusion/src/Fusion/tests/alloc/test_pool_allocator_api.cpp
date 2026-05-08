@@ -3,29 +3,29 @@
 #include <vector>
 
 #include "Fusion/alloc/AllocTypes.h"
-#include "Fusion/alloc/BFCPoolAllocator.h"
+#include "Fusion/alloc/FUAllocator.h"
 #include "Fusion/alloc/Pool.h"
 
-class PoolAllocatorTest : public ::testing::Test {
+class FUAllocatorTest : public ::testing::Test {
  protected:
-   PoolAllocator alloc;
+   FUAllocator alloc;
 };
 
-TEST_F(PoolAllocatorTest, allocation_returns_non_null) {
+TEST_F(FUAllocatorTest, allocation_returns_non_null) {
    void *ptr = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 }
 
-TEST_F(PoolAllocatorTest, zero_size_allocation_succeeds) {
+TEST_F(FUAllocatorTest, zero_size_allocation_succeeds) {
    void *ptr = alloc.allocate(0, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 }
 
-TEST_F(PoolAllocatorTest, deallocation_null_ptr_does_nothing) {
+TEST_F(FUAllocatorTest, deallocation_null_ptr_does_nothing) {
    EXPECT_NO_THROW(alloc.deallocate(nullptr));
 }
 
-TEST_F(PoolAllocatorTest, allocated_chunk_is_marked_in_use) {
+TEST_F(FUAllocatorTest, allocated_chunk_is_marked_in_use) {
    void *ptr = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 
@@ -40,7 +40,7 @@ TEST_F(PoolAllocatorTest, allocated_chunk_is_marked_in_use) {
    EXPECT_TRUE(found);
 }
 
-TEST_F(PoolAllocatorTest, exact_power_of_two_request_keeps_requested_size) {
+TEST_F(FUAllocatorTest, exact_power_of_two_request_keeps_requested_size) {
    void *ptr = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 
@@ -56,7 +56,7 @@ TEST_F(PoolAllocatorTest, exact_power_of_two_request_keeps_requested_size) {
    EXPECT_TRUE(found);
 }
 
-TEST_F(PoolAllocatorTest, non_power_of_two_request_rounds_up) {
+TEST_F(FUAllocatorTest, non_power_of_two_request_rounds_up) {
    void *ptr = alloc.allocate(100, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 
@@ -72,7 +72,7 @@ TEST_F(PoolAllocatorTest, non_power_of_two_request_rounds_up) {
    EXPECT_TRUE(found);
 }
 
-TEST_F(PoolAllocatorTest, deallocate_marks_chunks_as_free) {
+TEST_F(FUAllocatorTest, deallocate_marks_chunks_as_free) {
    void *ptr = alloc.allocate(100, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 
@@ -89,7 +89,7 @@ TEST_F(PoolAllocatorTest, deallocate_marks_chunks_as_free) {
    EXPECT_TRUE(found);
 }
 
-TEST_F(PoolAllocatorTest, reuses_freed_chunk_for_same_size_allocation) {
+TEST_F(FUAllocatorTest, reuses_freed_chunk_for_same_size_allocation) {
    void *ptr1 = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
 
@@ -100,12 +100,12 @@ TEST_F(PoolAllocatorTest, reuses_freed_chunk_for_same_size_allocation) {
    EXPECT_EQ(ptr1, ptr2);
 }
 
-TEST_F(PoolAllocatorTest, deallocating_foreign_pointer_throws) {
+TEST_F(FUAllocatorTest, deallocating_foreign_pointer_throws) {
    int x = 0;
    EXPECT_THROW(alloc.deallocate(&x), std::runtime_error);
 }
 
-TEST_F(PoolAllocatorTest, double_free_throws) {
+TEST_F(FUAllocatorTest, double_free_throws) {
    void *ptr = alloc.allocate(64, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 

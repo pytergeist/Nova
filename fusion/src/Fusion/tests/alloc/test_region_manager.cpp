@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Fusion/alloc/AllocTypes.h"
-#include "Fusion/alloc/BFCPoolAllocator.h"
+#include "Fusion/alloc/FUAllocator.h"
 #include "Fusion/alloc/Pool.h"
 
 TEST(RegionManagerTest, starts_with_no_regions) {
