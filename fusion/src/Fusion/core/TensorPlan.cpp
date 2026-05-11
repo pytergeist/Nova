@@ -12,7 +12,8 @@
 BroadcastPlan
 make_broadcast_plan(const std::vector<OperandDescription> &descs) {
 
-   constexpr ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
+   constexpr ItemSizeGroupConstraint constraint =
+       ItemSizeGroupConstraint::HomogeneousItemSize;
    IndexSpaceIR ir = build_broadcast_ir_right_aligned(descs, constraint);
 
    BroadcastPlan plan;
@@ -40,7 +41,7 @@ make_broadcast_plan(const std::vector<OperandDescription> &descs) {
 }
 
 ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
-                                  std::size_t axis, bool keepdim) {
+                                  const std::size_t axis, const bool keepdim) {
    if (descs.size() < 2)
       throw std::runtime_error("reduction: expected at least {out, in}");
 
@@ -48,7 +49,8 @@ ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
    const std::size_t in_nd = in_desc.ndims();
    const std::size_t ax = norm_axis(static_cast<std::int64_t>(axis), in_nd);
 
-   constexpr ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
+   constexpr ItemSizeGroupConstraint constraint =
+       ItemSizeGroupConstraint::HomogeneousItemSize;
 
    IndexSpaceIR ir = build_reduction_ir(descs, ax, keepdim, constraint);
 
@@ -82,7 +84,8 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
       throw std::runtime_error("einsum_out: expected descs = {out, A, B}");
    }
 
-   constexpr ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
+   constexpr ItemSizeGroupConstraint constraint =
+       ItemSizeGroupConstraint::HomogeneousItemSize;
 
    IndexSpaceIR ir = build_ir_from_label_binding(descs, binding, constraint);
 
@@ -210,7 +213,8 @@ make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
       throw std::runtime_error("einsum: expected inputs = {A, B}");
    }
 
-   constexpr ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
+   constexpr ItemSizeGroupConstraint constraint =
+       ItemSizeGroupConstraint::HomogeneousItemSize;
 
    OperandDescription dummy_out;
    dummy_out.shape.assign(binding.out_labels.size(), 1);
