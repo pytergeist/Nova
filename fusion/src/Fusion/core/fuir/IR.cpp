@@ -12,8 +12,6 @@
 
 #include <sstream>
 
-using value_type = std::ptrdiff_t;
-
 void validate_descs_itemsize_group(
     const std::vector<OperandDescription> &descs, const ItemSizeGroupConstraint constraint) {
    if (descs.empty()) {
