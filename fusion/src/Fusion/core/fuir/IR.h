@@ -14,6 +14,11 @@ enum class IndexRole { Batch, M, N, K };
 
 /// Describes a single logical index (loop dimension) in the index-space IR.
 ///
+/// A logical index is a symbolic iteration dimension in a tensor expression,
+/// analogous to `i`, `j`, or `k` in Einstein notation. Logical indices define
+/// how operand axes relate to one another before lowering into a concrete
+/// loop nest.
+///
 /// An IndexDef becomes one loop variable after lowering. It records:
 /// - label: unique identifier for an axis, allows same IndexDef to be shared
 /// across multiple operands.
@@ -75,7 +80,7 @@ struct IndexDef {
 /// - indices: List of logical indices participating in expression.
 /// - out_indices: Subset of indices that define the output tensor shape.
 ///
-/// Conventions:
+/// Invariants:
 /// - Currently, all operand must share the same dtype.
 /// - Operand 0 is the output tensor.
 /// - num_operands > 0.
@@ -106,19 +111,47 @@ struct IndexedAccess {};
 /// into a concrete execution plan for the loop. It stores the trip count
 /// for the loop and the per-operand byte-stride applied when the loop advances
 /// by one iteration.
+///
+/// Invariants:
+/// - Each LoopDim corresponds directly to one lowered logical index.
+/// - The loop-dimension list is index-aligned: `loop_dims[i]` describes
+///   lowered index `i`.
+/// - Therefore, `loop_dims.size() == num_indices`.
 struct LoopDim {
    // TODO: IndexKind and IndexRole are currently just set on init - need to add
    // set role/kind to lower_to_loop
-   std::size_t size;
+   std::size_t size{};
    // std::vector<std::int64_t> stride_bytes;
    IndexKind kind{IndexKind::Independent};
    IndexRole role{IndexRole::Batch};
 };
 
+
+/// Describes the access pattern for a single operand in an execution plan.
+///
+/// OperandAccess is produced during lowering from an OperandDesc into a
+/// concrete memory access description used by the executor. It captures
+/// how an operand is laid out in memory, its ownership/update semantics,
+/// and the addressing strategy used to compute element locations.
+///
+/// The active access descriptor is determined by `access`:
+/// - AccessKind::Affine  -> `affine`
+/// - AccessKind::Blocked -> `blocked`
+/// - AccessKind::Indexed -> `indexed`
+///
+/// Together with the loop dimensions, OperandAccess defines how the
+/// executor advances pointers and resolves addresses for each operand
+/// during iteration.
+///
+/// Invariant:
+/// - Each OperandAccess corresponds directly to one OperandDesc.
+/// - The operand-access list is operand-id-aligned:
+///   `operand_accesses[operand_id].operand_id == operand_id`.
+/// - Therefore, `operand_accesses.size() == num_operands`.
 struct OperandAccess {
    std::size_t operand_id{0};
 
-   LayoutKind layout{LayoutKind::Dense};
+   LayoutKind layout{LayoutKind::Dense}; // TODO: dense to generic, need to include contig for view support
    StorageKind storage{StorageKind::Owned};
    UpdateKind update{UpdateKind::ReadOnly};
 
