@@ -1,5 +1,5 @@
-#ifndef ALLOC_TYPES_H
-#define ALLOC_TYPES_H
+#ifndef FUSION_ALLOC_ALLOC_TYPES_H
+#define FUSION_ALLOC_ALLOC_TYPES_H
 
 #include <cstddef>
 

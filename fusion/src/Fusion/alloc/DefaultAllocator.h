@@ -1,5 +1,5 @@
-#ifndef DEFAULT_ALLOCATOR_H
-#define DEFAULT_ALLOCATOR_H
+#ifndef FUSION_ALLOC_DEFAULT_ALLOCATOR_H
+#define FUSION_ALLOC_DEFAULT_ALLOCATOR_H
 
 #include "AllocatorInterface.h"
 #include "FUAllocator.h"
@@ -13,4 +13,4 @@ inline IAllocator &default_allocator() {
    return pool;
 };
 
-#endif // DEFAULT_ALLOCATOR_H
+#endif // FUSION_ALLOC_DEFAULT_ALLOCATOR_H

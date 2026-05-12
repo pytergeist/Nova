@@ -45,8 +45,8 @@
 //   and fragmentation scenarios.
 // -----------------------------------------------------------------------------
 
-#ifndef POOL_ALLOCATOR_H
-#define POOL_ALLOCATOR_H
+#ifndef FUSION_ALLOC_FU_ALLOCATOR_H
+#define FUSION_ALLOC_FU_ALLOCATOR_H
 
 #include <array>
 #include <bit>
@@ -145,4 +145,4 @@ class FUAllocator final : public IAllocator {
    std::size_t chunk_counter_ = 0;
 };
 
-#endif // POOL_ALLOCATOR_H
+#endif // FUSION_ALLOC_FU_ALLOCATOR_H

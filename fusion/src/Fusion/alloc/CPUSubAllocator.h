@@ -1,5 +1,5 @@
-#ifndef CPU_SUB_ALLOCATOR_H
-#define CPU_SUB_ALLOCATOR_H
+#ifndef FUSION_ALLOC_CPU_SUB_ALLOCATOR_H
+#define FUSION_ALLOC_CPU_SUB_ALLOCATOR_H
 
 #include <cstddef>
 #include <cstdlib>

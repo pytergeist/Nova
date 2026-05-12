@@ -1,5 +1,5 @@
-#ifndef ALLOCATOR_INTERFACE_H_
-#define ALLOCATOR_INTERFACE_H_
+#ifndef FUSION_ALLOC_ALLOCATOR_INTERFACE_H
+#define FUSION_ALLOC_ALLOCATOR_INTERFACE_H
 
 #include <memory>
 
@@ -19,4 +19,4 @@ class IAllocator {
    virtual void deallocate(void *p) = 0;
 };
 
-#endif // ALLOCATOR_INTERFACE_H_
+#endif // FUSION_ALLOC_ALLOCATOR_INTERFACE_H

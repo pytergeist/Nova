@@ -1,5 +1,5 @@
-#ifndef BFC_POOL_H
-#define BFC_POOL_H
+#ifndef FUSION_ALLOC_POOL_H
+#define FUSION_ALLOC_POOL_H
 
 #include <cassert>
 #include <cstddef>
@@ -68,4 +68,4 @@ struct Bucket {
 };
 // NOLINTEND(misc-non-private-member-variables-in-classes)
 
-#endif // BFC_POOL_H
+#endif // FUSION_ALLOC_POOL_H

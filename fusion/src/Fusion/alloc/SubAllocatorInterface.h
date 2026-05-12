@@ -1,5 +1,5 @@
-#ifndef SUB_ALLOCATOR_INTERFACE_H
-#define SUB_ALLOCATOR_INTERFACE_H
+#ifndef FUSION_ALLOC_SUB_ALLOCATOR_INTERFACE_H
+#define FUSION_ALLOC_SUB_ALLOCATOR_INTERFACE_H
 
 #include <cstddef>
 
@@ -20,4 +20,4 @@ class ISubAllocator {
    virtual void deallocate_region(void *ptr) = 0;
 };
 
-#endif // SUB_ALLOCATOR_INTERFACE_H
+#endif // FUSION_ALLOC_SUB_ALLOCATOR_INTERFACE_H
