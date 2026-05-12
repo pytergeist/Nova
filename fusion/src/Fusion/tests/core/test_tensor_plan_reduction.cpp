@@ -16,18 +16,18 @@ TEST(TensorPlanReductionTest,
        .access = AccessKind::Affine,
        .storage = StorageKind::Owned,
        .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
-      .shape = {2, 3, 4},
-      .strides = {12, 4, 1},
-      .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .shape = {2, 3, 4},
+       .strides = {12, 4, 1},
+       .itemsize = sizeof(float),
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, false);
@@ -50,18 +50,18 @@ TEST(TensorPlanReductionTest,
        .access = AccessKind::Affine,
        .storage = StorageKind::Owned,
        .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, true);
@@ -80,22 +80,22 @@ TEST(TensorPlanReductionTest,
        .shape = {2, 4},
        .strides = {4, 1, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_reduction_plan({out, in}, 1, true), std::runtime_error);
@@ -106,22 +106,22 @@ TEST(TensorPlanReductionTest, make_reduction_plan_normalises_negative_axis) {
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    ReductionPlan plan =
@@ -137,22 +137,22 @@ TEST(TensorPlanReductionTest,
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, false);
@@ -175,39 +175,36 @@ TEST(TensorPlanReductionTest,
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, false);
 
    ASSERT_EQ(plan.loop.size(), 3);
-   ASSERT_EQ(plan.op_access.size(), 3);
+   ASSERT_EQ(plan.op_access.size(), 2);
 
    const std::size_t item = static_cast<std::int64_t>(sizeof(float));
 
    EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop,
-             (std::vector<std::int64_t>{4 * item, 12 * item}));
+             (std::vector<std::int64_t>{4 * item, 1 * item, 0}));
 
    EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop,
-             (std::vector<std::int64_t>{1 * item, 1 * item}));
-
-   EXPECT_EQ(plan.op_access[2].affine.byte_stride_per_loop,
-             (std::vector<std::int64_t>{0, 4 * item}));
+             (std::vector<std::int64_t>{12 * item, 1 * item, 4 * item}));
 }
 
 TEST(TensorPlanReductionTest,
@@ -216,36 +213,35 @@ TEST(TensorPlanReductionTest,
        .shape = {2, 1, 4},
        .strides = {4, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, true);
 
    ASSERT_EQ(plan.loop.size(), 3);
+   ASSERT_EQ(plan.op_access.size(), 2);
 
    const std::size_t item = static_cast<std::int64_t>(sizeof(float));
 
    EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop,
-             (std::vector<std::int64_t>{4 * item, 12 * item}));
+             (std::vector<std::int64_t>{4 * item, 1 * item, 0}));
    EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop,
-             (std::vector<std::int64_t>{1 * item, 1 * item}));
-   EXPECT_EQ(plan.op_access[2].affine.byte_stride_per_loop,
-             (std::vector<std::int64_t>{0 * item, 4 * item}));
+             (std::vector<std::int64_t>{12 * item, 1 * item, 4 * item}));
 }
 
 TEST(TensorPlanReductionTest,
@@ -254,22 +250,22 @@ TEST(TensorPlanReductionTest,
        .shape = {3, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 0, false);
@@ -290,22 +286,22 @@ TEST(TensorPlanReductionTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 2, false);
@@ -329,22 +325,22 @@ TEST(TensorPlanReductionTest, make_reduction_plan_rejects_axis_out_of_range) {
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_reduction_plan({out, in}, 3, false), std::runtime_error);
@@ -356,22 +352,22 @@ TEST(TensorPlanReductionTest,
        .shape = {2, 1, 4},
        .strides = {4, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_reduction_plan({out, in}, 1, false), std::runtime_error);
@@ -383,22 +379,22 @@ TEST(TensorPlanReductionTest,
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_reduction_plan({out, in}, 1, true), std::runtime_error);
@@ -411,22 +407,22 @@ TEST(
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_reduction_plan({out, in}, 1, true), std::runtime_error);
@@ -437,22 +433,22 @@ TEST(TensorPlanReductionTest, make_reduction_plan_rejects_mixed_itemsize) {
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(double),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_reduction_plan({out, in}, 1, false), std::runtime_error);
@@ -464,33 +460,33 @@ TEST(TensorPlanReductionTest,
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in0{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription in1{
        .shape = {3, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_reduction_plan({out, in0, in1}, 1, false),

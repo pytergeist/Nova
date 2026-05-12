@@ -12,11 +12,11 @@ TEST(TensorPlanBroadcastTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    BroadcastPlan plan = make_broadcast_plan({a});
@@ -26,19 +26,17 @@ TEST(TensorPlanBroadcastTest,
    EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3}));
 
    ASSERT_EQ(plan.loop.size(), 2);
-   ASSERT_EQ(plan.op_access.size(), 2);
+   ASSERT_EQ(plan.op_access.size(), 1);
 
    EXPECT_EQ(plan.loop[0].size, 2);
    EXPECT_EQ(plan.loop[0].kind, IndexKind::Independent);
    EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
-                 3 * static_cast<std::int64_t>(sizeof(float))}));
+                 3 * static_cast<std::int64_t>(sizeof(float)),
+                 1 * static_cast<std::int64_t>(sizeof(float))}));
 
    EXPECT_EQ(plan.loop[1].size, 3);
    EXPECT_EQ(plan.loop[1].kind, IndexKind::Independent);
-   EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop,
-             (std::vector<std::int64_t>{
-                 1 * static_cast<std::int64_t>(sizeof(float))}));
 }
 
 TEST(TensorPlanBroadcastTest,
@@ -47,31 +45,31 @@ TEST(TensorPlanBroadcastTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription b{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    BroadcastPlan plan = make_broadcast_plan({out, a, b});
@@ -81,20 +79,23 @@ TEST(TensorPlanBroadcastTest,
    EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3}));
 
    ASSERT_EQ(plan.loop.size(), 2);
-   ASSERT_EQ(plan.op_access.size(), 2);
+   ASSERT_EQ(plan.op_access.size(), 3);
 
    EXPECT_EQ(plan.loop[0].size, 2);
    EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
-                 3 * static_cast<std::int64_t>(sizeof(float)),
-                 3 * static_cast<std::int64_t>(sizeof(float))}));
+                 1 * static_cast<std::int64_t>(sizeof(float))}));
 
    EXPECT_EQ(plan.loop[1].size, 3);
    EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
-                 1 * static_cast<std::int64_t>(sizeof(float)),
-                 1 * static_cast<std::int64_t>(sizeof(float)),
+                 3 * static_cast<std::int64_t>(sizeof(float)),
+                 1 * static_cast<std::int64_t>(sizeof(float))}));
+
+   EXPECT_EQ(plan.op_access[2].affine.byte_stride_per_loop,
+             (std::vector<std::int64_t>{
+                 3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 }
 
@@ -104,51 +105,55 @@ TEST(TensorPlanBroadcastTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription b{
        .shape = {1, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    BroadcastPlan plan = make_broadcast_plan({out, a, b});
 
    EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(plan.loop.size(), 2);
-   ASSERT_EQ(plan.op_access.size(), 2);
+   ASSERT_EQ(plan.num_operands, 3);
+   ASSERT_EQ(plan.op_access.size(), 3);
 
    EXPECT_EQ(plan.loop[0].size, 2);
    EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
-                 3 * static_cast<std::int64_t>(sizeof(float)), 0}));
+                 1 * static_cast<std::int64_t>(sizeof(float))}));
 
    EXPECT_EQ(plan.loop[1].size, 3);
    EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
-                 1 * static_cast<std::int64_t>(sizeof(float)),
-                 1 * static_cast<std::int64_t>(sizeof(float)),
+                 3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
+
+   EXPECT_EQ(plan.op_access[2].affine.byte_stride_per_loop,
+             (std::vector<std::int64_t>{
+                 0, 1 * static_cast<std::int64_t>(sizeof(float))}));
 }
 
 TEST(TensorPlanBroadcastTest,
@@ -157,50 +162,54 @@ TEST(TensorPlanBroadcastTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription b{
        .shape = {2, 1},
        .strides = {1, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    BroadcastPlan plan = make_broadcast_plan({out, a, b});
 
    EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(plan.loop.size(), 2);
-   ASSERT_EQ(plan.op_access.size(), 2);
+   ASSERT_EQ(plan.num_operands, 3);
+   ASSERT_EQ(plan.op_access.size(), 3);
 
    EXPECT_EQ(plan.loop[0].size, 2);
    EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
-                 3 * static_cast<std::int64_t>(sizeof(float)),
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
    EXPECT_EQ(plan.loop[1].size, 3);
    EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
-                 1 * static_cast<std::int64_t>(sizeof(float)),
+                 3 * static_cast<std::int64_t>(sizeof(float)),
+                 1 * static_cast<std::int64_t>(sizeof(float))}));
+
+   EXPECT_EQ(plan.op_access[2].affine.byte_stride_per_loop,
+             (std::vector<std::int64_t>{
                  1 * static_cast<std::int64_t>(sizeof(float)), 0}));
 }
 
@@ -210,50 +219,56 @@ TEST(TensorPlanBroadcastTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription b{
        .shape = {3},
        .strides = {1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    BroadcastPlan plan = make_broadcast_plan({out, a, b});
 
    EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(plan.loop.size(), 2);
+   ASSERT_EQ(plan.num_operands, 3);
+   ASSERT_EQ(plan.op_access.size(), 3);
 
    EXPECT_EQ(plan.loop[0].size, 2);
    EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
-                 3 * static_cast<std::int64_t>(sizeof(float)), 0}));
+                 1 * static_cast<std::int64_t>(sizeof(float)),
+             }));
 
    EXPECT_EQ(plan.loop[1].size, 3);
    EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
-                 1 * static_cast<std::int64_t>(sizeof(float)),
-                 1 * static_cast<std::int64_t>(sizeof(float)),
+                 3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
+
+   EXPECT_EQ(plan.op_access[2].affine.byte_stride_per_loop,
+             (std::vector<std::int64_t>{
+                 0, 1 * static_cast<std::int64_t>(sizeof(float))}));
 }
 
 TEST(TensorPlanBroadcastTest,
@@ -262,41 +277,41 @@ TEST(TensorPlanBroadcastTest,
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription a{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription b{
        .shape = {1, 3, 1},
        .strides = {3, 1, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription c{
        .shape = {4},
        .strides = {1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    BroadcastPlan plan = make_broadcast_plan({out, a, b, c});
@@ -306,27 +321,30 @@ TEST(TensorPlanBroadcastTest,
    EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3, 4}));
 
    ASSERT_EQ(plan.loop.size(), 3);
-   ASSERT_EQ(plan.op_access.size(), 3);
+   ASSERT_EQ(plan.op_access.size(), 4);
 
    EXPECT_EQ(plan.loop[0].size, 2);
    EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  12 * static_cast<std::int64_t>(sizeof(float)),
-                 12 * static_cast<std::int64_t>(sizeof(float)), 0, 0}));
+                 4 * static_cast<std::int64_t>(sizeof(float)),
+                 1 * static_cast<std::int64_t>(sizeof(float))}));
 
    EXPECT_EQ(plan.loop[1].size, 3);
    EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
+                 12 * static_cast<std::int64_t>(sizeof(float)),
                  4 * static_cast<std::int64_t>(sizeof(float)),
-                 4 * static_cast<std::int64_t>(sizeof(float)),
-                 1 * static_cast<std::int64_t>(sizeof(float)), 0}));
+                 1 * static_cast<std::int64_t>(sizeof(float))}));
 
    EXPECT_EQ(plan.loop[2].size, 4);
    EXPECT_EQ(plan.op_access[2].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
-                 1 * static_cast<std::int64_t>(sizeof(float)),
-                 1 * static_cast<std::int64_t>(sizeof(float)), 0,
-                 1 * static_cast<std::int64_t>(sizeof(float))}));
+                 0, 1 * static_cast<std::int64_t>(sizeof(float)), 0}));
+
+   EXPECT_EQ(plan.op_access[3].affine.byte_stride_per_loop,
+             (std::vector<std::int64_t>{
+                 0, 0, 1 * static_cast<std::int64_t>(sizeof(float))}));
 }
 
 TEST(TensorPlanBroadcastTest,
@@ -335,41 +353,46 @@ TEST(TensorPlanBroadcastTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription b{
        .shape = {1, 1},
        .strides = {1, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    BroadcastPlan plan = make_broadcast_plan({out, a, b});
 
    EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(plan.loop.size(), 2);
-   ASSERT_EQ(plan.op_access.size(), 2);
+   ASSERT_EQ(plan.op_access.size(), 3);
 
-   EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop.back(), 0);
-   EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop.back(), 0);
+   EXPECT_EQ(plan.op_access[0].affine.byte_stride_per_loop,
+             (std::vector<std::int64_t>{12, 4}));
+   EXPECT_EQ(plan.op_access[1].affine.byte_stride_per_loop,
+             (std::vector<std::int64_t>{12, 4}));
+
+   EXPECT_EQ(plan.op_access[2].affine.byte_stride_per_loop,
+             (std::vector<std::int64_t>{0, 0}));
 }
 
 TEST(TensorPlanBroadcastTest, make_broadcast_plan_rejects_mixed_itemsize) {
@@ -377,21 +400,21 @@ TEST(TensorPlanBroadcastTest, make_broadcast_plan_rejects_mixed_itemsize) {
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription b{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(double),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_broadcast_plan({a, b}), std::runtime_error);
@@ -402,21 +425,21 @@ TEST(TensorPlanBroadcastTest, make_broadcast_plan_rejects_shape_mismatch) {
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
    OperandDescription b{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_broadcast_plan({a, b}), std::runtime_error);
@@ -428,11 +451,11 @@ TEST(TensorPlanBroadcastTest,
        .shape = {2, 3},
        .strides = {1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    EXPECT_THROW(make_broadcast_plan({bad}), std::runtime_error);

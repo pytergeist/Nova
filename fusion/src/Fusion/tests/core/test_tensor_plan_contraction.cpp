@@ -11,22 +11,22 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_returns_matmul_shape) {
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -51,33 +51,33 @@ TEST(TensorPlanContractionTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -104,33 +104,33 @@ TEST(TensorPlanContractionTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -164,33 +164,33 @@ TEST(TensorPlanContractionTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -219,33 +219,33 @@ TEST(TensorPlanContractionTest,
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -284,33 +284,33 @@ TEST(TensorPlanContractionTest,
        .shape = {2, 4}, // incorrect shape (should be {2, 3}
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -333,22 +333,22 @@ TEST(TensorPlanContractionTest,
        .shape = {2, 5},
        .strides = {5, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -361,7 +361,8 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
    // cannot infer out shape from input operand shapes
-   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding), std::runtime_error);
+   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding),
+                std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
@@ -369,22 +370,22 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(double),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -397,7 +398,8 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
        .out_labels = {0, 1},
    };
 
-   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding), std::runtime_error);
+   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding),
+                std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest,
@@ -406,22 +408,22 @@ TEST(TensorPlanContractionTest,
        .shape = {4, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -434,7 +436,8 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
 
-   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding), std::runtime_error);
+   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding),
+                std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest,
@@ -443,22 +446,22 @@ TEST(TensorPlanContractionTest,
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-      .layout = LayoutKind::Dense,
-      .access = AccessKind::Affine,
-      .storage = StorageKind::Owned,
-      .update = UpdateKind::ReadOnly,
-      .type = OperandDescType::Tensor,
+       .layout = LayoutKind::Dense,
+       .access = AccessKind::Affine,
+       .storage = StorageKind::Owned,
+       .update = UpdateKind::ReadOnly,
+       .type = OperandDescType::Tensor,
    };
 
    OperandLabelBinding binding{
@@ -470,5 +473,6 @@ TEST(TensorPlanContractionTest,
            },
        .out_labels = {0, 9},
    };
-   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding), std::runtime_error);
+   EXPECT_THROW(infer_out_shape_from_binding({a, b}, binding),
+                std::runtime_error);
 }
