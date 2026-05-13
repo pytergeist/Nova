@@ -44,4 +44,7 @@ struct SqrtTag {};
 struct LogTag {};
 struct ExpTag {};
 
+/// Topology
+struct PairDelta3Tag {};
+
 #endif // FUSION_CORE_OPSCHEMA_OPTAGS_H_

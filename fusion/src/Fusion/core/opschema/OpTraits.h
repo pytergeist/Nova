@@ -208,4 +208,14 @@ template <> struct OpTraits<ExpTag> {
    };
 };
 
+template <> struct OpTraits<PairDelta3Tag> {
+   static constexpr std::string_view name = "PairDelta3";
+   static constexpr OpSchema schema{
+      .category = OpCategory::Topology,
+      .inputs = {.kind = ArityKind::Fixed, .arity = 1},
+      .outputs = {.kind = ArityKind::Fixed, .arity = 1},
+      .mutation = MutationKind::OutOfPlace,
+  };
+};
+
 #endif // FUSION_CORE_OP_SCHEMA_OP_TRAITS_H
