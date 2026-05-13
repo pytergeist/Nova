@@ -99,7 +99,7 @@ inline ADTensor<T> unary_meta(const ADTensor<T> &x, Meta &m, const Param &params
    ValueID vx = const_cast<ADTensor<T> &>(x).ensure_vid();
    AutodiffMeta<T> meta = construct_meta<T>(x, params);
    std::vector<ValueID> vids{vx};
-   ValueID out = eng.template apply<Op>(meta, vids);
+   ValueID out = eng.template apply_single<Op>(meta, vids);
    RawTensor<T> raw = eng.materialise(out);
    ADTensor<T> result(std::move(raw), x.requires_grad());
    result.set_vid(out);
