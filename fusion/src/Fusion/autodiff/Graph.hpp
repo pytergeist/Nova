@@ -125,7 +125,7 @@ template <typename T> class Graph {
       nodes_.emplace_back(std::move(node));
       auto &stored = nodes_.back();
       NodeID nid = make_node_id();
-      append_producer_table(stored, nid);
+      // append_producer_table(stored, nid);
       return nid;
    }
 
