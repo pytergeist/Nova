@@ -22,7 +22,7 @@ template <typename T> class NDTensorStorage : public ITensorStorage<T> {
        : shape_(std::move(shape)), data_(copy_data_to_buff(data, allocator)),
          device_(device), allocator_(allocator) {};
 
-   ~NDTensorStorage() = default;
+   ~NDTensorStorage() override = default;
 
    explicit NDTensorStorage(std::vector<size_t> shape, std::size_t count,
                             Device device, IAllocator *allocator)

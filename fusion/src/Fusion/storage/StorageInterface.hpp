@@ -7,7 +7,7 @@
 #include "Fusion/device/Device.h"
 
 #include "TensorBuffer.hpp"
-
+// TODO: Add rule of five to interfaxce + plus all children
 template <typename T> class ITensorStorage {
  public:
    virtual ~ITensorStorage() = default;
