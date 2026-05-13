@@ -15,8 +15,10 @@
 
 #include "Fusion/simulation/ops/GatherIndex.hpp"
 
+#include "Fusion/core/opschema/OpTags.h"
+
 template <typename T, class ParticlesT> struct PairDelta3 {
-   static constexpr std::string_view name = "PairDelta3";
+   using tag = PairDelta3Tag;
    using In = AutodiffMeta<T>;
    using Out = AutodiffMeta<T>;
    using GradIn = AutodiffMeta<T>;
