@@ -67,7 +67,7 @@ template <typename T, std::size_t DIM, std::size_t TILE> struct ParticlesAoSoA {
       out.N_ = N;
       out.nBlocks_ = blocks_for(N);
       DType dtype = DType::FLOAT32;
-      Device device = Device{DeviceType::CPU};
+      Device device = Device{DeviceType::CPU, 0};
       out.x = RawTensor<T>{{DIM, out.nBlocks_, TILE}, dtype, device};
       out.v = RawTensor<T>{{DIM, out.nBlocks_, TILE}, dtype, device};
       out.f = RawTensor<T>{{DIM, out.nBlocks_, TILE}, dtype, device};
