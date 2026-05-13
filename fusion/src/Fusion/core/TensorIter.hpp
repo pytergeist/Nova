@@ -1,9 +1,6 @@
-#ifndef EWISE_ITER_HPP
-#define EWISE_ITER_HPP
+#ifndef FUSION_CORE_TENSOR_ITER_HPP
+#define FUSION_CORE_TENSOR_ITER_HPP
 
-#include <cstdint>
-#include <functional>
-#include <numeric>
 #include <vector>
 
 #include "Fusion/common/Checks.hpp"
@@ -13,9 +10,7 @@
 #include "PlanMeta.hpp"
 #include "TensorPlan.h"
 
-namespace fusion {
-
-namespace iter {
+namespace fusion::iter {
 
 struct OperandStep {
    AccessKind kind{AccessKind::Affine};
@@ -31,6 +26,11 @@ template <std::size_t N> struct InnerSegment {
 template <typename IterPlan, std::size_t N>
 InnerSegment<N> construct_inner_segment(int inner_dim, const IterPlan &plan,
                                         std::array<uint8_t *, N> &ptr) {
+
+   FUSION_CHECK(inner_dim >= 0, "inner_dim must be non-negative");
+   FUSION_CHECK(inner_dim < static_cast<int>(plan.loop.size()),
+                "inner_dim out of range");
+
    InnerSegment<N> seg;
    seg.len = static_cast<std::int64_t>(plan.loop[inner_dim].size);
    seg.ptrs = ptr;
@@ -47,9 +47,34 @@ InnerSegment<N> construct_inner_segment(int inner_dim, const IterPlan &plan,
    return seg;
 }
 
+template <typename IterPlan, std::size_t N>
+InnerSegment<N> construct_scalar_segment(const IterPlan &plan,
+                                         std::array<uint8_t *, N> &ptr) {
+
+   FUSION_CHECK(plan.loop.empty(),
+                "construct_scalar_segment: plan must have zero loop dims");
+
+   FUSION_CHECK(plan.op_access.size() == N,
+                "construct_scalar_segment: op_access smaller than N");
+
+   InnerSegment<N> seg;
+   seg.len = 1;
+   seg.ptrs = ptr;
+   for (std::size_t k = 0; k < N; k++) {
+      seg.step[k].kind = plan.op_access[k].access;
+      if (seg.step[k].kind == AccessKind::Affine) {
+         seg.step[k].byte_stride = 0;
+      } else {
+         throw std::runtime_error(
+             "Access invalid: currently only affine is unsupported");
+      }
+   }
+   return seg;
+}
+
 template <typename IterPlan, std::size_t N, class InnerFn>
-inline void walk(int dim, const int inn, const IterPlan &plan,
-                 std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
+void walk(int dim, const int inn, const IterPlan &plan,
+          std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
    if (dim == inn) {
       InnerSegment<N> seg = construct_inner_segment(inn, plan, ptr);
       inner(seg);
@@ -80,7 +105,7 @@ void for_each_outer_then_inner(const IterPlan &plan,
 
    if (ndim == 0) {
       // TODO: evaluate this impl - possibly introducing sutble numerical bugs
-      InnerSegment<N> seg = construct_inner_segment(N, plan, base);
+      InnerSegment<N> seg = construct_scalar_segment(plan, base);
       inner(seg);
       return;
    }
@@ -338,8 +363,6 @@ void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
        });
 }
 
-} // namespace iter
+} // namespace fusion::iter
 
-} // namespace fusion
-
-#endif // EWISE_ITER_HPP
+#endif // FUSION_CORE_TENSOR_ITER_HPP
