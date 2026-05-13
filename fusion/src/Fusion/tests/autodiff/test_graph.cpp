@@ -163,51 +163,6 @@ TEST_F(GraphTest, build_node_allocates_sequential_node_ids) {
    EXPECT_EQ(n1, NodeID{1});
 }
 
-TEST_F(GraphTest, build_unary_node_registers_one_produced_output) {
-   NodeID nid = h.build_node<Operation<float, TestUnaryOp<float>>>();
-
-   INode<float> &node = h.graph.get_node(nid);
-
-   ASSERT_EQ(node.outputs().size(), 1);
-
-   ValueID out0 = node.outputs()[0];
-   ProducerInfo producer = h.graph.get_produced_by(out0);
-
-   EXPECT_EQ(producer.nid, nid);
-   EXPECT_EQ(producer.out_slot, 0);
-}
-
-TEST_F(GraphTest, build_split_node_registers_all_produced_outputs) {
-   NodeID nid = h.build_node<Operation<float, TestSplitOp<float>>>();
-
-   INode<float> &node = h.graph.get_node(nid);
-
-   ASSERT_EQ(node.outputs().size(), 2);
-
-   ValueID out0 = node.outputs()[0];
-   ValueID out1 = node.outputs()[1];
-
-   ProducerInfo p0 = h.graph.get_produced_by(out0);
-   ProducerInfo p1 = h.graph.get_produced_by(out1);
-
-   EXPECT_EQ(p0.nid, nid);
-   EXPECT_EQ(p0.out_slot, 0);
-
-   EXPECT_EQ(p1.nid, nid);
-   EXPECT_EQ(p1.out_slot, 1);
-}
-
-TEST_F(GraphTest, build_node_grows_produced_by_table) {
-   h.build_node<Operation<float, TestUnaryOp<float>>>();
-   const std::size_t size_after_first = h.graph.produced_by().size();
-
-   h.build_node<Operation<float, TestSplitOp<float>>>();
-   const std::size_t size_after_second = h.graph.produced_by().size();
-
-   EXPECT_GT(size_after_first, 0);
-   EXPECT_GT(size_after_second, size_after_first);
-}
-
 TEST_F(GraphTest, set_node_input_adds_input_to_node) {
    NodeID nid = h.build_node<Operation<float, TestUnaryOp<float>>>();
    INode<float> &node = h.graph.get_node(nid);
@@ -246,3 +201,52 @@ TEST_F(GraphTest,
    EXPECT_EQ(producer.nid, kNoNode);
    EXPECT_EQ(producer.out_slot, 0);
 }
+
+
+// TODO: Evaluate whether you need the below tests,
+// currently using compile time schema but this will not work for variadic
+// functions - may need to an this back into graph for non-static aritys
+
+// TEST_F(GraphTest, build_unary_node_registers_one_produced_output) {
+//    NodeID nid = h.build_node<Operation<float, TestUnaryOp<float>>>();
+//
+//    INode<float> &node = h.graph.get_node(nid);
+//
+//    ASSERT_EQ(node.outputs().size(), 1);
+//
+//    ValueID out0 = node.outputs()[0];
+//    ProducerInfo producer = h.graph.get_produced_by(out0);
+//
+//    EXPECT_EQ(producer.nid, nid);
+//    EXPECT_EQ(producer.out_slot, 0);
+// }
+// TEST_F(GraphTest, build_split_node_registers_all_produced_outputs) {
+//    NodeID nid = h.build_node<Operation<float, TestSplitOp<float>>>();
+//
+//    INode<float> &node = h.graph.get_node(nid);
+//
+//    ASSERT_EQ(node.outputs().size(), 2);
+//
+//    ValueID out0 = node.outputs()[0];
+//    ValueID out1 = node.outputs()[1];
+//
+//    ProducerInfo p0 = h.graph.get_produced_by(out0);
+//    ProducerInfo p1 = h.graph.get_produced_by(out1);
+//
+//    EXPECT_EQ(p0.nid, nid);
+//    EXPECT_EQ(p0.out_slot, 0);
+//
+//    EXPECT_EQ(p1.nid, nid);
+//    EXPECT_EQ(p1.out_slot, 1);
+// }
+//
+// TEST_F(GraphTest, build_node_grows_produced_by_table) {
+//    h.build_node<Operation<float, TestUnaryOp<float>>>();
+//    const std::size_t size_after_first = h.graph.produced_by().size();
+//
+//    h.build_node<Operation<float, TestSplitOp<float>>>();
+//    const std::size_t size_after_second = h.graph.produced_by().size();
+//
+//    EXPECT_GT(size_after_first, 0);
+//    EXPECT_GT(size_after_second, size_after_first);
+// }
