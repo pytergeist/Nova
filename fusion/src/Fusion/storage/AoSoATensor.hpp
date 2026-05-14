@@ -8,6 +8,8 @@
 
 template <typename T> class AoSoATensor {
  public:
+   AoSoATensor() = default;
+
    AoSoATensor(const std::uint64_t n_items, std::size_t dim, std::size_t tile,
                DType dtype, Device device)
        : storage_({dim, blocks_for(check_items_size(n_items), tile), tile},
@@ -21,6 +23,8 @@ template <typename T> class AoSoATensor {
    std::size_t dim() const noexcept { return dim_; }
    std::size_t tile() const noexcept { return tile_; }
    std::size_t n_blocks() const noexcept { return n_blocks_; }
+   DType dtype() const noexcept {return storage_.dtype();};
+   Device device() const noexcept {return storage_.device();};
 
    RawTensor<T> &raw() noexcept { return storage_; }
    const RawTensor<T> &raw() const noexcept { return storage_; }
