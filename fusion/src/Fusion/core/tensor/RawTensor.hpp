@@ -33,7 +33,7 @@ inline RawTensor<T> scalar_t(const T scalar, const DType dtype = DType::FLOAT32,
    return RawTensor<T>{{1}, {scalar}, dtype, device};
 }
 
-template <typename T> class RawTensor {
+template <typename T> class  RawTensor {
  public:
    static constexpr std::string_view name = "RawTensor";
    using value_type = T;

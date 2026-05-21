@@ -12,6 +12,8 @@
 
 template <typename T> struct RawTensor;
 
+template <typename T> class AoSoATensor;
+
 enum class BinaryExecKind : std::uint8_t {
    GenericStrided,
    FlatContiguous,
@@ -96,6 +98,25 @@ static OperandDescription make_desc_from_tensor(const RawTensor<T> &t) {
    d.access = AccessKind::Affine;
    d.layout = t.is_contiguous() ? LayoutKind::Dense : LayoutKind::Strided;
    d.storage = !t.is_view() ? StorageKind::Owned : StorageKind::View;
+   d.type = OperandDescType::Tensor;
+   return d;
+}
+
+template <typename T>
+static OperandDescription make_desc_from_aosoa_tensor(const AoSoATensor<T> &t) {
+   OperandDescription d;
+   d.shape = t.logical_shape();
+   d.itemsize = t.raw().dtype_size(); // TODO: add forwarding?
+
+   if constexpr (requires { t.strides(); }) {
+      d.strides = t.strides();
+   } else {
+      d.strides = contig_elem_strides(d.shape);
+   }
+   d.access = AccessKind::Blocked;
+   d.layout = LayoutKind::AoSoA;
+   // TODO: Evaluate the below
+   d.storage = StorageKind::Owned;
    d.type = OperandDescType::Tensor;
    return d;
 }
