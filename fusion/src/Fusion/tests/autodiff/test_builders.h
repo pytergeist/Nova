@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "Fusion/autodiff/ADTensor.hpp"
-#include "Fusion/core/RawTensor.hpp"
+#include "Fusion/core/tensor/RawTensor.hpp"
 #include "Fusion/device/Device.h"
 
 namespace test_builders {

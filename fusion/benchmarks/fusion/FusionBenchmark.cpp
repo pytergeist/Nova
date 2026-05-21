@@ -4,7 +4,7 @@
 #include <random>
 #include <vector>
 
-#include "Fusion/core/RawTensor.hpp"
+#include "../../src/Fusion/core/tensor/RawTensor.hpp"
 
 std::vector<float> make_random_float_vector(std::size_t N, unsigned seed,
                                             float min = 0, float max = 100) {

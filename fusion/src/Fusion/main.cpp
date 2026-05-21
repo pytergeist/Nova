@@ -1,9 +1,9 @@
-#include "Fusion/core/RawTensor.hpp"
 #include "Fusion/simulation/Potentials/NonBonded.hpp"
 #include "Fusion/simulation/core/Neighbours.hpp"
-#include "Fusion/simulation/core/TopoIter.hpp"
 #include "Fusion/simulation/core/ParticleState.hpp"
+#include "Fusion/simulation/core/TopoIter.hpp"
 #include "Fusion/simulation/cpu/pairwise/PairwiseTraits.hpp"
+#include "core/tensor/RawTensor.hpp"
 
 #include "Fusion/simulation/autodiff/ADSimulation.hpp"
 #include "Fusion/simulation/core/InteractionIR.h"
@@ -46,7 +46,7 @@ int main() {
    constexpr std::size_t DIM = 3;
    constexpr std::size_t TILE = 4;
 
-   using Layout = ParticlesAoSoA<T, DIM, TILE>;
+   // using Layout = ParticlesAoSoA<T, DIM, TILE>;
    RawTensor<T> X({(std::int64_t)DIM, (std::int64_t)8},
                   {
                       // x
@@ -78,11 +78,17 @@ int main() {
                       1.2f,
                   },
                   DType::FLOAT32, Device{DeviceType::CPU, 0});
+   AoSoATensor<T> aosoa{ X, static_cast<std::size_t>(4)};
+   // aosoa.assign_component_major(X);
 
-   Layout psoa = Layout::from_three_n_raw_tensor(8, X, X, X, X);
+   using Layout = ParticleField<T>;
+
+   Layout field{aosoa};
+
+   // Layout psoa = Layout::from_three_n_raw_tensor(8, X, X, X, X);
 
 //   LJParams<T> params{0.2f, 0.7f};
-   //   NoParams params;
+   // NoParams params;
 
    EdgeList edges{std::vector<uint32_t>{
                       0, 0, 0,    // i=0
@@ -105,9 +111,9 @@ int main() {
                       3, 4, 6     // j for i=7
                   }};
    NoParams params;
-   GatherIndexMeta<T, Layout> meta = construct_gather_index_meta<T, Layout>(psoa, edges);
-   ADTensor<T> x_diff{psoa.x};
-   ADTensor<T> out = pair_delta3<T, Layout>(x_diff, psoa, meta, params);
+   GatherIndexMeta<T, Layout> meta = construct_gather_index_meta<T, Layout>(field, edges);
+   ADTensor<T> x_diff{field.x().raw()};
+   ADTensor<T> out = pair_delta3<T, Layout>(x_diff, field, meta, params);
    std::cout << out << std::endl;
 
 

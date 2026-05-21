@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../../core/tensor/RawTensor.hpp"
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/core/RawTensor.hpp"
 
 template <typename U> class RawTensor;
 

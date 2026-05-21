@@ -4,8 +4,6 @@
 #include <string_view>
 
 #include "Fusion/core/PlanMeta.hpp"
-#include "Fusion/core/RawTensor.hpp"
-#include "Fusion/core/TensorIter.hpp"
 
 #include "Helpers.hpp"
 

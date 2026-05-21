@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Fusion/core/RawTensor.hpp"
+#include "Fusion/core/tensor/RawTensor.hpp"
 
 // TODO: create a make_tensor helper
 

@@ -6,8 +6,8 @@
 
 #include "Fusion/common/Log.hpp"
 
+#include "../core/tensor/RawTensor.hpp"
 #include "Fusion/core/PlanMeta.hpp"
-#include "Fusion/core/RawTensor.hpp"
 #include "Fusion/core/TensorIter.hpp"
 
 #include "Helpers.hpp"

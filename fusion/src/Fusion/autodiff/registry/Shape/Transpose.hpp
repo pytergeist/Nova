@@ -7,7 +7,7 @@
 #include "Fusion/autodiff/AutodiffMeta.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"
-#include "Fusion/core/RawTensor.hpp"
+#include "Fusion/core/tensor/RawTensor.hpp"
 
 template <typename T> struct Transpose {
    static constexpr std::string_view name = "Transpose";

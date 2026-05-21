@@ -4,11 +4,11 @@
 #include <string_view>
 #include <vector>
 
+#include "../../../core/tensor/RawTensor.hpp"
 #include "Fusion/autodiff/AutodiffMeta.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/core/RawTensor.hpp"
 
 template <typename T> struct GreaterThanEqual {
    using tag = GreaterEqualTag;

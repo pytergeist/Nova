@@ -2,7 +2,7 @@
 
 #include "Fusion/autodiff/AutodiffMeta.hpp"
 
-#include "Fusion/core/RawTensor.hpp"
+#include "Fusion/core/tensor/RawTensor.hpp"
 
 #include "fixtures.h"
 

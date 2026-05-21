@@ -5,7 +5,7 @@
 
 #include "ADTypes.h"
 
-#include "Fusion/core/RawTensor.hpp"
+#include "../core/tensor/RawTensor.hpp"
 
 struct LeafGradBinding {
    ValueID vid;

@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Fusion/core/PlanMeta.hpp"
-#include "Fusion/core/RawTensor.hpp"
+#include "Fusion/core/tensor/RawTensor.hpp"
 #include "Fusion/core/TensorIter.hpp"
 
 #include "Fusion/cpu/simd/SimdTags.hpp"

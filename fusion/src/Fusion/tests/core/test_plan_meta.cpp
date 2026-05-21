@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Fusion/core/PlanMeta.hpp"
-#include "Fusion/core/RawTensor.hpp"
+#include "Fusion/core/tensor/RawTensor.hpp"
 
 TEST(PlanMetaTest, contig_elem_strides_returns_row_major_strides_for_2d_shape) {
    std::vector<std::size_t> shape{2, 3};

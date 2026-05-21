@@ -3,12 +3,12 @@
 
 #include <string_view>
 
+#include "../../../core/tensor/RawTensor.hpp"
 #include "Fusion/autodiff/AutodiffMeta.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"
 #include "Fusion/common/Checks.hpp"
 #include "Fusion/common/Log.hpp"
-#include "Fusion/core/RawTensor.hpp"
 #include "Fusion/ops/OpParams.hpp"
 
 template <typename T> struct SwapAxes {
