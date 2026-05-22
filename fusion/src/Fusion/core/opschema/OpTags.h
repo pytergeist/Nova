@@ -28,7 +28,7 @@ struct AddTag {};
 struct SubTag {};
 struct MulTag {};
 struct DivTag {};
-struct ReciprocalTag{};
+struct ReciprocalTag {};
 struct PowTag {};
 
 /// LinAlg

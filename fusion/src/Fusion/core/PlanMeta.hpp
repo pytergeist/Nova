@@ -10,7 +10,7 @@
  * construction. Unodered_map impl? Also consider moving to a faster (poss
  * ) vec representation  */
 
-template <typename T> struct RawTensor;
+template <typename T> struct DenseTensor;
 
 template <typename T> class AoSoATensor;
 
@@ -85,7 +85,7 @@ OperandDescription make_desc_from_shape(const std::vector<std::size_t> &shape,
 }
 
 template <typename T>
-static OperandDescription make_desc_from_tensor(const RawTensor<T> &t) {
+static OperandDescription make_desc_from_tensor(const DenseTensor<T> &t) {
    OperandDescription d;
    d.shape = t.shape();
    d.itemsize = t.dtype_size();
@@ -136,7 +136,7 @@ inline std::string_view to_string(BinaryExecKind k) noexcept {
 }
 
 template <typename T>
-BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A, const RawTensor<T> &B) {
+BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A, const DenseTensor<T> &B) {
 
    BinaryEwiseMeta meta{};
    const bool same = A.shape() == B.shape();
@@ -177,7 +177,7 @@ BinaryEwiseMeta make_binary_meta(const RawTensor<T> &A, const RawTensor<T> &B) {
    return meta;
 };
 
-template <typename T> UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
+template <typename T> UnaryEwiseMeta make_unary_meta(const DenseTensor<T> &A) {
    UnaryEwiseMeta meta{};
    const bool cont = A.is_contiguous();
 
@@ -204,7 +204,7 @@ template <typename T> UnaryEwiseMeta make_unary_meta(const RawTensor<T> &A) {
 constexpr std::size_t kGlobalReduceAxis = -1;
 
 template <typename T>
-ReductionMeta make_reduction_meta(const RawTensor<T> &A, const std::size_t axis,
+ReductionMeta make_reduction_meta(const DenseTensor<T> &A, const std::size_t axis,
                                   bool keepdim) {
    ReductionMeta meta{};
 
@@ -245,7 +245,7 @@ ReductionMeta make_reduction_meta(const RawTensor<T> &A, const std::size_t axis,
 
 template <typename T>
 ContractionMeta
-make_contraction_meta_einsum(const RawTensor<T> &A, const RawTensor<T> &B,
+make_contraction_meta_einsum(const DenseTensor<T> &A, const DenseTensor<T> &B,
                              const OperandLabelBinding &binding) {
    ContractionMeta meta{};
 

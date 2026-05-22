@@ -6,21 +6,22 @@
 #include <unordered_set>
 #include <vector>
 
-#include "IR.h"
-#include "Descs.h"
 #include "DescContraints.h"
+#include "Descs.h"
+#include "IR.h"
 
 #include <sstream>
 
-void validate_descs_itemsize_group(
-    const std::vector<OperandDescription> &descs, const ItemSizeGroupConstraint constraint) {
+void validate_descs_itemsize_group(const std::vector<OperandDescription> &descs,
+                                   const ItemSizeGroupConstraint constraint) {
    if (descs.empty()) {
       throw std::runtime_error("broadcast: no operands");
    }
    const std::size_t itemsize = descs[0].itemsize;
 
    for (const OperandDescription &d : descs) {
-      if (constraint == ItemSizeGroupConstraint::TopologyAllowed && d.type == OperandDescType::Topology) {
+      if (constraint == ItemSizeGroupConstraint::TopologyAllowed &&
+          d.type == OperandDescType::Topology) {
          continue;
       }
       if (d.itemsize != itemsize)
@@ -51,7 +52,6 @@ std::size_t broadcast_dim(std::size_t a, std::size_t b) {
    throw std::runtime_error("broadcast: dimension mismatch");
 }
 
-
 std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
                                       std::int32_t axis,
                                       std::size_t index_extent,
@@ -70,7 +70,8 @@ std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
 }
 
 IndexSpaceIR
-build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs, const ItemSizeGroupConstraint constraint) {
+build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs,
+                                 const ItemSizeGroupConstraint constraint) {
    validate_descs_itemsize_group(descs, constraint);
 
    IndexSpaceIR ir;
@@ -293,7 +294,7 @@ lower_to_loops(const IndexSpaceIR &ir,
 
    if (descs.size() != ir.num_operands) {
       throw std::runtime_error("lower: desc count mismatch");
-}
+   }
 
    std::vector<LoopDim> loops;
    loops.reserve(loop_order.size());
@@ -507,12 +508,13 @@ std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
 
 std::vector<std::size_t>
 infer_out_shape_from_binding(const std::vector<OperandDescription> &inputs,
-                       const OperandLabelBinding &binding) {
+                             const OperandLabelBinding &binding) {
    if (inputs.size() != 2) {
       throw std::runtime_error("einsum: expected inputs = {A, B}");
    }
    // TODO: The below is hardcoded to homoItemSize
-   ItemSizeGroupConstraint constraint = ItemSizeGroupConstraint::HomogeneousItemSize;
+   ItemSizeGroupConstraint constraint =
+       ItemSizeGroupConstraint::HomogeneousItemSize;
    validate_descs_itemsize_group(inputs, constraint);
 
    OperandDescription dummy_out;

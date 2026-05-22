@@ -126,7 +126,6 @@ struct LoopDim {
    IndexRole role{IndexRole::Batch};
 };
 
-
 /// Describes the access pattern for a single operand in an execution plan.
 ///
 /// OperandAccess is produced during lowering from an OperandDesc into a
@@ -151,7 +150,8 @@ struct LoopDim {
 struct OperandAccess {
    std::size_t operand_id{0};
 
-   LayoutKind layout{LayoutKind::Dense}; // TODO: dense to generic, need to include contig for view support
+   LayoutKind layout{LayoutKind::Dense}; // TODO: dense to generic, need to
+                                         // include contig for view support
    StorageKind storage{StorageKind::Owned};
    UpdateKind update{UpdateKind::ReadOnly};
 
@@ -173,14 +173,13 @@ std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
                                       std::size_t index_extent,
                                       std::size_t itemsize);
 
-IndexSpaceIR build_broadcast_ir_right_aligned(
-    const std::vector<OperandDescription> &descs,
-    const ItemSizeGroupConstraint constraint);
-
 IndexSpaceIR
-build_reduction_ir(const std::vector<OperandDescription> &descs,
-                   std::size_t axis, bool keepdim,
-                   const ItemSizeGroupConstraint constraint);
+build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs,
+                                 const ItemSizeGroupConstraint constraint);
+
+IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
+                                std::size_t axis, bool keepdim,
+                                const ItemSizeGroupConstraint constraint);
 
 std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
@@ -211,7 +210,7 @@ std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir);
 
 std::vector<std::size_t>
 infer_out_shape_from_binding(const std::vector<OperandDescription> &inputs,
-                       const OperandLabelBinding &binding);
+                             const OperandLabelBinding &binding);
 
 std::uint32_t
 bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t> &label_to_id,
