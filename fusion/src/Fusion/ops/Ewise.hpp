@@ -12,61 +12,60 @@ namespace fusion {
 namespace math {
 
 template <typename T>
-RawTensor<T> add(const RawTensor<T> &x, const RawTensor<T> &y) {
+DenseTensor<T> add(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<AddTag>();
    BinaryEwiseMeta meta = make_binary_meta(x, y);
-   RawTensor<T> out = init_out_from_meta(x, y, meta);
+   DenseTensor<T> out = init_out_from_meta(x, y, meta);
    fusion::iter::binary_ewise_tag<T, AddSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
-RawTensor<T> sub(const RawTensor<T> &x, const RawTensor<T> &y) {
+DenseTensor<T> sub(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<SubTag>();
    BinaryEwiseMeta meta = make_binary_meta(x, y);
-   RawTensor<T> out = init_out_from_meta(x, y, meta);
+   DenseTensor<T> out = init_out_from_meta(x, y, meta);
    fusion::iter::binary_ewise_tag<T, SubtractSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
-RawTensor<T> mul(const RawTensor<T> &x, const RawTensor<T> &y) {
+DenseTensor<T> mul(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<MulTag>();
    BinaryEwiseMeta meta = make_binary_meta(x, y);
-   RawTensor<T> out = init_out_from_meta(x, y, meta);
+   DenseTensor<T> out = init_out_from_meta(x, y, meta);
    fusion::iter::binary_ewise_tag<T, MultiplySIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
-RawTensor<T> div(const RawTensor<T> &x, const RawTensor<T> &y) {
+DenseTensor<T> div(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<DivTag>();
    BinaryEwiseMeta meta = make_binary_meta(x, y);
-   RawTensor<T> out = init_out_from_meta(x, y, meta);
+   DenseTensor<T> out = init_out_from_meta(x, y, meta);
    fusion::iter::binary_ewise_tag<T, DivideSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
-RawTensor<T> pow(const RawTensor<T> &x, const RawTensor<T> &y) {
+DenseTensor<T> pow(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<PowTag>();
    BinaryEwiseMeta meta = make_binary_meta(x, y);
-   RawTensor<T> out = init_out_from_meta(x, y, meta);
+   DenseTensor<T> out = init_out_from_meta(x, y, meta);
    fusion::iter::binary_ewise_tag<T, PowerSIMD>(x, y, meta, out);
    return out;
 }
 
-template <typename T>
-inline RawTensor<T> reciprocal(const RawTensor<T> &x) {
+template <typename T> inline DenseTensor<T> reciprocal(const DenseTensor<T> &x) {
    require_ewise_unary_out_of_place<ReciprocalTag>();
    UnaryEwiseMeta meta = make_unary_meta(x);
-   RawTensor<T> out = init_out_from_meta(x, meta);
+   DenseTensor<T> out = init_out_from_meta(x, meta);
    fusion::iter::unary_ewise_tag<T, ReciprocalSIMD>(x, meta, out);
    return out;
 }
 
 template <typename T>
-inline void sub_inplace(RawTensor<T> &x, const RawTensor<T> &y) {
+inline void sub_inplace(DenseTensor<T> &x, const DenseTensor<T> &y) {
    // TODO: need to impl_ a way to ignore batch dim in shape check in
    // a sensible way
    // UNSAFE CODE

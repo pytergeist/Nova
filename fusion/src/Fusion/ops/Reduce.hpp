@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-#include "../core/tensor/RawTensor.hpp"
+#include "../core/tensor/DenseTensor.hpp"
 #include "Fusion/core/TensorIter.hpp"
 #include "Fusion/cpu/simd/SimdTags.hpp"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
@@ -16,21 +16,21 @@ namespace fusion {
 namespace math {
 
 template <typename T>
-RawTensor<T> sum(const RawTensor<T> &x, const std::size_t axis,
+DenseTensor<T> sum(const DenseTensor<T> &x, const std::size_t axis,
                  const bool keep_dim) {
    require_reduction_out_of_place<SumTag>();
    ReductionMeta meta = make_reduction_meta(x, axis, keep_dim);
-   RawTensor<T> out = init_out_from_meta(x, meta);
+   DenseTensor<T> out = init_out_from_meta(x, meta);
    fusion::iter::reduction_tag<T, SumSIMD>(x, meta, out);
    return out;
 }
 
 template <typename T>
-RawTensor<T> mean(const RawTensor<T> &x, const std::size_t axis,
+DenseTensor<T> mean(const DenseTensor<T> &x, const std::size_t axis,
                   const bool keep_dim) {
    require_reduction_out_of_place<MeanTag>();
    ReductionMeta meta = make_reduction_meta(x, axis, keep_dim);
-   RawTensor<T> out = init_out_from_meta(x, meta);
+   DenseTensor<T> out = init_out_from_meta(x, meta);
    fusion::iter::reduction_tag<T, SumSIMD>(x, meta, out);
    const T denom = static_cast<T>(meta.reduce_len);
    out = out / denom;

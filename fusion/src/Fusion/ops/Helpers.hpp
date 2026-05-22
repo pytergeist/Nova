@@ -6,30 +6,30 @@
 #include "Fusion/core/opschema/OpTraits.h"
 
 template <typename T>
-RawTensor<T> init_out_from_meta(const RawTensor<T> &x, const RawTensor<T> &y,
+DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x, const DenseTensor<T> &y,
                                 const BinaryEwiseMeta &m) {
    FUSION_CHECK(x.dtype() == y.dtype(), "dtypes do not match!");
    FUSION_CHECK(x.device() == y.device(), "devices do not match!");
-   return RawTensor<T>(m.out_shape, x.dtype(), x.device());
+   return DenseTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 
 template <typename T>
-RawTensor<T> init_out_from_meta(const RawTensor<T> &x,
+DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x,
                                 const UnaryEwiseMeta &m) {
-   return RawTensor<T>(m.out_shape, x.dtype(), x.device());
+   return DenseTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 
 template <typename T>
-RawTensor<T> init_out_from_meta(const RawTensor<T> &x, const ReductionMeta &m) {
-   return RawTensor<T>(m.out_shape, x.dtype(), x.device());
+DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x, const ReductionMeta &m) {
+   return DenseTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 
 template <typename T>
-RawTensor<T> init_out_from_meta(const RawTensor<T> &x, const RawTensor<T> &y,
+DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x, const DenseTensor<T> &y,
                                 const ContractionMeta &m) {
    FUSION_CHECK(x.dtype() == y.dtype(), "dtypes do not match!");
    FUSION_CHECK(x.device() == y.device(), "devices do not match!");
-   return RawTensor<T>(m.out_shape, x.dtype(), x.device());
+   return DenseTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 
 template <class Tag> consteval void require_ewise_binary_out_of_place() {

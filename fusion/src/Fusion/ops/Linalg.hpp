@@ -6,7 +6,7 @@
 
 #include "Fusion/common/Log.hpp"
 
-#include "../core/tensor/RawTensor.hpp"
+#include "../core/tensor/DenseTensor.hpp"
 #include "Fusion/core/PlanMeta.hpp"
 #include "Fusion/core/TensorIter.hpp"
 
@@ -14,7 +14,8 @@
 
 namespace fusion::math::linalg {
 
-inline OperandLabelBinding make_matmul_binding(std::size_t a_nd, std::size_t b_nd) {
+inline OperandLabelBinding make_matmul_binding(std::size_t a_nd,
+                                               std::size_t b_nd) {
    if (a_nd < 2 || b_nd < 2) {
       throw std::runtime_error("matmul: expected rank >= 2 for both operands");
    }
@@ -56,7 +57,7 @@ inline OperandLabelBinding make_matmul_binding(std::size_t a_nd, std::size_t b_n
 }
 
 template <typename T>
-RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
+DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
    FUSION_CHECK(A.is_initialised(), "matmul: A uninitialised");
    FUSION_CHECK(B.is_initialised(), "matmul: B uninitialised");
    FUSION_CHECK(A.dtype() == B.dtype(), "matmul: dtype mismatch");
@@ -73,14 +74,13 @@ RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
    if (kA != kB)
       throw std::runtime_error("matmul: inner dimension mismatch");
 
-   OperandLabelBinding binding = make_matmul_binding(a_shape.size(), b_shape.size());
+   OperandLabelBinding binding =
+       make_matmul_binding(a_shape.size(), b_shape.size());
    ContractionMeta meta = make_contraction_meta_einsum<T>(A, B, binding);
 
-   RawTensor<T> out = init_out_from_meta(A, B, meta);
+   DenseTensor<T> out = init_out_from_meta(A, B, meta);
 
-   fusion::iter::contraction_tag<T,
-                                 BatchedGemmBLAS,
-                                 MultiplySIMD
+   fusion::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD
 
                                  >(A, B, meta, out);
 
@@ -88,22 +88,22 @@ RawTensor<T> matmul(const RawTensor<T> &A, const RawTensor<T> &B) {
 }
 
 template <typename T>
-RawTensor<T> swapaxes(const RawTensor<T> &x, const int axis1, const int axis2) {
+DenseTensor<T> swapaxes(const DenseTensor<T> &x, const int axis1, const int axis2) {
    std::vector<size_t> out_shape = x.shape();
    const int nd = static_cast<int>(out_shape.size());
    if (nd < 2) {
-      return RawTensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
+      return DenseTensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
                           x.dtype(), x.device());
    }
    const int naxis1 = serial::normalise_axis(axis1, nd);
    const int naxis2 = serial::normalise_axis(axis2, nd);
    if (naxis1 == naxis2) {
-      return RawTensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
+      return DenseTensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
                           x.dtype(), x.device());
    }
    std::swap(out_shape[naxis1], out_shape[naxis2]);
    std::vector<T> out = serial::swapaxes<T>(x, x.shape(), naxis1, naxis2);
-   return RawTensor<T>(std::move(out_shape), std::move(out), x.dtype(),
+   return DenseTensor<T>(std::move(out_shape), std::move(out), x.dtype(),
                        x.device());
 }
 
