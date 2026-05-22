@@ -20,26 +20,26 @@ void block_crs_traverse(const ParticleT &particles, const PairBlockedCRS &crs,
    using B = Backend;
    using vec = typename B::vec;
 
-   constexpr std::size_t TILE = ParticleT::tile();
-   static_assert(TILE > 0);
+   const std::size_t TILE = particles.tile();
+   assert(TILE > 0);
 
-   for (std::size_t ib = 0; ib < particles.nBlocks(); ++ib) {
+   for (std::size_t ib = 0; ib < particles.n_blocks(); ++ib) {
       const std::size_t valid = particles.valid_in_block(ib);
       if (valid == 0)
          continue;
 
-      auto Xi = B::load(particles.x_block_ptr(0, ib));
-      auto Yi = B::load(particles.x_block_ptr(1, ib));
-      auto Zi = B::load(particles.x_block_ptr(2, ib));
+      auto Xi = B::load(particles.block_ptr(0, ib));
+      auto Yi = B::load(particles.block_ptr(1, ib));
+      auto Zi = B::load(particles.block_ptr(2, ib));
 
       const std::uint32_t gk = crs.ib_ptr[ib];
       const std::uint32_t gk1 = crs.ib_ptr[ib + 1];
 
       for (std::uint32_t g = gk; g < gk1; ++g) {
          const std::uint32_t jb = crs.jb_idx[g];
-         vec Xj = B::load(particles.x_block_ptr(0, jb));
-         vec Yj = B::load(particles.x_block_ptr(1, jb));
-         vec Zj = B::load(particles.x_block_ptr(2, jb));
+         vec Xj = B::load(particles.block_ptr(0, jb));
+         vec Yj = B::load(particles.block_ptr(1, jb));
+         vec Zj = B::load(particles.block_ptr(2, jb));
 
          const std::uint32_t jk = crs.jb_ptr[g];
          const std::uint32_t jk1 = crs.jb_ptr[g + 1];

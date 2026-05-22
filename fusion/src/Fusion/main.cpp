@@ -78,7 +78,7 @@ int main() {
                       1.2f,
                   },
                   DType::FLOAT32, Device{DeviceType::CPU, 0});
-   AoSoATensor<T> aosoa{ X, static_cast<std::size_t>(4)};
+   AoSoATensor<T> aosoa{X, static_cast<std::size_t>(4)};
    // aosoa.assign_component_major(X);
 
    using Layout = ParticleField<T>;
@@ -87,7 +87,7 @@ int main() {
 
    // Layout psoa = Layout::from_three_n_raw_tensor(8, X, X, X, X);
 
-//   LJParams<T> params{0.2f, 0.7f};
+   //   LJParams<T> params{0.2f, 0.7f};
    // NoParams params;
 
    EdgeList edges{std::vector<uint32_t>{
@@ -111,11 +111,11 @@ int main() {
                       3, 4, 6     // j for i=7
                   }};
    NoParams params;
-   GatherIndexMeta<T, Layout> meta = construct_gather_index_meta<T, Layout>(field, edges);
+   GatherIndexMeta<T, Layout> meta =
+       construct_gather_index_meta<T, Layout>(field, edges);
    ADTensor<T> x_diff{field.x().raw()};
    ADTensor<T> out = pair_delta3<T, Layout>(x_diff, field, meta, params);
    std::cout << out << std::endl;
-
 
    return 0;
 };

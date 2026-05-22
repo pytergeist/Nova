@@ -16,18 +16,15 @@ namespace py = pybind11;
 PYBIND11_MODULE(fusion, m_ten) {
    m_ten.doc() =
        "Fusion Tensor module exposing Tensor<float> (for composition)";
-   bind_tensor<float>(m_ten, "Tensor");
-   bind_factory<float>(m_ten, "factory");
-   bind_random<float>(m_ten, "Random");
-
-   py::class_<Device>(m_ten, "CppDevice")
-       .def(py::init<DeviceType, DeviceIdx>(), py::arg("type"),
-            py::arg("index") = -1);
 
    py::enum_<DeviceType>(m_ten, "CppDeviceType")
        .value("CPU", DeviceType::CPU)
        .value("CUDA", DeviceType::CUDA)
        .value("METAL", DeviceType::METAL);
+
+   py::class_<Device>(m_ten, "CppDevice")
+       .def(py::init<DeviceType, DeviceIdx>(), py::arg("type"),
+            py::arg("index") = -1);
 
    py::enum_<DType>(m_ten, "CppDType")
        .value("FLOAT32", DType::FLOAT32)
@@ -35,6 +32,10 @@ PYBIND11_MODULE(fusion, m_ten) {
        .value("INT32", DType::INT32)
        .value("INT64", DType::INT64)
        .value("BOOL", DType::BOOL);
+
+   bind_tensor<float>(m_ten, "Tensor");
+   bind_factory<float>(m_ten, "factory");
+   bind_random<float>(m_ten, "Random");
 
    py::class_<EngineScope<float>>(m_ten, "grad_tape")
        .def(py::init<>())

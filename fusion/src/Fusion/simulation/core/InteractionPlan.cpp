@@ -30,7 +30,7 @@ PairBlockedCRS build_pair_index_blocked_crs_from_particle_field(
       if (have_prev && ib == prev_ib && jb == prev_jb) {
          groups.back().num_edges += 1;
       } else {
-         groups.push_back(Group{.ib_idx=ib, .jb_idx=jb, .num_edges=1});
+         groups.push_back(Group{.ib_idx = ib, .jb_idx = jb, .num_edges = 1});
          bcrs.ib_ptr[ib + 1]++;
          bcrs.jb_idx.push_back(jb);
 

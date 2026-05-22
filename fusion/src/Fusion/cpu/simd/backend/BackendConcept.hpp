@@ -4,7 +4,6 @@
 #include <concepts>
 #include <cstddef>
 
-
 // TODO: Add lane based concept to this
 
 template <typename B>

@@ -3,7 +3,7 @@
 
 #include "Fusion/autodiff/ADTensor.hpp"
 
-#include "Fusion/core/RawTensor.hpp"
+#include "../../core/tensor/RawTensor.hpp"
 
 #include "Fusion/simulation/core/InteractionPlan.h"
 #include "Fusion/simulation/core/InteractionPlanMeta.hpp"

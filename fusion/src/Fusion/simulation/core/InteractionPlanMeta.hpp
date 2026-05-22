@@ -8,10 +8,10 @@
 #include <cstddef>
 
 #include "Fusion/core/fuir/Descs.h"
+#include "InteractionIR.h"
+#include "InteractionPlan.h"
 #include "Neighbours.hpp"
 #include "ParticleDescs.h"
-#include "InteractionPlan.h"
-#include "InteractionIR.h"
 
 template <typename T, class ParticlesT> struct PairwiseMeta {
    bool fastpath;
@@ -85,23 +85,25 @@ make_indexed_desc_from_shape(const std::vector<std::size_t> &shape,
 }
 
 template <typename T, class ParticlesT>
-ParticlesAoSoADesc make_particles_aosoa_desc(const ParticlesT &particles,
+ParticlesAoSoADesc make_particles_aosoa_desc(ParticlesT &particles,
                                              const EdgeList &edges) {
    ParticlesAoSoADesc desc;
 
-   desc.N = particles.N();
+   desc.N = particles.n_items();
    desc.E = edges.E();
    desc.tile = particles.tile();
    desc.dim = particles.dim();
 
    // TODO: this should make indexed the layout
-   OperandDescription dX = make_desc_from_tensor(particles.x);
-   OperandDescription dF = make_desc_from_tensor(particles.v);
-   OperandDescription dV = make_desc_from_tensor(particles.f);
+   OperandDescription dX = make_desc_from_aosoa_tensor(particles.x());
+   // OperandDescription dF = make_desc_from_tensor(particles.v);
+   // OperandDescription dV = make_desc_from_tensor(particles.f);
+
+   // TODO: place back dF,dV
 
    desc.x_desc = dX;
-   desc.f_desc = dF;
-   desc.v_desc = dV;
+   desc.f_desc = dX;
+   desc.v_desc = dX;
    desc.itemsize = sizeof(T);
    return desc;
 }
@@ -125,23 +127,27 @@ PairwiseMeta<T, ParticlesT> make_pairwise_meta(const ParticlesT &psoa,
 
 template <typename T, class ParticlesT>
 GatherIndexMeta<T, ParticlesT>
-construct_gather_index_meta(const ParticlesT &particles, EdgeList &edges) {
-
-   std::size_t channels = ParticlesT::dim();
+construct_gather_index_meta(ParticlesT &particles, EdgeList &edges) {
 
    GatherIndexMeta<T, ParticlesT> meta;
 
-   OperandDescription x_desc = make_indexed_desc_from_particles_field<T, ParticlesT>(particles);
-   OperandDescription e_desc = make_indexed_desc_from_topology_domain<std::uint32_t>(edges);
+   OperandDescription x_desc =
+       make_indexed_desc_from_particles_field<T, ParticlesT>(particles);
+   OperandDescription e_desc =
+       make_indexed_desc_from_topology_domain<std::uint32_t>(edges);
 
-   ParticlesAoSoADesc pdesc = make_particles_aosoa_desc<T, ParticlesT>(particles, edges);
+   ParticlesAoSoADesc pdesc =
+       make_particles_aosoa_desc<T, ParticlesT>(particles, edges);
 
-   PairBlockedCRS crs = build_pair_index_blocked_crs_from_particle_field(pdesc, edges);
+   PairBlockedCRS crs =
+       build_pair_index_blocked_crs_from_particle_field(pdesc, edges);
 
    const PairTopologyView ptv = make_pair_topology_view(edges, crs);
-   const OperandLabelBinding binding = make_gather_index_label_binding(x_desc.ndims(), e_desc.ndims());
+   const OperandLabelBinding binding =
+       make_gather_index_label_binding(x_desc.ndims(), e_desc.ndims());
    const std::vector<OperandDescription> descs{x_desc, e_desc};
-   meta.plan = make_gather_index_plan_from_binding_and_topo(descs, ptv, binding);
+   meta.plan =
+       make_gather_index_plan_from_binding_and_topo(descs, ptv, binding);
    meta.fast_len = edges.E();
    bool fcond = meta.plan.topology.format == PairIndexFormat::PairBlockedCRS;
    bool lcond = meta.plan.topology.layout == ParticleLayout::AoSoA;

@@ -1,7 +1,7 @@
 #ifndef FUSION_PHYSICS_OPS_UTILS_HPP
 #define FUSION_PHYSICS_OPS_UTILS_HPP
 
-#include "Fusion/core/RawTensor.hpp"
+#include "../../core/tensor/RawTensor.hpp"
 #include "Fusion/simulation/core/InteractionPlanMeta.hpp"
 
 template <typename T, class ParticlesT>

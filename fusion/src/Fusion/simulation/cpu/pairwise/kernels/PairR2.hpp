@@ -3,7 +3,6 @@
 
 #include "Fusion/cpu/simd/backend/BackendConcept.hpp"
 
-
 template <BackendConcept Backend> struct PairR2Kernel {
    using B = Backend;
    using vec = typename B::vec;

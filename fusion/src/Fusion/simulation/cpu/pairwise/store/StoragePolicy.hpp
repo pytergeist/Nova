@@ -3,9 +3,9 @@
 
 #include <cstdint>
 
+#include "Fusion/simulation/cpu/pairwise/kernels/LJ.hpp"
 #include "Fusion/simulation/cpu/pairwise/kernels/PairDelta.hpp"
 #include "Fusion/simulation/cpu/pairwise/kernels/PairR2.hpp"
-#include "Fusion/simulation/cpu/pairwise/kernels/LJ.hpp"
 
 #include "Fusion/cpu/simd/backend/BackendConcept.hpp"
 
@@ -34,7 +34,6 @@ template <class T, BackendConcept Backend> struct StoreDelta3 {
    }
 };
 
-
 template <class T, BackendConcept Backend> struct StoreForce3 {
    using B = Backend;
    using vec = typename B::vec;
@@ -50,6 +49,5 @@ template <class T, BackendConcept Backend> struct StoreForce3 {
       B::store(out_z + k, r.fz);
    }
 };
-
 
 #endif // FUSION_PHYSICS_CPU_PAIRWISE_STORE_STORAGE_POLICY

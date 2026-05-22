@@ -4,11 +4,11 @@
 #include <string_view>
 #include <vector>
 
+#include "../../../../core/tensor/RawTensor.hpp"
 #include "Fusion/autodiff/AutodiffMeta.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/core/RawTensor.hpp"
 
 #include "Fusion/simulation/autodiff/SimParamPlan.hpp"
 #include "Fusion/simulation/cpu/pairwise/PairwiseParams.hpp"
@@ -39,11 +39,12 @@ template <typename T, class ParticlesT> struct LennardJones {
       ////         return {};
       ////      }
       ////      const RawTensor<T> &x = context.template
-      ///load<RawTensor<T>>("x"); /      const RawTensor<T> &g0 =
-      ///grad_out.at(0); /      FUSION_CHECK(!g0.empty(), "MatMul::backward:
-      ///upstream grad is empty"); /      FUSION_CHECK(x.rank() >= 2 && y.rank()
+      /// load<RawTensor<T>>("x"); /      const RawTensor<T> &g0 =
+      /// grad_out.at(0); /      FUSION_CHECK(!g0.empty(), "MatMul::backward:
+      /// upstream grad is empty"); /      FUSION_CHECK(x.rank() >= 2 &&
+      /// y.rank()
       ///>= 2, "MatMul: rank must be >= 2"); /      RawTensor<T> yT =
-      ///transpose_last2<T>(y); /      RawTensor<T> xT = transpose_last2<T>(x);
+      /// transpose_last2<T>(y); /      RawTensor<T> xT = transpose_last2<T>(x);
       ////      RawTensor<T> gx = g0.matmul(yT);
       ////      RawTensor<T> gy = xT.matmul(g0);
       GradIn g;

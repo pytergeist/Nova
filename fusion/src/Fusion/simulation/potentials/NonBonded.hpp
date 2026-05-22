@@ -1,12 +1,12 @@
 #ifndef FUSION_PHYSICS_POTENTIALS_NONBONDED_H
 #define FUSION_PHYSICS_POTENTIALS_NONBONDED_H
 
-#include "Fusion/simulation/ops/Utils.hpp"
+#include "Fusion/simulation/core/InteractionPlanMeta.hpp"
 #include "Fusion/simulation/core/Neighbours.hpp"
 #include "Fusion/simulation/core/TopoIter.hpp"
-#include "Fusion/simulation/core/InteractionPlanMeta.hpp"
+#include "Fusion/simulation/ops/Utils.hpp"
 
-#include "Fusion/core/RawTensor.hpp"
+#include "../../core/tensor/RawTensor.hpp"
 
 template <typename T, class ParticlesT>
 inline RawTensor<T> lj_energy(ParticlesT &p, EdgeList &edges,

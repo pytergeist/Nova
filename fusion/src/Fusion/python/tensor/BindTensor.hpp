@@ -18,24 +18,46 @@
 namespace py = pybind11;
 
 template <typename T> void bind_tensor(py::module_ &m, const char *name) {
-   using PyT = ADTensor<T>; // TODO: python currently only knows about ADTensor
-                            // - think about this
+   using PyT = ADTensor<T>;
+   using ValueT = fusion::ValueTensor<T>;
 
    py::class_<PyT>(m, name)
        // --- constructor(shape[, requires_grad=False]) → zero-initialized
        // tensor ---
        .def(py::init([](const std::vector<size_t> &shape, const DType dtype,
-                        const Device device, bool requires_grad) {
-               size_t total = std::accumulate(shape.begin(), shape.end(),
-                                              static_cast<size_t>(1),
-                                              std::multiplies<size_t>());
-               return new PyT(shape, std::vector<T>(total), dtype, device,
-                              requires_grad, /*allocator_*/ nullptr);
+                        const Device device, bool requires_grad,
+                        const std::string &layout, std::size_t dim,
+                        std::size_t tile) {
+               if (layout == "dense") {
+                  auto value =
+                      ValueT::from_dense(DenseTensor<T>(shape, dtype, device));
+                  return PyT(std::move(value), requires_grad);
+               }
+
+               if (layout == "soa") {
+                  FUSION_CHECK(shape.size() == 2,
+                               "SoA tensor expects shape = {dim, n_items}");
+                  auto value = ValueT::from_soa(
+                      SoATensor<T>(shape.at(1), shape.at(0), dtype, device));
+                  return PyT(std::move(value), requires_grad);
+               }
+
+               if (layout == "blocked_soa" || layout == "aosoa") {
+                  FUSION_CHECK(dim > 0, "blocked_soa requires dim");
+                  FUSION_CHECK(tile > 0, "blocked_soa requires tile");
+                  FUSION_CHECK(shape.size() == 1,
+                               "blocked_soa expects shape = {n_items}");
+                  auto value = ValueT::from_aosoa(
+                      AoSoATensor<T>(shape.at(0), dim, tile, dtype, device));
+                  return PyT(std::move(value), requires_grad);
+               }
+
+               throw std::invalid_argument("unsupported tensor layout: " +
+                                           layout);
             }),
             py::arg("shape"), py::arg("dtype"), py::arg("device"),
-            py::arg("requires_grad"),
-            "Construct a Tensor of given shape, zero-initialized. "
-            "Optionally set requires_grad.")
+            py::arg("requires_grad") = false, py::arg("layout") = "dense",
+            py::arg("dim") = 0, py::arg("tile") = 0)
 
        // --- constructor(shape, flat_data[, requires_grad=False]) ---
        .def(py::init([](const std::vector<size_t> &shape,
@@ -44,15 +66,19 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                size_t total = std::accumulate(shape.begin(), shape.end(),
                                               static_cast<size_t>(1),
                                               std::multiplies<size_t>());
+
                if (data.size() != total) {
-                  throw std::invalid_argument("shape* must equal data.size()");
+                  throw std::invalid_argument(
+                      "prod(shape) must equal data.size()");
                }
-               return new PyT(shape, data, dtype, device, requires_grad);
+
+               auto value =
+                   ValueT::from_dense(DenseTensor<T>(shape, data, dtype, device));
+
+               return PyT(std::move(value), requires_grad);
             }),
             py::arg("shape"), py::arg("data"), py::arg("dtype"),
-            py::arg("device"), py::arg("requires_grad"),
-            "Construct a Tensor from a shape list and a flat data list. "
-            "Optionally set requires_grad.")
+            py::arg("device"), py::arg("requires_grad") = false)
 
        // --- fill from Python list ---
        .def(
@@ -151,8 +177,8 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
        .def(
            "__neg__",
            [](const PyT &t) {
-              auto z = zeros_like(t.raw());
-              return z - t.raw();
+              auto z = zeros_like(t.base());
+              return z - t.base();
            },
            py::is_operator())
 
@@ -160,7 +186,10 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
        .def(
            "__isub__",
            [](PyT &a, const PyT &b) -> PyT & {
-              a.raw() -= b.raw();
+              FUSION_CHECK(a.base().is_dense() && b.base().is_dense(),
+                           "__isub__ currently requires dense tensors");
+
+              a.base().dense() -= b.base().dense();
               return a;
            },
            py::is_operator())

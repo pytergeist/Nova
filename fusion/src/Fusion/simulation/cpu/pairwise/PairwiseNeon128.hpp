@@ -61,7 +61,7 @@ inline void lj_energy(const ParticlesT &particles, const PairBlockedCRS &crs,
 
 template <typename T, class ParticlesT>
 inline void lj_force(const ParticlesT &particles, const PairBlockedCRS &crs,
-                      T *out, std::uint64_t E, const LJParams<T> &params) {
+                     T *out, std::uint64_t E, const LJParams<T> &params) {
    using B = Neon128<T>;
    using vec = typename B::vec;
    T *out_x = out + 0 * E;
