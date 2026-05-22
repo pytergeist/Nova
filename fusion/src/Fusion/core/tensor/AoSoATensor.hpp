@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <span>
 
-#include "RawTensor.hpp"
+#include "DenseTensor.hpp"
 
 template <typename T> class AoSoATensor {
  public:
@@ -19,7 +19,7 @@ template <typename T> class AoSoATensor {
       FUSION_CHECK(dim_ > 0, "AoSoATensor: dim must be > 0");
    }
 
-   explicit AoSoATensor(RawTensor<T> x, const std::size_t tile)
+   explicit AoSoATensor(DenseTensor<T> x, const std::size_t tile)
        : storage_({x.shape()[0], check_items_size(x.shape()[1])}, x.dtype(),
                   x.device()),
          n_items_(x.shape()[1]), dim_(x.shape()[0]), tile_(tile),
@@ -36,8 +36,11 @@ template <typename T> class AoSoATensor {
    DType dtype() const noexcept { return storage_.dtype(); };
    Device device() const noexcept { return storage_.device(); };
 
-   RawTensor<T> &raw() noexcept { return storage_; }
-   const RawTensor<T> &raw() const noexcept { return storage_; }
+   // TODO: do we need to clear anything but data here?
+   void clear() noexcept { storage_.clear(); }
+
+   DenseTensor<T> &base() noexcept { return storage_; }
+   const DenseTensor<T> &base() const noexcept { return storage_; }
 
    std::vector<std::size_t> storage_shape() const {
       return {dim_, n_blocks_, tile_};
@@ -106,7 +109,7 @@ template <typename T> class AoSoATensor {
    /// this allows us to reuse existing storage semantics. We store the
    /// data as a flat buffer with shape {DIM, Blocks, Tile} and use indexing
    /// schemes (e.g. CRS) to retrieve the data based on defined topology.
-   RawTensor<T> storage_;
+   DenseTensor<T> storage_;
    std::uint64_t n_items_{0};
    std::size_t dim_{0};
    std::size_t tile_{0};

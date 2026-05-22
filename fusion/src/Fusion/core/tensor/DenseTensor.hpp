@@ -1,5 +1,6 @@
-#ifndef TENSOR_BASE_HPP
-#define TENSOR_BASE_HPP
+#ifndef FUSION_CORE_TENSOR_DENSE_TENSOR
+#define FUSION_CORE_TENSOR_DENSE_TENSOR
+
 
 #include <cstring>
 #include <memory>
@@ -28,32 +29,31 @@
 #include "Fusion/common/Log.hpp"
 
 template <typename T> // TODO: need to either pass in device somehow?
-inline RawTensor<T> scalar_t(const T scalar, const DType dtype = DType::FLOAT32,
+inline DenseTensor<T> scalar_t(const T scalar, const DType dtype = DType::FLOAT32,
                              Device device = Device{DeviceType::CPU, 0}) {
-   return RawTensor<T>{{1}, {scalar}, dtype, device};
+   return DenseTensor<T>{{1}, {scalar}, dtype, device};
 }
 
-template <typename T> class  RawTensor {
+template <typename T> class DenseTensor {
  public:
    static constexpr std::string_view name = "RawTensor";
    using value_type = T;
 
-   RawTensor()
-       : storage_(nullptr), device_(Device{DeviceType::CPU, 0}) {}
+   DenseTensor() : storage_(nullptr), device_(Device{DeviceType::CPU, 0}) {}
 
-   RawTensor(const RawTensor &) = default;
-   RawTensor &operator=(const RawTensor &) = default;
+   DenseTensor(const DenseTensor &) = default;
+   DenseTensor &operator=(const DenseTensor &) = default;
 
-   RawTensor(RawTensor &&) noexcept = default;
-   RawTensor &operator=(RawTensor &&) noexcept = default;
+   DenseTensor(DenseTensor &&) noexcept = default;
+   DenseTensor &operator=(DenseTensor &&) noexcept = default;
 
-   ~RawTensor() = default;
+   ~DenseTensor() = default;
 
    // TODO: It is more idiomatic and less bug prone for the context to own
    // tensor alloc, not to have the allocation strategy as a property of the
    // tensor itself e.g. `alloc.make_tensor(...)` and later
    // `arena.make_tensor(...)`, 'slab.make_tensor(...).
-   explicit RawTensor(std::vector<std::size_t> shape, std::vector<T> data,
+   explicit DenseTensor(std::vector<std::size_t> shape, std::vector<T> data,
                       DType dtype, Device device,
                       IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
@@ -65,7 +65,7 @@ template <typename T> class  RawTensor {
       storage_ = make_storage_with_data(shape_, data, device_, alloc);
    }
 
-   explicit RawTensor(std::vector<size_t> shape, DType dtype, Device device,
+   explicit DenseTensor(std::vector<size_t> shape, DType dtype, Device device,
                       IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device.is_cpu(), "Unsupported device type");
@@ -81,6 +81,8 @@ template <typename T> class  RawTensor {
    std::size_t rank() const { return shape_.size(); }
    std::size_t ndims() const { return shape_.size(); }
    std::vector<std::size_t> shape() const { return shape_; }
+   std::vector<std::size_t> storage_shape() const { return shape_; }
+   std::vector<std::size_t> logical_shape() const { return shape_; }
    std::vector<std::int64_t> strides() const { return strides_; }
    Device device() const noexcept { return device_; }
 
@@ -100,8 +102,10 @@ template <typename T> class  RawTensor {
    ITensorStorage<T> *get_storage() { return storage_.get(); }
    const ITensorStorage<T> *get_storage() const { return storage_.get(); }
 
-   const std::shared_ptr<ITensorStorage<T>>& storage() const noexcept { return storage_; }
-   std::shared_ptr<ITensorStorage<T>>& storage() noexcept { return storage_; }
+   const std::shared_ptr<ITensorStorage<T>> &storage() const noexcept {
+      return storage_;
+   }
+   std::shared_ptr<ITensorStorage<T>> &storage() noexcept { return storage_; }
 
    std::size_t storage_use_count() const noexcept {
       return storage_.use_count();
@@ -109,6 +113,9 @@ template <typename T> class  RawTensor {
 
    TensorBuffer &raw_data() { return storage_->data(); }
    const TensorBuffer &raw_data() const { return storage_->data(); }
+
+   DenseTensor<T> &base() noexcept { return *this; }
+   const DenseTensor<T> &base() const noexcept { return *this; }
 
    T *get_ptr() { return storage_->data_ptr(); }
    const T *get_ptr() const { return storage_->data_ptr(); }
@@ -155,7 +162,7 @@ template <typename T> class  RawTensor {
       std::memset(buf.data(), 0, buf.size_bytes());
    }
 
-   void assign(const RawTensor &other) {
+   void assign(const DenseTensor &other) {
       if (!storage_) {
          *this = other;
       } else {
@@ -166,93 +173,93 @@ template <typename T> class  RawTensor {
       }
    };
 
-   RawTensor operator+(const T scalar) const {
+   DenseTensor operator+(const T scalar) const {
       return fusion::math::add(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   RawTensor operator-(const T scalar) const {
+   DenseTensor operator-(const T scalar) const {
       return fusion::math::sub(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   RawTensor operator*(const T scalar) const {
+   DenseTensor operator*(const T scalar) const {
       return fusion::math::mul(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   RawTensor operator/(const T scalar) const {
+   DenseTensor operator/(const T scalar) const {
       return fusion::math::div(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   RawTensor operator>=(const T scalar) const {
+   DenseTensor operator>=(const T scalar) const {
       return fusion::math::greater(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   RawTensor maximum(const T scalar) const {
+   DenseTensor maximum(const T scalar) const {
       return fusion::math::maximum(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   RawTensor pow(const T scalar) const {
+   DenseTensor pow(const T scalar) const {
       return fusion::math::pow(*this, scalar_t(scalar, dtype(), device()));
    }
 
-   RawTensor operator+(const RawTensor &other) const {
+   DenseTensor operator+(const DenseTensor &other) const {
       return fusion::math::add(*this, other);
    }
 
-   RawTensor operator-(const RawTensor &other) const {
+   DenseTensor operator-(const DenseTensor &other) const {
       return fusion::math::sub(*this, other);
    }
 
-   RawTensor operator*(const RawTensor &other) const {
+   DenseTensor operator*(const DenseTensor &other) const {
       return fusion::math::mul(*this, other);
    }
 
-   RawTensor operator/(const RawTensor &other) const {
+   DenseTensor operator/(const DenseTensor &other) const {
       return fusion::math::div(*this, other);
    }
 
-   RawTensor operator>(const RawTensor &other) const {
+   DenseTensor operator>(const DenseTensor &other) const {
       return fusion::math::greater(*this, other);
    }
 
-   RawTensor operator>=(const RawTensor &other) const {
+   DenseTensor operator>=(const DenseTensor &other) const {
       return fusion::math::greater(*this, other);
    }
 
-   RawTensor matmul(const RawTensor &other) const {
+   DenseTensor matmul(const DenseTensor &other) const {
       return fusion::math::linalg::matmul(*this, other);
    }
 
-   RawTensor maximum(const RawTensor &other) const {
+   DenseTensor maximum(const DenseTensor &other) const {
       return fusion::math::maximum(*this, other);
    }
 
-   RawTensor pow(const RawTensor &other) const {
+   DenseTensor pow(const DenseTensor &other) const {
       return fusion::math::pow(*this, other);
    }
 
-   RawTensor reciprocal() const { return fusion::math::reciprocal(*this); }
+   DenseTensor reciprocal() const { return fusion::math::reciprocal(*this); }
 
-   RawTensor sqrt() const { return fusion::math::sqrt(*this); }
-   RawTensor log() const { return fusion::math::log(*this); }
-   RawTensor exp() const { return fusion::math::exp(*this); }
+   DenseTensor sqrt() const { return fusion::math::sqrt(*this); }
+   DenseTensor log() const { return fusion::math::log(*this); }
+   DenseTensor exp() const { return fusion::math::exp(*this); }
 
-   RawTensor sum(const std::size_t axis, const bool keepdim) const {
+   DenseTensor sum(const std::size_t axis, const bool keepdim) const {
       return fusion::math::sum(*this, axis, keepdim);
    }
-   RawTensor mean(const std::size_t axis, const bool keepdim) const {
+   DenseTensor mean(const std::size_t axis, const bool keepdim) const {
       return fusion::math::mean(*this, axis, keepdim);
    }
 
-   RawTensor swapaxes(const int axis1, const int axis2) const {
+   DenseTensor swapaxes(const int axis1, const int axis2) const {
       return fusion::math::linalg::swapaxes(*this, axis1, axis2);
    }
 
-   RawTensor &operator-=(const RawTensor &other) {
+   DenseTensor &operator-=(const DenseTensor &other) {
       fusion::math::sub_inplace(*this, other);
       return *this;
    }
 
-   friend std::ostream &operator<<(std::ostream &os, const RawTensor &tensor) {
+   friend std::ostream &operator<<(std::ostream &os, const DenseTensor &tensor) {
       const auto *cpuStorage =
           dynamic_cast<const NDTensorStorage<T> *>(tensor.get_storage());
       if (cpuStorage) {
@@ -296,7 +303,7 @@ template <typename T> class  RawTensor {
    Device device_;
    IAllocator *allocator_ = nullptr;
 
-   void replace_from(RawTensor &&tmp) {
+   void replace_from(DenseTensor &&tmp) {
       storage_.swap(tmp.storage());
       shape_.swap(tmp.shape_);
       strides_.swap(tmp.strides_);
@@ -330,4 +337,4 @@ template <typename T> class  RawTensor {
    }
 };
 
-#endif // TENSOR_BASE_HPP
+#endif // FUSION_CORE_TENSOR_DENSE_TENSOR

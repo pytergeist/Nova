@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <span>
 
-#include "RawTensor.hpp"
+#include "DenseTensor.hpp"
 
 template <typename T> class SoATensor {
  public:
@@ -15,7 +15,7 @@ template <typename T> class SoATensor {
       FUSION_CHECK(dim_ > 0, "SoATensor: dim must be > 0");
    }
 
-   explicit SoATensor(RawTensor<T> x)
+   explicit SoATensor(DenseTensor<T> x)
        : storage_({x.shape()[0], check_items_size(x.shape()[1])}, x.dtype(),
                   x.device()),
          n_items_(x.shape()[1]), dim_(x.shape()[0]) {
@@ -25,12 +25,15 @@ template <typename T> class SoATensor {
    std::uint64_t n_items() const noexcept { return n_items_; }
    std::size_t dim() const noexcept { return dim_; }
 
-   RawTensor<T> &raw() noexcept { return storage_; }
-   const RawTensor<T> &raw() const noexcept { return storage_; }
+   DenseTensor<T> &base() noexcept { return storage_; }
+   const DenseTensor<T> &base() const noexcept { return storage_; }
 
    std::vector<std::size_t> storage_shape() const {
       return {dim_, static_cast<std::size_t>(n_items_)};
    }
+
+   // TODO: do we need to clear anything but data here?
+   void clear() noexcept { storage_.clear(); }
 
    std::vector<std::size_t> logical_shape() const { return storage_shape(); }
 
@@ -79,7 +82,7 @@ template <typename T> class SoATensor {
    /// this allows us to reuse existing storage semantics. We store the
    /// data as a flat buffer with shape {DIM Tile} and use indexing
    /// schemes (e.g. CRS) to retrieve the data based on defined topology.
-   RawTensor<T> storage_;
+   DenseTensor<T> storage_;
    std::uint64_t n_items_{0};
    std::size_t dim_{0};
 
