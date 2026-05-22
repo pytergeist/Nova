@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "Fusion/core/PlanMeta.hpp"
-#include "Fusion/core/tensor/RawTensor.hpp"
 #include "Fusion/core/TensorIter.hpp"
+#include "Fusion/core/tensor/DenseTensor.hpp"
 
 #include "Fusion/cpu/simd/SimdTags.hpp"
 
@@ -25,11 +25,9 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
    float a = 1.0;
    float b = 1.0;
 
-   std::array<uint8_t *, 3> base = {
-      reinterpret_cast<uint8_t *>(&out),
-      reinterpret_cast<uint8_t *>(&a),
-      reinterpret_cast<uint8_t *>(&b)
-  };
+   std::array<uint8_t *, 3> base = {reinterpret_cast<uint8_t *>(&out),
+                                    reinterpret_cast<uint8_t *>(&a),
+                                    reinterpret_cast<uint8_t *>(&b)};
 
    int calls = 0;
 
@@ -48,23 +46,24 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
    EXPECT_EQ(calls, 1);
 }
 
-TEST(TensorIterTest, for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
+TEST(TensorIterTest,
+     for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
    BroadcastPlan plan{};
    plan.num_operands = 3;
    plan.out_ndim = 2;
    plan.itemsize = sizeof(float);
 
    plan.loop = {
-      LoopDim{.size = 2, .kind = IndexKind::Independent},
-      LoopDim{.size = 3, .kind = IndexKind::Independent},
+       LoopDim{.size = 2, .kind = IndexKind::Independent},
+       LoopDim{.size = 3, .kind = IndexKind::Independent},
    };
 
    plan.op_access.resize(3);
-   for (auto& access : plan.op_access) {
+   for (auto &access : plan.op_access) {
       access.access = AccessKind::Affine;
       access.affine.byte_stride_per_loop = {
-         static_cast<std::int64_t>(3 * sizeof(float)),
-         static_cast<std::int64_t>(sizeof(float)),
+          static_cast<std::int64_t>(3 * sizeof(float)),
+          static_cast<std::int64_t>(sizeof(float)),
       };
    }
 
@@ -75,26 +74,26 @@ TEST(TensorIterTest, for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) 
    TensorBuffer b;
    b.allocate_elements_with<float>(&default_allocator(), 6);
 
-   float* outp = out.data<float>();
-   float* ap = a.data<float>();
-   float* bp = b.data<float>();
+   float *outp = out.data<float>();
+   float *ap = a.data<float>();
+   float *bp = b.data<float>();
 
-   std::array<uint8_t*, 3> base = {
-      reinterpret_cast<uint8_t*>(outp),
-      reinterpret_cast<uint8_t*>(ap),
-      reinterpret_cast<uint8_t*>(bp),
+   std::array<uint8_t *, 3> base = {
+       reinterpret_cast<uint8_t *>(outp),
+       reinterpret_cast<uint8_t *>(ap),
+       reinterpret_cast<uint8_t *>(bp),
    };
 
    int calls = 0;
 
    fusion::iter::for_each_outer_then_inner<BroadcastPlan, 3>(
-      plan, base, [&](fusion::iter::InnerSegment<3>& segment) {
-         ++calls;
-         EXPECT_EQ(segment.len, 3);
-         EXPECT_EQ(segment.step[0].byte_stride, sizeof(float));
-         EXPECT_EQ(segment.step[1].byte_stride, sizeof(float));
-         EXPECT_EQ(segment.step[2].byte_stride, sizeof(float));
-      });
+       plan, base, [&](fusion::iter::InnerSegment<3> &segment) {
+          ++calls;
+          EXPECT_EQ(segment.len, 3);
+          EXPECT_EQ(segment.step[0].byte_stride, sizeof(float));
+          EXPECT_EQ(segment.step[1].byte_stride, sizeof(float));
+          EXPECT_EQ(segment.step[2].byte_stride, sizeof(float));
+       });
 
    EXPECT_EQ(calls, 2);
 }
@@ -162,11 +161,11 @@ TEST(TensorIterTest, tag_fallback_contraction_accumulates_products) {
 }
 
 TEST(TensorIterTest, binary_ewise_tag_fastpath_computes_elementwise_add) {
-   RawTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+   DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
-   RawTensor<float> b({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+   DenseTensor<float> b({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
-   RawTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
+   DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    BinaryEwiseMeta meta = make_binary_meta(a, b);
    EXPECT_EQ(meta.exec, BinaryExecKind::FlatContiguous);
@@ -183,11 +182,11 @@ TEST(TensorIterTest, binary_ewise_tag_fastpath_computes_elementwise_add) {
 }
 
 TEST(TensorIterTest, binary_ewise_tag_broadcast_path_computes_elementwise_add) {
-   RawTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+   DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
-   RawTensor<float> b({1, 3}, std::vector<float>{1, 2, 3}, DType::FLOAT32,
+   DenseTensor<float> b({1, 3}, std::vector<float>{1, 2, 3}, DType::FLOAT32,
                       Device{DeviceType::CPU, 0});
-   RawTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
+   DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    BinaryEwiseMeta meta = make_binary_meta(a, b);
    ASSERT_EQ(meta.exec, BinaryExecKind::FlatContiguousBroadcastRHS);
@@ -204,9 +203,9 @@ TEST(TensorIterTest, binary_ewise_tag_broadcast_path_computes_elementwise_add) {
 }
 
 TEST(TensorIterTest, unary_ewise_tag_fastpath_computes_square) {
-   RawTensor<float> a({2, 3}, std::vector<float>{1, 4, 9, 16, 25, 36},
+   DenseTensor<float> a({2, 3}, std::vector<float>{1, 4, 9, 16, 25, 36},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
-   RawTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
+   DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    UnaryEwiseMeta meta = make_unary_meta(a);
    ASSERT_TRUE(meta.fastpath);
@@ -223,9 +222,9 @@ TEST(TensorIterTest, unary_ewise_tag_fastpath_computes_square) {
 }
 
 TEST(TensorIterTest, reduction_tag_global_fastpath_sums_all_elements) {
-   RawTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+   DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
-   RawTensor<float> out({1}, DType::FLOAT32, Device{DeviceType::CPU, 0});
+   DenseTensor<float> out({1}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, kGlobalReduceAxis, false);
    ASSERT_TRUE(meta.fastpath);
@@ -237,7 +236,7 @@ TEST(TensorIterTest, reduction_tag_global_fastpath_sums_all_elements) {
 }
 
 TEST(TensorIterTest, reduction_tag_axis_path_reduces_requested_axis) {
-   RawTensor<float> a({2, 3},
+   DenseTensor<float> a({2, 3},
                       std::vector<float>{
                           1,
                           2,
@@ -247,7 +246,7 @@ TEST(TensorIterTest, reduction_tag_axis_path_reduces_requested_axis) {
                           6,
                       },
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
-   RawTensor<float> out({2}, DType::FLOAT32, Device{DeviceType::CPU, 0});
+   DenseTensor<float> out({2}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, 1, false);
    ASSERT_FALSE(meta.fastpath);
@@ -260,7 +259,7 @@ TEST(TensorIterTest, reduction_tag_axis_path_reduces_requested_axis) {
 }
 
 TEST(TensorIterTest, contraction_tag_computes_matrix_multiplication_result) {
-   RawTensor<float> a({2, 4},
+   DenseTensor<float> a({2, 4},
                       std::vector<float>{
                           1,
                           2,
@@ -273,7 +272,7 @@ TEST(TensorIterTest, contraction_tag_computes_matrix_multiplication_result) {
                       },
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   RawTensor<float> b({4, 3},
+   DenseTensor<float> b({4, 3},
                       std::vector<float>{
                           1,
                           2,
@@ -290,7 +289,7 @@ TEST(TensorIterTest, contraction_tag_computes_matrix_multiplication_result) {
                       },
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   RawTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
+   DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    OperandLabelBinding binding{
        .op_axis_labels =

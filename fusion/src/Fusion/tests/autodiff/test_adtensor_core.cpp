@@ -16,7 +16,7 @@ TEST(ADTensorCoreTest, default_constructed_tensor_is_uninitialised) {
 }
 
 TEST(ADTensorCoreTest, construction_from_raw_tensor_is_initialised) {
-   RawTensor<float> rt = make_test_raw_tensor();
+   Tensor<float> rt = make_test_tensor();
    const ADTensor<float> t(rt, true);
    EXPECT_TRUE(t.is_initialised());
    EXPECT_FALSE(t.empty());
@@ -25,7 +25,7 @@ TEST(ADTensorCoreTest, construction_from_raw_tensor_is_initialised) {
    EXPECT_TRUE(t.requires_grad());
    EXPECT_EQ(t.vid(), -1);
    EXPECT_TRUE(t.requires_grad());
-   EXPECT_TENSOR_EQ(t.raw(), rt);
+   EXPECT_TENSOR_EQ(t.base(), rt);
 }
 
 TEST(ADTensorCoreTest, construct_from_shape_only_initialises_storage) {
@@ -43,8 +43,7 @@ TEST(ADTensorCoreTest, construct_from_shape_only_initialises_storage) {
 }
 
 TEST(ADTensorCoreTest, construct_from_shape_and_data_initialises_storage) {
-   ADTensor<float> t({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                     DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
+   ADTensor<float> t(make_test_tensor(), false);
 
    EXPECT_TRUE(t.is_initialised());
    EXPECT_FALSE(t.empty());
@@ -54,8 +53,7 @@ TEST(ADTensorCoreTest, construct_from_shape_and_data_initialises_storage) {
 
 TEST(ADTensorCoreTest, construct_from_shape_and_data_forwards_metadata) {
    Device device{DeviceType::CPU, 0};
-   ADTensor<float> t({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                     DType::FLOAT32, device, false);
+   ADTensor<float> t(make_test_tensor(), false);
 
    EXPECT_EQ(t.shape(), (std::vector<std::size_t>{2, 3}));
    EXPECT_EQ(t.strides(), (std::vector<std::int64_t>{3, 1}));
@@ -68,7 +66,7 @@ TEST(ADTensorCoreTest, construct_from_shape_and_data_forwards_metadata) {
 
 TEST(ADTensorCoreTest,
      construction_from_raw_tensor_preserves_shape_and_strides) {
-   RawTensor<float> rt = make_test_raw_tensor();
+   Tensor<float> rt = make_test_tensor();
    const ADTensor<float> t(rt, true);
 
    EXPECT_EQ(t.shape(), rt.shape());
@@ -89,7 +87,7 @@ TEST(ADTensorCoreTest, size_and_flat_size_forward_to_raw_tensor) {
 }
 
 TEST(ADTensorCoreTest, set_vid_sets_tensor_value_id) {
-   RawTensor<float> rt = make_test_raw_tensor();
+   Tensor<float> rt = make_test_tensor();
    ADTensor<float> t(rt, true);
    EXPECT_EQ(t.vid(), -1);
    const ValueID vid{2};
@@ -98,7 +96,7 @@ TEST(ADTensorCoreTest, set_vid_sets_tensor_value_id) {
 }
 
 TEST(ADTensorCoreTest, set_vid_on_tensor_with_valid_vid_throws) {
-   RawTensor<float> rt = make_test_raw_tensor();
+   Tensor<float> rt = make_test_tensor();
    ADTensor<float> t(rt, true);
    EXPECT_EQ(t.vid(), -1);
    const ValueID vid1{1};
@@ -109,14 +107,14 @@ TEST(ADTensorCoreTest, set_vid_on_tensor_with_valid_vid_throws) {
 }
 
 TEST(ADTensorCoreTest, has_vid_returns_false_when_vid_invalid) {
-   RawTensor<float> rt = make_test_raw_tensor();
+   Tensor<float> rt = make_test_tensor();
    ADTensor<float> t(rt, true);
    EXPECT_EQ(t.vid(), -1);
    EXPECT_FALSE(t.has_vid());
 }
 
 TEST(ADTensorCoreTest, has_vid_returns_true_when_vid_valid) {
-   RawTensor<float> rt = make_test_raw_tensor();
+   Tensor<float> rt = make_test_tensor();
    ADTensor<float> t(rt, true);
    EXPECT_EQ(t.vid(), -1);
    const ValueID vid{1};
@@ -125,7 +123,7 @@ TEST(ADTensorCoreTest, has_vid_returns_true_when_vid_valid) {
 }
 
 TEST(ADTensorCoreTest, set_requires_grad_changes_false_to_true) {
-   RawTensor<float> rt = make_test_raw_tensor();
+   Tensor<float> rt = make_test_tensor();
    ADTensor<float> t(rt, false);
    EXPECT_FALSE(t.requires_grad());
    t.set_requires_grad(true);
@@ -133,7 +131,7 @@ TEST(ADTensorCoreTest, set_requires_grad_changes_false_to_true) {
 }
 
 TEST(ADTensorCoreTest, set_requires_grad_changes_true_to_false) {
-   RawTensor<float> rt = make_test_raw_tensor();
+   Tensor<float> rt = make_test_tensor();
    ADTensor<float> t(rt, true);
    EXPECT_TRUE(t.requires_grad());
    t.set_requires_grad(false);
@@ -144,13 +142,14 @@ TEST(ADTensorCoreTest, raw_nonconst_accessor_allows_mutation_via_clear) {
    ADTensor<float> t({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                      DType::FLOAT32, Device{DeviceType::CPU, 0}, false);
 
-   RawTensor<float> &raw = t.raw();
+   Tensor<float> &raw = t.base();
    raw.clear();
 
-   RawTensor<float> expected({2, 3}, std::vector<float>{0, 0, 0, 0, 0, 0},
-                             DType::FLOAT32, Device{DeviceType::CPU, 0});
+   Tensor<float> expected = Tensor<float>::from_dense(
+       DenseTensor<float>({2, 3}, std::vector<float>{0, 0, 0, 0, 0, 0},
+                        DType::FLOAT32, Device{DeviceType::CPU, 0}));
 
-   EXPECT_TENSOR_EQ(t.raw(), expected);
+   EXPECT_TENSOR_EQ(t.base(), expected);
 }
 
 TEST(ADTensorCoreTest, begin_end_span_whole_tensor) {

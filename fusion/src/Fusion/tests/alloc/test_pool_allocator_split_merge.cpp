@@ -130,8 +130,7 @@ TEST_F(FUAllocatorSplitMergeTest,
    EXPECT_TRUE(free_chunks_64.empty());
 }
 
-TEST_F(FUAllocatorSplitMergeTest,
-       next_merged_chunk_appears_in_larger_bucket) {
+TEST_F(FUAllocatorSplitMergeTest, next_merged_chunk_appears_in_larger_bucket) {
    void *ptr1 = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr1, nullptr);
 

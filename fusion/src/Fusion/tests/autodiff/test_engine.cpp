@@ -19,11 +19,11 @@ TEST(AutodiffEngineTest,
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t1.raw());
-   meta.push_back(t2.raw());
+   meta.push_back(t1.base());
+   meta.push_back(t2.base());
 
-   ValueID vid1 = engine.track_input(t1.raw(), true);
-   ValueID vid2 = engine.track_input(t2.raw(), true);
+   ValueID vid1 = engine.track_input(t1.base(), true);
+   ValueID vid2 = engine.track_input(t2.base(), true);
 
    ASSERT_EQ(vid1, ValueID{0});
    ASSERT_EQ(vid2, ValueID{1});
@@ -33,8 +33,8 @@ TEST(AutodiffEngineTest,
    using Op = Operation<float, PopTestBinaryOp<float>>;
    ValueID out_vid = engine.apply_single<Op>(meta, vids);
    EXPECT_EQ(out_vid, ValueID{2});
-   RawTensor<float> forward_result = engine.materialise(out_vid);
-   EXPECT_TENSOR_EQ(forward_result, make_test_tensor(false).raw());
+   Tensor<float> forward_result = engine.materialise(out_vid);
+   EXPECT_TENSOR_EQ(forward_result, make_test_tensor(false).base());
 }
 
 TEST(AutodiffEngineTest,
@@ -44,9 +44,9 @@ TEST(AutodiffEngineTest,
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t1.raw());
+   meta.push_back(t1.base());
 
-   ValueID vid1 = engine.track_input(t1.raw(), true);
+   ValueID vid1 = engine.track_input(t1.base(), true);
 
    ASSERT_EQ(vid1, ValueID{0});
 
@@ -55,8 +55,8 @@ TEST(AutodiffEngineTest,
    using Op = Operation<float, PopTestUnaryOp<float>>;
    ValueID out_vid = engine.apply_single<Op>(meta, vids);
    EXPECT_EQ(out_vid, ValueID{1});
-   RawTensor<float> forward_result = engine.materialise(out_vid);
-   EXPECT_TENSOR_EQ(forward_result, make_test_tensor(false).raw());
+   Tensor<float> forward_result = engine.materialise(out_vid);
+   EXPECT_TENSOR_EQ(forward_result, make_test_tensor(false).base());
 }
 
 TEST(AutodiffEngineTest, apply_multi_split_op_returns_all_output_vids) {
@@ -66,11 +66,11 @@ TEST(AutodiffEngineTest, apply_multi_split_op_returns_all_output_vids) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t1.raw());
-   meta.push_back(t2.raw());
+   meta.push_back(t1.base());
+   meta.push_back(t2.base());
 
-   ValueID vid1 = engine.track_input(t1.raw(), true);
-   ValueID vid2 = engine.track_input(t2.raw(), true);
+   ValueID vid1 = engine.track_input(t1.base(), true);
+   ValueID vid2 = engine.track_input(t2.base(), true);
 
    ASSERT_EQ(vid1, ValueID{0});
    ASSERT_EQ(vid2, ValueID{1});
@@ -82,10 +82,10 @@ TEST(AutodiffEngineTest, apply_multi_split_op_returns_all_output_vids) {
    EXPECT_EQ(out_vids.size(), 2);
    EXPECT_EQ(out_vids[0], ValueID{2});
    EXPECT_EQ(out_vids[1], ValueID{3});
-   RawTensor<float> forward_result1 = engine.materialise(out_vids[0]);
-   RawTensor<float> forward_result2 = engine.materialise(out_vids[1]);
-   EXPECT_TENSOR_EQ(forward_result1, make_test_tensor(false, seed).raw());
-   EXPECT_TENSOR_EQ(forward_result2, make_test_tensor(false, seed + 1).raw());
+   Tensor<float> forward_result1 = engine.materialise(out_vids[0]);
+   Tensor<float> forward_result2 = engine.materialise(out_vids[1]);
+   EXPECT_TENSOR_EQ(forward_result1, make_test_tensor(false, seed).base());
+   EXPECT_TENSOR_EQ(forward_result2, make_test_tensor(false, seed + 1).base());
 }
 
 TEST(AutodiffEngineTest, apply_single_throws_when_forward_result_empty) {
@@ -95,11 +95,11 @@ TEST(AutodiffEngineTest, apply_single_throws_when_forward_result_empty) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t1.raw());
-   meta.push_back(t2.raw());
+   meta.push_back(t1.base());
+   meta.push_back(t2.base());
 
-   ValueID vid1 = engine.track_input(t1.raw(), true);
-   ValueID vid2 = engine.track_input(t2.raw(), true);
+   ValueID vid1 = engine.track_input(t1.base(), true);
+   ValueID vid2 = engine.track_input(t2.base(), true);
 
    std::vector<ValueID> vids{vid1, vid2};
 
@@ -113,9 +113,9 @@ TEST(AutodiffEngineTest, apply_multi_throws_when_forward_result_empty) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t.raw());
+   meta.push_back(t.base());
 
-   ValueID vid1 = engine.track_input(t.raw(), true);
+   ValueID vid1 = engine.track_input(t.base(), true);
 
    std::vector<ValueID> vids{vid1};
 
@@ -129,9 +129,9 @@ TEST(AutodiffEngineTest, apply_single_throws_when_op_returns_multiple_outputs) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t.raw());
+   meta.push_back(t.base());
 
-   ValueID vid1 = engine.track_input(t.raw(), true);
+   ValueID vid1 = engine.track_input(t.base(), true);
 
    std::vector<ValueID> vids{vid1};
 
@@ -144,7 +144,7 @@ TEST(AutodiffEngineTest, track_input_with_requires_grad_true_marks_leaf) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    const ADTensor<float> t = make_test_tensor(true);
-   const ValueID vid = engine.track_input(t.raw(), true);
+   const ValueID vid = engine.track_input(t.base(), true);
 
    engine.backward(vid);
 
@@ -160,7 +160,7 @@ TEST(AutodiffEngineTest,
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    const ADTensor<float> t = make_test_tensor(false);
-   ValueID vid = engine.track_input(t.raw(), false);
+   ValueID vid = engine.track_input(t.base(), false);
 
    EXPECT_THROW(engine.backward(vid), std::runtime_error);
 }
@@ -172,12 +172,12 @@ TEST(AutodiffEngineTest,
    const ADTensor<float> t1 = make_test_tensor(true);
    const ADTensor<float> t2 = make_test_tensor(true);
 
-   ValueID v1 = engine.track_input(t1.raw(), false);
-   ValueID v2 = engine.track_input(t2.raw(), false);
+   ValueID v1 = engine.track_input(t1.base(), false);
+   ValueID v2 = engine.track_input(t2.base(), false);
 
    AutodiffMeta<float> meta;
-   meta.push_back(t1.raw());
-   meta.push_back(t2.raw());
+   meta.push_back(t1.base());
+   meta.push_back(t2.base());
 
    std::vector<ValueID> vids{v1, v2};
 
@@ -195,7 +195,7 @@ TEST(AutodiffEngineTest,
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    const ADTensor<float> t = make_test_tensor(false);
-   ValueID vid = engine.track_input(t.raw(), false);
+   ValueID vid = engine.track_input(t.base(), false);
 
    engine.maybe_mark_leaf(vid, true);
 
@@ -210,36 +210,36 @@ TEST(AutodiffEngineTest,
 TEST(AutodiffEngineTest, track_input_create_new_vid_and_adds_tensor_to_buffer) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    const ADTensor<float> t = make_test_tensor(true);
-   ValueID vid = engine.track_input(t.raw(), true);
-   RawTensor<float> result = engine.materialise(vid);
+   ValueID vid = engine.track_input(t.base(), true);
+   Tensor<float> result = engine.materialise(vid);
    EXPECT_EQ(vid, ValueID{0});
-   EXPECT_TENSOR_EQ(result, t.raw());
+   EXPECT_TENSOR_EQ(result, t.base());
 }
 
 TEST(AutodiffEngineTest, track_input_creates_and_stores_tensors_in_order) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    const ADTensor<float> t1 = make_test_tensor(true, 42);
    const ADTensor<float> t2 = make_test_tensor(true, 43);
-   ValueID vid1 = engine.track_input(t1.raw(), true);
-   ValueID vid2 = engine.track_input(t2.raw(), true);
-   RawTensor<float> result1 = engine.materialise(vid1);
-   RawTensor<float> result2 = engine.materialise(vid2);
+   ValueID vid1 = engine.track_input(t1.base(), true);
+   ValueID vid2 = engine.track_input(t2.base(), true);
+   Tensor<float> result1 = engine.materialise(vid1);
+   Tensor<float> result2 = engine.materialise(vid2);
    EXPECT_EQ(vid1, ValueID{0});
    EXPECT_EQ(vid2, ValueID{1});
-   EXPECT_TENSOR_EQ(result1, t1.raw());
-   EXPECT_TENSOR_EQ(result2, t2.raw());
+   EXPECT_TENSOR_EQ(result1, t1.base());
+   EXPECT_TENSOR_EQ(result2, t2.base());
 }
 
 TEST(AutodiffEngineTest, materialise_returns_tensor_by_vid) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
    const ADTensor<float> t1 = make_test_tensor(true, 42);
    const ADTensor<float> t2 = make_test_tensor(true, 43);
-   ValueID vid1 = engine.track_input(t1.raw(), true);
-   ValueID vid2 = engine.track_input(t2.raw(), true);
-   RawTensor<float> result1 = engine.materialise(vid1);
-   RawTensor<float> result2 = engine.materialise(vid2);
-   EXPECT_TENSOR_EQ(result1, t1.raw());
-   EXPECT_TENSOR_EQ(result2, t2.raw());
+   ValueID vid1 = engine.track_input(t1.base(), true);
+   ValueID vid2 = engine.track_input(t2.base(), true);
+   Tensor<float> result1 = engine.materialise(vid1);
+   Tensor<float> result2 = engine.materialise(vid2);
+   EXPECT_TENSOR_EQ(result1, t1.base());
+   EXPECT_TENSOR_EQ(result2, t2.base());
 }
 
 TEST(AutodiffEngineTest,
@@ -249,9 +249,9 @@ TEST(AutodiffEngineTest,
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t1.raw());
+   meta.push_back(t1.base());
 
-   ValueID leaf_vid = engine.track_input(t1.raw(), true);
+   ValueID leaf_vid = engine.track_input(t1.base(), true);
 
    ASSERT_EQ(leaf_vid, ValueID{0});
 
@@ -265,8 +265,8 @@ TEST(AutodiffEngineTest,
    GradStore<float> &store = AutodiffContext<float>::runtime().grad_store();
 
    EXPECT_TRUE(store.has(slot));
-   RawTensor<float> grad = store.get(slot);
-   EXPECT_TENSOR_EQ(grad, make_test_tensor(false, seed).raw());
+   Tensor<float> grad = store.get(slot);
+   EXPECT_TENSOR_EQ(grad, make_test_tensor(false, seed).base());
 }
 
 TEST(AutodiffEngineTest,
@@ -277,11 +277,11 @@ TEST(AutodiffEngineTest,
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t1.raw());
-   meta.push_back(t2.raw());
+   meta.push_back(t1.base());
+   meta.push_back(t2.base());
 
-   ValueID leaf_vid1 = engine.track_input(t1.raw(), true);
-   ValueID leaf_vid2 = engine.track_input(t2.raw(), true);
+   ValueID leaf_vid1 = engine.track_input(t1.base(), true);
+   ValueID leaf_vid2 = engine.track_input(t2.base(), true);
 
    ASSERT_EQ(leaf_vid1, ValueID{0});
    ASSERT_EQ(leaf_vid2, ValueID{1});
@@ -299,11 +299,11 @@ TEST(AutodiffEngineTest,
    EXPECT_TRUE(store.has(slot1));
    EXPECT_TRUE(store.has(slot2));
 
-   RawTensor<float> grad1 = store.get(slot1);
-   RawTensor<float> grad2 = store.get(slot2);
+   Tensor<float> grad1 = store.get(slot1);
+   Tensor<float> grad2 = store.get(slot2);
 
-   EXPECT_TENSOR_EQ(grad1, make_test_tensor(false, seed).raw());
-   EXPECT_TENSOR_EQ(grad2, make_test_tensor(false, seed + 1).raw());
+   EXPECT_TENSOR_EQ(grad1, make_test_tensor(false, seed).base());
+   EXPECT_TENSOR_EQ(grad2, make_test_tensor(false, seed + 1).base());
 }
 
 TEST(AutodiffEngineTest,
@@ -314,11 +314,11 @@ TEST(AutodiffEngineTest,
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t1.raw());
-   meta.push_back(t2.raw());
+   meta.push_back(t1.base());
+   meta.push_back(t2.base());
 
-   ValueID leaf_vid1 = engine.track_input(t1.raw(), true);
-   ValueID leaf_vid2 = engine.track_input(t2.raw(), true);
+   ValueID leaf_vid1 = engine.track_input(t1.base(), true);
+   ValueID leaf_vid2 = engine.track_input(t2.base(), true);
 
    ASSERT_EQ(leaf_vid1, ValueID{0});
    ASSERT_EQ(leaf_vid2, ValueID{1});
@@ -337,10 +337,10 @@ TEST(AutodiffEngineTest,
    EXPECT_TRUE(store.has(slot1));
    EXPECT_TRUE(store.has(slot2));
 
-   RawTensor<float> grad1 = store.get(slot1);
-   RawTensor<float> grad2 = store.get(slot2);
-   EXPECT_TENSOR_EQ(grad1, make_test_tensor(false, seed).raw());
-   EXPECT_TENSOR_EQ(grad2, make_test_tensor(false, seed + 1).raw());
+   Tensor<float> grad1 = store.get(slot1);
+   Tensor<float> grad2 = store.get(slot2);
+   EXPECT_TENSOR_EQ(grad1, make_test_tensor(false, seed).base());
+   EXPECT_TENSOR_EQ(grad2, make_test_tensor(false, seed + 1).base());
 }
 
 TEST(AutodiffEngineTest, get_grad_throws_when_no_grad_exists) {
@@ -349,9 +349,9 @@ TEST(AutodiffEngineTest, get_grad_throws_when_no_grad_exists) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t.raw());
+   meta.push_back(t.base());
 
-   ValueID leaf_vid = engine.track_input(t.raw(), true);
+   ValueID leaf_vid = engine.track_input(t.base(), true);
 
    ASSERT_EQ(leaf_vid, ValueID{0});
 
@@ -369,9 +369,9 @@ TEST(AutodiffEngineTest, has_value_returns_true_when_val_in_buffer) {
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
    AutodiffMeta<float> meta;
-   meta.push_back(t.raw());
+   meta.push_back(t.base());
 
-   ValueID leaf_vid = engine.track_input(t.raw(), true);
+   ValueID leaf_vid = engine.track_input(t.base(), true);
    EXPECT_TRUE(engine.has_value(leaf_vid));
 }
 
@@ -385,7 +385,7 @@ TEST(AutodiffEngineTest,
    const ADTensor<float> x = make_test_tensor(true);
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
-   ValueID x_vid = engine.track_input(x.raw(), true);
+   ValueID x_vid = engine.track_input(x.base(), true);
    ASSERT_EQ(x_vid, ValueID{0});
    constexpr std::uint32_t seed1 = 77;
    constexpr std::uint32_t seed2 = 123;
@@ -393,13 +393,13 @@ TEST(AutodiffEngineTest,
    using MergeOp = Operation<float, PopTestBinaryOp<float, seed2>>;
 
    AutodiffMeta<float> meta_u1;
-   meta_u1.push_back(x.raw());
+   meta_u1.push_back(x.base());
    std::vector<ValueID> in1{x_vid};
    ValueID u1_vid = engine.apply_single<BranchOp>(meta_u1, in1);
    EXPECT_TRUE(engine.has_value(u1_vid));
 
    AutodiffMeta<float> meta_u2;
-   meta_u2.push_back(x.raw());
+   meta_u2.push_back(x.base());
    std::vector<ValueID> in2{x_vid};
    ValueID u2_vid = engine.apply_single<BranchOp>(meta_u2, in2);
    EXPECT_TRUE(engine.has_value(u2_vid));
@@ -413,10 +413,10 @@ TEST(AutodiffEngineTest,
 
    engine.backward(z_vid);
 
-   RawTensor<float> grad_x = engine.get_grad(x_vid);
+   Tensor<float> grad_x = engine.get_grad(x_vid);
 
-   RawTensor<float> expected_branch = make_test_tensor(false, seed1).raw();
-   RawTensor<float> expected = expected_branch + expected_branch;
+   Tensor<float> expected_branch = make_test_tensor(false, seed1).base();
+   Tensor<float> expected = expected_branch + expected_branch;
 
    EXPECT_TENSOR_EQ(grad_x, expected);
 }
@@ -424,21 +424,21 @@ TEST(AutodiffEngineTest,
 TEST(AutodiffEngineTest, has_value_returns_false_for_negative_vid) {
    const ADTensor<float> t = make_test_tensor(true);
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
-   ValueID vid = engine.track_input(t.raw(), true);
+   ValueID vid = engine.track_input(t.base(), true);
    EXPECT_FALSE(engine.has_value(ValueID{-1}));
 }
 
 TEST(AutodiffEngineTest, materialise_called_with_negative_vid_throws) {
    const ADTensor<float> t = make_test_tensor(true);
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
-   ValueID vid = engine.track_input(t.raw(), true);
+   ValueID vid = engine.track_input(t.base(), true);
    EXPECT_THROW(engine.materialise(ValueID{-1}), std::out_of_range);
 }
 
 TEST(AutodiffEngineTest, materialise_called_with_out_of_range_vid_throws) {
    const ADTensor<float> t = make_test_tensor(true);
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
-   ValueID vid = engine.track_input(t.raw(), true);
+   ValueID vid = engine.track_input(t.base(), true);
    EXPECT_THROW(engine.materialise(ValueID{5}), std::out_of_range);
 }
 
@@ -448,11 +448,11 @@ TEST(AutodiffEngineTest,
 
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
-   ValueID x_vid = engine.track_input(x.raw(), true);
+   ValueID x_vid = engine.track_input(x.base(), true);
    ASSERT_EQ(x_vid, ValueID{0});
 
    AutodiffMeta<float> meta_u1;
-   meta_u1.push_back(x.raw());
+   meta_u1.push_back(x.base());
    std::vector<ValueID> x_inputs_1{x_vid};
 
    using UnaryOp = Operation<float, PopTestUnaryOp<float>>;
@@ -460,7 +460,7 @@ TEST(AutodiffEngineTest,
    EXPECT_TRUE(engine.has_value(u1_vid));
 
    AutodiffMeta<float> meta_u2;
-   meta_u2.push_back(x.raw());
+   meta_u2.push_back(x.base());
    std::vector<ValueID> x_inputs_2{x_vid};
 
    ValueID u2_vid = engine.apply_single<UnaryOp>(meta_u2, x_inputs_2);
@@ -477,8 +477,8 @@ TEST(AutodiffEngineTest,
 
    engine.backward(z_vid);
 
-   RawTensor<float> grad = engine.get_grad(u1_vid);
-   EXPECT_TENSOR_EQ(grad, make_test_tensor(false, seed).raw());
+   Tensor<float> grad = engine.get_grad(u1_vid);
+   EXPECT_TENSOR_EQ(grad, make_test_tensor(false, seed).base());
 }
 
 TEST(AutodiffEngineTest,
@@ -487,11 +487,11 @@ TEST(AutodiffEngineTest,
 
    Engine<float> engine(AutodiffContext<float>::runtime().grad_store());
 
-   ValueID x_vid = engine.track_input(x.raw(), true);
+   ValueID x_vid = engine.track_input(x.base(), true);
    ASSERT_EQ(x_vid, ValueID{0});
 
    AutodiffMeta<float> meta_u1;
-   meta_u1.push_back(x.raw());
+   meta_u1.push_back(x.base());
    std::vector<ValueID> x_inputs_1{x_vid};
 
    using UnaryOp = Operation<float, PopTestUnaryOp<float>>;
@@ -499,7 +499,7 @@ TEST(AutodiffEngineTest,
    EXPECT_TRUE(engine.has_value(u1_vid));
 
    AutodiffMeta<float> meta_u2;
-   meta_u2.push_back(x.raw());
+   meta_u2.push_back(x.base());
    std::vector<ValueID> x_inputs_2{x_vid};
 
    ValueID u2_vid = engine.apply_single<UnaryOp>(meta_u2, x_inputs_2);

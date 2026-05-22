@@ -31,7 +31,7 @@ TEST(TestGradStore, has_returns_true_when_grad_slot_id_out_of_range) {
    EXPECT_TRUE(store.empty());
    store.allocate();
    const GradSlotID slot = store.allocate();
-   const RawTensor<float> grad = make_test_tensor(false).raw();
+   const Tensor<float> grad = make_test_tensor(false).base();
 
    store.set(slot, grad);
 
@@ -42,13 +42,13 @@ TEST(TestGradStore, get_returns_stored_grad) {
    GradStore<float> store;
 
    const GradSlotID slot = store.allocate();
-   const RawTensor<float> grad = make_test_tensor(false).raw();
+   const Tensor<float> grad = make_test_tensor(false).base();
 
    store.set(slot, grad);
 
    EXPECT_TRUE(store.has(slot));
 
-   RawTensor<float> result = store.get(slot);
+   Tensor<float> result = store.get(slot);
    EXPECT_TENSOR_EQ(result, grad);
 }
 
@@ -57,10 +57,10 @@ TEST(TestGradStore, set_stores_grad_in_correct_slot) {
    store.allocate();
    const GradSlotID slot1 = store.allocate();
    const GradSlotID slot2 = store.allocate();
-   const RawTensor<float> grad = make_test_tensor(false).raw();
+   const Tensor<float> grad = make_test_tensor(false).base();
 
    store.set(slot2, grad);
-   RawTensor<float> result = store.get(slot2);
+   Tensor<float> result = store.get(slot2);
    EXPECT_FALSE(store.has(slot1));
    EXPECT_TRUE(store.has(slot2));
    EXPECT_TENSOR_EQ(result, grad);
@@ -71,7 +71,7 @@ TEST(GradStoreTest, reset_removes_value_from_slot) {
    store.allocate();
    const GradSlotID slot1 = store.allocate();
    const GradSlotID slot2 = store.allocate();
-   const RawTensor<float> grad = make_test_tensor(false).raw();
+   const Tensor<float> grad = make_test_tensor(false).base();
    store.set(slot2, grad);
    EXPECT_FALSE(store.has(slot1));
    EXPECT_TRUE(store.has(slot2));

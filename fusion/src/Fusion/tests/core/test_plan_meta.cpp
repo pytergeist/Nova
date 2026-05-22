@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Fusion/core/PlanMeta.hpp"
-#include "Fusion/core/tensor/RawTensor.hpp"
+#include "Fusion/core/tensor/DenseTensor.hpp"
 
 TEST(PlanMetaTest, contig_elem_strides_returns_row_major_strides_for_2d_shape) {
    std::vector<std::size_t> shape{2, 3};
@@ -46,7 +46,7 @@ TEST(PlanMetaTest,
 }
 
 TEST(PlanMetaTest, make_desc_from_tensor_copies_shape_and_strides) {
-   RawTensor<float> t({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+   DenseTensor<float> t({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    OperandDescription desc = make_desc_from_tensor(t);
@@ -59,9 +59,9 @@ TEST(PlanMetaTest, make_desc_from_tensor_copies_shape_and_strides) {
 
 TEST(PlanMetaTest,
      make_binary_meta_uses_fastpath_for_same_shape_contiguous_inputs) {
-   RawTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+   DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
-   RawTensor<float> b({2, 3}, std::vector<float>{6, 5, 4, 3, 2, 1},
+   DenseTensor<float> b({2, 3}, std::vector<float>{6, 5, 4, 3, 2, 1},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    BinaryEwiseMeta meta = make_binary_meta(a, b);
@@ -73,9 +73,9 @@ TEST(PlanMetaTest,
 
 TEST(PlanMetaTest,
      make_binary_meta_builds_broadcast_output_shape_for_broadcast_case) {
-   RawTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+   DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
-   RawTensor<float> b({1, 3}, std::vector<float>{10, 20, 30}, DType::FLOAT32,
+   DenseTensor<float> b({1, 3}, std::vector<float>{10, 20, 30}, DType::FLOAT32,
                       Device{DeviceType::CPU, 0});
 
    BinaryEwiseMeta meta = make_binary_meta(a, b);
@@ -88,7 +88,7 @@ TEST(PlanMetaTest,
 }
 
 TEST(PlanMetaTest, make_unary_meta_uses_fastpath_for_contiguous_input) {
-   RawTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+   DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
    UnaryEwiseMeta meta = make_unary_meta(a);
 
@@ -99,7 +99,7 @@ TEST(PlanMetaTest, make_unary_meta_uses_fastpath_for_contiguous_input) {
 
 TEST(PlanMetaTest,
      make_reduction_meta_global_reduce_without_keepdim_uses_fastpath) {
-   RawTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
+   DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                       DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, kGlobalReduceAxis, false);
@@ -113,7 +113,7 @@ TEST(PlanMetaTest,
 TEST(
     PlanMetaTest,
     make_reduction_meta_axis_reduce_without_keepdim_sets_expected_output_shape) {
-   RawTensor<float> a({2, 3, 4}, std::vector<float>(24, 1), DType::FLOAT32,
+   DenseTensor<float> a({2, 3, 4}, std::vector<float>(24, 1), DType::FLOAT32,
                       Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, 1, false);
@@ -127,7 +127,7 @@ TEST(
 
 TEST(PlanMetaTest,
      make_reduction_meta_axis_reduce_with_keepdim_sets_expected_output_shape) {
-   RawTensor<float> a({2, 3, 4}, std::vector<float>(24, 1.0), DType::FLOAT32,
+   DenseTensor<float> a({2, 3, 4}, std::vector<float>(24, 1.0), DType::FLOAT32,
                       Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, 1, true);
@@ -140,9 +140,9 @@ TEST(PlanMetaTest,
 }
 
 TEST(PlanMetaTest, make_contraction_meta_einsum_infers_matmul_output_shape) {
-   RawTensor<float> a({2, 4}, std::vector<float>(8, 1.0), DType::FLOAT32,
+   DenseTensor<float> a({2, 4}, std::vector<float>(8, 1.0), DType::FLOAT32,
                       Device{DeviceType::CPU, 0});
-   RawTensor<float> b({4, 3}, std::vector<float>(12, 1.0), DType::FLOAT32,
+   DenseTensor<float> b({4, 3}, std::vector<float>(12, 1.0), DType::FLOAT32,
                       Device{DeviceType::CPU, 0});
 
    OperandLabelBinding binding{
@@ -165,9 +165,9 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_infers_matmul_output_shape) {
 }
 
 TEST(PlanMetaTest, make_contraction_meta_einsum_stores_binding) {
-   RawTensor<float> a({2, 4}, std::vector<float>(8, 1.0f), DType::FLOAT32,
+   DenseTensor<float> a({2, 4}, std::vector<float>(8, 1.0f), DType::FLOAT32,
                       Device{DeviceType::CPU, 0});
-   RawTensor<float> b({4, 3}, std::vector<float>(12, 1.0f), DType::FLOAT32,
+   DenseTensor<float> b({4, 3}, std::vector<float>(12, 1.0f), DType::FLOAT32,
                       Device{DeviceType::CPU, 0});
 
    OperandLabelBinding binding{

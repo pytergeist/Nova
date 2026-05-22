@@ -1,7 +1,6 @@
 #ifndef FUSION_TESTS_AUTODIFF_HELPERS_H_
 #define FUSION_TESTS_AUTODIFF_HELPERS_H_
 
-
 #include <gtest/gtest.h>
 #include <random>
 
@@ -72,12 +71,19 @@ inline std::vector<float> generate_random_vector(std::vector<std::size_t> shape,
    return data;
 }
 
-inline RawTensor<float>
-make_test_raw_tensor(uint32_t seed = 42,
-                 std::vector<std::size_t> shape = std::vector<size_t>{2, 3}) {
+inline DenseTensor<float> make_test_raw_tensor(
+    uint32_t seed = 42,
+    std::vector<std::size_t> shape = std::vector<size_t>{2, 3}) {
    std::vector<float> data = generate_random_vector(shape, seed);
-   return RawTensor<float>(shape, data, DType::FLOAT32,
-                          Device{DeviceType::CPU, 0});
+   return DenseTensor<float>(shape, data, DType::FLOAT32,
+                           Device{DeviceType::CPU, 0});
+}
+
+inline Tensor<float>
+make_test_tensor(uint32_t seed = 42,
+                 std::vector<std::size_t> shape = std::vector<size_t>{2, 3}) {
+   DenseTensor<float> dense = make_test_raw_tensor(seed, shape);
+   return Tensor<float>::from_dense(dense);
 }
 
 inline ADTensor<float>
@@ -93,14 +99,14 @@ inline AutodiffMeta<float> make_test_meta_forward_result(bool requires_grad,
                                                          uint32_t seed) {
    AutodiffMeta<float> meta;
    for (int i = 0; i < num_tensors; ++i) {
-      meta.push_back(make_test_tensor(requires_grad, seed).raw());
+      meta.push_back(make_test_tensor(requires_grad, seed).base());
       seed += 1;
    }
    return meta;
 }
 
-inline void EXPECT_TENSOR_EQ(const RawTensor<float> &actual,
-                             const RawTensor<float> &expected) {
+inline void EXPECT_RAW_TENSOR_EQ(const DenseTensor<float> &actual,
+                                 const DenseTensor<float> &expected) {
    EXPECT_EQ(actual.shape(), expected.shape());
    EXPECT_EQ(actual.dtype(), expected.dtype());
    EXPECT_EQ(actual.device(), expected.device());
@@ -110,6 +116,37 @@ inline void EXPECT_TENSOR_EQ(const RawTensor<float> &actual,
    for (size_t i = 0; i < actual.size(); ++i) {
       EXPECT_FLOAT_EQ(actual[i], expected[i]);
    }
+}
+
+inline void EXPECT_TENSOR_EQ(const DenseTensor<float> &actual,
+                             const DenseTensor<float> &expected) {
+   EXPECT_RAW_TENSOR_EQ(actual, expected);
+}
+
+inline void EXPECT_TENSOR_EQ(const Tensor<float> &actual,
+                             const DenseTensor<float> &expected) {
+   ASSERT_TRUE(actual.is_dense());
+   EXPECT_RAW_TENSOR_EQ(actual.dense(), expected);
+}
+
+inline void EXPECT_TENSOR_EQ(const DenseTensor<float> &actual,
+                             const Tensor<float> &expected) {
+   ASSERT_TRUE(expected.is_dense());
+   EXPECT_RAW_TENSOR_EQ(actual, expected.dense());
+}
+
+inline void EXPECT_TENSOR_EQ(const Tensor<float> &actual,
+                             const Tensor<float> &expected) {
+   ASSERT_EQ(actual.layout(), expected.layout());
+
+   if (actual.is_dense()) {
+      EXPECT_RAW_TENSOR_EQ(actual.dense(), expected.dense());
+      return;
+   }
+
+   EXPECT_EQ(actual.logical_shape(), expected.logical_shape());
+   EXPECT_EQ(actual.storage_shape(), expected.storage_shape());
+   EXPECT_RAW_TENSOR_EQ(actual.physical_base(), expected.physical_base());
 }
 
 struct AutodiffContextReset {

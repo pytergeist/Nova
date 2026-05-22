@@ -226,7 +226,7 @@ TEST(ADTensorTraceTest, returned_grad_tensor_does_not_require_grad) {
    AutodiffContextReset reset;
    EngineScope<float> scope{};
    scope.enter();
-ADTensor<float> x = test_builders::ad_square_inputs(true);
+   ADTensor<float> x = test_builders::ad_square_inputs(true);
    ADTensor<float> y = test_builders::ad_square_inputs(true);
 
    ADTensor<float> z = x + y;

@@ -4,26 +4,18 @@
 #include <vector>
 
 #include "Fusion/autodiff/ADTensor.hpp"
-#include "Fusion/core/tensor/RawTensor.hpp"
+#include "Fusion/core/tensor/DenseTensor.hpp"
 #include "Fusion/device/Device.h"
 
 namespace test_builders {
 
-inline Device cpu_device() {
-   return Device{DeviceType::CPU, 0};
-}
+inline Device cpu_device() { return Device{DeviceType::CPU, 0}; }
 
-inline std::vector<std::size_t> shape_2x3() {
-   return {2, 3};
-}
+inline std::vector<std::size_t> shape_2x3() { return {2, 3}; }
 
-inline std::vector<std::size_t> shape_2() {
-   return {2};
-}
+inline std::vector<std::size_t> shape_2() { return {2}; }
 
-inline DType float32_dtype() {
-   return DType::FLOAT32;
-}
+inline DType float32_dtype() { return DType::FLOAT32; }
 
 inline std::vector<float> data_square_inputs() {
    return {1.0, 4.0, 9.0, 16.0, 25.0, 36.0};
@@ -49,31 +41,27 @@ inline std::vector<float> data_linear_times_two_expected() {
    return {2.0, 4.0, 6.0, 8.0, 10.0, 12.0};
 }
 
-inline std::vector<float> data_sum_axis1_expected() {
-   return {6.0, 15.0};
+inline std::vector<float> data_sum_axis1_expected() { return {6.0, 15.0}; }
+
+inline DenseTensor<float> raw_2x3(const std::vector<float> &data) {
+   return DenseTensor<float>(shape_2x3(), data, float32_dtype(), cpu_device());
 }
 
-
-inline RawTensor<float> raw_2x3(const std::vector<float>& data) {
-   return RawTensor<float>(shape_2x3(), data, float32_dtype(), cpu_device());
+inline DenseTensor<float> raw_2(const std::vector<float> &data) {
+   return DenseTensor<float>(shape_2(), data, float32_dtype(), cpu_device());
 }
 
-inline RawTensor<float> raw_2(const std::vector<float>& data) {
-   return RawTensor<float>(shape_2(), data, float32_dtype(), cpu_device());
-}
-
-inline ADTensor<float> ad_2x3(const std::vector<float>& data,
+inline ADTensor<float> ad_2x3(const std::vector<float> &data,
                               bool requires_grad = false) {
    return ADTensor<float>(shape_2x3(), data, float32_dtype(), cpu_device(),
                           requires_grad);
 }
 
-inline ADTensor<float> ad_2(const std::vector<float>& data,
+inline ADTensor<float> ad_2(const std::vector<float> &data,
                             bool requires_grad = false) {
    return ADTensor<float>(shape_2(), data, float32_dtype(), cpu_device(),
                           requires_grad);
 }
-
 
 inline ADTensor<float> ad_square_inputs(bool requires_grad = false) {
    return ad_2x3(data_square_inputs(), requires_grad);
@@ -87,20 +75,19 @@ inline ADTensor<float> ad_ones_inputs(bool requires_grad = false) {
    return ad_2x3(data_ones_2x3(), requires_grad);
 }
 
-
-inline RawTensor<float> raw_sqrt_expected() {
+inline DenseTensor<float> raw_sqrt_expected() {
    return raw_2x3(data_sqrt_expected());
 }
 
-inline RawTensor<float> raw_square_plus_ones_expected() {
+inline DenseTensor<float> raw_square_plus_ones_expected() {
    return raw_2x3(data_square_plus_ones_expected());
 }
 
-inline RawTensor<float> raw_linear_times_two_expected() {
+inline DenseTensor<float> raw_linear_times_two_expected() {
    return raw_2x3(data_linear_times_two_expected());
 }
 
-inline RawTensor<float> raw_sum_axis1_expected() {
+inline DenseTensor<float> raw_sum_axis1_expected() {
    return raw_2(data_sum_axis1_expected());
 }
 

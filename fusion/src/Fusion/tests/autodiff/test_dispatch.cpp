@@ -81,7 +81,7 @@ TEST(AutodiffDispatchTest,
                                                                       eager);
    EXPECT_TRUE(eager_called);
    EXPECT_FALSE(out.requires_grad());
-   EXPECT_TENSOR_EQ(out.raw(), t1.raw());
+   EXPECT_TENSOR_EQ(out.base(), t1.base());
 }
 
 TEST(AutodiffDispatchTest, unary_dispatch_uses_eager_when_not_requires_grad) {
@@ -96,7 +96,7 @@ TEST(AutodiffDispatchTest, unary_dispatch_uses_eager_when_not_requires_grad) {
        autodiff::unary<float, Operation<float, TestUnaryOp<float>>>(t, eager);
    EXPECT_TRUE(eager_called);
    EXPECT_FALSE(out.requires_grad());
-   EXPECT_TENSOR_EQ(out.raw(), t.raw());
+   EXPECT_TENSOR_EQ(out.base(), t.base());
 }
 
 TEST(AutodiffDispatchTest,
@@ -114,7 +114,7 @@ TEST(AutodiffDispatchTest,
            t, p, eager);
    EXPECT_TRUE(eager_called);
    EXPECT_FALSE(out.requires_grad());
-   EXPECT_TENSOR_EQ(out.raw(), t.raw());
+   EXPECT_TENSOR_EQ(out.base(), t.base());
 }
 
 TEST(AutodiffDispatchTest,
@@ -132,7 +132,7 @@ TEST(AutodiffDispatchTest,
        autodiff::unary<float, Operation<float, TestUnaryOp<float>>>(t, eager);
 
    EXPECT_TRUE(eager_called);
-   EXPECT_TENSOR_EQ(out.raw(), t.raw());
+   EXPECT_TENSOR_EQ(out.base(), t.base());
 }
 
 TEST(
@@ -153,7 +153,7 @@ TEST(
                                                                       eager);
 
    EXPECT_TRUE(eager_called);
-   EXPECT_TENSOR_EQ(out.raw(), t2.raw());
+   EXPECT_TENSOR_EQ(out.base(), t2.base());
 }
 
 TEST(
@@ -174,5 +174,5 @@ TEST(
                                                                       eager);
 
    EXPECT_TRUE(eager_called);
-   EXPECT_TENSOR_EQ(out.raw(), t2.raw());
+   EXPECT_TENSOR_EQ(out.base(), t2.base());
 }

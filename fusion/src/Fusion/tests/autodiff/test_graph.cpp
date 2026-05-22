@@ -202,7 +202,6 @@ TEST_F(GraphTest,
    EXPECT_EQ(producer.out_slot, 0);
 }
 
-
 // TODO: Evaluate whether you need the below tests,
 // currently using compile time schema but this will not work for variadic
 // functions - may need to an this back into graph for non-static aritys

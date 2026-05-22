@@ -60,8 +60,7 @@ TEST_F(FUAllocatorBucketTest, missing_bucket_returns_empty_vector) {
    EXPECT_TRUE(free_chunks.empty());
 }
 
-TEST_F(FUAllocatorBucketTest,
-       larger_free_bucket_can_satisfy_smaller_request) {
+TEST_F(FUAllocatorBucketTest, larger_free_bucket_can_satisfy_smaller_request) {
    void *ptr = alloc.allocate(128, Alignment{64});
    ASSERT_NE(ptr, nullptr);
 
