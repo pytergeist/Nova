@@ -4,11 +4,11 @@
 #include <string_view>
 #include <vector>
 
-#include "../../../core/tensor/RawTensor.hpp"
 #include "Fusion/autodiff/AutodiffMeta.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"
 #include "Fusion/common/Checks.hpp"
+#include "Fusion/core/tensor/Tensor.hpp"
 
 template <typename T> struct Sqrt {
    using tag = SqrtTag;
@@ -20,9 +20,9 @@ template <typename T> struct Sqrt {
    Out forward(Context<T> &context, const In &input) {
       FUSION_CHECK(!input.empty(), "Sqrt requires one inputs");
       const autodiff::NoGradGuard _;
-      const RawTensor<T> &x = input.at(0);
+      const Tensor<T> &x = input.at(0);
       context.save("x", x);
-      RawTensor<T> y = x.sqrt();
+      Tensor<T> y = x.sqrt();
       Out out;
       out.push_back(y);
       return out;
@@ -35,10 +35,10 @@ template <typename T> struct Sqrt {
       FUSION_CHECK(grad_out.size() == 1,
                    "Sqrt::backward expects exactly 1 upstream grad tensor");
       const autodiff::NoGradGuard _;
-      const RawTensor<T> &g0 = grad_out.at(0);
+      const Tensor<T> &g0 = grad_out.at(0);
       FUSION_CHECK(!g0.empty(), "Sqrt::backward: upstream grad is empty");
-      const RawTensor<T> &x = context.template load<RawTensor<T>>("x");
-      RawTensor<T> gx = g0 / (x.sqrt() * 2);
+      const Tensor<T> &x = context.template load<Tensor<T>>("x");
+      Tensor<T> gx = g0 / (x.sqrt() * 2);
       GradIn g;
       g.push_back(gx);
       return g;

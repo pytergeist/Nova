@@ -15,14 +15,13 @@ struct ValueID {
 
    operator std::int64_t() const noexcept { return idx; }
 
-   bool operator==(const ValueID& other) const noexcept {
+   bool operator==(const ValueID &other) const noexcept {
       return idx == other.idx;
    }
 };
 
-template <>
-struct std::hash<ValueID> {
-   std::size_t operator()(const ValueID& s) const noexcept {
+template <> struct std::hash<ValueID> {
+   std::size_t operator()(const ValueID &s) const noexcept {
       return std::hash<std::int64_t>{}(s.idx);
    }
 };
@@ -32,14 +31,13 @@ struct GradSlotID {
 
    operator std::int64_t() const noexcept { return idx; }
 
-   bool operator==(const GradSlotID& other) const noexcept {
+   bool operator==(const GradSlotID &other) const noexcept {
       return idx == other.idx;
    }
 };
 
-template <>
-struct std::hash<GradSlotID> {
-   std::size_t operator()(const GradSlotID& s) const noexcept {
+template <> struct std::hash<GradSlotID> {
+   std::size_t operator()(const GradSlotID &s) const noexcept {
       return std::hash<std::int64_t>{}(s.idx);
    }
 };

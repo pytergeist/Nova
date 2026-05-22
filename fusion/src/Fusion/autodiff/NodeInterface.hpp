@@ -4,6 +4,7 @@
 #include <memory>
 #include <utility>
 
+#include "ADTypes.h"
 #include "AutodiffMeta.hpp"
 #include "Node.hpp"
 
@@ -148,7 +149,9 @@ template <typename T> class INode {
          return node_.KSchema.outputs.arity;
       }
 
-      std::size_t get_input_arity() const override { return node_.KSchema.inputs.arity; }
+      std::size_t get_input_arity() const override {
+         return node_.KSchema.inputs.arity;
+      }
 
       const std::type_info &in_type() const override { return typeid(In); };
       const std::type_info &out_type() const override { return typeid(Out); };

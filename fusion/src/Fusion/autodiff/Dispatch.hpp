@@ -47,21 +47,21 @@ AutodiffMeta<T> construct_meta(
     const ADTensor<T> &x,   // NOLINT(bugprone-easily-swappable-parameters)
     const ADTensor<T> &y) { // NOLINT(bugprone-easily-swappable-parameters)
    AutodiffMeta<T> meta;
-   meta.push_back(x.raw());
-   meta.push_back(y.raw());
+   meta.push_back(x.base());
+   meta.push_back(y.base());
    return meta;
 }
 
 template <typename T> AutodiffMeta<T> construct_meta(const ADTensor<T> &x) {
    AutodiffMeta<T> meta;
-   meta.push_back(x.raw());
+   meta.push_back(x.base());
    return meta;
 }
 
 template <typename T, typename Param>
 AutodiffMeta<T> construct_meta(const ADTensor<T> &x, const Param &param) {
    AutodiffMeta<T> meta;
-   meta.push_back(x.raw());
+   meta.push_back(x.base());
    meta.op_param = param;
    return meta;
 }
@@ -80,16 +80,15 @@ ADTensor<T> unary(const ADTensor<T> &x, const Param &params, EagerFn &&eager) {
    AutodiffMeta<T> meta = construct_meta<T>(x, params);
    std::vector<ValueID> vids{vx};
    ValueID out = eng.template apply_single<Op>(meta, vids);
-   RawTensor<T> raw = eng.materialise(out);
+   Tensor<T> raw = eng.materialise(out);
    ADTensor<T> result(std::move(raw), x.requires_grad());
    result.set_vid(out);
    return result;
 }
 
-
 template <typename T, class Op, typename Meta, typename Param, class EagerFn>
-inline ADTensor<T> unary_meta(const ADTensor<T> &x, Meta &m, const Param &params,
-                         EagerFn &&eager) {
+inline ADTensor<T> unary_meta(const ADTensor<T> &x, Meta &m,
+                              const Param &params, EagerFn &&eager) {
    EagerFn feager = std::forward<EagerFn>(eager);
    const bool needs_grad = grad_enabled() && x.requires_grad();
    if (!needs_grad || !should_trace(x)) {
@@ -100,7 +99,7 @@ inline ADTensor<T> unary_meta(const ADTensor<T> &x, Meta &m, const Param &params
    AutodiffMeta<T> meta = construct_meta<T>(x, params);
    std::vector<ValueID> vids{vx};
    ValueID out = eng.template apply_single<Op>(meta, vids);
-   RawTensor<T> raw = eng.materialise(out);
+   Tensor<T> raw = eng.materialise(out);
    ADTensor<T> result(std::move(raw), x.requires_grad());
    result.set_vid(out);
    return result;
@@ -122,7 +121,7 @@ ADTensor<T> unary(const ADTensor<T> &x, EagerFn &&eager) {
    AutodiffMeta<T> meta = construct_meta<T>(x);
    std::vector<ValueID> vids{vx};
    ValueID out = eng.template apply_single<Op>(meta, vids);
-   RawTensor<T> raw = eng.materialise(out);
+   Tensor<T> raw = eng.materialise(out);
    ADTensor<T> result(std::move(raw), needs_grad);
    result.set_vid(out);
    return result;
@@ -145,7 +144,7 @@ ADTensor<T> binary(const ADTensor<T> &x, const ADTensor<T> &y,
    AutodiffMeta<T> meta = construct_meta<T>(x, y);
    std::vector<ValueID> vids{vx, vy};
    ValueID out = eng.template apply_single<Op>(meta, vids);
-   RawTensor<T> raw = eng.materialise(out);
+   Tensor<T> raw = eng.materialise(out);
    ADTensor<T> result(std::move(raw), needs_grad);
    result.set_vid(out);
    return result;

@@ -6,13 +6,11 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../../core/tensor/RawTensor.hpp"
 #include "Fusion/common/Checks.hpp"
-
-template <typename U> class RawTensor;
+#include "Fusion/core/tensor/Tensor.hpp"
 
 template <typename T> struct Context {
-   using CtxValueType = std::variant<RawTensor<T>, int>;
+   using CtxValueType = std::variant<Tensor<T>, int>;
    std::unordered_map<std::string, CtxValueType> saved_result;
 
    template <typename U> void save(std::string key, U &&data) {
@@ -37,11 +35,11 @@ template <typename T> struct Context {
 
 template <typename T, class Op> class Operation {
  public:
-   using tag = typename Op::tag;
-   using In = typename Op::In;
-   using Out = typename Op::Out;
-   using GradIn = typename Op::GradIn;
-   using GradOut = typename Op::GradOut;
+   using tag = Op::tag;
+   using In = Op::In;
+   using Out = Op::Out;
+   using GradIn = Op::GradIn;
+   using GradOut = Op::GradOut;
 
    static constexpr std::string_view name = OpTraits<tag>::name;
    static constexpr OpSchema schema = OpTraits<tag>::schema;

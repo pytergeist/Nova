@@ -11,18 +11,18 @@ template <typename T> class Engine;
 
 template <typename T> class AutodiffContext {
  public:
-   static AutodiffRunTime<T>& runtime() noexcept {
-      // Intentionally immortal: tensors need to query gradients after EngineScope exits.
-      // Do not destroy during python/cpp static teardown.
+   static AutodiffRunTime<T> &runtime() noexcept {
+      // Intentionally immortal: tensors need to query gradients after
+      // EngineScope exits. Do not destroy during python/cpp static teardown.
       // Previous version was stored in static memory but suffered from
       // static destruction order fiasco. Changed to heap allocated immortal
-      // object, this means it is intentionally cleaned up by the OS on programme
-      // shutdown. Current design allows for a single type homogenous runtime,
-      // this design will need to be expanded in the future to be an immortal runtime
-      // register, that manages multiple runtimes (could then use dtype promotion
-      // for mixed types). Another random thought on mixed dtypes would be
-      // type erased runtimes - food for thought.
-      static auto* rt = new AutodiffRunTime<T>{};
+      // object, this means it is intentionally cleaned up by the OS on
+      // programme shutdown. Current design allows for a single type homogenous
+      // runtime, this design will need to be expanded in the future to be an
+      // immortal runtime register, that manages multiple runtimes (could then
+      // use dtype promotion for mixed types). Another random thought on mixed
+      // dtypes would be type erased runtimes - food for thought.
+      static auto *rt = new AutodiffRunTime<T>{};
       return *rt;
    }
 
@@ -44,13 +44,9 @@ template <typename T> class AutodiffContext {
       }
    }
 
-   static void clear_runtime() noexcept {
-      runtime().clear();
-   }
+   static void clear_runtime() noexcept { runtime().clear(); }
 
-   static void clear() noexcept {
-      instance_.clear();
-   }
+   static void clear() noexcept { instance_.clear(); }
 
  private:
    inline static thread_local std::vector<Engine<T> *> instance_;

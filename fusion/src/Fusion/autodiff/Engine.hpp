@@ -102,7 +102,7 @@ template <typename T> class Engine {
 
    void export_leaf_grads() {
       for (auto [vid, binding] : leaf_grad_map_) {
-         RawTensor<T> &grad = grad_buff_.at(vid);
+         Tensor<T> &grad = grad_buff_.at(vid);
          grad_store_.set(binding.slot, grad);
       }
    }
@@ -127,7 +127,7 @@ template <typename T> class Engine {
       throw std::runtime_error("Gradient not found in persistent grad storage");
    }
 
-   ValueID track_input(const RawTensor<T> &raw, const bool requires_grad) {
+   ValueID track_input(const Tensor<T> &raw, const bool requires_grad) {
       const ValueID vid = graph_.new_input_value();
       ensure_value_capacity(vid);
       val_buff_[vid] = raw;
@@ -136,16 +136,20 @@ template <typename T> class Engine {
       return vid;
    }
 
-   RawTensor<T> materialise(ValueID vid) {
+   // TODO: replace below
+   // Tensor<T> materialise(ValueID vid) {
+   //    return val_buff_.at(vid);
+   // }
+   Tensor<T> materialise(ValueID vid) {
       FUSION_BOUNDS_CHECK(vid, val_buff_.size());
-      const RawTensor<T> &src = val_buff_[vid];
+      const Tensor<T> &src = val_buff_[vid];
 
       std::vector<T> data(src.begin(), src.end());
-      return RawTensor<T>(src.shape(), std::move(data), src.dtype(),
-                          src.device());
+      return Tensor<T>::from_dense(DenseTensor<T>(src.shape(), std::move(data),
+                                                src.dtype(), src.device()));
    }
 
-   RawTensor<T> get_grad(ValueID vid) {
+   Tensor<T> get_grad(ValueID vid) {
       FUSION_BOUNDS_CHECK(vid, grad_buff_.size());
       return grad_buff_[vid];
    }
@@ -203,8 +207,8 @@ template <typename T> class Engine {
 
  private:
    Graph<T> graph_{};
-   std::vector<RawTensor<T>> val_buff_{};
-   std::vector<RawTensor<T>> grad_buff_{};
+   std::vector<Tensor<T>> val_buff_{};
+   std::vector<Tensor<T>> grad_buff_{};
    std::vector<bool> requires_grad_buff_{};
    GradStore<T> &grad_store_{};
    // TODO: make ValueID hashable so it can be used in the below unordered_set
@@ -243,7 +247,7 @@ template <typename T> class Engine {
       return false;
    }
 
-   const RawTensor<T> &grad(ValueID vid) const {
+   const Tensor<T> &grad(ValueID vid) const {
       FUSION_BOUNDS_CHECK(vid, grad_buff_.size());
       return grad_buff_[vid];
    }
@@ -360,8 +364,8 @@ template <typename T> class Engine {
    void accum_input_grads(const INode<T> &n, const AutodiffMeta<T> &gout) {
       for (size_t j = 0; j < n.num_inputs(); ++j) {
          const ValueID in_vid = n.get_input(j);
-         RawTensor<T> &dst = grad_buff_[in_vid];
-         const RawTensor<T> &src = gout[j];
+         Tensor<T> &dst = grad_buff_[in_vid];
+         const Tensor<T> &src = gout[j];
 
          if (!dst.is_initialised()) {
             dst = src;

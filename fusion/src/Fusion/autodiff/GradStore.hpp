@@ -5,19 +5,19 @@
 
 #include "ADTypes.h"
 
-#include "../core/tensor/RawTensor.hpp"
+#include "../core/tensor/Tensor.hpp"
 
 struct LeafGradBinding {
    ValueID vid;
    GradSlotID slot;
 
-   bool operator==(const LeafGradBinding& other) const noexcept {
+   bool operator==(const LeafGradBinding &other) const noexcept {
       return vid == other.vid && slot == other.slot;
    }
 };
 
 struct LeafGradBindingHash {
-   std::size_t operator()(const LeafGradBinding& b) const noexcept {
+   std::size_t operator()(const LeafGradBinding &b) const noexcept {
       const std::size_t h1 = std::hash<ValueID>{}(b.vid);
       const std::size_t h2 = std::hash<GradSlotID>{}(b.slot);
 
@@ -38,7 +38,7 @@ template <typename T> class GradStore {
       return static_cast<GradSlotID>(slots_.size() - 1);
    }
 
-   RawTensor<T> get(const GradSlotID slot) {
+   Tensor<T> get(const GradSlotID slot) {
       FUSION_CHECK(has(slot), "No gradient available in GradStore");
       return slots_[static_cast<std::size_t>(slot)].value();
    }
@@ -51,7 +51,7 @@ template <typename T> class GradStore {
       return idx < slots_.size() && slots_[idx].has_value();
    }
 
-   void set(const GradSlotID slot, const RawTensor<T> &grad) {
+   void set(const GradSlotID slot, const Tensor<T> &grad) {
       FUSION_BOUNDS_CHECK(slot, slots_.size());
       slots_[static_cast<std::size_t>(slot)] = grad;
    }
@@ -61,24 +61,19 @@ template <typename T> class GradStore {
       slots_[static_cast<std::size_t>(slot)].reset();
    }
 
-   void clear_all() {
-      slots_.clear();
-   }
+   void clear_all() { slots_.clear(); }
 
-   bool empty() const {return slots_.empty();}
+   bool empty() const { return slots_.empty(); }
 
  private:
-   std::vector<std::optional<RawTensor<T>>> slots_{};
+   std::vector<std::optional<Tensor<T>>> slots_{};
 };
 
 template <typename T> class AutodiffRunTime {
  public:
    GradStore<T> &grad_store() { return grad_store_; }
 
-   void clear() noexcept {
-      grad_store_.clear_all();
-   }
-
+   void clear() noexcept { grad_store_.clear_all(); }
 
  private:
    GradStore<T> grad_store_;
