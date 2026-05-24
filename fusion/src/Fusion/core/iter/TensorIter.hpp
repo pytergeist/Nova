@@ -7,8 +7,8 @@
 #include "Fusion/cpu/blas/BlasTraits.hpp"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 
-#include "../PlanMeta.hpp"
-#include "../TensorPlan.h"
+#include "../planning/PlanMeta.hpp"
+#include "../planning/TensorPlan.h"
 
 namespace fusion::iter {
 
