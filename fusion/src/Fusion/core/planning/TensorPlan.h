@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "fuir/IR.h"
+#include "../fuir/IR.h"
 
 /// The execution plan for a broadcast expression
 struct BroadcastPlan {

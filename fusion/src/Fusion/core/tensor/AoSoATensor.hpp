@@ -20,8 +20,7 @@ template <typename T> class AoSoATensor {
    }
 
    explicit AoSoATensor(DenseTensor<T> x, const std::size_t tile)
-       : storage_({x.shape()[0], check_items_size(x.shape()[1])}, x.dtype(),
-                  x.device()),
+       : storage_(x),
          n_items_(x.shape()[1]), dim_(x.shape()[0]), tile_(tile),
          n_blocks_(blocks_for(x.shape()[1], tile)) {
       FUSION_CHECK(dim_ > 0, "AoSoATensor: dim must be > 0");
@@ -35,6 +34,8 @@ template <typename T> class AoSoATensor {
    std::size_t n_blocks() const noexcept { return n_blocks_; }
    DType dtype() const noexcept { return storage_.dtype(); };
    Device device() const noexcept { return storage_.device(); };
+   T *get_ptr() { return storage_.get_ptr(); }
+   const T *get_ptr() const { return storage_.get_ptr(); }
 
    // TODO: do we need to clear anything but data here?
    void clear() noexcept { storage_.clear(); }

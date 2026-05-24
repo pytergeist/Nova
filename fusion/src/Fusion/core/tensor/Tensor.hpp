@@ -183,20 +183,6 @@ template <typename T> class Tensor {
 
    const T *data_ptr() const { return physical_base().get_ptr(); }
 
-   OperandDescription desc(UpdateKind update = UpdateKind::ReadOnly) const {
-      switch (layout_) {
-      case LayoutKind::Dense:
-      case LayoutKind::Strided:
-         return dense_desc(update);
-      case LayoutKind::SoA:
-         return soa_desc(update);
-      case LayoutKind::AoSoA:
-         return blocked_soa_desc(update);
-      default:
-         throw std::runtime_error("Tensor::desc: unsupported layout");
-      }
-   }
-
    Tensor operator+(const Tensor &other) const {
       require_dense_binary(other, "add");
       return Tensor::from_dense(dense() + other.dense());
@@ -382,7 +368,7 @@ template <typename T> class Tensor {
 };
 
 template <typename T>
-inline Tensor<T> tensor_scalar_t(T scalar, DType dtype = DType::FLOAT32,
+Tensor<T> tensor_scalar_t(T scalar, DType dtype = DType::FLOAT32,
                                  Device device = Device{DeviceType::CPU, 0}) {
    return Tensor<T>::from_dense(scalar_t(scalar, dtype, device));
 }

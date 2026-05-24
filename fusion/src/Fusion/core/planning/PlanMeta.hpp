@@ -106,7 +106,7 @@ template <typename T>
 static OperandDescription make_desc_from_aosoa_tensor(const AoSoATensor<T> &t) {
    OperandDescription d;
    d.shape = t.logical_shape();
-   d.itemsize = t.raw().dtype_size(); // TODO: add forwarding?
+   d.itemsize = t.base().dtype_size(); // TODO: add forwarding?
 
    if constexpr (requires { t.strides(); }) {
       d.strides = t.strides();

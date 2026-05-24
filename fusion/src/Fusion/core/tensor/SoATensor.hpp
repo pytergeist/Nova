@@ -1,7 +1,6 @@
 #ifndef FUSION_STORAGE_SOA_TENSOR_HPP
 #define FUSION_STORAGE_SOA_TENSOR_HPP
 
-#include <cstddef>
 #include <span>
 
 #include "DenseTensor.hpp"

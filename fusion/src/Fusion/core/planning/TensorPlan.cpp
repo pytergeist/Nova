@@ -3,8 +3,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include "../fuir/IR.h"
 #include "TensorPlan.h"
-#include "fuir/IR.h"
 
 BroadcastPlan
 make_broadcast_plan(const std::vector<OperandDescription> &descs) {
