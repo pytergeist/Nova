@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Fusion/core/TensorPlan.h"
+#include "../../core/planning/TensorPlan.h"
 
 TEST(TensorPlanBroadcastTest,
      make_broadcast_plan_single_operand_preserves_shape) {

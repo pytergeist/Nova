@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Fusion/core/TensorPlan.h"
+#include "../../core/planning/TensorPlan.h"
 
 TEST(TensorPlanContractionTest, infer_einsum_out_shape_returns_matmul_shape) {
    OperandDescription a{

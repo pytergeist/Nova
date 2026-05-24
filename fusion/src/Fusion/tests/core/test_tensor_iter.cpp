@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "Fusion/core/PlanMeta.hpp"
-#include "Fusion/core/TensorIter.hpp"
+#include "Fusion/core/iter/TensorIter.hpp"
+#include "Fusion/core/planning/PlanMeta.hpp"
 #include "Fusion/core/tensor/DenseTensor.hpp"
 
 #include "Fusion/cpu/simd/SimdTags.hpp"
