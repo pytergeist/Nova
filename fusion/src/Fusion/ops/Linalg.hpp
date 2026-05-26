@@ -6,9 +6,9 @@
 
 #include "Fusion/common/Log.hpp"
 
-#include "../core/tensor/DenseTensor.hpp"
-#include "Fusion/core/PlanMeta.hpp"
-#include "Fusion/core/TensorIter.hpp"
+#include "Fusion/core/iter/TensorIter.hpp"
+#include "Fusion/core/planning/PlanMeta.hpp"
+#include "Fusion/core/tensor/DenseTensor.hpp"
 
 #include "Helpers.hpp"
 

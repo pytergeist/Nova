@@ -4,7 +4,7 @@
 #include <iostream>
 #include <type_traits>
 
-#include "Fusion/core/TensorPlan.h" // GemmLikeDesc
+#include "Fusion/core/planning/TensorPlan.h"
 #include "Fusion/cpu/blas/BlasTags.hpp"
 #include "Fusion/cpu/blas/backend/Gemm.hpp"
 

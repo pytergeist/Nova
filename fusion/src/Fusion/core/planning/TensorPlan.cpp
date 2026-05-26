@@ -3,7 +3,8 @@
 #include <stdexcept>
 #include <vector>
 
-#include "../fuir/IR.h"
+#include "Fusion/core/fuir/IR.h"
+
 #include "TensorPlan.h"
 
 BroadcastPlan

@@ -1,6 +1,8 @@
 #ifndef FUSION_CORE_FUIR_IR_H
 #define FUSION_CORE_FUIR_IR_H
 
+#include <unordered_map>
+
 #include "DescContraints.h"
 #include "Descs.h"
 

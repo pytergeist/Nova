@@ -1,7 +1,7 @@
 #ifndef OP_HELPERS_HPP
 #define OP_HELPERS_HPP
 
-#include "Fusion/core/PlanMeta.hpp"
+#include "Fusion/core/planning/PlanMeta.hpp"
 
 #include "Fusion/core/opschema/OpTraits.h"
 

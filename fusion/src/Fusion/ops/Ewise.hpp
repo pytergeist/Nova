@@ -3,7 +3,7 @@
 
 #include <string_view>
 
-#include "Fusion/core/PlanMeta.hpp"
+#include "Fusion/core/planning/PlanMeta.hpp"
 
 #include "Helpers.hpp"
 
