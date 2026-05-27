@@ -253,7 +253,7 @@ make_contraction_meta_einsum(const DenseTensor<T> &A, const DenseTensor<T> &B,
    meta.dB = make_desc_from_tensor<T>(B);
 
    meta.dA.update = UpdateKind::ReadOnly;
-   meta.dA.update = UpdateKind::ReadOnly;
+   meta.dB.update = UpdateKind::ReadOnly;
 
    meta.out_shape = infer_out_shape_from_binding({meta.dA, meta.dB}, binding);
 
