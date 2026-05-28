@@ -102,7 +102,7 @@ target_link_libraries(fusion_storage INTERFACE
 # core layer (Tensor semantics)
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
-        ${FUSION_SRC_DIR}/core/TensorPlan.cpp
+        ${FUSION_SRC_DIR}/core/planning/TensorPlan.cpp
         ${FUSION_SRC_DIR}/core/fuir/IR.cpp
         ${FUSION_SRC_DIR}/core/ThreadPool.cpp
 )
@@ -216,10 +216,10 @@ if(NOVA_BUILD_CLI)
   target_link_libraries(FusionExecutable PRIVATE fusion_simulation)
 endif()
 
-# ============================================================
-# Benchmarks
-# ============================================================
-add_subdirectory(fusion/benchmarks)
+## ============================================================
+## Benchmarks
+## ============================================================
+#add_subdirectory(fusion/benchmarks)
 
 # ============================================================
 # Tests
