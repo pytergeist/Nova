@@ -3,7 +3,7 @@
 
 #include "Fusion/autodiff/ADTensor.hpp"
 
-#include "../../core/tensor/RawTensor.hpp"
+#include "Fusion/core/tensor/DenseTensor.hpp"
 
 #include "Fusion/simulation/core/InteractionPlan.h"
 #include "Fusion/simulation/core/InteractionPlanMeta.hpp"
@@ -20,7 +20,7 @@ ADTensor<T> lj_energy(ADTensor<T> &x, ParticlesT &particles,
    Param pplan{meta, &particles, params}; // TODO: evaluate this
    return x.template unary_meta_hook<LennardJones<T, ParticlesT>, Meta, Param>(
        meta, pplan,
-       [&](const RawTensor<T> &xb, Meta &meta_, const Param &plan_) {
+       [&](const DenseTensor<T> &xb, Meta &meta_, const Param &plan_) {
           return lj_energy_from_meta<T, ParticlesT>(xb, particles, meta_,
                                                     plan_.params);
        });
@@ -34,9 +34,11 @@ ADTensor<T> pair_delta3(ADTensor<T> &x, ParticlesT &particles,
    Param pplan{meta, &particles, params};
    return x.template unary_meta_hook<PairDelta3<T, ParticlesT>, Meta, Param>(
        meta, pplan,
-       [&](const RawTensor<T> &xb, Meta &meta_, const Param &plan_) {
+       [&](const Tensor<T> &xb, Meta &meta_, const Param &plan_) {
           return pair_delta3_from_meta<T, ParticlesT>(xb, particles, meta_,
                                                       plan_.params);
        });
 }
+
+
 #endif // FUSION_PHYSICS_AUTODIFF_AD_PHYSICS_HPP
