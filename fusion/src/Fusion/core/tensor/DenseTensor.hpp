@@ -327,11 +327,10 @@ template <typename T> class DenseTensor {
       if (device.is_cpu()) {
          return std::make_shared<NDTensorStorage<T>>(shape, std::move(data),
                                                      device, alloc);
-      } else if (device.is_gpu() || device.is_cuda()) {
+      } if (device.is_gpu() || device.is_cuda()) {
          throw std::runtime_error("GPU is not supported yes");
-      } else {
-         throw std::runtime_error("Unsupported device");
       }
+         throw std::runtime_error("Unsupported device");
    }
 };
 
