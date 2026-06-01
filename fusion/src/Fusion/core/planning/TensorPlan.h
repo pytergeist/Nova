@@ -1,5 +1,5 @@
-#ifndef BROADCAST_ITERATOR_H
-#define BROADCAST_ITERATOR_H
+#ifndef FUSION_CORE_PLANNING_TENSOR_PLAN_H
+#define FUSION_CORE_PLANNING_TENSOR_PLAN_H
 
 #include <cstddef>
 #include <cstdint>
@@ -81,4 +81,4 @@ ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
                                  const OperandLabelBinding &binding);
 
-#endif // BROADCAST_ITERATOR_H
+#endif // FUSION_CORE_PLANNING_TENSOR_PLAN_H

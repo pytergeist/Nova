@@ -1,5 +1,5 @@
-#ifndef EWISE_META_HPP
-#define EWISE_META_HPP
+#ifndef FUSION_CORE_PLANNING_PLAN_META_H
+#define FUSION_CORE_PLANNING_PLAN_META_H
 
 #include <vector>
 
@@ -272,4 +272,4 @@ make_contraction_meta_einsum(const DenseTensor<T> &A, const DenseTensor<T> &B,
    return meta;
 }
 
-#endif // EWISE_META_HPP
+#endif // FUSION_CORE_PLANNING_PLAN_META_H
