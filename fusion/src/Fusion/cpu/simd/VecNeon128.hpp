@@ -13,7 +13,7 @@
 
 #include "Fusion/common/Hints.hpp"
 #include "backend/BackendNeon128.hpp"
-#include "backend/VecLoop.hpp"
+#include "backend/DenseVecLoop.hpp"
 
 namespace simd {
 // TODO: remove once sum fixed
