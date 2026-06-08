@@ -155,8 +155,8 @@ template <typename T> class Tensor {
 
    DenseTensor<T> &physical_base() {
       return std::visit(
-          [](auto &x) -> DenseTensor<T> & {
-             if constexpr (std::is_same_v<std::decay_t<decltype(x)>,
+          []<typename T0>(T0 &x) -> DenseTensor<T> & {
+             if constexpr (std::is_same_v<std::decay_t<T0>,
                                           DenseTensor<T>>) {
                 return x;
              } else {
@@ -168,8 +168,8 @@ template <typename T> class Tensor {
 
    const DenseTensor<T> &physical_base() const {
       return std::visit(
-          [](const auto &x) -> const DenseTensor<T> & {
-             if constexpr (std::is_same_v<std::decay_t<decltype(x)>,
+          []<typename T0>(const T0 &x) -> const DenseTensor<T> & {
+             if constexpr (std::is_same_v<std::decay_t<T0>,
                                           DenseTensor<T>>) {
                 return x;
              } else {
