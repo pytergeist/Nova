@@ -8,11 +8,10 @@
 #include "AutodiffContext.hpp"
 #include "AutodiffMode.hpp"
 #include "Dispatch.hpp"
-#include "registry/Comparison/Comparison.h"
-#include "registry/Ewise/Ewise.h"
-#include "registry/LinAlg/LinAlg.h"
-#include "registry/Reduction/ReductionPolicy.h"
-#include "registry/Transcendental/Transcendental.h"
+#include "registry/aligned/Aligned.h"
+#include "registry/aligned/Transcendental.h"
+#include "registry/contraction/Contraction.h"
+#include "registry/reduction/ReductionPolicy.h"
 
 #include "Fusion/ops/OpParams.hpp"
 
