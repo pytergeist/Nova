@@ -31,8 +31,8 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
    int calls = 0;
 
-   fusion::iter::for_each_outer_then_inner<BroadcastPlan, 3>(
-       plan, base, [&](fusion::iter::InnerSegment<3> &segment) {
+   fusion::dense::iter::for_each_outer_then_inner<BroadcastPlan, 3>(
+       plan, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 1);
           EXPECT_EQ(segment.ptrs[0], reinterpret_cast<uint8_t *>(&out));
@@ -86,8 +86,8 @@ TEST(TensorIterTest,
 
    int calls = 0;
 
-   fusion::iter::for_each_outer_then_inner<BroadcastPlan, 3>(
-       plan, base, [&](fusion::iter::InnerSegment<3> &segment) {
+   fusion::dense::iter::for_each_outer_then_inner<BroadcastPlan, 3>(
+       plan, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 3);
           EXPECT_EQ(segment.step[0].byte_stride, sizeof(float));
@@ -103,7 +103,7 @@ TEST(TensorIterTest, tag_fallback_binary_respects_strides) {
    const float b[] = {10., 88., 20., 88., 30., 88.};
    float out[] = {0., 0., 0.};
 
-   fusion::iter::tag_fallback_binary<float, AddSIMD>(out, a, b,
+   fusion::dense::iter::tag_fallback_binary<float, AddSIMD>(out, a, b,
                                                      1, // out stride
                                                      2, // a stride
                                                      2, // b stride
@@ -119,7 +119,7 @@ TEST(TensorIterTest, tag_fallback_unary_respects_strides) {
    const float a[] = {4., 99., 9., 99., 16., 99.};
    float out[] = {0., 0., 0.};
 
-   fusion::iter::tag_fallback_unary<float, SqrtSIMD>(out, a,
+   fusion::dense::iter::tag_fallback_unary<float, SqrtSIMD>(out, a,
                                                      1, // out stride
                                                      2, // a stride
                                                      3  // len
@@ -132,7 +132,7 @@ TEST(TensorIterTest, tag_fallback_unary_respects_strides) {
 TEST(TensorIterTest, tag_fallback_reduction_accumulates_into_output) {
    const float a[] = {1., 2., 3., 4., 5.};
    float out[] = {1.};
-   fusion::iter::tag_fallback_reduction<float, SumSIMD>(out, a, 0, 1, 6);
+   fusion::dense::iter::tag_fallback_reduction<float, SumSIMD>(out, a, 0, 1, 6);
 
    EXPECT_FLOAT_EQ(out[0], 16.);
 }
@@ -140,7 +140,7 @@ TEST(TensorIterTest, tag_fallback_reduction_accumulates_into_output) {
 TEST(TensorIterTest, tag_fallback_reduction_respects_strides) {
    const float a[] = {1., 2., 3., 4., 5.};
    float out[] = {1.};
-   fusion::iter::tag_fallback_reduction<float, SumSIMD>(out, a, 0, 2, 3);
+   fusion::dense::iter::tag_fallback_reduction<float, SumSIMD>(out, a, 0, 2, 3);
 
    EXPECT_FLOAT_EQ(out[0], 10.);
 }
@@ -150,7 +150,7 @@ TEST(TensorIterTest, tag_fallback_contraction_accumulates_products) {
    const float b[] = {4., 67., 5., 14., 7., 88.};
    float out[] = {1.};
 
-   fusion::iter::tag_fallback_contraction<float, MultiplySIMD>(
+   fusion::dense::iter::tag_fallback_contraction<float, MultiplySIMD>(
        out, a, b,
        0, // accumulate into single output element
        2, // a stride
@@ -171,7 +171,7 @@ TEST(TensorIterTest, binary_ewise_tag_fastpath_computes_elementwise_add) {
    EXPECT_EQ(meta.exec, BinaryExecKind::FlatContiguous);
    EXPECT_EQ(meta.fast_len, 6);
 
-   fusion::iter::binary_ewise_tag<float, AddSIMD>(a, b, meta, out);
+   fusion::dense::iter::binary_ewise_tag<float, AddSIMD>(a, b, meta, out);
 
    EXPECT_FLOAT_EQ(out[0], 2.);
    EXPECT_FLOAT_EQ(out[1], 4.);
@@ -192,7 +192,7 @@ TEST(TensorIterTest, binary_ewise_tag_broadcast_path_computes_elementwise_add) {
    ASSERT_EQ(meta.exec, BinaryExecKind::FlatContiguousBroadcastRHS);
    ASSERT_EQ(meta.out_shape, (std::vector<size_t>{2, 3}));
 
-   fusion::iter::binary_ewise_tag<float, AddSIMD>(a, b, meta, out);
+   fusion::dense::iter::binary_ewise_tag<float, AddSIMD>(a, b, meta, out);
 
    EXPECT_FLOAT_EQ(out[0], 2.);
    EXPECT_FLOAT_EQ(out[1], 4.);
@@ -211,7 +211,7 @@ TEST(TensorIterTest, unary_ewise_tag_fastpath_computes_square) {
    ASSERT_TRUE(meta.fastpath);
    ASSERT_EQ(meta.fast_len, 6);
 
-   fusion::iter::unary_ewise_tag<float, SqrtSIMD>(a, meta, out);
+   fusion::dense::iter::unary_ewise_tag<float, SqrtSIMD>(a, meta, out);
 
    EXPECT_FLOAT_EQ(out[0], 1.);
    EXPECT_FLOAT_EQ(out[1], 2.);
@@ -230,7 +230,7 @@ TEST(TensorIterTest, reduction_tag_global_fastpath_sums_all_elements) {
    ASSERT_TRUE(meta.fastpath);
    ASSERT_EQ(meta.fast_len, 6);
 
-   fusion::iter::reduction_tag<float, SumSIMD>(a, meta, out);
+   fusion::dense::iter::reduction_tag<float, SumSIMD>(a, meta, out);
 
    EXPECT_FLOAT_EQ(out[0], 21.);
 }
@@ -252,7 +252,7 @@ TEST(TensorIterTest, reduction_tag_axis_path_reduces_requested_axis) {
    ASSERT_FALSE(meta.fastpath);
    ASSERT_EQ(meta.out_shape, (std::vector<std::size_t>{2}));
 
-   fusion::iter::reduction_tag<float, SumSIMD>(a, meta, out);
+   fusion::dense::iter::reduction_tag<float, SumSIMD>(a, meta, out);
 
    EXPECT_FLOAT_EQ(out[0], 6.);
    EXPECT_FLOAT_EQ(out[1], 15.);
@@ -302,7 +302,7 @@ TEST(TensorIterTest, contraction_tag_computes_matrix_multiplication_result) {
    };
    ContractionMeta meta = make_contraction_meta_einsum(a, b, binding);
 
-   fusion::iter::contraction_tag<float, MultiplySIMD, MultiplySIMD>(a, b, meta,
+   fusion::dense::iter::contraction_tag<float, MultiplySIMD, MultiplySIMD>(a, b, meta,
                                                                     out);
 
    EXPECT_FLOAT_EQ(out[0], 70.);
