@@ -1,5 +1,5 @@
-#ifndef OPS_LINALG_HPP
-#define OPS_LINALG_HPP
+#ifndef FUSION_OPS_ALIGNED_GEMM_HPP
+#define FUSION_OPS_ALIGNED_GEMM_HPP
 
 #include <string_view>
 #include <vector>
@@ -8,11 +8,11 @@
 
 #include "Fusion/core/iter/TensorIter.hpp"
 #include "Fusion/core/planning/PlanMeta.hpp"
-#include "Fusion/core/tensor/DenseTensor.hpp"
+#include "Fusion/kernels/Serial.hpp"
 
-#include "Helpers.hpp"
+#include "../Helpers.hpp"
 
-namespace fusion::math::linalg {
+namespace fusion::ops::contraction {
 
 inline OperandLabelBinding make_matmul_binding(std::size_t a_nd,
                                                std::size_t b_nd) {
@@ -80,7 +80,7 @@ DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
 
    DenseTensor<T> out = init_out_from_meta(A, B, meta);
 
-   fusion::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD
+   fusion::dense::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD
 
                                  >(A, B, meta, out);
 
@@ -107,6 +107,6 @@ DenseTensor<T> swapaxes(const DenseTensor<T> &x, const int axis1, const int axis
                        x.device());
 }
 
-} // namespace fusion::math::linalg
+} // namespace fusion::ops::contraction
 
-#endif // OPS_LINALG_HPP
+#endif // FUSION_OPS_ALIGNED_GEMM_HPP

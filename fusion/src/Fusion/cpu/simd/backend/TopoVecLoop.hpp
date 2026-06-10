@@ -68,6 +68,5 @@ void block_crs_traverse(const ParticleT &particles, const PairBlockedCRS &crs,
    }
 }
 
-} // namespace simd::detail::topo
-
+} // namespace simd::topo::detail
 #endif // FUSION_PHYSICS_CPU_PAIRWISE_LOOP_HPP

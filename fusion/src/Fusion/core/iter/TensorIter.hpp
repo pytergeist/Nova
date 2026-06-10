@@ -10,7 +10,7 @@
 #include "Fusion/core/planning/PlanMeta.hpp"
 #include "Fusion/core/planning/TensorPlan.h"
 
-namespace fusion::iter {
+namespace fusion::dense::iter {
 
 struct OperandStep {
    AccessKind kind{AccessKind::Affine};

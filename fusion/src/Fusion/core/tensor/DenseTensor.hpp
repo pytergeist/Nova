@@ -2,24 +2,22 @@
 #define FUSION_CORE_TENSOR_DENSE_TENSOR
 
 
-#include <cstring>
 #include <memory>
 #include <ostream>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 
+#include "Fusion/ops/reduction/Reduce.hpp"
 #include "Fusion/alloc/DefaultAllocator.h"
 #include "Fusion/common/Checks.hpp"
 #include "Fusion/core/Dtype.h"
 #include "Fusion/core/Layout.h"
 #include "Fusion/device/Device.h"
-#include "Fusion/kernels/Serial.hpp"
-#include "Fusion/ops/Comparison.hpp"
-#include "Fusion/ops/Ewise.hpp"
-#include "Fusion/ops/Linalg.hpp"
-#include "Fusion/ops/Reduce.hpp"
-#include "Fusion/ops/Transcendental.hpp"
+#include "Fusion/ops/aligned/Arithmetic.hpp"
+#include "Fusion/ops/aligned/Comparison.hpp"
+#include "Fusion/ops/aligned/Unary.hpp"
+#include "Fusion/ops/contraction/GeMM.hpp"
 #include "Fusion/storage/DenseStorage.hpp"
 #include "Fusion/storage/StorageInterface.hpp"
 #include "Fusion/storage/TensorView.hpp"
@@ -27,7 +25,7 @@
 #include "Fusion/common/Log.hpp"
 
 template <typename T> // TODO: need to either pass in device somehow?
-inline DenseTensor<T> scalar_t(const T scalar, const DType dtype = DType::FLOAT32,
+DenseTensor<T> scalar_t(const T scalar, const DType dtype = DType::FLOAT32,
                              Device device = Device{DeviceType::CPU, 0}) {
    return DenseTensor<T>{{1}, {scalar}, dtype, device};
 }
@@ -172,88 +170,88 @@ template <typename T> class DenseTensor {
    };
 
    DenseTensor operator+(const T scalar) const {
-      return fusion::math::add(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::add(*this, scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator-(const T scalar) const {
-      return fusion::math::sub(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::sub(*this, scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator*(const T scalar) const {
-      return fusion::math::mul(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::mul(*this, scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator/(const T scalar) const {
-      return fusion::math::div(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::div(*this, scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator>=(const T scalar) const {
-      return fusion::math::greater(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::greater(*this, scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor maximum(const T scalar) const {
-      return fusion::math::maximum(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::maximum(*this, scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor pow(const T scalar) const {
-      return fusion::math::pow(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::pow(*this, scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator+(const DenseTensor &other) const {
-      return fusion::math::add(*this, other);
+      return fusion::ops::aligned::add(*this, other);
    }
 
    DenseTensor operator-(const DenseTensor &other) const {
-      return fusion::math::sub(*this, other);
+      return fusion::ops::aligned::sub(*this, other);
    }
 
    DenseTensor operator*(const DenseTensor &other) const {
-      return fusion::math::mul(*this, other);
+      return fusion::ops::aligned::mul(*this, other);
    }
 
    DenseTensor operator/(const DenseTensor &other) const {
-      return fusion::math::div(*this, other);
+      return fusion::ops::aligned::div(*this, other);
    }
 
    DenseTensor operator>(const DenseTensor &other) const {
-      return fusion::math::greater(*this, other);
+      return fusion::ops::aligned::greater(*this, other);
    }
 
    DenseTensor operator>=(const DenseTensor &other) const {
-      return fusion::math::greater(*this, other);
+      return fusion::ops::aligned::greater(*this, other);
    }
 
    DenseTensor matmul(const DenseTensor &other) const {
-      return fusion::math::linalg::matmul(*this, other);
+      return fusion::ops::contraction::matmul(*this, other);
    }
 
    DenseTensor maximum(const DenseTensor &other) const {
-      return fusion::math::maximum(*this, other);
+      return fusion::ops::aligned::maximum(*this, other);
    }
 
    DenseTensor pow(const DenseTensor &other) const {
-      return fusion::math::pow(*this, other);
+      return fusion::ops::aligned::pow(*this, other);
    }
 
-   DenseTensor reciprocal() const { return fusion::math::reciprocal(*this); }
+   DenseTensor reciprocal() const { return fusion::ops::aligned::reciprocal(*this); }
 
-   DenseTensor sqrt() const { return fusion::math::sqrt(*this); }
-   DenseTensor log() const { return fusion::math::log(*this); }
-   DenseTensor exp() const { return fusion::math::exp(*this); }
+   DenseTensor sqrt() const { return fusion::ops::aligned::sqrt(*this); }
+   DenseTensor log() const { return fusion::ops::aligned::log(*this); }
+   DenseTensor exp() const { return fusion::ops::aligned::exp(*this); }
 
    DenseTensor sum(const std::size_t axis, const bool keepdim) const {
-      return fusion::math::sum(*this, axis, keepdim);
+      return fusion::ops::reduction::sum(*this, axis, keepdim);
    }
    DenseTensor mean(const std::size_t axis, const bool keepdim) const {
-      return fusion::math::mean(*this, axis, keepdim);
+      return fusion::ops::reduction::mean(*this, axis, keepdim);
    }
 
    DenseTensor swapaxes(const int axis1, const int axis2) const {
-      return fusion::math::linalg::swapaxes(*this, axis1, axis2);
+      return fusion::ops::contraction::swapaxes(*this, axis1, axis2);
    }
 
    DenseTensor &operator-=(const DenseTensor &other) {
-      fusion::math::sub_inplace(*this, other);
+      fusion::ops::aligned::sub_inplace(*this, other);
       return *this;
    }
 
