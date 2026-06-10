@@ -25,7 +25,7 @@ template <typename T> class AoSoATensor {
          n_blocks_(blocks_for(x.shape()[1], tile)) {
       FUSION_CHECK(dim_ > 0, "AoSoATensor: dim must be > 0");
       FUSION_CHECK(tile_ > 0, "AoSoATensor: tile must be > 0");
-      FUSION_CHECK(dim_ <= n_items_, "AoSoATensor: n_items must be <= dim");
+      FUSION_CHECK(dim_ <= n_items_, "AoSoATensor: dim must be <= n_items");
    }
 
    std::uint64_t n_items() const noexcept { return n_items_; }
@@ -149,4 +149,4 @@ template <typename T> class AoSoATensor {
    }
 };
 
-#endif // FUSION_STORAGE_SOA_TENSOR_HPP
+#endif // FUSION_STORAGE_AOSOA_TENSOR_HPP 
