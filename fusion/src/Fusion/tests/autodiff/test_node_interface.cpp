@@ -1,10 +1,9 @@
 #include <gtest/gtest.h>
 #include <typeinfo>
 
-#include "Fusion/autodiff/ADTypes.h"
+#include "Fusion/autodiff/registry/aligned/Add.hpp"
+#include "Fusion/autodiff/registry/aligned/Sqrt.hpp"
 #include "Fusion/autodiff/NodeInterface.hpp"
-#include "Fusion/autodiff/registry/Ewise/Add.hpp"
-#include "Fusion/autodiff/registry/Transcendental/Sqrt.hpp"
 
 #include "fixtures.h"
 
