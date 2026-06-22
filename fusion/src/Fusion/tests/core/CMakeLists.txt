@@ -3,7 +3,7 @@ add_executable(fusion_core_tests
         test_raw_tensor.cpp
         test_plan_meta.cpp
         test_tensor_iter.cpp
-        test_tensor_plan_broadcast.cpp
+        test_tensor_plan_aligned.cpp
         test_tensor_plan_contraction.cpp
         test_tensor_plan_reduction.cpp
 )

@@ -11,7 +11,7 @@
 #include "Fusion/cpu/simd/SimdTags.hpp"
 
 TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
-   BroadcastPlan plan{};
+   AlignedPlan plan{};
    plan.num_operands = 3;
    plan.out_ndim = 0;
    plan.itemsize = sizeof(float);
@@ -31,7 +31,7 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
    int calls = 0;
 
-   fusion::dense::iter::for_each_outer_then_inner<BroadcastPlan, 3>(
+   fusion::dense::iter::for_each_outer_then_inner<AlignedPlan, 3>(
        plan, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 1);
@@ -48,7 +48,7 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
 TEST(TensorIterTest,
      for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
-   BroadcastPlan plan{};
+   AlignedPlan plan{};
    plan.num_operands = 3;
    plan.out_ndim = 2;
    plan.itemsize = sizeof(float);
@@ -86,7 +86,7 @@ TEST(TensorIterTest,
 
    int calls = 0;
 
-   fusion::dense::iter::for_each_outer_then_inner<BroadcastPlan, 3>(
+   fusion::dense::iter::for_each_outer_then_inner<AlignedPlan, 3>(
        plan, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 3);
