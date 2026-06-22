@@ -70,7 +70,7 @@ std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
 }
 
 IndexSpaceIR
-build_broadcast_ir_right_aligned(const std::vector<OperandDescription> &descs,
+build_aligned_ir_right_aligned(const std::vector<OperandDescription> &descs,
                                  const ItemSizeGroupConstraint constraint) {
    validate_descs_itemsize_group(descs, constraint);
 

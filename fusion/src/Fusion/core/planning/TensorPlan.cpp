@@ -7,14 +7,14 @@
 
 #include "TensorPlan.h"
 
-BroadcastPlan
-make_broadcast_plan(const std::vector<OperandDescription> &descs) {
+AlignedPlan
+make_aligned_plan(const std::vector<OperandDescription> &descs) {
 
    constexpr ItemSizeGroupConstraint constraint =
        ItemSizeGroupConstraint::HomogeneousItemSize;
-   IndexSpaceIR ir = build_broadcast_ir_right_aligned(descs, constraint);
+   IndexSpaceIR ir = build_aligned_ir_right_aligned(descs, constraint);
 
-   BroadcastPlan plan;
+   AlignedPlan plan;
    plan.num_operands = ir.num_operands;
    plan.itemsize = ir.itemsize;
 

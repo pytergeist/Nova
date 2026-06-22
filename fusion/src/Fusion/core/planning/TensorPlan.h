@@ -7,9 +7,9 @@
 
 #include "Fusion/core/fuir/IR.h"
 
-/// The execution plan for a broadcast expression
-struct BroadcastPlan {
-   static constexpr std::string_view name = "Broadcast Plan";
+/// The execution plan for an Aligned expression
+struct AlignedPlan {
+   static constexpr std::string_view name = "Aligned Plan";
    std::size_t num_operands;
    std::size_t out_ndim;
    std::vector<std::size_t> out_shape;
@@ -68,7 +68,7 @@ struct ContractionPlan {
    std::size_t itemsize{0};
 };
 
-BroadcastPlan make_broadcast_plan(const std::vector<OperandDescription> &descs);
+AlignedPlan make_aligned_plan(const std::vector<OperandDescription> &descs);
 
 ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &desc,
                                   const std::size_t axis, const bool keepdim);

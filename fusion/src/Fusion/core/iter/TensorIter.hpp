@@ -174,7 +174,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
       }
       return;
    }
-   for_each_outer_then_inner<BroadcastPlan, 3>(
+   for_each_outer_then_inner<AlignedPlan, 3>(
        meta.plan, base, [&](InnerSegment<3> &segment) {
           const std::int64_t step = sizeof(T);
           std::int64_t const out_bytes = segment.step[0].byte_stride;
@@ -235,7 +235,7 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
       return;
    }
 
-   for_each_outer_then_inner<BroadcastPlan, 2>(
+   for_each_outer_then_inner<AlignedPlan, 2>(
        meta.plan, base, [&](InnerSegment<2> &segment) {
           const std::int64_t step = sizeof(T);
           std::int64_t const out_bytes = segment.step[0].byte_stride;
