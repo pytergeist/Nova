@@ -92,10 +92,10 @@ TEST(TensorPlanContractionTest,
    ContractionPlan plan =
        make_contraction_plan_einsum_out({out, a, b}, binding);
 
-   EXPECT_EQ(plan.num_operands, 3);
-   EXPECT_EQ(plan.out_ndim, 2);
-   EXPECT_EQ(plan.out_shape, (std::vector<std::size_t>{2, 3}));
-   EXPECT_EQ(plan.itemsize, sizeof(float));
+   EXPECT_EQ(plan.core.num_operands, 3);
+   EXPECT_EQ(plan.core.out_ndim, 2);
+   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
+   EXPECT_EQ(plan.core.itemsize, sizeof(float));
 }
 
 TEST(TensorPlanContractionTest,
@@ -146,16 +146,16 @@ TEST(TensorPlanContractionTest,
    ContractionPlan plan =
        make_contraction_plan_einsum_out({out, a, b}, binding);
 
-   ASSERT_EQ(plan.loop.size(), 3);
+   ASSERT_EQ(plan.core.loop.size(), 3);
 
-   EXPECT_EQ(plan.loop[0].size, 2);
-   EXPECT_EQ(plan.loop[0].kind, IndexKind::Independent);
+   EXPECT_EQ(plan.core.loop[0].size, 2);
+   EXPECT_EQ(plan.core.loop[0].kind, IndexKind::Independent);
 
-   EXPECT_EQ(plan.loop[1].size, 3);
-   EXPECT_EQ(plan.loop[1].kind, IndexKind::Independent);
+   EXPECT_EQ(plan.core.loop[1].size, 3);
+   EXPECT_EQ(plan.core.loop[1].kind, IndexKind::Independent);
 
-   EXPECT_EQ(plan.loop[2].size, 4);
-   EXPECT_EQ(plan.loop[2].kind, IndexKind::Reduction);
+   EXPECT_EQ(plan.core.loop[2].size, 4);
+   EXPECT_EQ(plan.core.loop[2].kind, IndexKind::Reduction);
 }
 
 TEST(TensorPlanContractionTest,
@@ -206,11 +206,11 @@ TEST(TensorPlanContractionTest,
    ContractionPlan plan =
        make_contraction_plan_einsum_out({out, a, b}, binding);
 
-   ASSERT_EQ(plan.loop.size(), 3);
+   ASSERT_EQ(plan.core.loop.size(), 3);
 
-   EXPECT_EQ(plan.loop[0].role, IndexRole::M);
-   EXPECT_EQ(plan.loop[1].role, IndexRole::N);
-   EXPECT_EQ(plan.loop[2].role, IndexRole::K);
+   EXPECT_EQ(plan.core.loop[0].role, IndexRole::M);
+   EXPECT_EQ(plan.core.loop[1].role, IndexRole::N);
+   EXPECT_EQ(plan.core.loop[2].role, IndexRole::K);
 }
 
 TEST(TensorPlanContractionTest,
@@ -261,21 +261,21 @@ TEST(TensorPlanContractionTest,
    ContractionPlan plan =
        make_contraction_plan_einsum_out({out, a, b}, binding);
 
-   EXPECT_TRUE(plan.gemm_like);
+   EXPECT_TRUE(plan.core.hints.gemm_like);
 
-   EXPECT_EQ(plan.gemm.batch, 1);
-   EXPECT_EQ(plan.gemm.M, 2);
-   EXPECT_EQ(plan.gemm.N, 3);
-   EXPECT_EQ(plan.gemm.K, 4);
+   EXPECT_EQ(plan.core.hints.gemm.batch, 1);
+   EXPECT_EQ(plan.core.hints.gemm.M, 2);
+   EXPECT_EQ(plan.core.hints.gemm.N, 3);
+   EXPECT_EQ(plan.core.hints.gemm.K, 4);
 
-   EXPECT_EQ(plan.gemm.out_rs, 3);
-   EXPECT_EQ(plan.gemm.out_cs, 1);
+   EXPECT_EQ(plan.core.hints.gemm.out_rs, 3);
+   EXPECT_EQ(plan.core.hints.gemm.out_cs, 1);
 
-   EXPECT_EQ(plan.gemm.a_rs, 4);
-   EXPECT_EQ(plan.gemm.a_cs, 1);
+   EXPECT_EQ(plan.core.hints.gemm.a_rs, 4);
+   EXPECT_EQ(plan.core.hints.gemm.a_cs, 1);
 
-   EXPECT_EQ(plan.gemm.b_rs, 3);
-   EXPECT_EQ(plan.gemm.b_cs, 1);
+   EXPECT_EQ(plan.core.hints.gemm.b_rs, 3);
+   EXPECT_EQ(plan.core.hints.gemm.b_cs, 1);
 }
 
 TEST(TensorPlanContractionTest,

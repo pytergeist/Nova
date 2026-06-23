@@ -12,14 +12,14 @@
 
 TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
    AlignedPlan plan{};
-   plan.num_operands = 3;
-   plan.out_ndim = 0;
-   plan.itemsize = sizeof(float);
+   plan.core.num_operands = 3;
+   plan.core.out_ndim = 0;
+   plan.core.itemsize = sizeof(float);
 
-   plan.op_access.resize(3);
-   plan.op_access[0].access = AccessKind::Affine;
-   plan.op_access[1].access = AccessKind::Affine;
-   plan.op_access[2].access = AccessKind::Affine;
+   plan.core.op_access.resize(3);
+   plan.core.op_access[0].access = AccessKind::Affine;
+   plan.core.op_access[1].access = AccessKind::Affine;
+   plan.core.op_access[2].access = AccessKind::Affine;
 
    float out = 0.0;
    float a = 1.0;
@@ -49,17 +49,17 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 TEST(TensorIterTest,
      for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
    AlignedPlan plan{};
-   plan.num_operands = 3;
-   plan.out_ndim = 2;
-   plan.itemsize = sizeof(float);
+   plan.core.num_operands = 3;
+   plan.core.out_ndim = 2;
+   plan.core.itemsize = sizeof(float);
 
-   plan.loop = {
+   plan.core.loop = {
        LoopDim{.size = 2, .kind = IndexKind::Independent},
        LoopDim{.size = 3, .kind = IndexKind::Independent},
    };
 
-   plan.op_access.resize(3);
-   for (auto &access : plan.op_access) {
+   plan.core.op_access.resize(3);
+   for (auto &access : plan.core.op_access) {
       access.access = AccessKind::Affine;
       access.affine.byte_stride_per_loop = {
           static_cast<std::int64_t>(3 * sizeof(float)),
