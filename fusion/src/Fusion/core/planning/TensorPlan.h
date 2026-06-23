@@ -6,20 +6,24 @@
 #include <vector>
 
 #include "Fusion/core/fuir/IR.h"
+#include "Fusion/core/topology/TopologyView.h"
 
-/// The execution plan for an Aligned expression
-struct AlignedPlan {
-   static constexpr std::string_view name = "Aligned Plan";
-   std::size_t num_operands;
-   std::size_t out_ndim;
-   std::vector<std::size_t> out_shape;
-   std::vector<LoopDim> loop;
-   std::vector<OperandAccess> op_access;
+enum class ExprKind : std::uint8_t {
+   Aligned,
+   Reduction,
+   Contraction,
+   Indexed,
+};
 
-   bool all_contiguous_like{false};
-   std::size_t vector_bytes{0};
+enum class TraversalKind : std::uint8_t {
+   Dense,
+   Topology,
+};
 
-   std::size_t itemsize;
+enum class TopologyFormat : std::uint8_t {
+   EdgeList,
+   CRS,
+   BlockedCRS,
 };
 
 struct GemmLikeDesc {
@@ -37,24 +41,20 @@ struct GemmLikeDesc {
    bool b_is_contig_kn{false};
 };
 
-struct ReductionPlan {
-   static constexpr std::string_view name = "Reduction Plan";
-   std::size_t num_operands;
-   std::size_t out_ndim;
-   std::vector<std::size_t> out_shape;
-   std::size_t reduction_axis;
-   std::vector<LoopDim> loop;
-   std::vector<OperandAccess> op_access;
-
-   bool keep_dim{false};
-   bool all_contiguous_like{false}; // curr not used - evaluate
+struct KernelHints {
+   bool all_contiguous_like{false};
    std::size_t vector_bytes{0};
 
-   std::size_t itemsize;
+   bool gemm_like{false};
+   GemmLikeDesc gemm{};
 };
 
-struct ContractionPlan {
-   static constexpr std::string_view name = "Contraction Plan";
+struct PlanCore {
+   static constexpr std::string_view name = "Plan Core";
+   ExprKind expr;
+   TraversalKind traversal;
+
+   std::size_t itemsize{0};
    std::size_t num_operands{0};
    std::size_t out_ndim{0};
    std::vector<std::size_t> out_shape;
@@ -62,10 +62,34 @@ struct ContractionPlan {
    std::vector<LoopDim> loop;
    std::vector<OperandAccess> op_access;
 
-   bool gemm_like{false};
-   GemmLikeDesc gemm;
+   KernelHints hints;
+};
 
-   std::size_t itemsize{0};
+/// The execution plan for an Aligned expression
+struct AlignedPlan {
+   static constexpr std::string_view name = "Aligned Plan";
+   PlanCore core;
+};
+
+
+struct ReductionPlan {
+   static constexpr std::string_view name = "Reduction Plan";
+   PlanCore core;
+
+   std::size_t reduction_axis{0};
+   bool keep_dim{false};
+};
+
+struct ContractionPlan {
+   static constexpr std::string_view name = "Contraction Plan";
+   PlanCore core;
+};
+
+struct IndexedPlan {
+   static constexpr std::string_view name = "Indexed Plan";
+   PlanCore core;
+
+   BlockedTopologyView topology;
 };
 
 AlignedPlan make_aligned_plan(const std::vector<OperandDescription> &descs);
@@ -80,5 +104,11 @@ make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
 ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
                                  const OperandLabelBinding &binding);
+
+IndexedPlan make_indexed_plan(
+    const std::vector<OperandDescription> &descs, BlockedCRS &bcrs,
+    EdgeList &edges);
+
+KernelHints make_kernel_hints(const std::vector<OperandDescription> &descs);
 
 #endif // FUSION_CORE_PLANNING_TENSOR_PLAN_H

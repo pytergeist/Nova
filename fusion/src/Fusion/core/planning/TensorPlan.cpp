@@ -7,6 +7,15 @@
 
 #include "TensorPlan.h"
 
+KernelHints make_kernel_hints(const std::vector<OperandDescription> &descs) {
+   KernelHints hints;
+   hints.all_contiguous_like =
+    std::ranges::all_of(descs, [](const OperandDescription &desc) {
+       return desc.layout == LayoutKind::Dense;
+    });
+   return hints;
+}
+
 AlignedPlan
 make_aligned_plan(const std::vector<OperandDescription> &descs) {
 
@@ -14,7 +23,7 @@ make_aligned_plan(const std::vector<OperandDescription> &descs) {
        ItemSizeGroupConstraint::HomogeneousItemSize;
    IndexSpaceIR ir = build_aligned_ir_right_aligned(descs, constraint);
 
-   AlignedPlan plan;
+   PlanCore plan;
    plan.num_operands = ir.num_operands;
    plan.itemsize = ir.itemsize;
 
@@ -30,12 +39,11 @@ make_aligned_plan(const std::vector<OperandDescription> &descs) {
    plan.loop = lower_to_loops(ir, descs, loop_order);
    plan.op_access = lower_operand_access(ir, descs, loop_order);
 
-   plan.all_contiguous_like =
-       std::ranges::all_of(descs, [](const OperandDescription &desc) {
-          return desc.layout == LayoutKind::Dense;
-       });
+   plan.hints = make_kernel_hints(descs);
+   AlignedPlan aligned_plan;
+   aligned_plan.core = plan;
 
-   return plan;
+   return aligned_plan;
 }
 
 ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
@@ -52,11 +60,9 @@ ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
 
    IndexSpaceIR ir = build_reduction_ir(descs, ax, keepdim, constraint);
 
-   ReductionPlan plan;
+   PlanCore plan;
    plan.num_operands = descs.size();
    plan.itemsize = ir.itemsize;
-   plan.keep_dim = keepdim;
-   plan.reduction_axis = ax;
 
    plan.out_ndim = descs[0].ndims();
    plan.out_shape = descs[0].shape;
@@ -72,7 +78,12 @@ ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
    plan.loop = lower_to_loops(ir, descs, loop_order);
    plan.op_access = lower_operand_access(ir, descs, loop_order);
 
-   return plan;
+   ReductionPlan reduction_plan;
+   reduction_plan.core = plan;
+   reduction_plan.keep_dim = keepdim;
+   reduction_plan.reduction_axis = ax;
+
+   return reduction_plan;
 }
 
 ContractionPlan
@@ -110,26 +121,29 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    loop_order.insert(loop_order.end(), reduce_order.begin(),
                      reduce_order.end());
 
-   ContractionPlan plan;
-   plan.num_operands = descs.size();
-   plan.itemsize = ir.itemsize;
+   PlanCore plan_core;
+   plan_core.num_operands = descs.size();
+   plan_core.itemsize = ir.itemsize;
 
-   plan.out_ndim = descs[0].ndims();
-   plan.out_shape = descs[0].shape;
+   plan_core.out_ndim = descs[0].ndims();
+   plan_core.out_shape = descs[0].shape;
 
    const std::vector<IndexRole> role_of_id =
        compute_roles_for_gemm_like(ir, binding);
-   plan.loop = lower_to_loops(ir, descs, loop_order, &role_of_id);
-   plan.op_access = lower_operand_access(
+   plan_core.loop = lower_to_loops(ir, descs, loop_order, &role_of_id);
+   plan_core.op_access = lower_operand_access(
        ir, descs, loop_order); // TODO: add role to operand access??
 
-   plan.gemm_like = true;
-   plan.gemm = GemmLikeDesc{};
+   plan_core.hints.gemm_like = true;
+   plan_core.hints.gemm = GemmLikeDesc{};
+
+   ContractionPlan plan;
+   plan.core = plan_core;
 
    std::size_t batch = 1, M = 1, N = 1, K = 1;
    int m_count = 0, n_count = 0, k_count = 0;
 
-   for (const auto &ld : plan.loop) {
+   for (const auto &ld : plan.core.loop) {
       switch (ld.role) {
       case IndexRole::Batch:
          batch *= ld.size;
@@ -150,30 +164,30 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    }
 
    if (!(m_count == 1 && n_count == 1 && k_count == 1)) {
-      plan.gemm_like = false;
+      plan.core.hints.gemm_like = false;
       return plan;
    }
 
-   plan.gemm.batch = batch;
-   plan.gemm.M = M;
-   plan.gemm.N = N;
-   plan.gemm.K = K;
+   plan.core.hints.gemm.batch = batch;
+   plan.core.hints.gemm.M = M;
+   plan.core.hints.gemm.N = N;
+   plan.core.hints.gemm.K = K;
 
-   const std::int64_t item = static_cast<std::int64_t>(plan.itemsize);
+   const std::int64_t item = static_cast<std::int64_t>(plan.core.itemsize);
 
    std::int64_t out_m = 0, out_n = 0;
    std::int64_t a_m = 0, a_k = 0;
    std::int64_t b_k = 0, b_n = 0;
 
    std::vector<std::int64_t> out_access =
-       plan.op_access[0].affine.byte_stride_per_loop;
+       plan.core.op_access[0].affine.byte_stride_per_loop;
    std::vector<std::int64_t> a_access =
-       plan.op_access[1].affine.byte_stride_per_loop;
+       plan.core.op_access[1].affine.byte_stride_per_loop;
    std::vector<std::int64_t> b_access =
-       plan.op_access[2].affine.byte_stride_per_loop;
+       plan.core.op_access[2].affine.byte_stride_per_loop;
 
-   for (std::size_t pos = 0; pos < plan.loop.size(); ++pos) {
-      const LoopDim &ld = plan.loop[pos];
+   for (std::size_t pos = 0; pos < plan.core.loop.size(); ++pos) {
+      const LoopDim &ld = plan.core.loop[pos];
       if (ld.role == IndexRole::M) {
          out_m = out_access[pos] / item;
          a_m = a_access[pos] / item;
@@ -186,18 +200,18 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
       }
    }
 
-   plan.gemm.out_rs = out_m;
-   plan.gemm.out_cs = out_n;
+   plan.core.hints.gemm.out_rs = out_m;
+   plan.core.hints.gemm.out_cs = out_n;
 
-   plan.gemm.a_rs = a_m;
-   plan.gemm.a_cs = a_k;
+   plan.core.hints.gemm.a_rs = a_m;
+   plan.core.hints.gemm.a_cs = a_k;
 
-   plan.gemm.b_rs = b_k;
-   plan.gemm.b_cs = b_n;
+   plan.core.hints.gemm.b_rs = b_k;
+   plan.core.hints.gemm.b_cs = b_n;
 
-   if (plan.gemm.out_rs == 0 || plan.gemm.out_cs == 0 || plan.gemm.a_rs == 0 ||
-       plan.gemm.a_cs == 0 || plan.gemm.b_rs == 0 || plan.gemm.b_cs == 0) {
-      plan.gemm_like = false;
+   if (plan.core.hints.gemm.out_rs == 0 || plan.core.hints.gemm.out_cs == 0 || plan.core.hints.gemm.a_rs == 0 ||
+       plan.core.hints.gemm.a_cs == 0 || plan.core.hints.gemm.b_rs == 0 || plan.core.hints.gemm.b_cs == 0) {
+      plan.core.hints.gemm_like = false;
       return plan;
    }
 

@@ -157,7 +157,7 @@ BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A, const DenseTensor<T> &
 
    AlignedPlan plan_in = make_aligned_plan({dA, dB});
 
-   meta.out_shape.assign(plan_in.out_shape.begin(), plan_in.out_shape.end());
+   meta.out_shape.assign(plan_in.core.out_shape.begin(), plan_in.core.out_shape.end());
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
 
    meta.dOut.update = UpdateKind::Overwrite;
@@ -169,7 +169,7 @@ BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A, const DenseTensor<T> &
    bool const broadcastLHS{meta.dA.shape != meta.dOut.shape};
 
    // TODO: evaulate this impl - difficult for others to read
-   meta.exec = meta.plan.all_contiguous_like
+   meta.exec = meta.plan.core.hints.all_contiguous_like
                    ? (broadcastLHS ? BinaryExecKind::FlatContiguousBroadcastLHS
                                    : BinaryExecKind::FlatContiguousBroadcastRHS)
                    : BinaryExecKind::GenericStrided;
@@ -193,7 +193,7 @@ template <typename T> UnaryEwiseMeta make_unary_meta(const DenseTensor<T> &A) {
    AlignedPlan plan_in = make_aligned_plan({dA});
 
    meta.fastpath = false;
-   meta.out_shape.assign(plan_in.out_shape.begin(), plan_in.out_shape.end());
+   meta.out_shape.assign(plan_in.core.out_shape.begin(), plan_in.core.out_shape.end());
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
    meta.dOut.update = UpdateKind::Overwrite;
    meta.dA = std::move(dA);
