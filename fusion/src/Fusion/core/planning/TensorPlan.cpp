@@ -24,6 +24,8 @@ make_aligned_plan(const std::vector<OperandDescription> &descs) {
    IndexSpaceIR ir = build_aligned_ir_right_aligned(descs, constraint);
 
    PlanCore plan;
+   plan.expr = ExprKind::Aligned;
+   plan.traversal = TraversalKind::Dense;
    plan.num_operands = ir.num_operands;
    plan.itemsize = ir.itemsize;
 
@@ -61,6 +63,8 @@ ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
    IndexSpaceIR ir = build_reduction_ir(descs, ax, keepdim, constraint);
 
    PlanCore plan;
+   plan.expr = ExprKind::Reduction;
+   plan.traversal = TraversalKind::Dense;
    plan.num_operands = descs.size();
    plan.itemsize = ir.itemsize;
 
@@ -122,6 +126,8 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
                      reduce_order.end());
 
    PlanCore plan_core;
+   plan_core.expr = ExprKind::Aligned;
+   plan_core.traversal = TraversalKind::Dense;
    plan_core.num_operands = descs.size();
    plan_core.itemsize = ir.itemsize;
 
