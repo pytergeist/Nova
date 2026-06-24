@@ -24,7 +24,7 @@ enum class BinaryExecKind : std::uint8_t {
 struct BinaryEwiseMeta {
    std::vector<std::size_t> out_shape;
    std::size_t fast_len;
-   AlignedPlan plan;
+   ElementWisePlan plan;
    OperandDescription dA, dB, dOut;
    BinaryExecKind exec{BinaryExecKind::GenericStrided};
 };
@@ -33,7 +33,7 @@ struct UnaryEwiseMeta {
    bool fastpath;
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
-   AlignedPlan plan;
+   ElementWisePlan plan;
    OperandDescription dA, dOut;
 };
 
@@ -155,7 +155,7 @@ BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A, const DenseTensor<T> &
    dA.update = UpdateKind::ReadOnly;
    dB.update = UpdateKind::ReadOnly;
 
-   AlignedPlan plan_in = make_aligned_plan({dA, dB});
+   ElementWisePlan plan_in = make_elementwise_plan({dA, dB});
 
    meta.out_shape.assign(plan_in.core.out_shape.begin(), plan_in.core.out_shape.end());
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
@@ -164,7 +164,7 @@ BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A, const DenseTensor<T> &
 
    meta.dA = std::move(dA);
    meta.dB = std::move(dB);
-   meta.plan = make_aligned_plan({meta.dOut, meta.dA, meta.dB});
+   meta.plan = make_elementwise_plan({meta.dOut, meta.dA, meta.dB});
 
    bool const broadcastLHS{meta.dA.shape != meta.dOut.shape};
 
@@ -190,14 +190,14 @@ template <typename T> UnaryEwiseMeta make_unary_meta(const DenseTensor<T> &A) {
    OperandDescription dA = make_desc_from_tensor<T>(A);
    dA.update = UpdateKind::ReadOnly;
 
-   AlignedPlan plan_in = make_aligned_plan({dA});
+   ElementWisePlan plan_in = make_elementwise_plan({dA});
 
    meta.fastpath = false;
    meta.out_shape.assign(plan_in.core.out_shape.begin(), plan_in.core.out_shape.end());
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
    meta.dOut.update = UpdateKind::Overwrite;
    meta.dA = std::move(dA);
-   meta.plan = make_aligned_plan({meta.dOut, meta.dA});
+   meta.plan = make_elementwise_plan({meta.dOut, meta.dA});
    return meta;
 };
 

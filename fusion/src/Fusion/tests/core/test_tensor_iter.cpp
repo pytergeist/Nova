@@ -11,7 +11,7 @@
 #include "Fusion/cpu/simd/SimdTags.hpp"
 
 TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
-   AlignedPlan plan{};
+   ElementWisePlan plan{};
    plan.core.num_operands = 3;
    plan.core.out_ndim = 0;
    plan.core.itemsize = sizeof(float);
@@ -31,7 +31,7 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
    int calls = 0;
 
-   fusion::dense::iter::for_each_outer_then_inner<AlignedPlan, 3>(
+   fusion::dense::iter::for_each_outer_then_inner<ElementWisePlan, 3>(
        plan, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 1);
@@ -48,7 +48,7 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
 TEST(TensorIterTest,
      for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
-   AlignedPlan plan{};
+   ElementWisePlan plan{};
    plan.core.num_operands = 3;
    plan.core.out_ndim = 2;
    plan.core.itemsize = sizeof(float);
@@ -86,7 +86,7 @@ TEST(TensorIterTest,
 
    int calls = 0;
 
-   fusion::dense::iter::for_each_outer_then_inner<AlignedPlan, 3>(
+   fusion::dense::iter::for_each_outer_then_inner<ElementWisePlan, 3>(
        plan, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 3);

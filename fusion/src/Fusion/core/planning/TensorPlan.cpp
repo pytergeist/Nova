@@ -16,15 +16,15 @@ KernelHints make_kernel_hints(const std::vector<OperandDescription> &descs) {
    return hints;
 }
 
-AlignedPlan
-make_aligned_plan(const std::vector<OperandDescription> &descs) {
+ElementWisePlan
+make_elementwise_plan(const std::vector<OperandDescription> &descs) {
 
    constexpr ItemSizeGroupConstraint constraint =
        ItemSizeGroupConstraint::HomogeneousItemSize;
-   IndexSpaceIR ir = build_aligned_ir_right_aligned(descs, constraint);
+   IndexSpaceIR ir = build_elementwise_ir_right_aligned(descs, constraint);
 
    PlanCore plan;
-   plan.expr = ExprKind::Aligned;
+   plan.expr = ExprKind::ElementWise;
    plan.traversal = TraversalKind::Dense;
    plan.num_operands = ir.num_operands;
    plan.itemsize = ir.itemsize;
@@ -42,10 +42,10 @@ make_aligned_plan(const std::vector<OperandDescription> &descs) {
    plan.op_access = lower_operand_access(ir, descs, loop_order);
 
    plan.hints = make_kernel_hints(descs);
-   AlignedPlan aligned_plan;
-   aligned_plan.core = plan;
+   ElementWisePlan ewise_plan;
+   ewise_plan.core = plan;
 
-   return aligned_plan;
+   return ewise_plan;
 }
 
 ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
@@ -126,7 +126,7 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
                      reduce_order.end());
 
    PlanCore plan_core;
-   plan_core.expr = ExprKind::Aligned;
+   plan_core.expr = ExprKind::ElementWise;
    plan_core.traversal = TraversalKind::Dense;
    plan_core.num_operands = descs.size();
    plan_core.itemsize = ir.itemsize;

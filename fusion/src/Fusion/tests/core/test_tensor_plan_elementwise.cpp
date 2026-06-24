@@ -7,7 +7,7 @@
 #include "Fusion/core/planning/TensorPlan.h"
 
 TEST(TensorPlanAlignedTest,
-     make_aligned_plan_single_operand_preserves_shape) {
+     make_elementwise_plan_single_operand_preserves_shape) {
    OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
@@ -19,7 +19,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   AlignedPlan plan = make_aligned_plan({a});
+   ElementWisePlan plan = make_elementwise_plan({a});
 
    EXPECT_EQ(plan.core.num_operands, 1);
    EXPECT_EQ(plan.core.out_ndim, 2);
@@ -40,7 +40,7 @@ TEST(TensorPlanAlignedTest,
 }
 
 TEST(TensorPlanAlignedTest,
-     make_aligned_plan_same_shape_preserves_output_shape) {
+     make_elementwise_plan_same_shape_preserves_output_shape) {
    OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
@@ -72,7 +72,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   AlignedPlan plan = make_aligned_plan({out, a, b});
+   ElementWisePlan plan = make_elementwise_plan({out, a, b});
 
    EXPECT_EQ(plan.core.num_operands, 3);
    EXPECT_EQ(plan.core.out_ndim, 2);
@@ -100,7 +100,7 @@ TEST(TensorPlanAlignedTest,
 }
 
 TEST(TensorPlanAlignedTest,
-     make_aligned_plan_broadcasts_leading_dimension) {
+     make_elementwise_plan_broadcasts_leading_dimension) {
    OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
@@ -132,7 +132,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   AlignedPlan plan = make_aligned_plan({out, a, b});
+   ElementWisePlan plan = make_elementwise_plan({out, a, b});
 
    EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(plan.core.loop.size(), 2);
@@ -157,7 +157,7 @@ TEST(TensorPlanAlignedTest,
 }
 
 TEST(TensorPlanAlignedTest,
-     make_aligned_plan_broadcasts_trailing_dimension) {
+     make_elementwise_plan_broadcasts_trailing_dimension) {
    OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
@@ -189,7 +189,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   AlignedPlan plan = make_aligned_plan({out, a, b});
+   ElementWisePlan plan = make_elementwise_plan({out, a, b});
 
    EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(plan.core.loop.size(), 2);
@@ -214,7 +214,7 @@ TEST(TensorPlanAlignedTest,
 }
 
 TEST(TensorPlanAlignedTest,
-     make_aligned_plan_right_aligns_lower_rank_operand) {
+     make_elementwise_plan_right_aligns_lower_rank_operand) {
    OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
@@ -246,7 +246,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   AlignedPlan plan = make_aligned_plan({out, a, b});
+   ElementWisePlan plan = make_elementwise_plan({out, a, b});
 
    EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(plan.core.loop.size(), 2);
@@ -272,7 +272,7 @@ TEST(TensorPlanAlignedTest,
 }
 
 TEST(TensorPlanAlignedTest,
-     make_aligned_plan_supports_multiple_broadcast_operands) {
+     make_elementwise_plan_supports_multiple_broadcast_operands) {
    OperandDescription out{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
@@ -314,7 +314,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   AlignedPlan plan = make_aligned_plan({out, a, b, c});
+   ElementWisePlan plan = make_elementwise_plan({out, a, b, c});
 
    EXPECT_EQ(plan.core.num_operands, 4);
    EXPECT_EQ(plan.core.out_ndim, 3);
@@ -348,7 +348,7 @@ TEST(TensorPlanAlignedTest,
 }
 
 TEST(TensorPlanAlignedTest,
-     make_aligned_plan_scalar_like_all_ones_shape_broadcasts) {
+     make_elementwise_plan_scalar_like_all_ones_shape_broadcasts) {
    OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
@@ -380,7 +380,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   AlignedPlan plan = make_aligned_plan({out, a, b});
+   ElementWisePlan plan = make_elementwise_plan({out, a, b});
 
    EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(plan.core.loop.size(), 2);
@@ -395,7 +395,7 @@ TEST(TensorPlanAlignedTest,
              (std::vector<std::int64_t>{0, 0}));
 }
 
-TEST(TensorPlanAlignedTest, make_aligned_plan_rejects_mixed_itemsize) {
+TEST(TensorPlanAlignedTest, make_elementwise_plan_rejects_mixed_itemsize) {
    OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
@@ -417,10 +417,10 @@ TEST(TensorPlanAlignedTest, make_aligned_plan_rejects_mixed_itemsize) {
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(make_aligned_plan({a, b}), std::runtime_error);
+   EXPECT_THROW(make_elementwise_plan({a, b}), std::runtime_error);
 }
 
-TEST(TensorPlanAlignedTest, make_aligned_plan_rejects_shape_mismatch) {
+TEST(TensorPlanAlignedTest, make_elementwise_plan_rejects_shape_mismatch) {
    OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
@@ -442,11 +442,11 @@ TEST(TensorPlanAlignedTest, make_aligned_plan_rejects_shape_mismatch) {
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(make_aligned_plan({a, b}), std::runtime_error);
+   EXPECT_THROW(make_elementwise_plan({a, b}), std::runtime_error);
 }
 
 TEST(TensorPlanAlignedTest,
-     make_aligned_plan_rejects_bad_tensor_description_shape_rank_mismatch) {
+     make_elementwise_plan_rejects_bad_tensor_description_shape_rank_mismatch) {
    OperandDescription bad{
        .shape = {2, 3},
        .strides = {1},
@@ -458,9 +458,9 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(make_aligned_plan({bad}), std::runtime_error);
+   EXPECT_THROW(make_elementwise_plan({bad}), std::runtime_error);
 }
 
-TEST(TensorPlanAlignedTest, make_aligned_plan_rejects_empty_operands) {
-   EXPECT_THROW(make_aligned_plan({}), std::runtime_error);
+TEST(TensorPlanAlignedTest, make_elementwise_plan_rejects_empty_operands) {
+   EXPECT_THROW(make_elementwise_plan({}), std::runtime_error);
 }

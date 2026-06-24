@@ -9,7 +9,7 @@
 #include "Fusion/core/topology/TopologyView.h"
 
 enum class ExprKind : std::uint8_t {
-   Aligned,
+   ElementWise,
    Reduction,
    Contraction,
    Indexed,
@@ -65,9 +65,9 @@ struct PlanCore {
    KernelHints hints;
 };
 
-/// The execution plan for an Aligned expression
-struct AlignedPlan {
-   static constexpr std::string_view name = "Aligned Plan";
+/// The execution plan for an ElementWise expression
+struct ElementWisePlan {
+   static constexpr std::string_view name = "ElementWise Plan";
    PlanCore core;
 };
 
@@ -92,7 +92,7 @@ struct IndexedPlan {
    BlockedTopologyView topology;
 };
 
-AlignedPlan make_aligned_plan(const std::vector<OperandDescription> &descs);
+ElementWisePlan make_elementwise_plan(const std::vector<OperandDescription> &descs);
 
 ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &desc,
                                   const std::size_t axis, const bool keepdim);

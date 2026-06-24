@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "Fusion/autodiff/registry/aligned/Add.hpp"
-#include "Fusion/autodiff/registry/aligned/Sqrt.hpp"
 #include "Fusion/autodiff/Node.hpp"
+#include "Fusion/autodiff/registry/elementwise/Add.hpp"
+#include "Fusion/autodiff/registry/elementwise/Sqrt.hpp"
 
 #include "fixtures.h"
 

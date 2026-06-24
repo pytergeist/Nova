@@ -8,16 +8,16 @@
 #include <utility>
 #include <vector>
 
-#include "Fusion/ops/reduction/Reduce.hpp"
 #include "Fusion/alloc/DefaultAllocator.h"
 #include "Fusion/common/Checks.hpp"
 #include "Fusion/core/Dtype.h"
 #include "Fusion/core/Layout.h"
 #include "Fusion/device/Device.h"
-#include "Fusion/ops/aligned/Arithmetic.hpp"
-#include "Fusion/ops/aligned/Comparison.hpp"
-#include "Fusion/ops/aligned/Unary.hpp"
 #include "Fusion/ops/contraction/GeMM.hpp"
+#include "Fusion/ops/elementwise/Arithmetic.hpp"
+#include "Fusion/ops/elementwise/Comparison.hpp"
+#include "Fusion/ops/elementwise/Unary.hpp"
+#include "Fusion/ops/reduction/Reduce.hpp"
 #include "Fusion/storage/DenseStorage.hpp"
 #include "Fusion/storage/StorageInterface.hpp"
 #include "Fusion/storage/TensorView.hpp"
