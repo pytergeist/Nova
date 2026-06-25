@@ -74,7 +74,6 @@ set_target_properties(OpenBLAS::OpenBLAS PROPERTIES
 )
 
 
-
 # ---------- Tests / GoogleTest ----------
 include(CTest)
 if(BUILD_TESTING)
