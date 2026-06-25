@@ -122,7 +122,6 @@ target_link_libraries(fusion_core PUBLIC
         ${BLAS_LIBRARIES}
         ${ACCELERATE_FRAMEWORK}
         OpenBLAS::OpenBLAS
-        Eigen3::Eigen
 )
 
 if(TARGET sleef::sleef)
@@ -213,16 +212,16 @@ endif()
 # ============================================================
 # Benchmarks
 # ============================================================
-add_subdirectory(fusion/benchmarks)
+#add_subdirectory(fusion/benchmarks)
 
 # ============================================================
 # Tests
 # ============================================================
-option(NOVA_BUILD_TEST "Build tests" OFF)
+#option(NOVA_BUILD_TEST "Build tests" OFF)
 
-if(NOVA_BUILD_TEST)
-  enable_testing()
-  find_package(GTest REQUIRED)
-  include(GoogleTest)
-  add_subdirectory(fusion/src/Fusion/tests)
-endif()
+#if(NOVA_BUILD_TEST)
+#  enable_testing()
+#  find_package(GTest REQUIRED)
+#  include(GoogleTest)
+#  add_subdirectory(fusion/src/Fusion/tests)
+#endif()

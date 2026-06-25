@@ -30,7 +30,13 @@ class Tanh:
 
 class LeakyReLU:
     def __init__(self):
-        raise NotImplementedError("LeakyReLU activation function is not implemented.")
+        super().__init__()
+
+    def call(self, inputs: Tensor, **kwargs):
+        return inputs.maximum(0.1 * inputs)
+    
+    def get_config(self):
+        return {}
 
 
 class Softmax:
