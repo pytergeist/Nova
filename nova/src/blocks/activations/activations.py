@@ -6,11 +6,15 @@ class ReLU(Block):
     def __init__(self):
         super().__init__()
 
-    def call(self, inputs: Tensor, **kwargs):
+    def call(self, inputs: Tensor, *args, **kwargs):
         return inputs.maximum(0)
 
     def get_config(self):
         return {}
+    
+    @classmethod
+    def name(cls) -> str:
+        return cls.lower_case(cls.__name__)
 
 
 class GeLU:
@@ -28,15 +32,19 @@ class Tanh:
         raise NotImplementedError("Tanh activation function is not implemented.")
 
 
-class LeakyReLU:
+class LeakyReLU(Block):
     def __init__(self):
         super().__init__()
 
-    def call(self, inputs: Tensor, **kwargs):
-        return inputs.maximum(0.1 * inputs)
+    def call(self, inputs: Tensor, alpha: float, **kwargs):
+        return inputs.maximum(inputs * alpha)
     
     def get_config(self):
         return {}
+    
+    @classmethod
+    def name(cls) -> str:
+        return "leaky_relu"
 
 
 class Softmax:

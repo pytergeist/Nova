@@ -5,7 +5,8 @@ import pytest
 from nova.src.backend.core import Tensor
 from nova.src.backend.topology.builder import Builder
 from nova.src.blocks import Block, activations
-from nova.src.blocks.activations.activations import ReLU
+from nova.src.blocks.activations.activations import ReLU, LeakyReLU
+import numpy as np
 
 
 class MockActivation(Block):
@@ -21,6 +22,7 @@ class MockActivation(Block):
     "name, expected",
     [
         ("ReLU", "relu"),
+        ("LeakyReLU", "leakyrelu"),
     ],
 )
 def test_name_lower_case(name, expected):
@@ -28,13 +30,14 @@ def test_name_lower_case(name, expected):
 
 
 def test_name_method_returns_snake_case_class_name():
-    assert MockActivation.name() == "mockactivation"
+    assert MockActivation.name() == "mock_activation"
 
 
 @pytest.mark.parametrize(
     "name, expected",
     [
         ("relu", ReLU),
+        ("leaky_relu", LeakyReLU),
     ],
 )
 def test_activations_module_str_get_method(name, expected):
@@ -53,16 +56,24 @@ def test_from_config_method_returns_instance_of_activation():
 
 
 @pytest.mark.parametrize(
-    "activation_fn, data, expected",
+    "activation_fn, data, expected, alpha",
     [
-        ("relu", Tensor([1.0, 1.0]), [1, 1]),
-        ("relu", Tensor([-1.0, 1.0]), [0, 1]),
+        ("relu", Tensor([1.0, 1.0]), [1, 1], 0),
+        ("relu", Tensor([-1.0, 1.0]), [0, 1], 0),
+        ("leaky_relu", Tensor([1.0, 1.0]), [1, 1], 0.1),
+        ("leaky_relu", Tensor([-1.0, 1.0]), [-0.1, 1], 0.1),
+        ("leaky_relu", Tensor([-1.0, 1.0]), [-0.5, 1], 0.5),
     ],
 )
-def test_relu_call_method(activation_fn, data, expected):
+def test_call_method(activation_fn, data, expected, alpha):
     with Builder():
         activation = activations.get(activation_fn)
-        assert all(activation.call(data).to_numpy() == expected)
+        assert np.allclose(
+            activation.call(data, alpha).to_numpy(),
+            expected,
+            rtol=1e-6,
+            atol=1e-6,
+        )
 
 
 if __name__ == "__main__":
