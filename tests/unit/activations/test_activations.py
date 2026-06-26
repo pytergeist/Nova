@@ -1,12 +1,12 @@
 from typing import Any, Dict, Optional, Tuple
 
+import numpy as np
 import pytest
 
 from nova.src.backend.core import Tensor
 from nova.src.backend.topology.builder import Builder
 from nova.src.blocks import Block, activations
-from nova.src.blocks.activations.activations import ReLU, LeakyReLU
-import numpy as np
+from nova.src.blocks.activations.activations import LeakyReLU, ReLU
 
 
 class MockActivation(Block):

@@ -1,15 +1,11 @@
 from typing import TYPE_CHECKING
 
-from .activations import ReLU, LeakyReLU
+from .activations import LeakyReLU, ReLU
 
 if TYPE_CHECKING:
     from nova.src.blocks import Block
 
-_OBJECTS = [
-    ReLU,
-    LeakyReLU
-]
-
+_OBJECTS = [ReLU, LeakyReLU]
 _ACTIVATIONS = {cls.name(): cls for cls in _OBJECTS}
 
 
