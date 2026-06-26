@@ -56,7 +56,7 @@ def test_from_config_method_returns_instance_of_activation():
 
 
 @pytest.mark.parametrize(
-    "activation_fn, data, expected, alpha",
+    "activation_fn, data, expected, negative_slope",
     [
         ("relu", Tensor([1.0, 1.0]), [1, 1], 0),
         ("relu", Tensor([-1.0, 1.0]), [0, 1], 0),
@@ -65,11 +65,11 @@ def test_from_config_method_returns_instance_of_activation():
         ("leaky_relu", Tensor([-1.0, 1.0]), [-0.5, 1], 0.5),
     ],
 )
-def test_call_method(activation_fn, data, expected, alpha):
+def test_call_method(activation_fn, data, expected, negative_slope):
     with Builder():
         activation = activations.get(activation_fn)
         assert np.allclose(
-            activation.call(data, alpha).to_numpy(),
+            activation.call(data, alpha=negative_slope).to_numpy(),
             expected,
             rtol=1e-6,
             atol=1e-6,

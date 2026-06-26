@@ -6,7 +6,7 @@ class ReLU(Block):
     def __init__(self):
         super().__init__()
 
-    def call(self, inputs: Tensor, *args, **kwargs):
+    def call(self, inputs: Tensor, **kwargs):
         return inputs.maximum(0)
 
     def get_config(self):
@@ -36,7 +36,7 @@ class LeakyReLU(Block):
     def __init__(self):
         super().__init__()
 
-    def call(self, inputs: Tensor, alpha: float, **kwargs):
+    def call(self, inputs: Tensor, alpha: float = 0.1, **kwargs):
         return inputs.maximum(inputs * alpha)
     
     def get_config(self):
