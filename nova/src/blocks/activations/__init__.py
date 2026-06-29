@@ -1,12 +1,13 @@
 from typing import TYPE_CHECKING
 
-from .activations import ReLU
+from .activations import ReLU, Sigmoid
 
 if TYPE_CHECKING:
     from nova.src.blocks import Block
 
 _OBJECTS = [
     ReLU,
+    Sigmoid,
 ]
 
 _ACTIVATIONS = {cls.name(): cls for cls in _OBJECTS}

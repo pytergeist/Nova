@@ -5,7 +5,7 @@ import pytest
 from nova.src.backend.core import Tensor
 from nova.src.backend.topology.builder import Builder
 from nova.src.blocks import Block, activations
-from nova.src.blocks.activations.activations import ReLU
+from nova.src.blocks.activations.activations import ReLU, Sigmoid
 
 
 class MockActivation(Block):
@@ -19,9 +19,7 @@ class MockActivation(Block):
 
 @pytest.mark.parametrize(
     "name, expected",
-    [
-        ("ReLU", "relu"),
-    ],
+    [("ReLU", "relu"), ("Sigmoid", "sigmoid")],
 )
 def test_name_lower_case(name, expected):
     assert MockActivation.lower_case(name) == expected
@@ -33,9 +31,7 @@ def test_name_method_returns_snake_case_class_name():
 
 @pytest.mark.parametrize(
     "name, expected",
-    [
-        ("relu", ReLU),
-    ],
+    [("relu", ReLU), ("sigmoid", Sigmoid)],
 )
 def test_activations_module_str_get_method(name, expected):
     with Builder():  # TODO: change | temporary test fix for builder context
@@ -57,6 +53,8 @@ def test_from_config_method_returns_instance_of_activation():
     [
         ("relu", Tensor([1.0, 1.0]), [1, 1]),
         ("relu", Tensor([-1.0, 1.0]), [0, 1]),
+        ("sigmoid", Tensor([1.0, 1.0]), [0.7310586, 0.7310586]),
+        ("sigmoid", Tensor([-1.0, 1.0]), [0.2689414, 0.7310586]),
     ],
 )
 def test_relu_call_method(activation_fn, data, expected):
