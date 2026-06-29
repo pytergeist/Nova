@@ -53,7 +53,9 @@ class Softmax(Block):
     def __init__(self):
         super().__init__()
 
-    def call(self, inputs: Tensor, **kwargs):
+    def call(
+        self, inputs: Tensor, **kwargs
+    ):  # TODO: implement scaling down of inputs by max input. Requires max function
         exps = inputs.exp()
         return exps / exps.sum()
 
@@ -65,8 +67,8 @@ class Softplus(Block):
     def __init__(self):
         super().__init__()
 
-    def call(self):
-        return
+    def call(self, inputs: Tensor, beta: float = 1.0, **kwargs):
+        return ((inputs * beta).exp() + 1).log() * (1 / beta)
 
     def get_config(self):
         return {}

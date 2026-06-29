@@ -58,22 +58,40 @@ def test_from_config_method_returns_instance_of_activation():
 
 
 @pytest.mark.parametrize(
-    "activation_fn, data, expected, negative_slope",
+    "activation_fn, data, expected, negative_slope, inverse_temperature",
     [
-        ("relu", Tensor([1.0, 1.0]), [1, 1], 0),
-        ("relu", Tensor([-1.0, 1.0]), [0, 1], 0),
-        ("leaky_relu", Tensor([1.0, 1.0]), [1, 1], 0.1),
-        ("leaky_relu", Tensor([-1.0, 1.0]), [-0.1, 1], 0.1),
-        ("leaky_relu", Tensor([-1.0, 1.0]), [-0.5, 1], 0.5),
-        ("softmax", Tensor([2.0, 1.0, 0.0]), [0.66524096, 0.24472847, 0.09003057], 0),
-        ("softmax", Tensor([-1.0, 1.0]), [0.11920293, 0.8807971], 0),
+        ("relu", Tensor([1.0, 1.0]), [1, 1], 0, 0),
+        ("relu", Tensor([-1.0, 1.0]), [0, 1], 0, 0),
+        ("leaky_relu", Tensor([1.0, 1.0]), [1, 1], 0.1, 0),
+        ("leaky_relu", Tensor([-1.0, 1.0]), [-0.1, 1], 0.1, 0),
+        ("leaky_relu", Tensor([-1.0, 1.0]), [-0.5, 1], 0.5, 0),
+        (
+            "softmax",
+            Tensor([2.0, 1.0, 0.0]),
+            [0.66524096, 0.24472847, 0.09003057],
+            0,
+            0,
+        ),
+        (
+            "softmax",
+            Tensor([-1.0, 1.0]),
+            [0.11920293, 0.8807971],
+            0,
+            0,
+        ),  # TODO: Add larger input value test when max is implemented
+        ("softplus", Tensor([2.0, 1.0]), [2.126928011, 1.31326168], 0, 1),
+        ("softplus", Tensor([2.0, 1.0]), [2.6265233, 1.948154], 0, 0.5),
     ],
 )
-def test_call_method(activation_fn, data, expected, negative_slope):
+def test_call_method(
+    activation_fn, data, expected, negative_slope, inverse_temperature
+):
     with Builder():
         activation = activations.get(activation_fn)
         assert np.allclose(
-            activation.call(data, alpha=negative_slope).to_numpy(),
+            activation.call(
+                data, alpha=negative_slope, beta=inverse_temperature
+            ).to_numpy(),
             expected,
             rtol=1e-6,
             atol=1e-6,
