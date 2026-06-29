@@ -65,8 +65,8 @@ def test_from_config_method_returns_instance_of_activation():
         ("leaky_relu", Tensor([1.0, 1.0]), [1, 1], 0.1),
         ("leaky_relu", Tensor([-1.0, 1.0]), [-0.1, 1], 0.1),
         ("leaky_relu", Tensor([-1.0, 1.0]), [-0.5, 1], 0.5),
-        ("sigmoid", Tensor([1.0, 1.0]), [0.7310586, 0.7310586]),
-        ("sigmoid", Tensor([-1.0, 1.0]), [0.2689414, 0.7310586]),
+        ("sigmoid", Tensor([1.0, 1.0]), [0.7310586, 0.7310586], 0),
+        ("sigmoid", Tensor([-1.0, 1.0]), [0.2689414, 0.7310586], 0),
     ],
 )
 def test_call_method(activation_fn, data, expected, negative_slope):
