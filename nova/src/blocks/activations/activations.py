@@ -12,6 +12,11 @@ class ReLU(Block):
     def get_config(self):
         return {}
 
+    # Overriding the default CamelCase-to-snake_case conversion, because ReLU would otherwise become "re_l_u"'
+    @classmethod
+    def name(cls) -> str:
+        return cls.lower_case(cls.__name__)
+
 
 class GeLU:
     def __init__(self):
@@ -28,9 +33,20 @@ class Tanh:
         raise NotImplementedError("Tanh activation function is not implemented.")
 
 
-class LeakyReLU:
+class LeakyReLU(Block):
     def __init__(self):
-        raise NotImplementedError("LeakyReLU activation function is not implemented.")
+        super().__init__()
+
+    def call(self, inputs: Tensor, alpha: float = 0.1, **kwargs):
+        return inputs.maximum(inputs * alpha)
+
+    def get_config(self):
+        return {}
+
+    # Overriding the default CamelCase-to-snake_case conversion, because LeakyReLU would otherwise become "leaky_re_l_u"
+    @classmethod
+    def name(cls) -> str:
+        return "leaky_relu"
 
 
 class Softmax:
