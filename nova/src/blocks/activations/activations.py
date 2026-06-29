@@ -49,11 +49,24 @@ class LeakyReLU(Block):
         return "leaky_relu"
 
 
-class Softmax:
+class Softmax(Block):
     def __init__(self):
-        raise NotImplementedError("Softmax activation function is not implemented.")
+        super().__init__()
+
+    def call(self, inputs: Tensor, **kwargs):
+        exps = inputs.exp()
+        return exps / exps.sum()
+
+    def get_config(self):
+        return {}
 
 
-class Softplus:
+class Softplus(Block):
     def __init__(self):
-        raise NotImplementedError("Softplus activation function is not implemented.")
+        super().__init__()
+
+    def call(self):
+        return
+
+    def get_config(self):
+        return {}
