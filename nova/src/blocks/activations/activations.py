@@ -44,8 +44,7 @@ class LeakyReLU(Block):
     def get_config(self):
         return {}
 
-    # Overriding the parent class (Block) with a hard-coding of leaky_relu.
-    # This allows snake-case to be represented as leaky_relu rather than leaky_re_l_u.
+    # Overriding the default CamelCase-to-snake_case conversion, because LeakyReLU would otherwise become "leaky_re_lu"'
     @classmethod
     def name(cls) -> str:
         return "leaky_relu"
