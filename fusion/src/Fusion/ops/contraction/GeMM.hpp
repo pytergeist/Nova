@@ -82,29 +82,30 @@ DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
 
    fusion::dense::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD
 
-                                 >(A, B, meta, out);
+                                        >(A, B, meta, out);
 
    return out;
 }
 
 template <typename T>
-DenseTensor<T> swapaxes(const DenseTensor<T> &x, const int axis1, const int axis2) {
+DenseTensor<T> swapaxes(const DenseTensor<T> &x, const int axis1,
+                        const int axis2) {
    std::vector<size_t> out_shape = x.shape();
    const int nd = static_cast<int>(out_shape.size());
    if (nd < 2) {
       return DenseTensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
-                          x.dtype(), x.device());
+                            x.dtype(), x.device());
    }
    const int naxis1 = serial::normalise_axis(axis1, nd);
    const int naxis2 = serial::normalise_axis(axis2, nd);
    if (naxis1 == naxis2) {
       return DenseTensor<T>(out_shape, std::vector<T>(x.begin(), x.end()),
-                          x.dtype(), x.device());
+                            x.dtype(), x.device());
    }
    std::swap(out_shape[naxis1], out_shape[naxis2]);
    std::vector<T> out = serial::swapaxes<T>(x, x.shape(), naxis1, naxis2);
    return DenseTensor<T>(std::move(out_shape), std::move(out), x.dtype(),
-                       x.device());
+                         x.device());
 }
 
 } // namespace fusion::ops::contraction

@@ -3,12 +3,10 @@
 
 #include <string_view>
 
-#include "Fusion/core/planning/PlanMeta.hpp"
 #include "Fusion/core/iter/TensorIter.hpp"
+#include "Fusion/core/planning/PlanMeta.hpp"
 
 #include "Fusion/ops/Helpers.hpp"
-
-
 
 namespace fusion::ops::aligned {
 
@@ -57,7 +55,8 @@ DenseTensor<T> pow(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    return out;
 }
 
-template <typename T> inline DenseTensor<T> reciprocal(const DenseTensor<T> &x) {
+template <typename T>
+inline DenseTensor<T> reciprocal(const DenseTensor<T> &x) {
    require_ewise_unary_out_of_place<ReciprocalTag>();
    UnaryEwiseMeta meta = make_unary_meta(x);
    DenseTensor<T> out = init_out_from_meta(x, meta);
@@ -83,7 +82,5 @@ inline void sub_inplace(DenseTensor<T> &x, const DenseTensor<T> &y) {
 }
 
 } // namespace fusion::ops::aligned
-
-
 
 #endif // FUSION_OPS_ALIGNED_ARITHMETIC_HPP

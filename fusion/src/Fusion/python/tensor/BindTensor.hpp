@@ -72,8 +72,8 @@ template <typename T> void bind_tensor(py::module_ &m, const char *name) {
                       "prod(shape) must equal data.size()");
                }
 
-               auto value =
-                   ValueT::from_dense(DenseTensor<T>(shape, data, dtype, device));
+               auto value = ValueT::from_dense(
+                   DenseTensor<T>(shape, data, dtype, device));
 
                return PyT(std::move(value), requires_grad);
             }),

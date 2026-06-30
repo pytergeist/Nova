@@ -37,8 +37,8 @@ std::size_t numel_from_shape(const std::vector<std::size_t> &shape) {
 
 template <typename T>
 DenseTensor<T> dense_fill_raw(const std::vector<std::size_t> &shape, T value,
-                            Device device, DType dtype = DType::FLOAT32,
-                            IAllocator *allocator = nullptr) {
+                              Device device, DType dtype = DType::FLOAT32,
+                              IAllocator *allocator = nullptr) {
    const std::size_t n = numel_from_shape<T>(shape);
    std::vector<T> data(n, value);
    return DenseTensor<T>(shape, std::move(data), dtype, device, allocator);
@@ -46,22 +46,22 @@ DenseTensor<T> dense_fill_raw(const std::vector<std::size_t> &shape, T value,
 
 template <typename T>
 DenseTensor<T> dense_zeros_raw(const std::vector<std::size_t> &shape,
-                             Device device, DType dtype = DType::FLOAT32,
-                             IAllocator *allocator = nullptr) {
+                               Device device, DType dtype = DType::FLOAT32,
+                               IAllocator *allocator = nullptr) {
    return dense_fill_raw<T>(shape, T(0), device, dtype, allocator);
 }
 
 template <typename T>
 DenseTensor<T> dense_ones_raw(const std::vector<std::size_t> &shape,
-                            Device device, DType dtype = DType::FLOAT32,
-                            IAllocator *allocator = nullptr) {
+                              Device device, DType dtype = DType::FLOAT32,
+                              IAllocator *allocator = nullptr) {
    return dense_fill_raw<T>(shape, T(1), device, dtype, allocator);
 }
 
 template <typename T>
 DenseTensor<T> dense_empty_raw(const std::vector<std::size_t> &shape,
-                             Device device, DType dtype = DType::FLOAT32,
-                             IAllocator *allocator = nullptr) {
+                               Device device, DType dtype = DType::FLOAT32,
+                               IAllocator *allocator = nullptr) {
    return DenseTensor<T>(shape, dtype, device, allocator);
 }
 
@@ -176,11 +176,13 @@ template <typename T> Tensor<T> ones_like(const Tensor<T> &other) {
 // Explicit dense/raw compatibility helpers
 // -----------------------------------------------------------------------------
 
-template <typename T> DenseTensor<T> zeros_like_raw(const DenseTensor<T> &other) {
+template <typename T>
+DenseTensor<T> zeros_like_raw(const DenseTensor<T> &other) {
    return dense_zeros_raw<T>(other.shape(), other.device(), other.dtype());
 }
 
-template <typename T> DenseTensor<T> ones_like_raw(const DenseTensor<T> &other) {
+template <typename T>
+DenseTensor<T> ones_like_raw(const DenseTensor<T> &other) {
    return dense_ones_raw<T>(other.shape(), other.device(), other.dtype());
 }
 

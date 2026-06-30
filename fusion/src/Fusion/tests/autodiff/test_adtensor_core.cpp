@@ -147,7 +147,7 @@ TEST(ADTensorCoreTest, raw_nonconst_accessor_allows_mutation_via_clear) {
 
    Tensor<float> expected = Tensor<float>::from_dense(
        DenseTensor<float>({2, 3}, std::vector<float>{0, 0, 0, 0, 0, 0},
-                        DType::FLOAT32, Device{DeviceType::CPU, 0}));
+                          DType::FLOAT32, Device{DeviceType::CPU, 0}));
 
    EXPECT_TENSOR_EQ(t.base(), expected);
 }

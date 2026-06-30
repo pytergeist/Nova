@@ -47,7 +47,7 @@ TEST(PlanMetaTest,
 
 TEST(PlanMetaTest, make_desc_from_tensor_copies_shape_and_strides) {
    DenseTensor<float> t({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    OperandDescription desc = make_desc_from_tensor(t);
 
@@ -60,9 +60,9 @@ TEST(PlanMetaTest, make_desc_from_tensor_copies_shape_and_strides) {
 TEST(PlanMetaTest,
      make_binary_meta_uses_fastpath_for_same_shape_contiguous_inputs) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> b({2, 3}, std::vector<float>{6, 5, 4, 3, 2, 1},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    BinaryEwiseMeta meta = make_binary_meta(a, b);
 
@@ -74,9 +74,9 @@ TEST(PlanMetaTest,
 TEST(PlanMetaTest,
      make_binary_meta_builds_broadcast_output_shape_for_broadcast_case) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> b({1, 3}, std::vector<float>{10, 20, 30}, DType::FLOAT32,
-                      Device{DeviceType::CPU, 0});
+                        Device{DeviceType::CPU, 0});
 
    BinaryEwiseMeta meta = make_binary_meta(a, b);
 
@@ -89,7 +89,7 @@ TEST(PlanMetaTest,
 
 TEST(PlanMetaTest, make_unary_meta_uses_fastpath_for_contiguous_input) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
    UnaryEwiseMeta meta = make_unary_meta(a);
 
    EXPECT_TRUE(meta.fastpath);
@@ -100,7 +100,7 @@ TEST(PlanMetaTest, make_unary_meta_uses_fastpath_for_contiguous_input) {
 TEST(PlanMetaTest,
      make_reduction_meta_global_reduce_without_keepdim_uses_fastpath) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, kGlobalReduceAxis, false);
 
@@ -114,7 +114,7 @@ TEST(
     PlanMetaTest,
     make_reduction_meta_axis_reduce_without_keepdim_sets_expected_output_shape) {
    DenseTensor<float> a({2, 3, 4}, std::vector<float>(24, 1), DType::FLOAT32,
-                      Device{DeviceType::CPU, 0});
+                        Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, 1, false);
 
@@ -128,7 +128,7 @@ TEST(
 TEST(PlanMetaTest,
      make_reduction_meta_axis_reduce_with_keepdim_sets_expected_output_shape) {
    DenseTensor<float> a({2, 3, 4}, std::vector<float>(24, 1.0), DType::FLOAT32,
-                      Device{DeviceType::CPU, 0});
+                        Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, 1, true);
 
@@ -141,9 +141,9 @@ TEST(PlanMetaTest,
 
 TEST(PlanMetaTest, make_contraction_meta_einsum_infers_matmul_output_shape) {
    DenseTensor<float> a({2, 4}, std::vector<float>(8, 1.0), DType::FLOAT32,
-                      Device{DeviceType::CPU, 0});
+                        Device{DeviceType::CPU, 0});
    DenseTensor<float> b({4, 3}, std::vector<float>(12, 1.0), DType::FLOAT32,
-                      Device{DeviceType::CPU, 0});
+                        Device{DeviceType::CPU, 0});
 
    OperandLabelBinding binding{
        .op_axis_labels =
@@ -166,9 +166,9 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_infers_matmul_output_shape) {
 
 TEST(PlanMetaTest, make_contraction_meta_einsum_stores_binding) {
    DenseTensor<float> a({2, 4}, std::vector<float>(8, 1.0f), DType::FLOAT32,
-                      Device{DeviceType::CPU, 0});
+                        Device{DeviceType::CPU, 0});
    DenseTensor<float> b({4, 3}, std::vector<float>(12, 1.0f), DType::FLOAT32,
-                      Device{DeviceType::CPU, 0});
+                        Device{DeviceType::CPU, 0});
 
    OperandLabelBinding binding{
        .op_axis_labels =

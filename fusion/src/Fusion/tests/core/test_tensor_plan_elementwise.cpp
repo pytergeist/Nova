@@ -20,23 +20,24 @@ TEST(TensorPlanAlignedTest,
    };
 
    ElementWisePlan plan = make_elementwise_plan({a});
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
 
-   EXPECT_EQ(plan.core.num_operands, 1);
-   EXPECT_EQ(plan.core.out_ndim, 2);
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
+   EXPECT_EQ(plan.exec.core.num_operands, 1);
+   EXPECT_EQ(plan.exec.core.out_ndim, 2);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
 
-   ASSERT_EQ(plan.core.loop.size(), 2);
-   ASSERT_EQ(plan.core.op_access.size(), 1);
+   ASSERT_EQ(dense.loop.size(), 2);
+   ASSERT_EQ(plan.exec.access.operands.size(), 1);
 
-   EXPECT_EQ(plan.core.loop[0].size, 2);
-   EXPECT_EQ(plan.core.loop[0].kind, IndexKind::Independent);
-   EXPECT_EQ(plan.core.op_access[0].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[0].size, 2);
+   EXPECT_EQ(dense.loop[0].kind, IndexKind::Independent);
+   EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.loop[1].size, 3);
-   EXPECT_EQ(plan.core.loop[1].kind, IndexKind::Independent);
+   EXPECT_EQ(dense.loop[1].size, 3);
+   EXPECT_EQ(dense.loop[1].kind, IndexKind::Independent);
 }
 
 TEST(TensorPlanAlignedTest,
@@ -73,27 +74,28 @@ TEST(TensorPlanAlignedTest,
    };
 
    ElementWisePlan plan = make_elementwise_plan({out, a, b});
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
 
-   EXPECT_EQ(plan.core.num_operands, 3);
-   EXPECT_EQ(plan.core.out_ndim, 2);
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
+   EXPECT_EQ(plan.exec.core.num_operands, 3);
+   EXPECT_EQ(plan.exec.core.out_ndim, 2);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
 
-   ASSERT_EQ(plan.core.loop.size(), 2);
-   ASSERT_EQ(plan.core.op_access.size(), 3);
+   ASSERT_EQ(dense.loop.size(), 2);
+   ASSERT_EQ(plan.exec.access.operands.size(), 3);
 
-   EXPECT_EQ(plan.core.loop[0].size, 2);
-   EXPECT_EQ(plan.core.op_access[0].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[0].size, 2);
+   EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.loop[1].size, 3);
-   EXPECT_EQ(plan.core.op_access[1].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[1].size, 3);
+   EXPECT_EQ(plan.exec.access.operands[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.op_access[2].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[2].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
@@ -133,25 +135,25 @@ TEST(TensorPlanAlignedTest,
    };
 
    ElementWisePlan plan = make_elementwise_plan({out, a, b});
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
+   ASSERT_EQ(dense.loop.size(), 2);
+   ASSERT_EQ(plan.exec.core.num_operands, 3);
+   ASSERT_EQ(plan.exec.access.operands.size(), 3);
 
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
-   ASSERT_EQ(plan.core.loop.size(), 2);
-   ASSERT_EQ(plan.core.num_operands, 3);
-   ASSERT_EQ(plan.core.op_access.size(), 3);
-
-   EXPECT_EQ(plan.core.loop[0].size, 2);
-   EXPECT_EQ(plan.core.op_access[0].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[0].size, 2);
+   EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.loop[1].size, 3);
-   EXPECT_EQ(plan.core.op_access[1].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[1].size, 3);
+   EXPECT_EQ(plan.exec.access.operands[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.op_access[2].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[2].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  0, 1 * static_cast<std::int64_t>(sizeof(float))}));
 }
@@ -190,25 +192,25 @@ TEST(TensorPlanAlignedTest,
    };
 
    ElementWisePlan plan = make_elementwise_plan({out, a, b});
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
+   ASSERT_EQ(dense.loop.size(), 2);
+   ASSERT_EQ(plan.exec.core.num_operands, 3);
+   ASSERT_EQ(plan.exec.access.operands.size(), 3);
 
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
-   ASSERT_EQ(plan.core.loop.size(), 2);
-   ASSERT_EQ(plan.core.num_operands, 3);
-   ASSERT_EQ(plan.core.op_access.size(), 3);
-
-   EXPECT_EQ(plan.core.loop[0].size, 2);
-   EXPECT_EQ(plan.core.op_access[0].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[0].size, 2);
+   EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.loop[1].size, 3);
-   EXPECT_EQ(plan.core.op_access[1].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[1].size, 3);
+   EXPECT_EQ(plan.exec.access.operands[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.op_access[2].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[2].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  1 * static_cast<std::int64_t>(sizeof(float)), 0}));
 }
@@ -247,26 +249,26 @@ TEST(TensorPlanAlignedTest,
    };
 
    ElementWisePlan plan = make_elementwise_plan({out, a, b});
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
+   ASSERT_EQ(dense.loop.size(), 2);
+   ASSERT_EQ(plan.exec.core.num_operands, 3);
+   ASSERT_EQ(plan.exec.access.operands.size(), 3);
 
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
-   ASSERT_EQ(plan.core.loop.size(), 2);
-   ASSERT_EQ(plan.core.num_operands, 3);
-   ASSERT_EQ(plan.core.op_access.size(), 3);
-
-   EXPECT_EQ(plan.core.loop[0].size, 2);
-   EXPECT_EQ(plan.core.op_access[0].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[0].size, 2);
+   EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float)),
              }));
 
-   EXPECT_EQ(plan.core.loop[1].size, 3);
-   EXPECT_EQ(plan.core.op_access[1].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[1].size, 3);
+   EXPECT_EQ(plan.exec.access.operands[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.op_access[2].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[2].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  0, 1 * static_cast<std::int64_t>(sizeof(float))}));
 }
@@ -315,34 +317,34 @@ TEST(TensorPlanAlignedTest,
    };
 
    ElementWisePlan plan = make_elementwise_plan({out, a, b, c});
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   EXPECT_EQ(plan.exec.core.num_operands, 4);
+   EXPECT_EQ(plan.exec.core.out_ndim, 3);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3, 4}));
 
-   EXPECT_EQ(plan.core.num_operands, 4);
-   EXPECT_EQ(plan.core.out_ndim, 3);
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3, 4}));
+   ASSERT_EQ(dense.loop.size(), 3);
+   ASSERT_EQ(plan.exec.access.operands.size(), 4);
 
-   ASSERT_EQ(plan.core.loop.size(), 3);
-   ASSERT_EQ(plan.core.op_access.size(), 4);
-
-   EXPECT_EQ(plan.core.loop[0].size, 2);
-   EXPECT_EQ(plan.core.op_access[0].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[0].size, 2);
+   EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  12 * static_cast<std::int64_t>(sizeof(float)),
                  4 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.loop[1].size, 3);
-   EXPECT_EQ(plan.core.op_access[1].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[1].size, 3);
+   EXPECT_EQ(plan.exec.access.operands[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  12 * static_cast<std::int64_t>(sizeof(float)),
                  4 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
-   EXPECT_EQ(plan.core.loop[2].size, 4);
-   EXPECT_EQ(plan.core.op_access[2].affine.byte_stride_per_loop,
+   EXPECT_EQ(dense.loop[2].size, 4);
+   EXPECT_EQ(plan.exec.access.operands[2].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  0, 1 * static_cast<std::int64_t>(sizeof(float)), 0}));
 
-   EXPECT_EQ(plan.core.op_access[3].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[3].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  0, 0, 1 * static_cast<std::int64_t>(sizeof(float))}));
 }
@@ -381,17 +383,18 @@ TEST(TensorPlanAlignedTest,
    };
 
    ElementWisePlan plan = make_elementwise_plan({out, a, b});
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
 
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
-   ASSERT_EQ(plan.core.loop.size(), 2);
-   ASSERT_EQ(plan.core.op_access.size(), 3);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
+   ASSERT_EQ(dense.loop.size(), 2);
+   ASSERT_EQ(plan.exec.access.operands.size(), 3);
 
-   EXPECT_EQ(plan.core.op_access[0].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{12, 4}));
-   EXPECT_EQ(plan.core.op_access[1].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{12, 4}));
 
-   EXPECT_EQ(plan.core.op_access[2].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[2].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{0, 0}));
 }
 

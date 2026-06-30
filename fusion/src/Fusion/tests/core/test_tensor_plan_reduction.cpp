@@ -32,12 +32,12 @@ TEST(TensorPlanReductionTest,
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, false);
 
-   EXPECT_EQ(plan.core.num_operands, 2);
-   EXPECT_EQ(plan.core.out_ndim, 2);
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 4}));
+   EXPECT_EQ(plan.exec.core.num_operands, 2);
+   EXPECT_EQ(plan.exec.core.out_ndim, 2);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 4}));
    EXPECT_EQ(plan.reduction_axis, 1);
    EXPECT_FALSE(plan.keep_dim);
-   EXPECT_EQ(plan.core.itemsize, sizeof(float));
+   EXPECT_EQ(plan.exec.core.itemsize, sizeof(float));
 }
 
 TEST(TensorPlanReductionTest,
@@ -66,12 +66,12 @@ TEST(TensorPlanReductionTest,
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, true);
 
-   EXPECT_EQ(plan.core.num_operands, 2);
-   EXPECT_EQ(plan.core.out_ndim, 3);
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 1, 4}));
+   EXPECT_EQ(plan.exec.core.num_operands, 2);
+   EXPECT_EQ(plan.exec.core.out_ndim, 3);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 1, 4}));
    EXPECT_EQ(plan.reduction_axis, 1);
    EXPECT_TRUE(plan.keep_dim);
-   EXPECT_EQ(plan.core.itemsize, sizeof(float));
+   EXPECT_EQ(plan.exec.core.itemsize, sizeof(float));
 }
 
 TEST(TensorPlanReductionTest,
@@ -128,7 +128,7 @@ TEST(TensorPlanReductionTest, make_reduction_plan_normalises_negative_axis) {
        make_reduction_plan({out, in}, static_cast<std::size_t>(-1), false);
 
    EXPECT_EQ(plan.reduction_axis, 2);
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
 }
 
 TEST(TensorPlanReductionTest,
@@ -156,17 +156,17 @@ TEST(TensorPlanReductionTest,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, false);
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   ASSERT_EQ(dense.loop.size(), 3);
 
-   ASSERT_EQ(plan.core.loop.size(), 3);
+   EXPECT_EQ(dense.loop[0].size, 2);
+   EXPECT_EQ(dense.loop[0].kind, IndexKind::Independent);
 
-   EXPECT_EQ(plan.core.loop[0].size, 2);
-   EXPECT_EQ(plan.core.loop[0].kind, IndexKind::Independent);
+   EXPECT_EQ(dense.loop[1].size, 4);
+   EXPECT_EQ(dense.loop[1].kind, IndexKind::Independent);
 
-   EXPECT_EQ(plan.core.loop[1].size, 4);
-   EXPECT_EQ(plan.core.loop[1].kind, IndexKind::Independent);
-
-   EXPECT_EQ(plan.core.loop[2].size, 3);
-   EXPECT_EQ(plan.core.loop[2].kind, IndexKind::Reduction);
+   EXPECT_EQ(dense.loop[2].size, 3);
+   EXPECT_EQ(dense.loop[2].kind, IndexKind::Reduction);
 }
 
 TEST(TensorPlanReductionTest,
@@ -194,16 +194,16 @@ TEST(TensorPlanReductionTest,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, false);
-
-   ASSERT_EQ(plan.core.loop.size(), 3);
-   ASSERT_EQ(plan.core.op_access.size(), 2);
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   ASSERT_EQ(dense.loop.size(), 3);
+   ASSERT_EQ(plan.exec.access.operands.size(), 2);
 
    const std::size_t item = static_cast<std::int64_t>(sizeof(float));
 
-   EXPECT_EQ(plan.core.op_access[0].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{4 * item, 1 * item, 0}));
 
-   EXPECT_EQ(plan.core.op_access[1].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{12 * item, 1 * item, 4 * item}));
 }
 
@@ -232,15 +232,15 @@ TEST(TensorPlanReductionTest,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 1, true);
-
-   ASSERT_EQ(plan.core.loop.size(), 3);
-   ASSERT_EQ(plan.core.op_access.size(), 2);
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   ASSERT_EQ(dense.loop.size(), 3);
+   ASSERT_EQ(plan.exec.access.operands.size(), 2);
 
    const std::size_t item = static_cast<std::int64_t>(sizeof(float));
 
-   EXPECT_EQ(plan.core.op_access[0].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{4 * item, 1 * item, 0}));
-   EXPECT_EQ(plan.core.op_access[1].affine.byte_stride_per_loop,
+   EXPECT_EQ(plan.exec.access.operands[1].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{12 * item, 1 * item, 4 * item}));
 }
 
@@ -269,15 +269,16 @@ TEST(TensorPlanReductionTest,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 0, false);
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
 
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{3, 4}));
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{3, 4}));
    EXPECT_EQ(plan.reduction_axis, 0);
 
-   ASSERT_EQ(plan.core.loop.size(), 3);
-   EXPECT_EQ(plan.core.loop[0].size, 3);
-   EXPECT_EQ(plan.core.loop[1].size, 4);
-   EXPECT_EQ(plan.core.loop[2].size, 2);
-   EXPECT_EQ(plan.core.loop[2].kind, IndexKind::Reduction);
+   ASSERT_EQ(dense.loop.size(), 3);
+   EXPECT_EQ(dense.loop[0].size, 3);
+   EXPECT_EQ(dense.loop[1].size, 4);
+   EXPECT_EQ(dense.loop[2].size, 2);
+   EXPECT_EQ(dense.loop[2].kind, IndexKind::Reduction);
 }
 
 TEST(TensorPlanReductionTest,
@@ -305,15 +306,15 @@ TEST(TensorPlanReductionTest,
    };
 
    ReductionPlan plan = make_reduction_plan({out, in}, 2, false);
-
-   EXPECT_EQ(plan.core.out_shape, (std::vector<std::size_t>{2, 3}));
+   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
    EXPECT_EQ(plan.reduction_axis, 2);
 
-   ASSERT_EQ(plan.core.loop.size(), 3);
-   EXPECT_EQ(plan.core.loop[0].size, 2);
-   EXPECT_EQ(plan.core.loop[1].size, 3);
-   EXPECT_EQ(plan.core.loop[2].size, 4);
-   EXPECT_EQ(plan.core.loop[2].kind, IndexKind::Reduction);
+   ASSERT_EQ(dense.loop.size(), 3);
+   EXPECT_EQ(dense.loop[0].size, 2);
+   EXPECT_EQ(dense.loop[1].size, 3);
+   EXPECT_EQ(dense.loop[2].size, 4);
+   EXPECT_EQ(dense.loop[2].kind, IndexKind::Reduction);
 }
 
 TEST(TensorPlanReductionTest, make_reduction_plan_rejects_empty_descs) {

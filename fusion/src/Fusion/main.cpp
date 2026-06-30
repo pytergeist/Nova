@@ -1,9 +1,9 @@
+#include "Fusion/core/tensor/DenseTensor.hpp"
 #include "Fusion/simulation/Potentials/NonBonded.hpp"
 #include "Fusion/simulation/core/Neighbours.hpp"
 #include "Fusion/simulation/core/ParticleState.hpp"
 #include "Fusion/simulation/core/TopoIter.hpp"
 #include "Fusion/simulation/cpu/pairwise/PairwiseTraits.hpp"
-#include "core/tensor/RawTensor.hpp"
 
 #include "Fusion/simulation/autodiff/ADSimulation.hpp"
 #include "Fusion/simulation/core/InteractionIR.h"
@@ -47,39 +47,40 @@ int main() {
    constexpr std::size_t TILE = 4;
 
    // using Layout = ParticlesAoSoA<T, DIM, TILE>;
-   RawTensor<T> X({(std::int64_t)DIM, (std::int64_t)8},
-                  {
-                      // x
-                      0.0f,
-                      1.2f,
-                      0.0f,
-                      1.2f,
-                      0.0f,
-                      1.2f,
-                      0.0f,
-                      1.2f,
-                      // y
-                      0.0f,
-                      0.0f,
-                      1.2f,
-                      1.2f,
-                      0.0f,
-                      0.0f,
-                      1.2f,
-                      1.2f,
-                      // z
-                      0.0f,
-                      0.0f,
-                      0.0f,
-                      0.0f,
-                      1.2f,
-                      1.2f,
-                      1.2f,
-                      1.2f,
-                  },
-                  DType::FLOAT32, Device{DeviceType::CPU, 0});
+   DenseTensor<T> X({(std::int64_t)DIM, (std::int64_t)8},
+                    {
+                        // x
+                        0.0f,
+                        1.2f,
+                        0.0f,
+                        1.2f,
+                        0.0f,
+                        1.2f,
+                        0.0f,
+                        1.2f,
+                        // y
+                        0.0f,
+                        0.0f,
+                        1.2f,
+                        1.2f,
+                        0.0f,
+                        0.0f,
+                        1.2f,
+                        1.2f,
+                        // z
+                        0.0f,
+                        0.0f,
+                        0.0f,
+                        0.0f,
+                        1.2f,
+                        1.2f,
+                        1.2f,
+                        1.2f,
+                    },
+                    DType::FLOAT32, Device{DeviceType::CPU, 0});
    AoSoATensor<T> aosoa{X, static_cast<std::size_t>(4)};
    // aosoa.assign_component_major(X);
+   std::cout << aosoa.base() << std::endl;
 
    using Layout = ParticleField<T>;
 
@@ -113,9 +114,52 @@ int main() {
    NoParams params;
    GatherIndexMeta<T, Layout> meta =
        construct_gather_index_meta<T, Layout>(field, edges);
-   ADTensor<T> x_diff{field.x().raw()};
+   ADTensor<T> x_diff{Tensor<float>::from_aosoa(field.x())};
    ADTensor<T> out = pair_delta3<T, Layout>(x_diff, field, meta, params);
    std::cout << out << std::endl;
+
+   auto &y = out.base().aosoa();
+   const auto &raw = y.base();
+   const auto *ptr = raw.get_ptr();
+
+   // Adjust this if your member name is different.
+   const PairBlockedCRS &crs = meta.plan.topology.crs;
+
+   std::cout << "\n=== pair_delta3 output in BCRS/group order ===\n";
+
+   for (std::size_t ib = 0; ib < field.n_blocks(); ++ib) {
+      const std::uint32_t g0 = crs.ib_ptr[ib];
+      const std::uint32_t g1 = crs.ib_ptr[ib + 1];
+
+      for (std::uint32_t g = g0; g < g1; ++g) {
+         const std::uint32_t jb = crs.jb_idx[g];
+
+         const std::uint32_t k0 = crs.jb_ptr[g];
+         const std::uint32_t k1 = crs.jb_ptr[g + 1];
+
+         std::cout << "group g=" << g << " ib=" << ib << " jb=" << jb << " k=["
+                   << k0 << "," << k1 << ")\n";
+
+         for (std::uint32_t k = k0; k < k1; ++k) {
+            const std::uint32_t il = crs.i_lane[k];
+            const std::uint32_t jl = crs.j_lane[k];
+
+            const std::uint32_t i = static_cast<std::uint32_t>(ib * TILE + il);
+            const std::uint32_t j = static_cast<std::uint32_t>(jb * TILE + jl);
+
+            const std::size_t block = k / TILE;
+            const std::size_t lane = k % TILE;
+
+            const T dx = ptr[block * DIM * TILE + 0 * TILE + lane];
+            const T dy = ptr[block * DIM * TILE + 1 * TILE + lane];
+            const T dz = ptr[block * DIM * TILE + 2 * TILE + lane];
+
+            std::cout << "  k=" << k << " lane=" << lane << " pair " << i
+                      << " -> " << j << " il=" << il << " jl=" << jl
+                      << " delta=(" << dx << ", " << dy << ", " << dz << ")\n";
+         }
+      }
+   }
 
    return 0;
 };

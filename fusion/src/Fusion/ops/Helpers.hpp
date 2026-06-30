@@ -6,8 +6,9 @@
 #include "Fusion/core/opschema/OpTraits.h"
 
 template <typename T>
-DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x, const DenseTensor<T> &y,
-                                const BinaryEwiseMeta &m) {
+DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x,
+                                  const DenseTensor<T> &y,
+                                  const BinaryEwiseMeta &m) {
    FUSION_CHECK(x.dtype() == y.dtype(), "dtypes do not match!");
    FUSION_CHECK(x.device() == y.device(), "devices do not match!");
    return DenseTensor<T>(m.out_shape, x.dtype(), x.device());
@@ -15,18 +16,20 @@ DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x, const DenseTensor<T> 
 
 template <typename T>
 DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x,
-                                const UnaryEwiseMeta &m) {
+                                  const UnaryEwiseMeta &m) {
    return DenseTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 
 template <typename T>
-DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x, const ReductionMeta &m) {
+DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x,
+                                  const ReductionMeta &m) {
    return DenseTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 
 template <typename T>
-DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x, const DenseTensor<T> &y,
-                                const ContractionMeta &m) {
+DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x,
+                                  const DenseTensor<T> &y,
+                                  const ContractionMeta &m) {
    FUSION_CHECK(x.dtype() == y.dtype(), "dtypes do not match!");
    FUSION_CHECK(x.device() == y.device(), "devices do not match!");
    return DenseTensor<T>(m.out_shape, x.dtype(), x.device());

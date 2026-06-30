@@ -76,7 +76,7 @@ inline DenseTensor<float> make_test_raw_tensor(
     std::vector<std::size_t> shape = std::vector<size_t>{2, 3}) {
    std::vector<float> data = generate_random_vector(shape, seed);
    return DenseTensor<float>(shape, data, DType::FLOAT32,
-                           Device{DeviceType::CPU, 0});
+                             Device{DeviceType::CPU, 0});
 }
 
 inline Tensor<float>

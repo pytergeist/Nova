@@ -30,6 +30,6 @@ DenseTensor<T> mean(const DenseTensor<T> &x, const std::size_t axis,
    return out;
 }
 
-} // namespace fusion::ops::contraction
+} // namespace fusion::ops::reduction
 
 #endif // FUSION_OPS_REDUCTION_REDUCE_HPP

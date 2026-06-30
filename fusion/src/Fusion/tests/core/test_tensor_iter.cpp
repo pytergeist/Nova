@@ -12,14 +12,14 @@
 
 TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
    ElementWisePlan plan{};
-   plan.core.num_operands = 3;
-   plan.core.out_ndim = 0;
-   plan.core.itemsize = sizeof(float);
+   plan.exec.core.num_operands = 3;
+   plan.exec.core.out_ndim = 0;
+   plan.exec.core.itemsize = sizeof(float);
 
-   plan.core.op_access.resize(3);
-   plan.core.op_access[0].access = AccessKind::Affine;
-   plan.core.op_access[1].access = AccessKind::Affine;
-   plan.core.op_access[2].access = AccessKind::Affine;
+   plan.exec.access.operands.resize(3);
+   plan.exec.access.operands[0].access = AccessKind::Affine;
+   plan.exec.access.operands[1].access = AccessKind::Affine;
+   plan.exec.access.operands[2].access = AccessKind::Affine;
 
    float out = 0.0;
    float a = 1.0;
@@ -49,17 +49,19 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 TEST(TensorIterTest,
      for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
    ElementWisePlan plan{};
-   plan.core.num_operands = 3;
-   plan.core.out_ndim = 2;
-   plan.core.itemsize = sizeof(float);
+   plan.exec.core.num_operands = 3;
+   plan.exec.core.out_ndim = 2;
+   plan.exec.core.itemsize = sizeof(float);
 
-   plan.core.loop = {
+   DenseTraversalPlan &dense =
+       std::get<DenseTraversalPlan>(plan.exec.traversal);
+   dense.loop = {
        LoopDim{.size = 2, .kind = IndexKind::Independent},
        LoopDim{.size = 3, .kind = IndexKind::Independent},
    };
 
-   plan.core.op_access.resize(3);
-   for (auto &access : plan.core.op_access) {
+   plan.exec.access.operands.resize(3);
+   for (auto &access : plan.exec.access.operands) {
       access.access = AccessKind::Affine;
       access.affine.byte_stride_per_loop = {
           static_cast<std::int64_t>(3 * sizeof(float)),
@@ -104,10 +106,10 @@ TEST(TensorIterTest, tag_fallback_binary_respects_strides) {
    float out[] = {0., 0., 0.};
 
    fusion::dense::iter::tag_fallback_binary<float, AddSIMD>(out, a, b,
-                                                     1, // out stride
-                                                     2, // a stride
-                                                     2, // b stride
-                                                     3  // len
+                                                            1, // out stride
+                                                            2, // a stride
+                                                            2, // b stride
+                                                            3  // len
    );
 
    EXPECT_FLOAT_EQ(out[0], 11.);
@@ -120,9 +122,9 @@ TEST(TensorIterTest, tag_fallback_unary_respects_strides) {
    float out[] = {0., 0., 0.};
 
    fusion::dense::iter::tag_fallback_unary<float, SqrtSIMD>(out, a,
-                                                     1, // out stride
-                                                     2, // a stride
-                                                     3  // len
+                                                            1, // out stride
+                                                            2, // a stride
+                                                            3  // len
    );
    EXPECT_FLOAT_EQ(out[0], 2.);
    EXPECT_FLOAT_EQ(out[1], 3.);
@@ -162,9 +164,9 @@ TEST(TensorIterTest, tag_fallback_contraction_accumulates_products) {
 
 TEST(TensorIterTest, binary_ewise_tag_fastpath_computes_elementwise_add) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> b({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    BinaryEwiseMeta meta = make_binary_meta(a, b);
@@ -183,9 +185,9 @@ TEST(TensorIterTest, binary_ewise_tag_fastpath_computes_elementwise_add) {
 
 TEST(TensorIterTest, binary_ewise_tag_broadcast_path_computes_elementwise_add) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> b({1, 3}, std::vector<float>{1, 2, 3}, DType::FLOAT32,
-                      Device{DeviceType::CPU, 0});
+                        Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    BinaryEwiseMeta meta = make_binary_meta(a, b);
@@ -204,7 +206,7 @@ TEST(TensorIterTest, binary_ewise_tag_broadcast_path_computes_elementwise_add) {
 
 TEST(TensorIterTest, unary_ewise_tag_fastpath_computes_square) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 4, 9, 16, 25, 36},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    UnaryEwiseMeta meta = make_unary_meta(a);
@@ -223,7 +225,7 @@ TEST(TensorIterTest, unary_ewise_tag_fastpath_computes_square) {
 
 TEST(TensorIterTest, reduction_tag_global_fastpath_sums_all_elements) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({1}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, kGlobalReduceAxis, false);
@@ -237,15 +239,15 @@ TEST(TensorIterTest, reduction_tag_global_fastpath_sums_all_elements) {
 
 TEST(TensorIterTest, reduction_tag_axis_path_reduces_requested_axis) {
    DenseTensor<float> a({2, 3},
-                      std::vector<float>{
-                          1,
-                          2,
-                          3,
-                          4,
-                          5,
-                          6,
-                      },
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        std::vector<float>{
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                        },
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    ReductionMeta meta = make_reduction_meta(a, 1, false);
@@ -260,34 +262,34 @@ TEST(TensorIterTest, reduction_tag_axis_path_reduces_requested_axis) {
 
 TEST(TensorIterTest, contraction_tag_computes_matrix_multiplication_result) {
    DenseTensor<float> a({2, 4},
-                      std::vector<float>{
-                          1,
-                          2,
-                          3,
-                          4,
-                          5,
-                          6,
-                          7,
-                          8,
-                      },
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        std::vector<float>{
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            8,
+                        },
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    DenseTensor<float> b({4, 3},
-                      std::vector<float>{
-                          1,
-                          2,
-                          3,
-                          4,
-                          5,
-                          6,
-                          7,
-                          8,
-                          9,
-                          10,
-                          11,
-                          12,
-                      },
-                      DType::FLOAT32, Device{DeviceType::CPU, 0});
+                        std::vector<float>{
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            8,
+                            9,
+                            10,
+                            11,
+                            12,
+                        },
+                        DType::FLOAT32, Device{DeviceType::CPU, 0});
 
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
@@ -302,8 +304,8 @@ TEST(TensorIterTest, contraction_tag_computes_matrix_multiplication_result) {
    };
    ContractionMeta meta = make_contraction_meta_einsum(a, b, binding);
 
-   fusion::dense::iter::contraction_tag<float, MultiplySIMD, MultiplySIMD>(a, b, meta,
-                                                                    out);
+   fusion::dense::iter::contraction_tag<float, MultiplySIMD, MultiplySIMD>(
+       a, b, meta, out);
 
    EXPECT_FLOAT_EQ(out[0], 70.);
    EXPECT_FLOAT_EQ(out[1], 80.);

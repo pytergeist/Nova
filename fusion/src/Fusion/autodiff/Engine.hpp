@@ -146,7 +146,7 @@ template <typename T> class Engine {
 
       std::vector<T> data(src.begin(), src.end());
       return Tensor<T>::from_dense(DenseTensor<T>(src.shape(), std::move(data),
-                                                src.dtype(), src.device()));
+                                                  src.dtype(), src.device()));
    }
 
    Tensor<T> get_grad(ValueID vid) {

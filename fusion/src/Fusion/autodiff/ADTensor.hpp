@@ -8,9 +8,9 @@
 #include "AutodiffContext.hpp"
 #include "AutodiffMode.hpp"
 #include "Dispatch.hpp"
-#include "registry/aligned/Aligned.h"
-#include "registry/aligned/Transcendental.h"
 #include "registry/contraction/Contraction.h"
+#include "registry/elementwise/ElementWise.h"
+#include "registry/elementwise/Transcendental.h"
 #include "registry/reduction/ReductionPolicy.h"
 
 #include "Fusion/ops/OpParams.hpp"
@@ -41,8 +41,8 @@ template <typename T> class ADTensor {
    explicit ADTensor(std::vector<std::size_t> shape, std::vector<T> data,
                      DType dtype, Device device, bool requires_grad = false,
                      IAllocator *allocator = nullptr)
-       : base_(Base::from_dense(DenseTensor<T>(std::move(shape), std::move(data),
-                                             dtype, device, allocator))),
+       : base_(Base::from_dense(DenseTensor<T>(
+             std::move(shape), std::move(data), dtype, device, allocator))),
          requires_grad_(requires_grad) {}
 
    explicit ADTensor(std::vector<std::size_t> shape, DType dtype, Device device,

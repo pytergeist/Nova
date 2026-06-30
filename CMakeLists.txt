@@ -105,6 +105,7 @@ add_library(fusion_core STATIC
         ${FUSION_SRC_DIR}/core/planning/TensorPlan.cpp
         ${FUSION_SRC_DIR}/core/fuir/IR.cpp
         ${FUSION_SRC_DIR}/core/ThreadPool.cpp
+        ${FUSION_SRC_DIR}/core/topology/PairSort.cpp
 )
 
 set_target_properties(fusion_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -154,22 +155,22 @@ target_link_libraries(fusion_autodiff INTERFACE
 )
 
 
-# ------------------------------------------------------------
-# simulation
-# ------------------------------------------------------------
-add_library(fusion_simulation STATIC
-        ${FUSION_SRC_DIR}/simulation/core/NeighbourSort.cpp
-        ${FUSION_SRC_DIR}/simulation/core/InteractionPlan.cpp
-        ${FUSION_SRC_DIR}/simulation/core/InteractionIR.cpp
-
-)
-
-target_include_directories(fusion_simulation PUBLIC ${FUSION_INCLUDE_ROOT})
-target_link_libraries(fusion_simulation PUBLIC
-        fusion_autodiff
-        fusion_ops
-        fusion_core
-)
+## ------------------------------------------------------------
+## simulation
+## ------------------------------------------------------------
+#add_library(fusion_simulation STATIC
+#        ${FUSION_SRC_DIR}/simulation/core/NeighbourSort.cpp
+#        ${FUSION_SRC_DIR}/simulation/core/InteractionPlan.cpp
+#        ${FUSION_SRC_DIR}/simulation/core/InteractionIR.cpp
+#
+#)
+#
+#target_include_directories(fusion_simulation PUBLIC ${FUSION_INCLUDE_ROOT})
+#target_link_libraries(fusion_simulation PUBLIC
+#        fusion_autodiff
+#        fusion_ops
+#        fusion_core
+#)
 
 # ============================================================
 # Python extension
@@ -184,7 +185,7 @@ pybind11_add_module(fusion
 )
 
 target_link_libraries(fusion PRIVATE
-        fusion_simulation
+#        fusion_simulation
         fusion_autodiff
         fusion_ops
         fusion_core
