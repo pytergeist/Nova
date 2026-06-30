@@ -6,7 +6,13 @@ import pytest
 from nova.src.backend.core import Tensor
 from nova.src.backend.topology.builder import Builder
 from nova.src.blocks import Block, activations
-from nova.src.blocks.activations.activations import LeakyReLU, ReLU, Sigmoid
+from nova.src.blocks.activations.activations import (
+    LeakyReLU,
+    ReLU,
+    Sigmoid,
+    Softmax,
+    Softplus,
+)
 
 
 class MockActivation(Block):
@@ -18,11 +24,26 @@ class MockActivation(Block):
         pass
 
 
+def _util_activation_call_test_with_np_allclose(
+    activation_fn, data, expected, rtol=1e-6, atol=1e-6, **kwargs
+):
+    with Builder():
+        activation = activations.get(activation_fn, **kwargs)
+        assert np.allclose(
+            activation.call(data).to_numpy(),
+            expected,
+            rtol=rtol,
+            atol=atol,
+        )
+
+
 @pytest.mark.parametrize(
     "name, expected",
     [
         ("ReLU", "relu"),
         ("LeakyReLU", "leakyrelu"),
+        ("Softmax", "softmax"),
+        ("Softplus", "softplus"),
         ("Sigmoid", "sigmoid"),
     ],
 )
@@ -39,6 +60,8 @@ def test_name_method_returns_snake_case_class_name():
     [
         ("relu", ReLU),
         ("leaky_relu", LeakyReLU),
+        ("softmax", Softmax),
+        ("softplus", Softplus),
         ("sigmoid", Sigmoid),
     ],
 )
@@ -58,10 +81,34 @@ def test_from_config_method_returns_instance_of_activation():
 
 
 @pytest.mark.parametrize(
+    "activation_fn, data, expected",
+    [
+        ("relu", Tensor([1.0, 1.0]), [1, 1]),
+        ("relu", Tensor([-1.0, 1.0]), [0, 1]),
+    ],
+)
+def test_relu_call_method(activation_fn, data, expected):
+    _util_activation_call_test_with_np_allclose(activation_fn, data, expected)
+
+
+@pytest.mark.parametrize(
+    "activation_fn, data, expected",
+    [
+        ("softmax", Tensor([2.0, 1.0, 0.0]), [0.66524096, 0.24472847, 0.09003057]),
+        (
+            "softmax",
+            Tensor([-1.0, 1.0]),
+            [0.11920293, 0.8807971],
+        ),  # TODO: Add larger input value test when max is implemented
+    ],
+)
+def test_softmax_call_method(activation_fn, data, expected):
+    _util_activation_call_test_with_np_allclose(activation_fn, data, expected)
+
+
+@pytest.mark.parametrize(
     "activation_fn, data, expected, negative_slope",
     [
-        ("relu", Tensor([1.0, 1.0]), [1, 1], 0),
-        ("relu", Tensor([-1.0, 1.0]), [0, 1], 0),
         ("leaky_relu", Tensor([1.0, 1.0]), [1, 1], 0.1),
         ("leaky_relu", Tensor([-1.0, 1.0]), [-0.1, 1], 0.1),
         ("leaky_relu", Tensor([-1.0, 1.0]), [-0.5, 1], 0.5),
@@ -69,15 +116,34 @@ def test_from_config_method_returns_instance_of_activation():
         ("sigmoid", Tensor([-1.0, 1.0]), [0.2689414, 0.7310586], 0),
     ],
 )
-def test_call_method(activation_fn, data, expected, negative_slope):
-    with Builder():
-        activation = activations.get(activation_fn)
-        assert np.allclose(
-            activation.call(data, alpha=negative_slope).to_numpy(),
-            expected,
-            rtol=1e-6,
-            atol=1e-6,
-        )
+def test_leaky_relu_call_method(activation_fn, data, expected, negative_slope):
+    _util_activation_call_test_with_np_allclose(
+        activation_fn, data, expected, alpha=negative_slope
+    )
+
+
+@pytest.mark.parametrize(
+    "activation_fn, data, expected",
+    [
+        ("sigmoid", Tensor([1.0, 1.0]), [0.7310586, 0.7310586]),
+        ("sigmoid", Tensor([-1.0, 1.0]), [0.2689414, 0.7310586]),
+    ],
+)
+def test_sigmoid_call_method(activation_fn, data, expected):
+    _util_activation_call_test_with_np_allclose(activation_fn, data, expected)
+
+
+@pytest.mark.parametrize(
+    "activation_fn, data, expected, inverse_temperature",
+    [
+        ("softplus", Tensor([2.0, 1.0]), [2.126928011, 1.31326168], 1),
+        ("softplus", Tensor([2.0, 1.0]), [2.6265233, 1.948154], 0.5),
+    ],
+)
+def test_softplus_call_method(activation_fn, data, expected, inverse_temperature):
+    _util_activation_call_test_with_np_allclose(
+        activation_fn, data, expected, beta=inverse_temperature
+    )
 
 
 if __name__ == "__main__":

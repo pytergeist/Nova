@@ -1,16 +1,16 @@
 from typing import TYPE_CHECKING
 
-from .activations import LeakyReLU, ReLU, Sigmoid
+from .activations import LeakyReLU, ReLU, Sigmoid, Softmax, Softplus
 
 if TYPE_CHECKING:
     from nova.src.blocks import Block
 
-_OBJECTS = [ReLU, LeakyReLU, Sigmoid]
+_OBJECTS = [ReLU, LeakyReLU, Softmax, Softplus, Sigmoid]
 _ACTIVATIONS = {cls.name(): cls for cls in _OBJECTS}
 
 
-def get(name: str) -> "Block":
+def get(name: str, **kwargs) -> "Block":
     cls = _ACTIVATIONS.get(name)
     if cls is None:
         raise ValueError(f"Unknown activation: {name}")
-    return cls()
+    return cls(**kwargs)
