@@ -18,6 +18,17 @@ class MockActivation(Block):
         pass
 
 
+def _util_activation_call_test(activation_fn, data, expected, **kwargs):
+    with Builder():
+        activation = activations.get(activation_fn, **kwargs)
+        assert np.allclose(
+            activation.call(data).to_numpy(),
+            expected,
+            rtol=1e-6,
+            atol=1e-6,
+        )
+
+
 @pytest.mark.parametrize(
     "name, expected",
     [
@@ -64,6 +75,15 @@ def test_from_config_method_returns_instance_of_activation():
     [
         ("relu", Tensor([1.0, 1.0]), [1, 1]),
         ("relu", Tensor([-1.0, 1.0]), [0, 1]),
+    ],
+)
+def test_relu_call_method(activation_fn, data, expected):
+    _util_activation_call_test(activation_fn, data, expected)
+
+
+@pytest.mark.parametrize(
+    "activation_fn, data, expected",
+    [
         ("softmax", Tensor([2.0, 1.0, 0.0]), [0.66524096, 0.24472847, 0.09003057]),
         (
             "softmax",
@@ -72,17 +92,8 @@ def test_from_config_method_returns_instance_of_activation():
         ),  # TODO: Add larger input value test when max is implemented
     ],
 )
-def test_non_paramaterised_activation_function_call_method(
-    activation_fn, data, expected
-):
-    with Builder():
-        activation = activations.get(activation_fn)
-        assert np.allclose(
-            activation.call(data).to_numpy(),
-            expected,
-            rtol=1e-6,
-            atol=1e-6,
-        )
+def test_softmax_call_method(activation_fn, data, expected):
+    _util_activation_call_test(activation_fn, data, expected)
 
 
 @pytest.mark.parametrize(
@@ -93,17 +104,8 @@ def test_non_paramaterised_activation_function_call_method(
         ("leaky_relu", Tensor([-1.0, 1.0]), [-0.5, 1], 0.5),
     ],
 )
-def test_negative_sloped_param_activation_function_call_method(
-    activation_fn, data, expected, negative_slope
-):
-    with Builder():
-        activation = activations.get(activation_fn, alpha=negative_slope)
-        assert np.allclose(
-            activation.call(data).to_numpy(),
-            expected,
-            rtol=1e-6,
-            atol=1e-6,
-        )
+def test_leaky_relu_call_method(activation_fn, data, expected, negative_slope):
+    _util_activation_call_test(activation_fn, data, expected, alpha=negative_slope)
 
 
 @pytest.mark.parametrize(
@@ -113,17 +115,8 @@ def test_negative_sloped_param_activation_function_call_method(
         ("softplus", Tensor([2.0, 1.0]), [2.6265233, 1.948154], 0.5),
     ],
 )
-def test_inverse_temperature_param_activation_function_call_method(
-    activation_fn, data, expected, inverse_temperature
-):
-    with Builder():
-        activation = activations.get(activation_fn, beta=inverse_temperature)
-        assert np.allclose(
-            activation.call(data).to_numpy(),
-            expected,
-            rtol=1e-6,
-            atol=1e-6,
-        )
+def test_softplus_call_method(activation_fn, data, expected, inverse_temperature):
+    _util_activation_call_test(activation_fn, data, expected, beta=inverse_temperature)
 
 
 if __name__ == "__main__":
