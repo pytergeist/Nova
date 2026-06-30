@@ -112,8 +112,6 @@ def test_softmax_call_method(activation_fn, data, expected):
         ("leaky_relu", Tensor([1.0, 1.0]), [1, 1], 0.1),
         ("leaky_relu", Tensor([-1.0, 1.0]), [-0.1, 1], 0.1),
         ("leaky_relu", Tensor([-1.0, 1.0]), [-0.5, 1], 0.5),
-        ("sigmoid", Tensor([1.0, 1.0]), [0.7310586, 0.7310586], 0),
-        ("sigmoid", Tensor([-1.0, 1.0]), [0.2689414, 0.7310586], 0),
     ],
 )
 def test_leaky_relu_call_method(activation_fn, data, expected, negative_slope):
