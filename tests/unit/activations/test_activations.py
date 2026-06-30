@@ -6,7 +6,7 @@ import pytest
 from nova.src.backend.core import Tensor
 from nova.src.backend.topology.builder import Builder
 from nova.src.blocks import Block, activations
-from nova.src.blocks.activations.activations import LeakyReLU, ReLU, Softmax
+from nova.src.blocks.activations.activations import LeakyReLU, ReLU, Softmax, Softplus
 
 
 class MockActivation(Block):
@@ -24,6 +24,7 @@ class MockActivation(Block):
         ("ReLU", "relu"),
         ("LeakyReLU", "leakyrelu"),
         ("Softmax", "softmax"),
+        ("Softplus", "softplus"),
     ],
 )
 def test_name_lower_case(name, expected):
@@ -40,6 +41,7 @@ def test_name_method_returns_snake_case_class_name():
         ("relu", ReLU),
         ("leaky_relu", LeakyReLU),
         ("softmax", Softmax),
+        ("softplus", Softplus),
     ],
 )
 def test_activations_module_str_get_method(name, expected):
