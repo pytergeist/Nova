@@ -72,7 +72,9 @@ def test_from_config_method_returns_instance_of_activation():
         ),  # TODO: Add larger input value test when max is implemented
     ],
 )
-def test_non_paramaterised_call_method(activation_fn, data, expected):
+def test_non_paramaterised_activation_function_call_method(
+    activation_fn, data, expected
+):
     with Builder():
         activation = activations.get(activation_fn)
         assert np.allclose(
@@ -91,7 +93,7 @@ def test_non_paramaterised_call_method(activation_fn, data, expected):
         ("leaky_relu", Tensor([-1.0, 1.0]), [-0.5, 1], 0.5),
     ],
 )
-def test_negative_sloped_param_call_method(
+def test_negative_sloped_param_activation_function_call_method(
     activation_fn, data, expected, negative_slope
 ):
     with Builder():
@@ -111,7 +113,7 @@ def test_negative_sloped_param_call_method(
         ("softplus", Tensor([2.0, 1.0]), [2.6265233, 1.948154], 0.5),
     ],
 )
-def test_inverse_temperature_param_call_method(
+def test_inverse_temperature_param_activation_function_call_method(
     activation_fn, data, expected, inverse_temperature
 ):
     with Builder():
