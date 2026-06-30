@@ -87,11 +87,11 @@ def test_call_method(
     activation_fn, data, expected, negative_slope, inverse_temperature
 ):
     with Builder():
-        activation = activations.get(activation_fn)
+        activation = activations.get(
+            activation_fn, alpha=negative_slope, beta=inverse_temperature
+        )
         assert np.allclose(
-            activation.call(
-                data, alpha=negative_slope, beta=inverse_temperature
-            ).to_numpy(),
+            activation.call(data).to_numpy(),
             expected,
             rtol=1e-6,
             atol=1e-6,
