@@ -10,6 +10,8 @@
 #include "Fusion/core/planning/PlanMeta.hpp"
 #include "Fusion/core/planning/TensorPlan.h"
 
+// TODO: remove std:get from everywhere!!!!!!!
+
 namespace fusion::dense::iter {
 
 struct OperandStep {
@@ -26,19 +28,20 @@ template <std::size_t N> struct InnerSegment {
 template <typename IterPlan, std::size_t N>
 InnerSegment<N> construct_inner_segment(int inner_dim, const IterPlan &plan,
                                         std::array<uint8_t *, N> &ptr) {
-
+   DenseTraversalPlan lplan = std::get<DenseTraversalPlan>(plan.exec.traversal);
    FUSION_CHECK(inner_dim >= 0, "inner_dim must be non-negative");
-   FUSION_CHECK(inner_dim < static_cast<int>(plan.core.loop.size()),
+
+   FUSION_CHECK(inner_dim < static_cast<int>(lplan.loop.size()),
                 "inner_dim out of range");
 
    InnerSegment<N> seg;
-   seg.len = static_cast<std::int64_t>(plan.core.loop[inner_dim].size);
+   seg.len = static_cast<std::int64_t>(lplan.loop[inner_dim].size);
    seg.ptrs = ptr;
    for (std::size_t k = 0; k < N; k++) {
-      seg.step[k].kind = plan.core.op_access[k].access;
+      seg.step[k].kind = plan.exec.access.operands[k].access;
       if (seg.step[k].kind == AccessKind::Affine) {
-         seg.step[k].byte_stride =
-             plan.core.op_access[k].affine.byte_stride_per_loop[inner_dim];
+         seg.step[k].byte_stride = plan.exec.access.operands[k]
+                                       .affine.byte_stride_per_loop[inner_dim];
       } else {
          throw std::runtime_error(
              "Access invalid: currently only affine is unsupported");
@@ -50,18 +53,18 @@ InnerSegment<N> construct_inner_segment(int inner_dim, const IterPlan &plan,
 template <typename IterPlan, std::size_t N>
 InnerSegment<N> construct_scalar_segment(const IterPlan &plan,
                                          std::array<uint8_t *, N> &ptr) {
-
-   FUSION_CHECK(plan.core.loop.empty(),
+   DenseTraversalPlan lplan = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   FUSION_CHECK(lplan.loop.empty(),
                 "construct_scalar_segment: plan must have zero loop dims");
 
-   FUSION_CHECK(plan.core.op_access.size() == N,
+   FUSION_CHECK(plan.exec.access.operands.size() == N,
                 "construct_scalar_segment: op_access smaller than N");
 
    InnerSegment<N> seg;
    seg.len = 1;
    seg.ptrs = ptr;
    for (std::size_t k = 0; k < N; k++) {
-      seg.step[k].kind = plan.core.op_access[k].access;
+      seg.step[k].kind = plan.exec.access.operands[k].access;
       if (seg.step[k].kind == AccessKind::Affine) {
          seg.step[k].byte_stride = 0;
       } else {
@@ -75,22 +78,23 @@ InnerSegment<N> construct_scalar_segment(const IterPlan &plan,
 template <typename IterPlan, std::size_t N, class InnerFn>
 void walk(int dim, const int inn, const IterPlan &plan,
           std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
+   DenseTraversalPlan lplan = std::get<DenseTraversalPlan>(plan.exec.traversal);
    if (dim == inn) {
       InnerSegment<N> seg = construct_inner_segment(inn, plan, ptr);
       inner(seg);
       return;
    }
 
-   const LoopDim &ld = plan.core.loop[dim];
+   const LoopDim &ld = lplan.loop[dim];
    for (int64_t i = 0; i < ld.size; ++i) {
       walk(dim + 1, inn, plan, ptr, inner);
-      for (int k = 0; k < plan.core.num_operands; ++k) {
-         OperandAccess access = plan.core.op_access[k];
+      for (int k = 0; k < plan.exec.core.num_operands; ++k) {
+         OperandAccess access = plan.exec.access.operands[k];
          ptr[k] += access.affine.byte_stride_per_loop[dim];
       }
    }
-   for (int k = 0; k < plan.core.num_operands; ++k) {
-      OperandAccess access = plan.core.op_access[k];
+   for (int k = 0; k < plan.exec.core.num_operands; ++k) {
+      OperandAccess access = plan.exec.access.operands[k];
       ptr[k] -= access.affine.byte_stride_per_loop[dim] * ld.size;
    }
 };
@@ -101,7 +105,8 @@ void for_each_outer_then_inner(const IterPlan &plan,
                                FnInnermost &&inner)
 
 {
-   const int ndim = static_cast<int>(plan.core.loop.size());
+   DenseTraversalPlan lplan = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   const int ndim = static_cast<int>(lplan.loop.size());
 
    if (ndim == 0) {
       // TODO: evaluate this impl - possibly introducing sutble numerical bugs
@@ -324,8 +329,8 @@ void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
    std::fill(out, out + out_data.flat_size(), T{0});
 
    if constexpr (fusion::blas::blas_traits<BlasTag, T>::available) {
-      if (meta.plan.core.hints.gemm_like) {
-         const auto &g = meta.plan.core.hints.gemm;
+      if (meta.plan.exec.hints.gemm_like) {
+         const auto &g = meta.plan.exec.hints.gemm;
          if (fusion::blas::blas_traits<BlasTag, T>::can_execute(g)) {
             const T *baseA = reinterpret_cast<const T *>(A.get_ptr());
             const T *baseB = reinterpret_cast<const T *>(B.get_ptr());
@@ -363,6 +368,6 @@ void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
        });
 }
 
-} // namespace fusion::iter
+} // namespace fusion::dense::iter
 
 #endif // FUSION_CORE_TENSOR_ITER_HPP

@@ -156,8 +156,7 @@ template <typename T> class Tensor {
    DenseTensor<T> &physical_base() {
       return std::visit(
           []<typename T0>(T0 &x) -> DenseTensor<T> & {
-             if constexpr (std::is_same_v<std::decay_t<T0>,
-                                          DenseTensor<T>>) {
+             if constexpr (std::is_same_v<std::decay_t<T0>, DenseTensor<T>>) {
                 return x;
              } else {
                 return x.base();
@@ -169,8 +168,7 @@ template <typename T> class Tensor {
    const DenseTensor<T> &physical_base() const {
       return std::visit(
           []<typename T0>(const T0 &x) -> const DenseTensor<T> & {
-             if constexpr (std::is_same_v<std::decay_t<T0>,
-                                          DenseTensor<T>>) {
+             if constexpr (std::is_same_v<std::decay_t<T0>, DenseTensor<T>>) {
                 return x;
              } else {
                 return x.base();
@@ -369,7 +367,7 @@ template <typename T> class Tensor {
 
 template <typename T>
 Tensor<T> tensor_scalar_t(T scalar, DType dtype = DType::FLOAT32,
-                                 Device device = Device{DeviceType::CPU, 0}) {
+                          Device device = Device{DeviceType::CPU, 0}) {
    return Tensor<T>::from_dense(scalar_t(scalar, dtype, device));
 }
 

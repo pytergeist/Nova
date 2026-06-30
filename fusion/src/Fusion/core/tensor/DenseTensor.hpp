@@ -1,7 +1,6 @@
 #ifndef FUSION_CORE_TENSOR_DENSE_TENSOR
 #define FUSION_CORE_TENSOR_DENSE_TENSOR
 
-
 #include <memory>
 #include <ostream>
 #include <stdexcept>
@@ -26,7 +25,7 @@
 
 template <typename T> // TODO: need to either pass in device somehow?
 DenseTensor<T> scalar_t(const T scalar, const DType dtype = DType::FLOAT32,
-                             Device device = Device{DeviceType::CPU, 0}) {
+                        Device device = Device{DeviceType::CPU, 0}) {
    return DenseTensor<T>{{1}, {scalar}, dtype, device};
 }
 
@@ -50,8 +49,8 @@ template <typename T> class DenseTensor {
    // tensor itself e.g. `alloc.make_tensor(...)` and later
    // `arena.make_tensor(...)`, 'slab.make_tensor(...).
    explicit DenseTensor(std::vector<std::size_t> shape, std::vector<T> data,
-                      DType dtype, Device device,
-                      IAllocator *allocator = nullptr)
+                        DType dtype, Device device,
+                        IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device.is_cpu(), "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
@@ -62,7 +61,7 @@ template <typename T> class DenseTensor {
    }
 
    explicit DenseTensor(std::vector<size_t> shape, DType dtype, Device device,
-                      IAllocator *allocator = nullptr)
+                        IAllocator *allocator = nullptr)
        : shape_(std::move(shape)), dtype_(dtype), device_(device) {
       FUSION_CHECK(device.is_cpu(), "Unsupported device type");
       FUSION_CHECK(!shape_.empty(), "Tensor: empty shape");
@@ -170,31 +169,38 @@ template <typename T> class DenseTensor {
    };
 
    DenseTensor operator+(const T scalar) const {
-      return fusion::ops::aligned::add(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::add(*this,
+                                       scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator-(const T scalar) const {
-      return fusion::ops::aligned::sub(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::sub(*this,
+                                       scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator*(const T scalar) const {
-      return fusion::ops::aligned::mul(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::mul(*this,
+                                       scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator/(const T scalar) const {
-      return fusion::ops::aligned::div(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::div(*this,
+                                       scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator>=(const T scalar) const {
-      return fusion::ops::aligned::greater(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::greater(*this,
+                                           scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor maximum(const T scalar) const {
-      return fusion::ops::aligned::maximum(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::maximum(*this,
+                                           scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor pow(const T scalar) const {
-      return fusion::ops::aligned::pow(*this, scalar_t(scalar, dtype(), device()));
+      return fusion::ops::aligned::pow(*this,
+                                       scalar_t(scalar, dtype(), device()));
    }
 
    DenseTensor operator+(const DenseTensor &other) const {
@@ -233,7 +239,9 @@ template <typename T> class DenseTensor {
       return fusion::ops::aligned::pow(*this, other);
    }
 
-   DenseTensor reciprocal() const { return fusion::ops::aligned::reciprocal(*this); }
+   DenseTensor reciprocal() const {
+      return fusion::ops::aligned::reciprocal(*this);
+   }
 
    DenseTensor sqrt() const { return fusion::ops::aligned::sqrt(*this); }
    DenseTensor log() const { return fusion::ops::aligned::log(*this); }
@@ -255,7 +263,8 @@ template <typename T> class DenseTensor {
       return *this;
    }
 
-   friend std::ostream &operator<<(std::ostream &os, const DenseTensor &tensor) {
+   friend std::ostream &operator<<(std::ostream &os,
+                                   const DenseTensor &tensor) {
       const auto *cpuStorage =
           dynamic_cast<const NDTensorStorage<T> *>(tensor.get_storage());
       if (cpuStorage) {
@@ -325,10 +334,11 @@ template <typename T> class DenseTensor {
       if (device.is_cpu()) {
          return std::make_shared<NDTensorStorage<T>>(shape, std::move(data),
                                                      device, alloc);
-      } if (device.is_gpu() || device.is_cuda()) {
+      }
+      if (device.is_gpu() || device.is_cuda()) {
          throw std::runtime_error("GPU is not supported yes");
       }
-         throw std::runtime_error("Unsupported device");
+      throw std::runtime_error("Unsupported device");
    }
 };
 

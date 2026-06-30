@@ -9,18 +9,19 @@
 #include "Fusion/core/topology/TopologyView.h"
 
 enum class ExprKind : std::uint8_t {
-   ElementWise,
+   Elementwise,
    Reduction,
    Contraction,
-   Indexed,
+   Pairwise,
+   IndexedMap,
 };
 
 enum class TraversalKind : std::uint8_t {
    Dense,
-   Topology,
+   Indexed,
 };
 
-enum class TopologyFormat : std::uint8_t {
+enum class IndexedFormat : std::uint8_t {
    EdgeList,
    CRS,
    BlockedCRS,
@@ -49,6 +50,21 @@ struct KernelHints {
    GemmLikeDesc gemm{};
 };
 
+struct DenseTraversalPlan {
+   std::vector<LoopDim> loop;
+};
+
+struct IndexedTraversalPlan {
+   IndexedFormat format{IndexedFormat::BlockedCRS};
+   BlockedCRS blocked_crs;
+};
+
+using TraversalPlan = std::variant<DenseTraversalPlan, IndexedTraversalPlan>;
+
+struct AccessPlan {
+   std::vector<OperandAccess> operands;
+};
+
 struct PlanCore {
    static constexpr std::string_view name = "Plan Core";
    ExprKind expr;
@@ -58,23 +74,24 @@ struct PlanCore {
    std::size_t num_operands{0};
    std::size_t out_ndim{0};
    std::vector<std::size_t> out_shape;
+};
 
-   std::vector<LoopDim> loop;
-   std::vector<OperandAccess> op_access;
-
+struct ExecutionPlan {
+   PlanCore core;
+   TraversalPlan traversal;
+   AccessPlan access;
    KernelHints hints;
 };
 
 /// The execution plan for an ElementWise expression
 struct ElementWisePlan {
-   static constexpr std::string_view name = "ElementWise Plan";
-   PlanCore core;
+   static constexpr std::string_view name = "Elementwise Plan";
+   ExecutionPlan exec;
 };
-
 
 struct ReductionPlan {
    static constexpr std::string_view name = "Reduction Plan";
-   PlanCore core;
+   ExecutionPlan exec;
 
    std::size_t reduction_axis{0};
    bool keep_dim{false};
@@ -82,17 +99,16 @@ struct ReductionPlan {
 
 struct ContractionPlan {
    static constexpr std::string_view name = "Contraction Plan";
-   PlanCore core;
+   ExecutionPlan exec;
 };
 
 struct IndexedPlan {
    static constexpr std::string_view name = "Indexed Plan";
-   PlanCore core;
-
-   BlockedTopologyView topology;
+   ExecutionPlan exec;
 };
 
-ElementWisePlan make_elementwise_plan(const std::vector<OperandDescription> &descs);
+ElementWisePlan
+make_elementwise_plan(const std::vector<OperandDescription> &descs);
 
 ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &desc,
                                   const std::size_t axis, const bool keepdim);
@@ -105,9 +121,8 @@ ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
                                  const OperandLabelBinding &binding);
 
-IndexedPlan make_indexed_plan(
-    const std::vector<OperandDescription> &descs, BlockedCRS &bcrs,
-    EdgeList &edges);
+IndexedPlan make_indexed_plan(const std::vector<OperandDescription> &descs,
+                              const BlockedCRS &bcrs, const EdgeList &edges);
 
 KernelHints make_kernel_hints(const std::vector<OperandDescription> &descs);
 

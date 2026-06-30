@@ -1,11 +1,10 @@
 #ifndef FUSION_CORE_TOPOLOGY_CRS_HPP
 #define FUSION_CORE_TOPOLOGY_CRS_HPP
 
-#include <vector>
 #include <cassert>
+#include <vector>
 
 #include "PairSort.h"
-
 
 enum struct SortType { Unsorted, ij, Blockij };
 
@@ -33,8 +32,6 @@ struct EdgeList {
    };
 };
 
-
-
 struct CRS {
    std::int64_t N = 0, E = 0;
    std::vector<std::uint32_t> row_ptr;
@@ -44,7 +41,6 @@ struct CRS {
    bool symmetric = false;
    bool directed = false;
 };
-
 
 struct BlockedCRS {
    std::int64_t n_items = 0, edges = 0;

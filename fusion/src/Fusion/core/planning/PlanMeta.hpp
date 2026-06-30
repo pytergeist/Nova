@@ -136,7 +136,8 @@ inline std::string_view to_string(BinaryExecKind k) noexcept {
 }
 
 template <typename T>
-BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A, const DenseTensor<T> &B) {
+BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A,
+                                 const DenseTensor<T> &B) {
 
    BinaryEwiseMeta meta{};
    const bool same = A.shape() == B.shape();
@@ -157,7 +158,8 @@ BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A, const DenseTensor<T> &
 
    ElementWisePlan plan_in = make_elementwise_plan({dA, dB});
 
-   meta.out_shape.assign(plan_in.core.out_shape.begin(), plan_in.core.out_shape.end());
+   meta.out_shape.assign(plan_in.exec.core.out_shape.begin(),
+                         plan_in.exec.core.out_shape.end());
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
 
    meta.dOut.update = UpdateKind::Overwrite;
@@ -169,7 +171,7 @@ BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A, const DenseTensor<T> &
    bool const broadcastLHS{meta.dA.shape != meta.dOut.shape};
 
    // TODO: evaulate this impl - difficult for others to read
-   meta.exec = meta.plan.core.hints.all_contiguous_like
+   meta.exec = meta.plan.exec.hints.all_contiguous_like
                    ? (broadcastLHS ? BinaryExecKind::FlatContiguousBroadcastLHS
                                    : BinaryExecKind::FlatContiguousBroadcastRHS)
                    : BinaryExecKind::GenericStrided;
@@ -193,7 +195,8 @@ template <typename T> UnaryEwiseMeta make_unary_meta(const DenseTensor<T> &A) {
    ElementWisePlan plan_in = make_elementwise_plan({dA});
 
    meta.fastpath = false;
-   meta.out_shape.assign(plan_in.core.out_shape.begin(), plan_in.core.out_shape.end());
+   meta.out_shape.assign(plan_in.exec.core.out_shape.begin(),
+                         plan_in.exec.core.out_shape.end());
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
    meta.dOut.update = UpdateKind::Overwrite;
    meta.dA = std::move(dA);
@@ -204,8 +207,8 @@ template <typename T> UnaryEwiseMeta make_unary_meta(const DenseTensor<T> &A) {
 constexpr std::size_t kGlobalReduceAxis = -1;
 
 template <typename T>
-ReductionMeta make_reduction_meta(const DenseTensor<T> &A, const std::size_t axis,
-                                  bool keepdim) {
+ReductionMeta make_reduction_meta(const DenseTensor<T> &A,
+                                  const std::size_t axis, bool keepdim) {
    ReductionMeta meta{};
 
    if (axis == kGlobalReduceAxis && !keepdim) {

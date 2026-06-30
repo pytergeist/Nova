@@ -177,7 +177,7 @@ std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
 
 IndexSpaceIR
 build_elementwise_ir_right_aligned(const std::vector<OperandDescription> &descs,
-                                 const ItemSizeGroupConstraint constraint);
+                                   const ItemSizeGroupConstraint constraint);
 
 IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
                                 std::size_t axis, bool keepdim,

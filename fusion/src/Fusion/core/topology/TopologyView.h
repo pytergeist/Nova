@@ -16,6 +16,4 @@ struct BlockedTopologyView {
    std::int64_t E{0};
 };
 
-
-
 #endif // FUSION_CORE_TOPOLOGY_TOPOLOGY_VIEW

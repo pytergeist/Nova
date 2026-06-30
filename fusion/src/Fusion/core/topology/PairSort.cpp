@@ -6,7 +6,7 @@
 #include "PairSort.h"
 
 void sort_edges_by_i_then_j(std::vector<std::uint32_t> &i,
-                                   std::vector<std::uint32_t> &j) {
+                            std::vector<std::uint32_t> &j) {
    assert(i.size() == j.size());
    const std::size_t m = i.size();
 
@@ -29,8 +29,8 @@ void sort_edges_by_i_then_j(std::vector<std::uint32_t> &i,
 }
 
 void sort_edges_by_block_then_i_then_j(std::vector<std::uint32_t> &i,
-                                              std::vector<std::uint32_t> &j,
-                                              std::uint32_t tile) {
+                                       std::vector<std::uint32_t> &j,
+                                       std::uint32_t tile) {
    assert(tile > 0);
    assert(i.size() == j.size());
    const std::size_t m = i.size();

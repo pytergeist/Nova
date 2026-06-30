@@ -54,6 +54,6 @@ void gather_index_tag(const GatherIndexMeta<T, ParticlesT> &meta,
    // return;
 }
 
-} // namespace fusion::physics::iter
+} // namespace fusion::topo::iter
 
 #endif // FUSION_CORE_ITER_TOPO_ITER_HPP

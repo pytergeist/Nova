@@ -20,8 +20,7 @@ template <typename T> class AoSoATensor {
    }
 
    explicit AoSoATensor(DenseTensor<T> x, const std::size_t tile)
-       : storage_(x),
-         n_items_(x.shape()[1]), dim_(x.shape()[0]), tile_(tile),
+       : storage_(x), n_items_(x.shape()[1]), dim_(x.shape()[0]), tile_(tile),
          n_blocks_(blocks_for(x.shape()[1], tile)) {
       FUSION_CHECK(dim_ > 0, "AoSoATensor: dim must be > 0");
       FUSION_CHECK(tile_ > 0, "AoSoATensor: tile must be > 0");
@@ -149,4 +148,4 @@ template <typename T> class AoSoATensor {
    }
 };
 
-#endif // FUSION_STORAGE_AOSOA_TENSOR_HPP 
+#endif // FUSION_STORAGE_AOSOA_TENSOR_HPP
