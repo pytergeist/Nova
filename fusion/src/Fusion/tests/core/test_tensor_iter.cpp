@@ -11,6 +11,7 @@
 #include "Fusion/cpu/simd/SimdTags.hpp"
 
 TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
+
    ElementWisePlan plan{};
    plan.exec.core.num_operands = 3;
    plan.exec.core.out_ndim = 0;
@@ -20,6 +21,15 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
    plan.exec.access.operands[0].access = AccessKind::Affine;
    plan.exec.access.operands[1].access = AccessKind::Affine;
    plan.exec.access.operands[2].access = AccessKind::Affine;
+
+   struct DenseIterPlanView {
+      std::size_t num_operands{};
+      std::span<const LoopDim> loop;
+      std::span<const OperandAccess> operands;
+   };
+
+   fusion::dense::iter::DenseIterPlanView view =
+       fusion::dense::iter::dense_iter_view(plan);
 
    float out = 0.0;
    float a = 1.0;
@@ -31,8 +41,8 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
    int calls = 0;
 
-   fusion::dense::iter::for_each_outer_then_inner<ElementWisePlan, 3>(
-       plan, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
+   fusion::dense::iter::for_each_outer_then_inner<3>(
+       view, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 1);
           EXPECT_EQ(segment.ptrs[0], reinterpret_cast<uint8_t *>(&out));
@@ -61,6 +71,9 @@ TEST(TensorIterTest,
    };
 
    plan.exec.access.operands.resize(3);
+   fusion::dense::iter::DenseIterPlanView view =
+       fusion::dense::iter::dense_iter_view(plan);
+
    for (auto &access : plan.exec.access.operands) {
       access.access = AccessKind::Affine;
       access.affine.byte_stride_per_loop = {
@@ -88,8 +101,8 @@ TEST(TensorIterTest,
 
    int calls = 0;
 
-   fusion::dense::iter::for_each_outer_then_inner<ElementWisePlan, 3>(
-       plan, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
+   fusion::dense::iter::for_each_outer_then_inner<3>(
+       view, base, [&](fusion::dense::iter::InnerSegment<3> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 3);
           EXPECT_EQ(segment.step[0].byte_stride, sizeof(float));

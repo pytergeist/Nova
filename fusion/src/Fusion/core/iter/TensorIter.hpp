@@ -7,10 +7,9 @@
 #include "Fusion/cpu/blas/BlasTraits.hpp"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 
+#include "DenseIterPlanView.hpp"
 #include "Fusion/core/planning/PlanMeta.hpp"
 #include "Fusion/core/planning/TensorPlan.h"
-
-// TODO: remove std:get from everywhere!!!!!!!
 
 namespace fusion::dense::iter {
 
@@ -25,23 +24,23 @@ template <std::size_t N> struct InnerSegment {
    std::array<OperandStep, N> step;
 };
 
-template <typename IterPlan, std::size_t N>
-InnerSegment<N> construct_inner_segment(int inner_dim, const IterPlan &plan,
+template <std::size_t N>
+InnerSegment<N> construct_inner_segment(int inner_dim,
+                                        const DenseIterPlanView &view,
                                         std::array<uint8_t *, N> &ptr) {
-   DenseTraversalPlan lplan = std::get<DenseTraversalPlan>(plan.exec.traversal);
    FUSION_CHECK(inner_dim >= 0, "inner_dim must be non-negative");
 
-   FUSION_CHECK(inner_dim < static_cast<int>(lplan.loop.size()),
+   FUSION_CHECK(inner_dim < static_cast<int>(view.loop.size()),
                 "inner_dim out of range");
 
    InnerSegment<N> seg;
-   seg.len = static_cast<std::int64_t>(lplan.loop[inner_dim].size);
+   seg.len = static_cast<std::int64_t>(view.loop[inner_dim].size);
    seg.ptrs = ptr;
    for (std::size_t k = 0; k < N; k++) {
-      seg.step[k].kind = plan.exec.access.operands[k].access;
+      seg.step[k].kind = view.operands[k].access;
       if (seg.step[k].kind == AccessKind::Affine) {
-         seg.step[k].byte_stride = plan.exec.access.operands[k]
-                                       .affine.byte_stride_per_loop[inner_dim];
+         seg.step[k].byte_stride =
+             view.operands[k].affine.byte_stride_per_loop[inner_dim];
       } else {
          throw std::runtime_error(
              "Access invalid: currently only affine is unsupported");
@@ -50,21 +49,20 @@ InnerSegment<N> construct_inner_segment(int inner_dim, const IterPlan &plan,
    return seg;
 }
 
-template <typename IterPlan, std::size_t N>
-InnerSegment<N> construct_scalar_segment(const IterPlan &plan,
+template <std::size_t N>
+InnerSegment<N> construct_scalar_segment(const DenseIterPlanView &view,
                                          std::array<uint8_t *, N> &ptr) {
-   DenseTraversalPlan lplan = std::get<DenseTraversalPlan>(plan.exec.traversal);
-   FUSION_CHECK(lplan.loop.empty(),
+   FUSION_CHECK(view.loop.empty(),
                 "construct_scalar_segment: plan must have zero loop dims");
 
-   FUSION_CHECK(plan.exec.access.operands.size() == N,
+   FUSION_CHECK(view.operands.size() == N,
                 "construct_scalar_segment: op_access smaller than N");
 
    InnerSegment<N> seg;
    seg.len = 1;
    seg.ptrs = ptr;
    for (std::size_t k = 0; k < N; k++) {
-      seg.step[k].kind = plan.exec.access.operands[k].access;
+      seg.step[k].kind = view.operands[k].access;
       if (seg.step[k].kind == AccessKind::Affine) {
          seg.step[k].byte_stride = 0;
       } else {
@@ -75,48 +73,46 @@ InnerSegment<N> construct_scalar_segment(const IterPlan &plan,
    return seg;
 }
 
-template <typename IterPlan, std::size_t N, class InnerFn>
-void walk(int dim, const int inn, const IterPlan &plan,
+template <std::size_t N, class InnerFn>
+void walk(int dim, const int inn, const DenseIterPlanView &view,
           std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
-   DenseTraversalPlan lplan = std::get<DenseTraversalPlan>(plan.exec.traversal);
    if (dim == inn) {
-      InnerSegment<N> seg = construct_inner_segment(inn, plan, ptr);
+      InnerSegment<N> seg = construct_inner_segment(inn, view, ptr);
       inner(seg);
       return;
    }
 
-   const LoopDim &ld = lplan.loop[dim];
+   const LoopDim &ld = view.loop[dim];
    for (int64_t i = 0; i < ld.size; ++i) {
-      walk(dim + 1, inn, plan, ptr, inner);
-      for (int k = 0; k < plan.exec.core.num_operands; ++k) {
-         OperandAccess access = plan.exec.access.operands[k];
+      walk(dim + 1, inn, view, ptr, inner);
+      for (int k = 0; k < view.num_operands; ++k) {
+         OperandAccess access = view.operands[k];
          ptr[k] += access.affine.byte_stride_per_loop[dim];
       }
    }
-   for (int k = 0; k < plan.exec.core.num_operands; ++k) {
-      OperandAccess access = plan.exec.access.operands[k];
+   for (int k = 0; k < view.num_operands; ++k) {
+      OperandAccess access = view.operands[k];
       ptr[k] -= access.affine.byte_stride_per_loop[dim] * ld.size;
    }
 };
 
-template <typename IterPlan, std::size_t N, typename FnInnermost>
-void for_each_outer_then_inner(const IterPlan &plan,
+template <std::size_t N, typename FnInnermost>
+void for_each_outer_then_inner(const DenseIterPlanView &view,
                                std::array<uint8_t *, N> &base,
                                FnInnermost &&inner)
 
 {
-   DenseTraversalPlan lplan = std::get<DenseTraversalPlan>(plan.exec.traversal);
-   const int ndim = static_cast<int>(lplan.loop.size());
+   const int ndim = static_cast<int>(view.loop.size());
 
    if (ndim == 0) {
       // TODO: evaluate this impl - possibly introducing sutble numerical bugs
-      InnerSegment<N> seg = construct_scalar_segment(plan, base);
+      InnerSegment<N> seg = construct_scalar_segment(view, base);
       inner(seg);
       return;
    }
 
    const int inn = ndim - 1;
-   walk(0, inn, plan, base, inner);
+   walk(0, inn, view, base, inner);
 }
 
 template <typename T, class Tag>
@@ -179,44 +175,43 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
       }
       return;
    }
-   for_each_outer_then_inner<ElementWisePlan, 3>(
-       meta.plan, base, [&](InnerSegment<3> &segment) {
-          const std::int64_t step = sizeof(T);
-          std::int64_t const out_bytes = segment.step[0].byte_stride;
-          std::int64_t const a_bytes = segment.step[1].byte_stride;
-          std::int64_t const b_bytes = segment.step[2].byte_stride;
+   const DenseIterPlanView view = dense_iter_view(meta.plan);
+   for_each_outer_then_inner<3>(view, base, [&](InnerSegment<3> &segment) {
+      const std::int64_t step = sizeof(T);
+      std::int64_t const out_bytes = segment.step[0].byte_stride;
+      std::int64_t const a_bytes = segment.step[1].byte_stride;
+      std::int64_t const b_bytes = segment.step[2].byte_stride;
 
-          const bool out_contig = out_bytes == step;
-          const bool a_unit = a_bytes == 0 || a_bytes == step;
-          const bool b_unit = b_bytes == 0 || b_bytes == step;
+      const bool out_contig = out_bytes == step;
+      const bool a_unit = a_bytes == 0 || a_bytes == step;
+      const bool b_unit = b_bytes == 0 || b_bytes == step;
 
-          T *o = reinterpret_cast<T *>(segment.ptrs[0]);
-          const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
-          const T *b = reinterpret_cast<const T *>(segment.ptrs[2]);
+      T *o = reinterpret_cast<T *>(segment.ptrs[0]);
+      const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
+      const T *b = reinterpret_cast<const T *>(segment.ptrs[2]);
 
-          if constexpr (simd_traits<Tag, T>::available) {
-             if (out_contig && a_unit && b_unit && segment.len > 0) {
-                const bool a_scalar = a_bytes == 0;
-                const bool b_scalar = b_bytes == 0;
-                simd_traits<Tag, T>::execute_contiguous(
-                    a, b, o, static_cast<size_t>(segment.len), a_scalar,
-                    b_scalar);
-                return;
-             }
-             if (out_contig && (a_unit || b_unit)) {
-                const std::int64_t so = 1;
-                const std::int64_t sa = a_bytes / step;
-                const std::int64_t sb = b_bytes / step;
-                tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, segment.len);
-                return;
-             }
-          }
+      if constexpr (simd_traits<Tag, T>::available) {
+         if (out_contig && a_unit && b_unit && segment.len > 0) {
+            const bool a_scalar = a_bytes == 0;
+            const bool b_scalar = b_bytes == 0;
+            simd_traits<Tag, T>::execute_contiguous(
+                a, b, o, static_cast<size_t>(segment.len), a_scalar, b_scalar);
+            return;
+         }
+         if (out_contig && (a_unit || b_unit)) {
+            const std::int64_t so = 1;
+            const std::int64_t sa = a_bytes / step;
+            const std::int64_t sb = b_bytes / step;
+            tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, segment.len);
+            return;
+         }
+      }
 
-          const int64_t so = out_bytes / step;
-          const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
-          const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
-          tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, segment.len);
-       });
+      const int64_t so = out_bytes / step;
+      const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
+      const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
+      tag_fallback_binary<T, Tag>(o, a, b, so, sa, sb, segment.len);
+   });
 }
 
 template <typename T, class Tag, class TensorT>
@@ -239,40 +234,39 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
       }
       return;
    }
+   const DenseIterPlanView view = dense_iter_view(meta.plan);
+   for_each_outer_then_inner<2>(view, base, [&](InnerSegment<2> &segment) {
+      const std::int64_t step = sizeof(T);
+      std::int64_t const out_bytes = segment.step[0].byte_stride;
+      std::int64_t const a_bytes = segment.step[1].byte_stride;
+      const bool out_contig = out_bytes == step;
+      const bool a_unit = a_bytes == 0 || a_bytes == step;
 
-   for_each_outer_then_inner<ElementWisePlan, 2>(
-       meta.plan, base, [&](InnerSegment<2> &segment) {
-          const std::int64_t step = sizeof(T);
-          std::int64_t const out_bytes = segment.step[0].byte_stride;
-          std::int64_t const a_bytes = segment.step[1].byte_stride;
-          const bool out_contig = out_bytes == step;
-          const bool a_unit = a_bytes == 0 || a_bytes == step;
+      T *o = reinterpret_cast<T *>(segment.ptrs[0]);
+      const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
 
-          T *o = reinterpret_cast<T *>(segment.ptrs[0]);
-          const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
+      if constexpr (simd_traits<Tag, T>::available) {
 
-          if constexpr (simd_traits<Tag, T>::available) {
+         if (out_contig && a_unit && segment.len > 0) {
+            const bool a_scalar = a_bytes == 0;
+            simd_traits<Tag, T>::execute_contiguous(
+                a, o, static_cast<size_t>(segment.len), a_scalar);
+            return;
+         }
+         const bool a_unit = a_bytes == step;
+         if (out_contig && a_unit) {
+            const int64_t so = 1;
+            const int64_t sa = a_bytes / step;
+            tag_fallback_unary<T, Tag>(o, a, so, sa, segment.len);
+            return;
+         }
+      }
 
-             if (out_contig && a_unit && segment.len > 0) {
-                const bool a_scalar = a_bytes == 0;
-                simd_traits<Tag, T>::execute_contiguous(
-                    a, o, static_cast<size_t>(segment.len), a_scalar);
-                return;
-             }
-             const bool a_unit = a_bytes == step;
-             if (out_contig && a_unit) {
-                const int64_t so = 1;
-                const int64_t sa = a_bytes / step;
-                tag_fallback_unary<T, Tag>(o, a, so, sa, segment.len);
-                return;
-             }
-          }
-
-          const int64_t so = a_bytes / step;
-          const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
-          Tag tag{};
-          tag_fallback_unary<T, Tag>(o, a, so, sa, segment.len);
-       });
+      const int64_t so = a_bytes / step;
+      const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
+      Tag tag{};
+      tag_fallback_unary<T, Tag>(o, a, so, sa, segment.len);
+   });
 }
 
 template <typename T, class Tag, class TensorT>
@@ -296,29 +290,28 @@ void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
       }
       return;
    }
+   const DenseIterPlanView view = dense_iter_view(meta.plan);
+   for_each_outer_then_inner<2>(view, base, [&](InnerSegment<2> &segment) {
+      const std::int64_t step = sizeof(T);
+      std::int64_t const out_bytes = segment.step[0].byte_stride;
+      std::int64_t const a_bytes = segment.step[1].byte_stride;
 
-   for_each_outer_then_inner<ReductionPlan, 2>(
-       meta.plan, base, [&](InnerSegment<2> &segment) {
-          const std::int64_t step = sizeof(T);
-          std::int64_t const out_bytes = segment.step[0].byte_stride;
-          std::int64_t const a_bytes = segment.step[1].byte_stride;
+      T *o = reinterpret_cast<T *>(segment.ptrs[0]);
+      const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
 
-          T *o = reinterpret_cast<T *>(segment.ptrs[0]);
-          const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
+      if constexpr (simd_traits<Tag, T>::available) {
+         if (out_bytes == 0 && a_bytes == step && segment.len > 0) {
+            *o += simd_traits<Tag, T>::reduce_contiguous(
+                a, static_cast<size_t>(segment.len));
+            return;
+         }
+      }
 
-          if constexpr (simd_traits<Tag, T>::available) {
-             if (out_bytes == 0 && a_bytes == step && segment.len > 0) {
-                *o += simd_traits<Tag, T>::reduce_contiguous(
-                    a, static_cast<size_t>(segment.len));
-                return;
-             }
-          }
-
-          const std::int64_t so = out_bytes / step;
-          const std::int64_t sa = (a_bytes == 0) ? 0 : a_bytes / step;
-          Tag tag{};
-          tag_fallback_reduction<T, Tag>(o, a, so, sa, segment.len);
-       });
+      const std::int64_t so = out_bytes / step;
+      const std::int64_t sa = (a_bytes == 0) ? 0 : a_bytes / step;
+      Tag tag{};
+      tag_fallback_reduction<T, Tag>(o, a, so, sa, segment.len);
+   });
 }
 
 template <typename T, class BlasTag, class ScalarTag, class TensorT>
@@ -348,24 +341,24 @@ void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
        reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr())),
    };
 
-   for_each_outer_then_inner<ContractionPlan, 3>(
-       meta.plan, base, [&](InnerSegment<3> &segment) {
-          const int64_t step = sizeof(T);
-          std::int64_t const out_bytes = segment.step[0].byte_stride;
-          std::int64_t const a_bytes = segment.step[1].byte_stride;
-          std::int64_t const b_bytes = segment.step[2].byte_stride;
+   const DenseIterPlanView view = dense_iter_view(meta.plan);
+   for_each_outer_then_inner<3>(view, base, [&](InnerSegment<3> &segment) {
+      const int64_t step = sizeof(T);
+      std::int64_t const out_bytes = segment.step[0].byte_stride;
+      std::int64_t const a_bytes = segment.step[1].byte_stride;
+      std::int64_t const b_bytes = segment.step[2].byte_stride;
 
-          auto *o = reinterpret_cast<T *>(segment.ptrs[0]);
-          auto *a = reinterpret_cast<const T *>(segment.ptrs[1]);
-          auto *b = reinterpret_cast<const T *>(segment.ptrs[2]);
+      auto *o = reinterpret_cast<T *>(segment.ptrs[0]);
+      auto *a = reinterpret_cast<const T *>(segment.ptrs[1]);
+      auto *b = reinterpret_cast<const T *>(segment.ptrs[2]);
 
-          const int64_t so = out_bytes == 0 ? 0 : out_bytes / step;
-          const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
-          const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
+      const int64_t so = out_bytes == 0 ? 0 : out_bytes / step;
+      const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
+      const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
 
-          tag_fallback_contraction<T, ScalarTag>(
-              o, a, b, so, sa, sb, static_cast<std::size_t>(segment.len));
-       });
+      tag_fallback_contraction<T, ScalarTag>(
+          o, a, b, so, sa, sb, static_cast<std::size_t>(segment.len));
+   });
 }
 
 } // namespace fusion::dense::iter
