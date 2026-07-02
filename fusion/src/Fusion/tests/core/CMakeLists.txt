@@ -3,9 +3,9 @@ add_executable(fusion_core_tests
         test_raw_tensor.cpp
         test_plan_meta.cpp
         test_tensor_iter.cpp
-        test_tensor_plan_elementwise.cpp
-        test_tensor_plan_contraction.cpp
-        test_tensor_plan_reduction.cpp
+        test_plan_builders_elementwise.cpp
+        test_plan_builders_contraction.cpp
+        test_plan_builders_reduction.cpp
 )
 
 target_include_directories(fusion_core_tests PRIVATE

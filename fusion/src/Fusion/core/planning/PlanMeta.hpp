@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "TensorPlan.h"
+#include "PlanBuilders.h"
 
 /* TODO: OPTIMIZE LATER: implament shape caching for broadcast plans, you need
  * to figure out what to cache and when. This will reduce the amount of plan

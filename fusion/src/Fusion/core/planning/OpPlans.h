@@ -1,0 +1,32 @@
+#ifndef FUSION_CORE_PLANNING_OP_PLANS_H
+#define FUSION_CORE_PLANNING_OP_PLANS_H
+
+#include <string_view>
+
+#include "ExecutionPlan.h"
+
+/// The execution plan for an ElementWise expression
+struct ElementWisePlan {
+   static constexpr std::string_view name = "Elementwise Plan";
+   ExecutionPlan exec;
+};
+
+struct ReductionPlan {
+   static constexpr std::string_view name = "Reduction Plan";
+   ExecutionPlan exec;
+
+   std::size_t reduction_axis{0};
+   bool keep_dim{false};
+};
+
+struct ContractionPlan {
+   static constexpr std::string_view name = "Contraction Plan";
+   ExecutionPlan exec;
+};
+
+struct IndexedPlan {
+   static constexpr std::string_view name = "Indexed Plan";
+   ExecutionPlan exec;
+};
+
+#endif // FUSION_CORE_PLANNING_OP_PLANS_H

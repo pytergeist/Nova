@@ -1,7 +1,7 @@
 #ifndef FUSION_CORE_ITER_DENSE_ITER_PLAN_VIEW
 #define FUSION_CORE_ITER_DENSE_ITER_PLAN_VIEW
 
-#include "Fusion/core/planning/TensorPlan.h"
+#include "Fusion/core/planning/PlanBuilders.h"
 
 #include <cstddef>
 #include <span>

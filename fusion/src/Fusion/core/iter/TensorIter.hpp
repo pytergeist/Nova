@@ -8,8 +8,8 @@
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 
 #include "DenseIterPlanView.hpp"
+#include "Fusion/core/planning/PlanBuilders.h"
 #include "Fusion/core/planning/PlanMeta.hpp"
-#include "Fusion/core/planning/TensorPlan.h"
 
 namespace fusion::dense::iter {
 

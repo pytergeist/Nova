@@ -1,11 +1,5 @@
-#include <algorithm>
-#include <iostream>
-#include <stdexcept>
-#include <vector>
+#include "PlanBuilders.h"
 
-#include "Fusion/core/fuir/IR.h"
-
-#include "TensorPlan.h"
 
 KernelHints make_kernel_hints(const std::vector<OperandDescription> &descs) {
    KernelHints hints;
