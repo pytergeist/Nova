@@ -24,7 +24,7 @@ enum class BinaryExecKind : std::uint8_t {
 struct BinaryEwiseMeta {
    std::vector<std::size_t> out_shape;
    std::size_t fast_len;
-   ElementWisePlan plan;
+   fusion::planning::ElementWisePlan plan;
    OperandDescription dA, dB, dOut;
    BinaryExecKind exec{BinaryExecKind::GenericStrided};
 };
@@ -33,7 +33,7 @@ struct UnaryEwiseMeta {
    bool fastpath;
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
-   ElementWisePlan plan;
+   fusion::planning::ElementWisePlan plan;
    OperandDescription dA, dOut;
 };
 
@@ -41,7 +41,7 @@ struct ReductionMeta {
    bool fastpath;
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
-   ReductionPlan plan;
+   fusion::planning::ReductionPlan plan;
    bool keepdim;               // TODO: Remove this it's also in the plan
    std::size_t reduction_axis; // TODO: This is also in the plan
    std::size_t reduce_len;
@@ -52,7 +52,7 @@ struct ContractionMeta {
    bool fastpath;
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
-   ContractionPlan plan;
+   fusion::planning::ContractionPlan plan;
    OperandDescription dA, dB, dOut;
 
    OperandLabelBinding binding;
@@ -156,7 +156,7 @@ BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A,
    dA.update = UpdateKind::ReadOnly;
    dB.update = UpdateKind::ReadOnly;
 
-   ElementWisePlan plan_in = make_elementwise_plan({dA, dB});
+   fusion::planning::ElementWisePlan plan_in = fusion::planning::make_elementwise_plan({dA, dB});
 
    meta.out_shape.assign(plan_in.exec.core.out_shape.begin(),
                          plan_in.exec.core.out_shape.end());
@@ -166,7 +166,7 @@ BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A,
 
    meta.dA = std::move(dA);
    meta.dB = std::move(dB);
-   meta.plan = make_elementwise_plan({meta.dOut, meta.dA, meta.dB});
+   meta.plan = fusion::planning::make_elementwise_plan({meta.dOut, meta.dA, meta.dB});
 
    bool const broadcastLHS{meta.dA.shape != meta.dOut.shape};
 
@@ -192,7 +192,7 @@ template <typename T> UnaryEwiseMeta make_unary_meta(const DenseTensor<T> &A) {
    OperandDescription dA = make_desc_from_tensor<T>(A);
    dA.update = UpdateKind::ReadOnly;
 
-   ElementWisePlan plan_in = make_elementwise_plan({dA});
+   fusion::planning::ElementWisePlan plan_in = fusion::planning::make_elementwise_plan({dA});
 
    meta.fastpath = false;
    meta.out_shape.assign(plan_in.exec.core.out_shape.begin(),
@@ -200,7 +200,7 @@ template <typename T> UnaryEwiseMeta make_unary_meta(const DenseTensor<T> &A) {
    meta.dOut = make_desc_from_shape<T>(meta.out_shape, nullptr);
    meta.dOut.update = UpdateKind::Overwrite;
    meta.dA = std::move(dA);
-   meta.plan = make_elementwise_plan({meta.dOut, meta.dA});
+   meta.plan = fusion::planning::make_elementwise_plan({meta.dOut, meta.dA});
    return meta;
 };
 
@@ -237,7 +237,7 @@ ReductionMeta make_reduction_meta(const DenseTensor<T> &A,
    meta.dOut.update = UpdateKind::Accumulate;
    meta.dA = std::move(dA);
 
-   meta.plan = make_reduction_plan({meta.dOut, meta.dA}, axis, keepdim);
+   meta.plan = fusion::planning::make_reduction_plan({meta.dOut, meta.dA}, axis, keepdim);
    meta.fastpath = false;
    meta.keepdim = keepdim;
    meta.reduction_axis = axis;
@@ -265,7 +265,7 @@ make_contraction_meta_einsum(const DenseTensor<T> &A, const DenseTensor<T> &B,
    meta.dOut.update = UpdateKind::Accumulate;
 
    meta.plan =
-       make_contraction_plan_einsum_out({meta.dOut, meta.dA, meta.dB}, binding);
+       fusion::planning::make_contraction_plan_einsum_out({meta.dOut, meta.dA, meta.dB}, binding);
 
    meta.fastpath = A.is_contiguous() &&
                    B.is_contiguous(); // TODO: need better fast path here

@@ -12,7 +12,7 @@
 
 TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
-   ElementWisePlan plan{};
+   fusion::planning::ElementWisePlan plan{};
    plan.exec.core.num_operands = 3;
    plan.exec.core.out_ndim = 0;
    plan.exec.core.itemsize = sizeof(float);
@@ -58,13 +58,13 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
 TEST(TensorIterTest,
      for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
-   ElementWisePlan plan{};
+   fusion::planning::ElementWisePlan plan{};
    plan.exec.core.num_operands = 3;
    plan.exec.core.out_ndim = 2;
    plan.exec.core.itemsize = sizeof(float);
 
-   DenseTraversalPlan &dense =
-       std::get<DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::DenseTraversalPlan &dense =
+       std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    dense.loop = {
        LoopDim{.size = 2, .kind = IndexKind::Independent},
        LoopDim{.size = 3, .kind = IndexKind::Independent},

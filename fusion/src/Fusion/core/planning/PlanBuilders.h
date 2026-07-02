@@ -2,10 +2,12 @@
 #define FUSION_CORE_PLANNING_PLAN_BUILDERS_H
 
 #include <cstddef>
+#include <vector>
 
 #include "Fusion/core/fuir/IR.h"
 #include "OpPlans.h"
 
+namespace fusion::planning {
 ElementWisePlan
 make_elementwise_plan(const std::vector<OperandDescription> &descs);
 
@@ -22,7 +24,6 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
 
 IndexedPlan make_indexed_plan(const std::vector<OperandDescription> &descs,
                               const BlockedCRS &bcrs, const EdgeList &edges);
-
-KernelHints make_kernel_hints(const std::vector<OperandDescription> &descs);
+} // namespace fusion::planning
 
 #endif // FUSION_CORE_PLANNING_PLAN_BUILDERS_H

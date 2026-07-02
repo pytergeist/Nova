@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+namespace fusion::planning {
 enum class ExprKind : std::uint8_t {
    Elementwise,
    Reduction,
@@ -21,5 +22,6 @@ enum class IndexedFormat : std::uint8_t {
    CRS,
    BlockedCRS,
 };
+} // namespace fusion::planning
 
 #endif // FUSION_CORE_PLANNING_PLAN_KINDS_H

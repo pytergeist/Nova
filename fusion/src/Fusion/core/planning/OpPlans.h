@@ -5,6 +5,7 @@
 
 #include "ExecutionPlan.h"
 
+namespace fusion::planning {
 /// The execution plan for an ElementWise expression
 struct ElementWisePlan {
    static constexpr std::string_view name = "Elementwise Plan";
@@ -28,5 +29,6 @@ struct IndexedPlan {
    static constexpr std::string_view name = "Indexed Plan";
    ExecutionPlan exec;
 };
+} // namespace fusion::planning
 
 #endif // FUSION_CORE_PLANNING_OP_PLANS_H

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 
+namespace fusion::planning {
 struct GemmLikeDesc {
    std::size_t batch{1};
    std::size_t M{1}, N{1}, K{1};
@@ -26,6 +27,6 @@ struct KernelHints {
    bool gemm_like{false};
    GemmLikeDesc gemm{};
 };
-
+} // namespace fusion::planning
 
 #endif // FUSION_CORE_PLANNING_KERNEL_HINTS_H

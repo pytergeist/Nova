@@ -8,6 +8,7 @@
 #include "Fusion/core/topology/PairIndex.hpp"
 #include "PlanKinds.h"
 
+namespace fusion::planning {
 struct DenseTraversalPlan {
    std::vector<LoopDim> loop;
 };
@@ -18,5 +19,6 @@ struct IndexedTraversalPlan {
 };
 
 using TraversalPlan = std::variant<DenseTraversalPlan, IndexedTraversalPlan>;
+} // namespace fusion::planning
 
 #endif // FUSION_CORE_PLANNING_TRAVERSAL_PLAN_H

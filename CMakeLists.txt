@@ -102,7 +102,7 @@ target_link_libraries(fusion_storage INTERFACE
 # core layer (Tensor semantics)
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
-        ${FUSION_SRC_DIR}/core/planning/TensorPlan.cpp
+        ${FUSION_SRC_DIR}/core/planning/PlanBuilders.cpp
         ${FUSION_SRC_DIR}/core/fuir/IR.cpp
         ${FUSION_SRC_DIR}/core/ThreadPool.cpp
         ${FUSION_SRC_DIR}/core/topology/PairSort.cpp

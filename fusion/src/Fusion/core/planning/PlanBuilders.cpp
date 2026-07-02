@@ -1,6 +1,7 @@
 #include "PlanBuilders.h"
 
-
+namespace fusion::planning {
+namespace {
 KernelHints make_kernel_hints(const std::vector<OperandDescription> &descs) {
    KernelHints hints;
    hints.all_contiguous_like =
@@ -25,7 +26,7 @@ PlanCore make_plan_core(const ExprKind expr, const TraversalKind traversal,
                         std::vector<std::size_t> out_shape) {
    PlanCore plan;
    plan.expr = expr;
-   plan.traversal = traversal;
+   plan.traversal_kind = traversal;
    plan.num_operands = ir.num_operands;
    plan.itemsize = ir.itemsize;
    plan.out_shape = std::move(out_shape);
@@ -69,20 +70,6 @@ make_dense_execution_plan(const ExprKind expr, const IndexSpaceIR &ir,
    return exec;
 }
 
-ElementWisePlan
-make_elementwise_plan(const std::vector<OperandDescription> &descs) {
-   constexpr ItemSizeGroupConstraint constraint =
-       ItemSizeGroupConstraint::HomogeneousItemSize;
-   const IndexSpaceIR ir =
-       build_elementwise_ir_right_aligned(descs, constraint);
-   const std::vector<std::uint32_t> &loop_order = ir.out_indices;
-   ElementWisePlan plan;
-   plan.exec =
-       make_dense_execution_plan(ExprKind::Elementwise, ir, descs,
-                                 get_output_shape_from_indices(ir), loop_order);
-   return plan;
-}
-
 std::vector<std::uint32_t> make_reduction_loop_order(const IndexSpaceIR &ir,
                                                      const std::size_t axis) {
    std::vector<std::uint32_t> loop_order;
@@ -92,31 +79,6 @@ std::vector<std::uint32_t> make_reduction_loop_order(const IndexSpaceIR &ir,
    }
    loop_order.push_back(static_cast<std::uint32_t>(axis));
    return loop_order;
-}
-
-ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
-                                  const std::size_t axis, const bool keepdim) {
-   if (descs.size() < 2) {
-      throw std::runtime_error("reduction: expected at least {out, in}");
-   }
-
-   const OperandDescription &in_desc = descs.back();
-   const std::size_t ax_norm =
-       norm_axis(static_cast<std::int64_t>(axis), in_desc.ndims());
-
-   constexpr ItemSizeGroupConstraint constraint =
-       ItemSizeGroupConstraint::HomogeneousItemSize;
-   const IndexSpaceIR ir =
-       build_reduction_ir(descs, ax_norm, keepdim, constraint);
-   const std::vector<std::uint32_t> loop_order =
-       make_reduction_loop_order(ir, ax_norm);
-
-   ReductionPlan plan;
-   plan.exec = make_dense_execution_plan(ExprKind::Reduction, ir, descs,
-                                         descs.front().shape, loop_order);
-   plan.keep_dim = keepdim;
-   plan.reduction_axis = ax_norm;
-   return plan;
 }
 
 std::vector<std::uint32_t> make_contraction_loop_order(const IndexSpaceIR &ir) {
@@ -129,7 +91,7 @@ std::vector<std::uint32_t> make_contraction_loop_order(const IndexSpaceIR &ir) {
       if (ir.indices[id].kind == IndexKind::Reduction) {
          reduce_order.push_back(id);
       }
-   }
+        }
 
    std::vector<std::uint32_t> loop_order;
    loop_order.reserve(outer_order.size() + reduce_order.size());
@@ -138,6 +100,8 @@ std::vector<std::uint32_t> make_contraction_loop_order(const IndexSpaceIR &ir) {
                      reduce_order.end());
    return loop_order;
 }
+
+} // unnamed namespace
 
 ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
@@ -245,7 +209,7 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
        plan.exec.hints.gemm.b_rs == 0 || plan.exec.hints.gemm.b_cs == 0) {
       plan.exec.hints.gemm_like = false;
       return plan;
-   }
+       }
 
    return plan;
 }
@@ -282,3 +246,45 @@ make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
                                             inputs.back()};
    return make_contraction_plan_einsum_out(descs, binding);
 }
+
+
+ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
+                                  const std::size_t axis, const bool keepdim) {
+   if (descs.size() < 2) {
+      throw std::runtime_error("reduction: expected at least {out, in}");
+   }
+
+   const OperandDescription &in_desc = descs.back();
+   const std::size_t ax_norm =
+       norm_axis(static_cast<std::int64_t>(axis), in_desc.ndims());
+
+   constexpr ItemSizeGroupConstraint constraint =
+       ItemSizeGroupConstraint::HomogeneousItemSize;
+   const IndexSpaceIR ir =
+       build_reduction_ir(descs, ax_norm, keepdim, constraint);
+   const std::vector<std::uint32_t> loop_order =
+       make_reduction_loop_order(ir, ax_norm);
+
+   ReductionPlan plan;
+   plan.exec = make_dense_execution_plan(ExprKind::Reduction, ir, descs,
+                                         descs.front().shape, loop_order);
+   plan.keep_dim = keepdim;
+   plan.reduction_axis = ax_norm;
+   return plan;
+}
+
+ElementWisePlan
+make_elementwise_plan(const std::vector<OperandDescription> &descs) {
+   constexpr ItemSizeGroupConstraint constraint =
+       ItemSizeGroupConstraint::HomogeneousItemSize;
+   const IndexSpaceIR ir =
+       build_elementwise_ir_right_aligned(descs, constraint);
+   const std::vector<std::uint32_t> &loop_order = ir.out_indices;
+   ElementWisePlan plan;
+   plan.exec =
+       make_dense_execution_plan(ExprKind::Elementwise, ir, descs,
+                                 get_output_shape_from_indices(ir), loop_order);
+   return plan;
+}
+
+} // namespace fusion::planning

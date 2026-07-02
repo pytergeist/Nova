@@ -18,8 +18,8 @@ struct DenseIterPlanView {
 
 template <typename IterPlan>
 DenseIterPlanView dense_iter_view(const IterPlan &plan) {
-   const DenseTraversalPlan *dense =
-       std::get_if<DenseTraversalPlan>(&plan.exec.traversal);
+   const planning::DenseTraversalPlan *dense =
+       std::get_if<planning::DenseTraversalPlan>(&plan.exec.traversal);
    FUSION_CHECK(dense != nullptr, "Expected DenseTraversalPlan, got nullptr");
    return DenseIterPlanView{.num_operands = plan.exec.core.num_operands,
                             .loop = dense->loop,

@@ -89,8 +89,8 @@ TEST(TensorPlanContractionTest,
            },
        .out_labels = {0, 1},
    };
-   ContractionPlan plan =
-       make_contraction_plan_einsum_out({out, a, b}, binding);
+   fusion::planning::ContractionPlan plan =
+       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
 
    EXPECT_EQ(plan.exec.core.num_operands, 3);
    EXPECT_EQ(plan.exec.core.out_ndim, 2);
@@ -143,10 +143,10 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
 
-   ContractionPlan plan =
-       make_contraction_plan_einsum_out({out, a, b}, binding);
+   fusion::planning::ContractionPlan plan =
+       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
 
-   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
 
    ASSERT_EQ(dense.loop.size(), 3);
 
@@ -205,9 +205,9 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
 
-   ContractionPlan plan =
-       make_contraction_plan_einsum_out({out, a, b}, binding);
-   DenseTraversalPlan dense = std::get<DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::ContractionPlan plan =
+       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
+   fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
 
    ASSERT_EQ(dense.loop.size(), 3);
 
@@ -261,8 +261,8 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
 
-   ContractionPlan plan =
-       make_contraction_plan_einsum_out({out, a, b}, binding);
+   fusion::planning::ContractionPlan plan =
+       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
 
    EXPECT_TRUE(plan.exec.hints.gemm_like);
 
@@ -326,7 +326,7 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
 
-   EXPECT_THROW(make_contraction_plan_einsum_out({out, a, b}, binding),
+   EXPECT_THROW(fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding),
                 std::runtime_error);
 }
 
