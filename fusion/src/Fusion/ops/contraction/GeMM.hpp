@@ -7,10 +7,10 @@
 #include "Fusion/common/Log.hpp"
 
 #include "Fusion/core/iter/TensorIter.hpp"
-#include "Fusion/core/planning/PlanMeta.hpp"
+#include "Fusion/core/planning/OpContextBuilders.h"
 #include "Fusion/kernels/Serial.hpp"
 
-#include "../Helpers.hpp"
+#include "Fusion/ops/Helpers.hpp"
 
 namespace fusion::ops::contraction {
 
@@ -76,11 +76,11 @@ DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
 
    OperandLabelBinding binding =
        make_matmul_binding(a_shape.size(), b_shape.size());
-   ContractionMeta meta = make_contraction_meta_einsum<T>(A, B, binding);
+   planning::ContractionContext meta = planning::make_contraction_context_einsum<T>(A, B, binding);
 
    DenseTensor<T> out = init_out_from_meta(A, B, meta);
 
-   fusion::dense::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD
+   dense::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD
 
                                         >(A, B, meta, out);
 
