@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Fusion/core/iter/TensorIter.hpp"
-#include "Fusion/core/planning/PlanMeta.hpp"
+#include "Fusion/core/planning/OpContextBuilders.h"
 #include "Fusion/core/tensor/DenseTensor.hpp"
 
 #include "Fusion/cpu/simd/SimdTags.hpp"
@@ -182,8 +182,8 @@ TEST(TensorIterTest, binary_ewise_tag_fastpath_computes_elementwise_add) {
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   BinaryEwiseMeta meta = make_binary_meta(a, b);
-   EXPECT_EQ(meta.exec, BinaryExecKind::FlatContiguous);
+   fusion::planning::BinaryEwiseContext meta = fusion::planning::make_binary_ewise_context(a, b);
+   EXPECT_EQ(meta.exec, fusion::planning::BinaryExecKind::FlatContiguous);
    EXPECT_EQ(meta.fast_len, 6);
 
    fusion::dense::iter::binary_ewise_tag<float, AddSIMD>(a, b, meta, out);
@@ -203,8 +203,8 @@ TEST(TensorIterTest, binary_ewise_tag_broadcast_path_computes_elementwise_add) {
                         Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   BinaryEwiseMeta meta = make_binary_meta(a, b);
-   ASSERT_EQ(meta.exec, BinaryExecKind::FlatContiguousBroadcastRHS);
+   fusion::planning::BinaryEwiseContext meta = fusion::planning::make_binary_ewise_context(a, b);
+   ASSERT_EQ(meta.exec, fusion::planning::BinaryExecKind::FlatContiguousBroadcastRHS);
    ASSERT_EQ(meta.out_shape, (std::vector<size_t>{2, 3}));
 
    fusion::dense::iter::binary_ewise_tag<float, AddSIMD>(a, b, meta, out);
@@ -222,7 +222,7 @@ TEST(TensorIterTest, unary_ewise_tag_fastpath_computes_square) {
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   UnaryEwiseMeta meta = make_unary_meta(a);
+   fusion::planning::UnaryEwiseContext meta = fusion::planning::make_unary_ewise_context(a);
    ASSERT_TRUE(meta.fastpath);
    ASSERT_EQ(meta.fast_len, 6);
 
@@ -241,7 +241,7 @@ TEST(TensorIterTest, reduction_tag_global_fastpath_sums_all_elements) {
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({1}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   ReductionMeta meta = make_reduction_meta(a, kGlobalReduceAxis, false);
+   fusion::planning::ReductionContext meta = fusion::planning::make_reduction_context(a, fusion::planning::kGlobalReduceAxis, false);
    ASSERT_TRUE(meta.fastpath);
    ASSERT_EQ(meta.fast_len, 6);
 
@@ -263,7 +263,7 @@ TEST(TensorIterTest, reduction_tag_axis_path_reduces_requested_axis) {
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   ReductionMeta meta = make_reduction_meta(a, 1, false);
+   fusion::planning::ReductionContext meta = fusion::planning::make_reduction_context(a, 1, false);
    ASSERT_FALSE(meta.fastpath);
    ASSERT_EQ(meta.out_shape, (std::vector<std::size_t>{2}));
 
@@ -315,7 +315,7 @@ TEST(TensorIterTest, contraction_tag_computes_matrix_multiplication_result) {
            },
        .out_labels = {0, 1},
    };
-   ContractionMeta meta = make_contraction_meta_einsum(a, b, binding);
+   fusion::planning::ContractionContext meta = fusion::planning::make_contraction_context_einsum(a, b, binding);
 
    fusion::dense::iter::contraction_tag<float, MultiplySIMD, MultiplySIMD>(
        a, b, meta, out);

@@ -9,7 +9,7 @@
 
 #include "DenseIterPlanView.hpp"
 #include "Fusion/core/planning/PlanBuilders.h"
-#include "Fusion/core/planning/PlanMeta.hpp"
+#include "Fusion/core/planning/OpContext.h"
 
 namespace fusion::dense::iter {
 
@@ -152,7 +152,7 @@ void tag_fallback_contraction(T *o, const T *a, const T *b, const int64_t &so,
 
 template <typename T, class Tag, class TensorT>
 void binary_ewise_tag(const TensorT &A, const TensorT &B,
-                      const BinaryEwiseMeta &meta, TensorT &out) {
+                      const planning::BinaryEwiseContext &meta, TensorT &out) {
 
    FUSION_CHECK(A.is_initialised(), "binary ewise: LHS uninitialised");
    FUSION_CHECK(B.is_initialised(), "binary ewise: RHS uninitialised");
@@ -163,7 +163,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
        reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
        reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr()))};
 
-   if (meta.exec == BinaryExecKind::FlatContiguous) {
+   if (meta.exec == planning::BinaryExecKind::FlatContiguous) {
       auto *o = reinterpret_cast<T *>(base[0]);
       const auto *a = reinterpret_cast<const T *>(base[1]);
       const auto *b = reinterpret_cast<const T *>(base[2]);
@@ -215,7 +215,7 @@ void binary_ewise_tag(const TensorT &A, const TensorT &B,
 }
 
 template <typename T, class Tag, class TensorT>
-void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
+void unary_ewise_tag(const TensorT &A, planning::UnaryEwiseContext &meta,
                      TensorT &out_data) {
 
    std::array<uint8_t *, 2> base = {
@@ -270,7 +270,7 @@ void unary_ewise_tag(const TensorT &A, UnaryEwiseMeta &meta,
 }
 
 template <typename T, class Tag, class TensorT>
-void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
+void reduction_tag(const TensorT &A, planning::ReductionContext &meta, TensorT &out_data) {
 
    auto *out = reinterpret_cast<T *>(out_data.get_ptr());
    std::fill(out, out + out_data.flat_size(), T{0});
@@ -315,7 +315,7 @@ void reduction_tag(const TensorT &A, ReductionMeta &meta, TensorT &out_data) {
 }
 
 template <typename T, class BlasTag, class ScalarTag, class TensorT>
-void contraction_tag(const TensorT &A, const TensorT &B, ContractionMeta &meta,
+void contraction_tag(const TensorT &A, const TensorT &B, planning::ContractionContext &meta,
                      TensorT &out_data) {
 
    auto *out = reinterpret_cast<T *>(out_data.get_ptr());
