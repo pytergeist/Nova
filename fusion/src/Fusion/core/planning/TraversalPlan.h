@@ -6,11 +6,11 @@
 
 #include "Fusion/core/fuir/IR.h"
 #include "Fusion/core/topology/PairIndex.hpp"
-#include "PlanKinds.h"
+#include "Fusion/core/planning/PlanKinds.h"
 
 namespace fusion::planning {
 struct DenseTraversalPlan {
-   std::vector<LoopDim> loop;
+   std::vector<LoopDim> loop{};
 };
 
 struct IndexedTraversalPlan {

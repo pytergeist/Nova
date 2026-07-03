@@ -24,7 +24,7 @@ enum class BinaryExecKind : std::uint8_t {
 struct BinaryEwiseMeta {
    std::vector<std::size_t> out_shape;
    std::size_t fast_len;
-   fusion::planning::ElementWisePlan plan;
+   fusion::planning::ElementwisePlan plan;
    OperandDescription dA, dB, dOut;
    BinaryExecKind exec{BinaryExecKind::GenericStrided};
 };
@@ -33,7 +33,7 @@ struct UnaryEwiseMeta {
    bool fastpath;
    std::size_t fast_len;
    std::vector<std::size_t> out_shape;
-   fusion::planning::ElementWisePlan plan;
+   fusion::planning::ElementwisePlan plan;
    OperandDescription dA, dOut;
 };
 
@@ -156,7 +156,7 @@ BinaryEwiseMeta make_binary_meta(const DenseTensor<T> &A,
    dA.update = UpdateKind::ReadOnly;
    dB.update = UpdateKind::ReadOnly;
 
-   fusion::planning::ElementWisePlan plan_in = fusion::planning::make_elementwise_plan({dA, dB});
+   fusion::planning::ElementwisePlan plan_in = fusion::planning::make_elementwise_plan({dA, dB});
 
    meta.out_shape.assign(plan_in.exec.core.out_shape.begin(),
                          plan_in.exec.core.out_shape.end());
@@ -192,7 +192,7 @@ template <typename T> UnaryEwiseMeta make_unary_meta(const DenseTensor<T> &A) {
    OperandDescription dA = make_desc_from_tensor<T>(A);
    dA.update = UpdateKind::ReadOnly;
 
-   fusion::planning::ElementWisePlan plan_in = fusion::planning::make_elementwise_plan({dA});
+   fusion::planning::ElementwisePlan plan_in = fusion::planning::make_elementwise_plan({dA});
 
    meta.fastpath = false;
    meta.out_shape.assign(plan_in.exec.core.out_shape.begin(),

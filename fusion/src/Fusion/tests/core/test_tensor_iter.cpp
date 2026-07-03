@@ -12,7 +12,7 @@
 
 TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
-   fusion::planning::ElementWisePlan plan{};
+   fusion::planning::ElementwisePlan plan{};
    plan.exec.core.num_operands = 3;
    plan.exec.core.out_ndim = 0;
    plan.exec.core.itemsize = sizeof(float);
@@ -58,7 +58,7 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
 TEST(TensorIterTest,
      for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
-   fusion::planning::ElementWisePlan plan{};
+   fusion::planning::ElementwisePlan plan{};
    plan.exec.core.num_operands = 3;
    plan.exec.core.out_ndim = 2;
    plan.exec.core.itemsize = sizeof(float);

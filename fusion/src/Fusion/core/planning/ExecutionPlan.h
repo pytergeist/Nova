@@ -5,10 +5,10 @@
 #include <cstddef>
 #include <string_view>
 
-#include "KernelHints.h"
-#include "PlanKinds.h"
-#include "AccessPlan.h"
-#include "TraversalPlan.h"
+#include "Fusion/core/planning/KernelHints.h"
+#include "Fusion/core/planning/PlanKinds.h"
+#include "Fusion/core/planning/AccessPlan.h"
+#include "Fusion/core/planning/TraversalPlan.h"
 
 namespace fusion::planning {
 struct PlanCore {

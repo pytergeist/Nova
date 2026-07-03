@@ -19,7 +19,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ElementWisePlan plan = fusion::planning::make_elementwise_plan({a});
+   fusion::planning::ElementwisePlan plan = fusion::planning::make_elementwise_plan({a});
    fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
 
    EXPECT_EQ(plan.exec.core.num_operands, 1);
@@ -73,7 +73,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ElementWisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
+   fusion::planning::ElementwisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
    fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
 
    EXPECT_EQ(plan.exec.core.num_operands, 3);
@@ -134,7 +134,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ElementWisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
+   fusion::planning::ElementwisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
    fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(dense.loop.size(), 2);
@@ -191,7 +191,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ElementWisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
+   fusion::planning::ElementwisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
    fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(dense.loop.size(), 2);
@@ -248,7 +248,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ElementWisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
+   fusion::planning::ElementwisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
    fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
    ASSERT_EQ(dense.loop.size(), 2);
@@ -316,7 +316,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ElementWisePlan plan = fusion::planning::make_elementwise_plan({out, a, b, c});
+   fusion::planning::ElementwisePlan plan = fusion::planning::make_elementwise_plan({out, a, b, c});
    fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    EXPECT_EQ(plan.exec.core.num_operands, 4);
    EXPECT_EQ(plan.exec.core.out_ndim, 3);
@@ -382,7 +382,7 @@ TEST(TensorPlanAlignedTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ElementWisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
+   fusion::planning::ElementwisePlan plan = fusion::planning::make_elementwise_plan({out, a, b});
    fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
 
    EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));

@@ -2,12 +2,13 @@
 #define FUSION_CORE_PLANNING_OP_PLANS_H
 
 #include <string_view>
+#include <cstddef>
 
-#include "ExecutionPlan.h"
+#include "Fusion/core/planning/ExecutionPlan.h"
 
 namespace fusion::planning {
 /// The execution plan for an ElementWise expression
-struct ElementWisePlan {
+struct ElementwisePlan {
    static constexpr std::string_view name = "Elementwise Plan";
    ExecutionPlan exec;
 };

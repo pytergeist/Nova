@@ -4,7 +4,7 @@
 #include <iostream>
 #include <type_traits>
 
-#include "Fusion/core/planning/TensorPlan.h"
+#include "Fusion/core/planning/PlanBuilders.h"
 #include "Fusion/cpu/blas/BlasTags.hpp"
 #include "Fusion/cpu/blas/backend/Gemm.hpp"
 
@@ -13,9 +13,9 @@ namespace fusion::blas {
 template <class Tag, typename T> struct blas_traits {
    static constexpr bool available = false;
 
-   static bool can_execute(const GemmLikeDesc &) { return false; }
+   static bool can_execute(const planning::GemmLikeDesc &) { return false; }
 
-   static void execute(const T *, const T *, T *, const GemmLikeDesc &, T, T) {
+   static void execute(const T *, const T *, T *, const planning::GemmLikeDesc &, T, T) {
       // no-op default; should never be called when available==false
    }
 };
@@ -25,7 +25,7 @@ template <class Tag, typename T> struct blas_traits {
 template <typename T> struct blas_traits<BatchedGemmBLAS, T> {
    static constexpr bool available = std::is_same_v<T, float>;
 
-   static bool can_execute(const GemmLikeDesc &g) {
+   static bool can_execute(const planning::GemmLikeDesc &g) {
       if constexpr (!available)
          return false;
 
@@ -58,7 +58,7 @@ template <typename T> struct blas_traits<BatchedGemmBLAS, T> {
       return ok;
    }
 
-   static void execute(const T *A, const T *B, T *C, const GemmLikeDesc &g,
+   static void execute(const T *A, const T *B, T *C, const planning::GemmLikeDesc &g,
                        T alpha, T beta) {
       // Assumes can_execute(g) was true.
       batched_gemm_rowmajor_nn<T>(A, B, C, static_cast<int>(g.M),

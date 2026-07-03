@@ -1,4 +1,5 @@
 #include "PlanBuilders.h"
+#include "Fusion/core/planning/analysis/ContractionAnalysis.h"
 
 namespace fusion::planning {
 namespace {
@@ -91,7 +92,7 @@ std::vector<std::uint32_t> make_contraction_loop_order(const IndexSpaceIR &ir) {
       if (ir.indices[id].kind == IndexKind::Reduction) {
          reduce_order.push_back(id);
       }
-        }
+   }
 
    std::vector<std::uint32_t> loop_order;
    loop_order.reserve(outer_order.size() + reduce_order.size());
@@ -121,7 +122,6 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
           "einsum_out: out.shape does not match inferred out shape");
    }
 
-   const std::vector<std::uint32_t> outer_order = ir.out_indices;
    const std::vector<std::uint32_t> loop_order =
        make_contraction_loop_order(ir);
    const std::vector<IndexRole> role_of_id =
@@ -131,85 +131,11 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    plan.exec = make_dense_execution_plan(ExprKind::Contraction, ir, descs,
                                          get_output_shape_from_indices(ir),
                                          loop_order, &role_of_id);
-   plan.exec.hints.gemm_like = true;
-   plan.exec.hints.gemm = GemmLikeDesc{};
-
-   std::size_t batch = 1, M = 1, N = 1, K = 1;
-   int m_count = 0, n_count = 0, k_count = 0;
-   DenseTraversalPlan dense_trav_plan =
-       std::get<DenseTraversalPlan>(plan.exec.traversal);
-   for (const auto &ld : dense_trav_plan.loop) {
-      switch (ld.role) {
-      case IndexRole::Batch:
-         batch *= ld.size;
-         break;
-      case IndexRole::M:
-         M = ld.size;
-         ++m_count;
-         break;
-      case IndexRole::N:
-         N = ld.size;
-         ++n_count;
-         break;
-      case IndexRole::K:
-         K = ld.size;
-         ++k_count;
-         break;
-      }
+   if (std::optional<GemmLikeDesc> gemm =
+           analysis::analyse_gemm_like_contraction(plan.exec)) {
+      plan.exec.hints.gemm_like = true;
+      plan.exec.hints.gemm = *gemm;
    }
-
-   if (!(m_count == 1 && n_count == 1 && k_count == 1)) {
-      plan.exec.hints.gemm_like = false;
-      return plan;
-   }
-
-   plan.exec.hints.gemm.batch = batch;
-   plan.exec.hints.gemm.M = M;
-   plan.exec.hints.gemm.N = N;
-   plan.exec.hints.gemm.K = K;
-
-   const std::int64_t item = static_cast<std::int64_t>(plan.exec.core.itemsize);
-
-   std::int64_t out_m = 0, out_n = 0;
-   std::int64_t a_m = 0, a_k = 0;
-   std::int64_t b_k = 0, b_n = 0;
-
-   std::vector<std::int64_t> out_access =
-       plan.exec.access.operands.at(0).affine.byte_stride_per_loop;
-   std::vector<std::int64_t> a_access =
-       plan.exec.access.operands.at(1).affine.byte_stride_per_loop;
-   std::vector<std::int64_t> b_access =
-       plan.exec.access.operands.at(2).affine.byte_stride_per_loop;
-
-   for (std::size_t pos = 0; pos < dense_trav_plan.loop.size(); ++pos) {
-      const LoopDim &ld = dense_trav_plan.loop[pos];
-      if (ld.role == IndexRole::M) {
-         out_m = out_access[pos] / item;
-         a_m = a_access[pos] / item;
-      } else if (ld.role == IndexRole::N) {
-         out_n = out_access[pos] / item;
-         b_n = b_access[pos] / item;
-      } else if (ld.role == IndexRole::K) {
-         a_k = a_access[pos] / item;
-         b_k = b_access[pos] / item;
-      }
-   }
-
-   plan.exec.hints.gemm.out_rs = out_m;
-   plan.exec.hints.gemm.out_cs = out_n;
-
-   plan.exec.hints.gemm.a_rs = a_m;
-   plan.exec.hints.gemm.a_cs = a_k;
-
-   plan.exec.hints.gemm.b_rs = b_k;
-   plan.exec.hints.gemm.b_cs = b_n;
-
-   if (plan.exec.hints.gemm.out_rs == 0 || plan.exec.hints.gemm.out_cs == 0 ||
-       plan.exec.hints.gemm.a_rs == 0 || plan.exec.hints.gemm.a_cs == 0 ||
-       plan.exec.hints.gemm.b_rs == 0 || plan.exec.hints.gemm.b_cs == 0) {
-      plan.exec.hints.gemm_like = false;
-      return plan;
-       }
 
    return plan;
 }
@@ -230,7 +156,7 @@ make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
    dummy_out.itemsize = inputs.front().itemsize;
 
    std::vector<OperandDescription> tmp = {dummy_out, inputs.front(),
-                                          inputs.front()};
+                                          inputs.back()};
    IndexSpaceIR ir = build_ir_from_label_binding(tmp, binding, constraint);
 
    const std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
@@ -246,7 +172,6 @@ make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
                                             inputs.back()};
    return make_contraction_plan_einsum_out(descs, binding);
 }
-
 
 ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
                                   const std::size_t axis, const bool keepdim) {
@@ -273,14 +198,14 @@ ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
    return plan;
 }
 
-ElementWisePlan
+ElementwisePlan
 make_elementwise_plan(const std::vector<OperandDescription> &descs) {
    constexpr ItemSizeGroupConstraint constraint =
        ItemSizeGroupConstraint::HomogeneousItemSize;
    const IndexSpaceIR ir =
        build_elementwise_ir_right_aligned(descs, constraint);
    const std::vector<std::uint32_t> &loop_order = ir.out_indices;
-   ElementWisePlan plan;
+   ElementwisePlan plan;
    plan.exec =
        make_dense_execution_plan(ExprKind::Elementwise, ir, descs,
                                  get_output_shape_from_indices(ir), loop_order);

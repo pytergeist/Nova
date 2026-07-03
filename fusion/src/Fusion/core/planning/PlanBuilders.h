@@ -5,10 +5,10 @@
 #include <vector>
 
 #include "Fusion/core/fuir/IR.h"
-#include "OpPlans.h"
+#include "Fusion/core/planning/OpPlans.h"
 
 namespace fusion::planning {
-ElementWisePlan
+ElementwisePlan
 make_elementwise_plan(const std::vector<OperandDescription> &descs);
 
 ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &desc,
