@@ -1,7 +1,5 @@
 #include "Fusion/common/error/Error.h"
 
-#include <sstream>
-
 namespace fusion::error {
 
 [[noreturn]] void throw_error(const ErrorCode code,

@@ -6,6 +6,7 @@
 
 namespace fusion::error {
 enum class ErrorDomain : std::uint8_t {
+   Common,
    Alloc,
    Storage,
    Device,
