@@ -1,7 +1,5 @@
 from typing import List, Set
 
-from nova.src.backend.autodiff import Node
-
 
 class TopologicalSort:
     """Topological sort of the nodes in the graph.
@@ -17,7 +15,7 @@ class TopologicalSort:
         self.visited: Set[int] = set()
         self.order: list = []
 
-    def dfs_recursive(self, node: Node):
+    def dfs_recursive(self, node):
         """Depth-first search traversal of the graph. Currently implemented recursively.
 
         Args:
@@ -29,7 +27,7 @@ class TopologicalSort:
                 self.dfs(parent)
             self.order.append(node)
 
-    def dfs_iterative(self, node: Node):
+    def dfs_iterative(self, node):
         """Depth-first search traversal of the graph. Currently implemented iteratively.
 
         Args:
@@ -45,8 +43,8 @@ class TopologicalSort:
                 self.order.append(current_node)
 
     def sort(
-        self, start_node: Node, mode: str = "iterative", reverse: bool = False
-    ) -> List[Node]:
+        self, start_node, mode: str = "iterative", reverse: bool = False
+    ) -> List:
         """Sort the nodes in the graph topologically.
 
         The Engine class is used to build the computational graph, the starting node is the node that
