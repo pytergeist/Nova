@@ -13,9 +13,8 @@
 namespace fusion::planning {
 
 template <typename T>
-BinaryEwiseContext
-make_binary_ewise_context(const DenseTensor<T>& lhs,
-                          const DenseTensor<T>& rhs) {
+BinaryEwiseContext make_binary_ewise_context(const DenseTensor<T> &lhs,
+                                             const DenseTensor<T> &rhs) {
    BinaryEwiseContext ctx{};
 
    const bool same_shape = lhs.shape() == rhs.shape();
@@ -50,17 +49,15 @@ make_binary_ewise_context(const DenseTensor<T>& lhs,
    const bool broadcast_lhs = ctx.lhs.shape != ctx.out.shape;
 
    ctx.exec = ctx.plan.exec.hints.all_contiguous_like
-                  ? (broadcast_lhs
-                         ? BinaryExecKind::FlatContiguousBroadcastLHS
-                         : BinaryExecKind::FlatContiguousBroadcastRHS)
+                  ? (broadcast_lhs ? BinaryExecKind::FlatContiguousBroadcastLHS
+                                   : BinaryExecKind::FlatContiguousBroadcastRHS)
                   : BinaryExecKind::GenericStrided;
 
    return ctx;
 }
 
 template <typename T>
-UnaryEwiseContext
-make_unary_ewise_context(const DenseTensor<T>& input) {
+UnaryEwiseContext make_unary_ewise_context(const DenseTensor<T> &input) {
    UnaryEwiseContext ctx{};
 
    if (input.is_contiguous()) {
@@ -89,10 +86,8 @@ make_unary_ewise_context(const DenseTensor<T>& input) {
 }
 
 template <typename T>
-ReductionContext
-make_reduction_context(const DenseTensor<T>& input,
-                       std::size_t axis,
-                       bool keepdim) {
+ReductionContext make_reduction_context(const DenseTensor<T> &input,
+                                        std::size_t axis, bool keepdim) {
    ReductionContext ctx{};
 
    if (axis == kGlobalReduceAxis && !keepdim) {
@@ -136,9 +131,9 @@ make_reduction_context(const DenseTensor<T>& input,
 
 template <typename T>
 ContractionContext
-make_contraction_context_einsum(const DenseTensor<T>& lhs,
-                                const DenseTensor<T>& rhs,
-                                const OperandLabelBinding& binding) {
+make_contraction_context_einsum(const DenseTensor<T> &lhs,
+                                const DenseTensor<T> &rhs,
+                                const OperandLabelBinding &binding) {
    ContractionContext ctx{};
 
    ctx.lhs = make_desc_from_tensor<T>(lhs);
@@ -152,9 +147,8 @@ make_contraction_context_einsum(const DenseTensor<T>& lhs,
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
    ctx.out.update = UpdateKind::Accumulate;
 
-   ctx.plan = make_contraction_plan_einsum_out(
-       {ctx.out, ctx.lhs, ctx.rhs},
-       binding);
+   ctx.plan =
+       make_contraction_plan_einsum_out({ctx.out, ctx.lhs, ctx.rhs}, binding);
 
    ctx.fastpath = lhs.is_contiguous() && rhs.is_contiguous();
    ctx.fast_len = 0;

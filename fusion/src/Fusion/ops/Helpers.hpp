@@ -7,17 +7,18 @@
 #include "Fusion/core/planning/OpContext.h"
 
 template <typename T>
-DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x,
-                                  const DenseTensor<T> &y,
-                                  const fusion::planning::BinaryEwiseContext &m) {
+DenseTensor<T>
+init_out_from_meta(const DenseTensor<T> &x, const DenseTensor<T> &y,
+                   const fusion::planning::BinaryEwiseContext &m) {
    FUSION_CHECK(x.dtype() == y.dtype(), "dtypes do not match!");
    FUSION_CHECK(x.device() == y.device(), "devices do not match!");
    return DenseTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 
 template <typename T>
-DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x,
-                                  const fusion::planning::UnaryEwiseContext &m) {
+DenseTensor<T>
+init_out_from_meta(const DenseTensor<T> &x,
+                   const fusion::planning::UnaryEwiseContext &m) {
    return DenseTensor<T>(m.out_shape, x.dtype(), x.device());
 }
 
@@ -28,9 +29,9 @@ DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x,
 }
 
 template <typename T>
-DenseTensor<T> init_out_from_meta(const DenseTensor<T> &x,
-                                  const DenseTensor<T> &y,
-                                  const fusion::planning::ContractionContext &m) {
+DenseTensor<T>
+init_out_from_meta(const DenseTensor<T> &x, const DenseTensor<T> &y,
+                   const fusion::planning::ContractionContext &m) {
    FUSION_CHECK(x.dtype() == y.dtype(), "dtypes do not match!");
    FUSION_CHECK(x.device() == y.device(), "devices do not match!");
    return DenseTensor<T>(m.out_shape, x.dtype(), x.device());

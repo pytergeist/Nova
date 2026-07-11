@@ -8,8 +8,8 @@
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 
 #include "DenseIterPlanView.hpp"
-#include "Fusion/core/planning/PlanBuilders.h"
 #include "Fusion/core/planning/OpContext.h"
+#include "Fusion/core/planning/PlanBuilders.h"
 
 namespace fusion::dense::iter {
 
@@ -270,7 +270,8 @@ void unary_ewise_tag(const TensorT &A, planning::UnaryEwiseContext &meta,
 }
 
 template <typename T, class Tag, class TensorT>
-void reduction_tag(const TensorT &A, planning::ReductionContext &meta, TensorT &out_data) {
+void reduction_tag(const TensorT &A, planning::ReductionContext &meta,
+                   TensorT &out_data) {
 
    auto *out = reinterpret_cast<T *>(out_data.get_ptr());
    std::fill(out, out + out_data.flat_size(), T{0});
@@ -315,8 +316,8 @@ void reduction_tag(const TensorT &A, planning::ReductionContext &meta, TensorT &
 }
 
 template <typename T, class BlasTag, class ScalarTag, class TensorT>
-void contraction_tag(const TensorT &A, const TensorT &B, planning::ContractionContext &meta,
-                     TensorT &out_data) {
+void contraction_tag(const TensorT &A, const TensorT &B,
+                     planning::ContractionContext &meta, TensorT &out_data) {
 
    auto *out = reinterpret_cast<T *>(out_data.get_ptr());
    std::fill(out, out + out_data.flat_size(), T{0});

@@ -1,13 +1,13 @@
 #ifndef FUSION_CORE_PLANNING_EXECUTION_PLAN_H
 #define FUSION_CORE_PLANNING_EXECUTION_PLAN_H
 
-#include <vector>
 #include <cstddef>
 #include <string_view>
+#include <vector>
 
+#include "Fusion/core/planning/AccessPlan.h"
 #include "Fusion/core/planning/KernelHints.h"
 #include "Fusion/core/planning/PlanKinds.h"
-#include "Fusion/core/planning/AccessPlan.h"
 #include "Fusion/core/planning/TraversalPlan.h"
 
 namespace fusion::planning {

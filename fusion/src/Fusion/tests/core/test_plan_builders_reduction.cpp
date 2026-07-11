@@ -30,7 +30,8 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ReductionPlan plan = fusion::planning::make_reduction_plan({out, in}, 1, false);
+   fusion::planning::ReductionPlan plan =
+       fusion::planning::make_reduction_plan({out, in}, 1, false);
 
    EXPECT_EQ(plan.exec.core.num_operands, 2);
    EXPECT_EQ(plan.exec.core.out_ndim, 2);
@@ -64,7 +65,8 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ReductionPlan plan = fusion::planning::make_reduction_plan({out, in}, 1, true);
+   fusion::planning::ReductionPlan plan =
+       fusion::planning::make_reduction_plan({out, in}, 1, true);
 
    EXPECT_EQ(plan.exec.core.num_operands, 2);
    EXPECT_EQ(plan.exec.core.out_ndim, 3);
@@ -98,7 +100,8 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, true), std::runtime_error);
+   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, true),
+                std::runtime_error);
 }
 
 TEST(TensorPlanReductionTest, make_reduction_plan_normalises_negative_axis) {
@@ -124,8 +127,8 @@ TEST(TensorPlanReductionTest, make_reduction_plan_normalises_negative_axis) {
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ReductionPlan plan =
-       fusion::planning::make_reduction_plan({out, in}, static_cast<std::size_t>(-1), false);
+   fusion::planning::ReductionPlan plan = fusion::planning::make_reduction_plan(
+       {out, in}, static_cast<std::size_t>(-1), false);
 
    EXPECT_EQ(plan.reduction_axis, 2);
    EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
@@ -155,8 +158,10 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ReductionPlan plan = fusion::planning::make_reduction_plan({out, in}, 1, false);
-   fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::ReductionPlan plan =
+       fusion::planning::make_reduction_plan({out, in}, 1, false);
+   fusion::planning::DenseTraversalPlan dense =
+       std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    ASSERT_EQ(dense.loop.size(), 3);
 
    EXPECT_EQ(dense.loop[0].size, 2);
@@ -193,8 +198,10 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ReductionPlan plan = fusion::planning::make_reduction_plan({out, in}, 1, false);
-   fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::ReductionPlan plan =
+       fusion::planning::make_reduction_plan({out, in}, 1, false);
+   fusion::planning::DenseTraversalPlan dense =
+       std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    ASSERT_EQ(dense.loop.size(), 3);
    ASSERT_EQ(plan.exec.access.operands.size(), 2);
 
@@ -231,8 +238,10 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ReductionPlan plan = fusion::planning::make_reduction_plan({out, in}, 1, true);
-   fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::ReductionPlan plan =
+       fusion::planning::make_reduction_plan({out, in}, 1, true);
+   fusion::planning::DenseTraversalPlan dense =
+       std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    ASSERT_EQ(dense.loop.size(), 3);
    ASSERT_EQ(plan.exec.access.operands.size(), 2);
 
@@ -268,8 +277,10 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ReductionPlan plan = fusion::planning::make_reduction_plan({out, in}, 0, false);
-   fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::ReductionPlan plan =
+       fusion::planning::make_reduction_plan({out, in}, 0, false);
+   fusion::planning::DenseTraversalPlan dense =
+       std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
 
    EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{3, 4}));
    EXPECT_EQ(plan.reduction_axis, 0);
@@ -305,8 +316,10 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   fusion::planning::ReductionPlan plan = fusion::planning::make_reduction_plan({out, in}, 2, false);
-   fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::ReductionPlan plan =
+       fusion::planning::make_reduction_plan({out, in}, 2, false);
+   fusion::planning::DenseTraversalPlan dense =
+       std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    EXPECT_EQ(plan.exec.core.out_shape, (std::vector<std::size_t>{2, 3}));
    EXPECT_EQ(plan.reduction_axis, 2);
 
@@ -318,7 +331,8 @@ TEST(TensorPlanReductionTest,
 }
 
 TEST(TensorPlanReductionTest, make_reduction_plan_rejects_empty_descs) {
-   EXPECT_THROW(fusion::planning::make_reduction_plan({}, 0, false), std::runtime_error);
+   EXPECT_THROW(fusion::planning::make_reduction_plan({}, 0, false),
+                std::runtime_error);
 }
 
 TEST(TensorPlanReductionTest, make_reduction_plan_rejects_axis_out_of_range) {
@@ -344,7 +358,8 @@ TEST(TensorPlanReductionTest, make_reduction_plan_rejects_axis_out_of_range) {
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 3, false), std::runtime_error);
+   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 3, false),
+                std::runtime_error);
 }
 
 TEST(TensorPlanReductionTest,
@@ -371,7 +386,8 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, false), std::runtime_error);
+   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, false),
+                std::runtime_error);
 }
 
 TEST(TensorPlanReductionTest,
@@ -398,7 +414,8 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, true), std::runtime_error);
+   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, true),
+                std::runtime_error);
 }
 
 TEST(
@@ -426,7 +443,8 @@ TEST(
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, true), std::runtime_error);
+   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, true),
+                std::runtime_error);
 }
 
 TEST(TensorPlanReductionTest, make_reduction_plan_rejects_mixed_itemsize) {
@@ -452,7 +470,8 @@ TEST(TensorPlanReductionTest, make_reduction_plan_rejects_mixed_itemsize) {
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, false), std::runtime_error);
+   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, false),
+                std::runtime_error);
 }
 
 TEST(TensorPlanReductionTest,
@@ -490,6 +509,7 @@ TEST(TensorPlanReductionTest,
        .type = OperandDescType::Tensor,
    };
 
-   EXPECT_THROW(fusion::planning::make_reduction_plan({out, in0, in1}, 1, false),
-                std::runtime_error);
+   EXPECT_THROW(
+       fusion::planning::make_reduction_plan({out, in0, in1}, 1, false),
+       std::runtime_error);
 }

@@ -30,11 +30,14 @@ class FusionError : public std::runtime_error {
    std::source_location location_;
 };
 
-[[noreturn]] void throw_error(
-    ErrorCode code,
-    std::string message,
-    std::source_location location = std::source_location::current());
+[[noreturn]] inline void throw_error(const ErrorCode code,
+                              std::string message,
+                              const std::source_location location) {
+   throw FusionError(code, std::move(message), location);
+}
+
 
 } // namespace fusion::error
+
 
 #endif // FUSION_COMMON_ERROR_H

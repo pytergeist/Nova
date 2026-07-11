@@ -1,4 +1,9 @@
 #include "PlanBuilders.h"
+
+
+#include "Fusion/common/error/Check.h"
+#include "Fusion/core/planning/PlanValidation.h"
+#include "Fusion/core/planning/PlanErrors.h"
 #include "Fusion/core/planning/analysis/ContractionAnalysis.h"
 
 namespace fusion::planning {
@@ -68,6 +73,7 @@ make_dense_execution_plan(const ExprKind expr, const IndexSpaceIR &ir,
    exec.access = make_access_plan(ir, descs, loop_order);
 
    exec.hints = make_kernel_hints(descs);
+   validation::validate_execution_plan(exec, "make_dense_execution_plan");
    return exec;
 }
 
@@ -107,9 +113,12 @@ std::vector<std::uint32_t> make_contraction_loop_order(const IndexSpaceIR &ir) {
 ContractionPlan
 make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
                                  const OperandLabelBinding &binding) {
-   if (descs.size() != 3) {
-      throw std::runtime_error("einsum_out: expected descs = {out, A, B}");
-   }
+   FUSION_CHECK_CODE(
+       descs.size() == 3,
+       planning_error(PlanningError::InvalidContraction,
+                      error::ErrorCategory::InvalidArgument),
+       "planning.contraction.invalid_desc_count: expected descs = {out, A, B}, got ",
+       descs.size());
 
    constexpr ItemSizeGroupConstraint constraint =
        ItemSizeGroupConstraint::HomogeneousItemSize;
@@ -117,10 +126,12 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
    IndexSpaceIR ir = build_ir_from_label_binding(descs, binding, constraint);
 
    const std::vector<std::size_t> expected = out_shape_from_ir(ir);
-   if (descs.front().shape != expected) {
-      throw std::runtime_error(
-          "einsum_out: out.shape does not match inferred out shape");
-   }
+   FUSION_CHECK_CODE(
+       descs.front().shape == expected,
+       planning_error(PlanningError::OutputShapeMismatch,
+                      error::ErrorCategory::InvalidArgument),
+       "planning.contraction.output_shape_mismatch: provided output shape does not "
+       "match inferred output shape");
 
    const std::vector<std::uint32_t> loop_order =
        make_contraction_loop_order(ir);
@@ -143,9 +154,12 @@ make_contraction_plan_einsum_out(const std::vector<OperandDescription> &descs,
 ContractionPlan
 make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
                              const OperandLabelBinding &binding) {
-   if (inputs.size() != 2) {
-      throw std::runtime_error("einsum: expected inputs = {A, B}");
-   }
+   FUSION_CHECK_CODE(
+       inputs.size() == 2,
+       planning_error(PlanningError::InvalidContraction,
+                      error::ErrorCategory::InvalidArgument),
+       "planning.contraction.invalid_input_count: expected inputs = {A, B}, got ",
+       inputs.size());
 
    constexpr ItemSizeGroupConstraint constraint =
        ItemSizeGroupConstraint::HomogeneousItemSize;
@@ -175,9 +189,12 @@ make_contraction_plan_einsum(const std::vector<OperandDescription> &inputs,
 
 ReductionPlan make_reduction_plan(const std::vector<OperandDescription> &descs,
                                   const std::size_t axis, const bool keepdim) {
-   if (descs.size() < 2) {
-      throw std::runtime_error("reduction: expected at least {out, in}");
-   }
+   FUSION_CHECK_CODE(
+       descs.size() >= 2,
+       planning_error(PlanningError::InvalidReduction,
+                      error::ErrorCategory::InvalidArgument),
+       "planning.reduction.invalid_desc_count: expected at least {out, in}, got ",
+       descs.size());
 
    const OperandDescription &in_desc = descs.back();
    const std::size_t ax_norm =

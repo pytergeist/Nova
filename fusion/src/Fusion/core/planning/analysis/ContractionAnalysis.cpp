@@ -7,8 +7,6 @@
 #include "Fusion/core/planning/AccessPlan.h"
 #include "Fusion/core/planning/TraversalPlan.h"
 
-
-
 namespace fusion::planning::analysis {
 namespace {
 
@@ -23,11 +21,10 @@ struct GemmRoleExtents {
    int k_count{0};
 };
 
-GemmRoleExtents
-compute_gemm_role_extents(const DenseTraversalPlan& traversal) {
+GemmRoleExtents compute_gemm_role_extents(const DenseTraversalPlan &traversal) {
    GemmRoleExtents extents{};
 
-   for (const LoopDim& ld : traversal.loop) {
+   for (const LoopDim &ld : traversal.loop) {
       switch (ld.role) {
       case IndexRole::Batch:
          extents.batch *= ld.size;
@@ -50,18 +47,16 @@ compute_gemm_role_extents(const DenseTraversalPlan& traversal) {
    return extents;
 }
 
-bool has_single_mnk(const GemmRoleExtents& extents) {
-   return extents.m_count == 1 &&
-          extents.n_count == 1 &&
-          extents.k_count == 1;
+bool has_single_mnk(const GemmRoleExtents &extents) {
+   return extents.m_count == 1 && extents.n_count == 1 && extents.k_count == 1;
 }
 
-bool has_three_affine_operands(const ExecutionPlan& exec) {
+bool has_three_affine_operands(const ExecutionPlan &exec) {
    if (exec.access.operands.size() != 3) {
       return false;
    }
 
-   for (const OperandAccess& operand : exec.access.operands) {
+   for (const OperandAccess &operand : exec.access.operands) {
       if (operand.access != AccessKind::Affine) {
          return false;
       }
@@ -70,22 +65,16 @@ bool has_three_affine_operands(const ExecutionPlan& exec) {
    return true;
 }
 
-
-bool has_valid_gemm_strides(const GemmLikeDesc& gemm) {
-   return gemm.out_rs != 0 &&
-          gemm.out_cs != 0 &&
-          gemm.a_rs != 0 &&
-          gemm.a_cs != 0 &&
-          gemm.b_rs != 0 &&
-          gemm.b_cs != 0;
+bool has_valid_gemm_strides(const GemmLikeDesc &gemm) {
+   return gemm.out_rs != 0 && gemm.out_cs != 0 && gemm.a_rs != 0 &&
+          gemm.a_cs != 0 && gemm.b_rs != 0 && gemm.b_cs != 0;
 }
 
-
-bool access_rank_matches_loop_rank(const ExecutionPlan& exec,
-                                   const DenseTraversalPlan& traversal) {
+bool access_rank_matches_loop_rank(const ExecutionPlan &exec,
+                                   const DenseTraversalPlan &traversal) {
    const std::size_t rank = traversal.loop.size();
 
-   for (const OperandAccess& operand : exec.access.operands) {
+   for (const OperandAccess &operand : exec.access.operands) {
       if (operand.affine.byte_stride_per_loop.size() != rank) {
          return false;
       }
@@ -95,8 +84,8 @@ bool access_rank_matches_loop_rank(const ExecutionPlan& exec,
 }
 
 std::optional<GemmLikeDesc>
-extract_gemm_desc_from_dense_plan(const ExecutionPlan& exec,
-                                  const DenseTraversalPlan& traversal) {
+extract_gemm_desc_from_dense_plan(const ExecutionPlan &exec,
+                                  const DenseTraversalPlan &traversal) {
    if (!has_three_affine_operands(exec)) {
       return std::nullopt;
    }
@@ -111,18 +100,17 @@ extract_gemm_desc_from_dense_plan(const ExecutionPlan& exec,
       return std::nullopt;
    }
 
-   const std::int64_t item =
-       static_cast<std::int64_t>(exec.core.itemsize);
+   const std::int64_t item = static_cast<std::int64_t>(exec.core.itemsize);
 
    if (item <= 0) {
       return std::nullopt;
    }
 
-   const std::vector<std::int64_t>& out_access =
+   const std::vector<std::int64_t> &out_access =
        exec.access.operands.at(0).affine.byte_stride_per_loop;
-   const std::vector<std::int64_t>& a_access =
+   const std::vector<std::int64_t> &a_access =
        exec.access.operands.at(1).affine.byte_stride_per_loop;
-   const std::vector<std::int64_t>& b_access =
+   const std::vector<std::int64_t> &b_access =
        exec.access.operands.at(2).affine.byte_stride_per_loop;
 
    GemmLikeDesc gemm{};
@@ -132,7 +120,7 @@ extract_gemm_desc_from_dense_plan(const ExecutionPlan& exec,
    gemm.K = extents.K;
 
    for (std::size_t pos = 0; pos < traversal.loop.size(); ++pos) {
-      const LoopDim& ld = traversal.loop[pos];
+      const LoopDim &ld = traversal.loop[pos];
 
       if (ld.role == IndexRole::M) {
          gemm.out_rs = out_access[pos] / item;
@@ -156,7 +144,7 @@ extract_gemm_desc_from_dense_plan(const ExecutionPlan& exec,
 } // namespace
 
 std::optional<GemmLikeDesc>
-analyse_gemm_like_contraction(const ExecutionPlan& exec) {
+analyse_gemm_like_contraction(const ExecutionPlan &exec) {
    if (exec.core.expr != ExprKind::Contraction) {
       return std::nullopt;
    }
@@ -165,7 +153,7 @@ analyse_gemm_like_contraction(const ExecutionPlan& exec) {
       return std::nullopt;
    }
 
-   const DenseTraversalPlan* dense =
+   const DenseTraversalPlan *dense =
        std::get_if<DenseTraversalPlan>(&exec.traversal);
 
    if (dense == nullptr) {

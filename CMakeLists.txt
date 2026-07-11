@@ -103,6 +103,8 @@ target_link_libraries(fusion_storage INTERFACE
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
         ${FUSION_SRC_DIR}/core/planning/PlanBuilders.cpp
+        ${FUSION_SRC_DIR}/core/planning/PlanValidation.cpp
+        ${FUSION_SRC_DIR}/core/planning/analysis/ContractionAnalysis.cpp
         ${FUSION_SRC_DIR}/core/fuir/IR.cpp
         ${FUSION_SRC_DIR}/core/ThreadPool.cpp
         ${FUSION_SRC_DIR}/core/topology/PairSort.cpp

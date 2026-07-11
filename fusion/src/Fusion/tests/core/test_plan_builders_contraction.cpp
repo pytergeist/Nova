@@ -146,7 +146,8 @@ TEST(TensorPlanContractionTest,
    fusion::planning::ContractionPlan plan =
        fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
 
-   fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::DenseTraversalPlan dense =
+       std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
 
    ASSERT_EQ(dense.loop.size(), 3);
 
@@ -207,7 +208,8 @@ TEST(TensorPlanContractionTest,
 
    fusion::planning::ContractionPlan plan =
        fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
-   fusion::planning::DenseTraversalPlan dense = std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
+   fusion::planning::DenseTraversalPlan dense =
+       std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
 
    ASSERT_EQ(dense.loop.size(), 3);
 
@@ -326,8 +328,9 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
 
-   EXPECT_THROW(fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding),
-                std::runtime_error);
+   EXPECT_THROW(
+       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding),
+       std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest,

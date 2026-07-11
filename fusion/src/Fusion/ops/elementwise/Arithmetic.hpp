@@ -13,7 +13,8 @@ namespace fusion::ops::aligned {
 template <typename T>
 DenseTensor<T> add(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<AddTag>();
-   planning::BinaryEwiseContext meta = planning::make_binary_ewise_context(x, y);
+   planning::BinaryEwiseContext meta =
+       planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
    dense::iter::binary_ewise_tag<T, AddSIMD>(x, y, meta, out);
    return out;
@@ -22,7 +23,8 @@ DenseTensor<T> add(const DenseTensor<T> &x, const DenseTensor<T> &y) {
 template <typename T>
 DenseTensor<T> sub(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<SubTag>();
-   planning::BinaryEwiseContext meta = planning::make_binary_ewise_context(x, y);
+   planning::BinaryEwiseContext meta =
+       planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
    dense::iter::binary_ewise_tag<T, SubtractSIMD>(x, y, meta, out);
    return out;
@@ -31,7 +33,8 @@ DenseTensor<T> sub(const DenseTensor<T> &x, const DenseTensor<T> &y) {
 template <typename T>
 DenseTensor<T> mul(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<MulTag>();
-   planning::BinaryEwiseContext meta = planning::make_binary_ewise_context(x, y);
+   planning::BinaryEwiseContext meta =
+       planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
    dense::iter::binary_ewise_tag<T, MultiplySIMD>(x, y, meta, out);
    return out;
@@ -40,7 +43,8 @@ DenseTensor<T> mul(const DenseTensor<T> &x, const DenseTensor<T> &y) {
 template <typename T>
 DenseTensor<T> div(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<DivTag>();
-   planning::BinaryEwiseContext meta = planning::make_binary_ewise_context(x, y);
+   planning::BinaryEwiseContext meta =
+       planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
    dense::iter::binary_ewise_tag<T, DivideSIMD>(x, y, meta, out);
    return out;
@@ -49,14 +53,14 @@ DenseTensor<T> div(const DenseTensor<T> &x, const DenseTensor<T> &y) {
 template <typename T>
 DenseTensor<T> pow(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<PowTag>();
-   planning::BinaryEwiseContext meta = planning::make_binary_ewise_context(x, y);
+   planning::BinaryEwiseContext meta =
+       planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
    dense::iter::binary_ewise_tag<T, PowerSIMD>(x, y, meta, out);
    return out;
 }
 
-template <typename T>
-DenseTensor<T> reciprocal(const DenseTensor<T> &x) {
+template <typename T> DenseTensor<T> reciprocal(const DenseTensor<T> &x) {
    require_ewise_unary_out_of_place<ReciprocalTag>();
    planning::UnaryEwiseContext meta = planning::make_unary_ewise_context(x);
    DenseTensor<T> out = init_out_from_meta(x, meta);

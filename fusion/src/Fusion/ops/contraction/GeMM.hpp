@@ -76,13 +76,14 @@ DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
 
    OperandLabelBinding binding =
        make_matmul_binding(a_shape.size(), b_shape.size());
-   planning::ContractionContext meta = planning::make_contraction_context_einsum<T>(A, B, binding);
+   planning::ContractionContext meta =
+       planning::make_contraction_context_einsum<T>(A, B, binding);
 
    DenseTensor<T> out = init_out_from_meta(A, B, meta);
 
    dense::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD
 
-                                        >(A, B, meta, out);
+                                >(A, B, meta, out);
 
    return out;
 }

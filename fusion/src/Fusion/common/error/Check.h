@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "Fusion/common/error/Error.h"
+#include "Fusion/common/error/ErrorCode.h"
 
 namespace fusion::error {
 

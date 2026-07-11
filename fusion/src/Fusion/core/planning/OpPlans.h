@@ -1,8 +1,8 @@
 #ifndef FUSION_CORE_PLANNING_OP_PLANS_H
 #define FUSION_CORE_PLANNING_OP_PLANS_H
 
-#include <string_view>
 #include <cstddef>
+#include <string_view>
 
 #include "Fusion/core/planning/ExecutionPlan.h"
 

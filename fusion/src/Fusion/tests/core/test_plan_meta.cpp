@@ -7,12 +7,14 @@
 
 TEST(PlanMetaTest, contig_elem_strides_returns_row_major_strides_for_2d_shape) {
    std::vector<std::size_t> shape{2, 3};
-   EXPECT_EQ(fusion::planning::contig_elem_strides(shape), (std::vector<std::int64_t>{3, 1}));
+   EXPECT_EQ(fusion::planning::contig_elem_strides(shape),
+             (std::vector<std::int64_t>{3, 1}));
 }
 
 TEST(PlanMetaTest, contig_elem_strides_returns_row_major_strides_for_3d_shape) {
    std::vector<std::size_t> shape{2, 3, 4};
-   EXPECT_EQ(fusion::planning::contig_elem_strides(shape), (std::vector<std::int64_t>{12, 4, 1}));
+   EXPECT_EQ(fusion::planning::contig_elem_strides(shape),
+             (std::vector<std::int64_t>{12, 4, 1}));
 }
 
 TEST(PlanMetaTest, contig_elem_strides_returns_row_major_strides_for_4d_shape) {
@@ -25,7 +27,8 @@ TEST(PlanMetaTest, make_desc_from_shape_uses_provided_strides) {
    std::vector<std::size_t> shape{2, 3};
    const std::int64_t strides[] = {5, 1};
 
-   OperandDescription desc = fusion::planning::make_desc_from_shape<float>(shape, strides);
+   OperandDescription desc =
+       fusion::planning::make_desc_from_shape<float>(shape, strides);
 
    EXPECT_EQ(desc.ndims(), 2);
    EXPECT_EQ(desc.shape, shape);
@@ -37,7 +40,8 @@ TEST(PlanMetaTest,
      make_desc_from_shape_builds_contiguous_strides_when_strides_null) {
    std::vector<std::size_t> shape{2, 3, 4};
 
-   OperandDescription desc = fusion::planning::make_desc_from_shape<float>(shape, nullptr);
+   OperandDescription desc =
+       fusion::planning::make_desc_from_shape<float>(shape, nullptr);
 
    EXPECT_EQ(desc.ndims(), 3);
    EXPECT_EQ(desc.shape, shape);
@@ -64,7 +68,8 @@ TEST(PlanMetaTest,
    DenseTensor<float> b({2, 3}, std::vector<float>{6, 5, 4, 3, 2, 1},
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   fusion::planning::BinaryEwiseContext meta = fusion::planning::make_binary_ewise_context(a, b);
+   fusion::planning::BinaryEwiseContext meta =
+       fusion::planning::make_binary_ewise_context(a, b);
 
    EXPECT_EQ(meta.exec, fusion::planning::BinaryExecKind::FlatContiguous);
    EXPECT_EQ(meta.out_shape, (std::vector<std::size_t>{2, 3}));
@@ -78,7 +83,8 @@ TEST(PlanMetaTest,
    DenseTensor<float> b({1, 3}, std::vector<float>{10, 20, 30}, DType::FLOAT32,
                         Device{DeviceType::CPU, 0});
 
-   fusion::planning::BinaryEwiseContext meta = fusion::planning::make_binary_ewise_context(a, b);
+   fusion::planning::BinaryEwiseContext meta =
+       fusion::planning::make_binary_ewise_context(a, b);
 
    EXPECT_NE(meta.exec, fusion::planning::BinaryExecKind::FlatContiguous);
    EXPECT_EQ(meta.out_shape, (std::vector<std::size_t>{2, 3}));
@@ -90,7 +96,8 @@ TEST(PlanMetaTest,
 TEST(PlanMetaTest, make_unary_meta_uses_fastpath_for_contiguous_input) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
-   fusion::planning::UnaryEwiseContext meta = fusion::planning::make_unary_ewise_context(a);
+   fusion::planning::UnaryEwiseContext meta =
+       fusion::planning::make_unary_ewise_context(a);
 
    EXPECT_TRUE(meta.fastpath);
    EXPECT_EQ(meta.out_shape, (std::vector<std::size_t>{2, 3}));
@@ -102,7 +109,9 @@ TEST(PlanMetaTest,
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   fusion::planning::ReductionContext meta = fusion::planning::make_reduction_context(a, fusion::planning::kGlobalReduceAxis, false);
+   fusion::planning::ReductionContext meta =
+       fusion::planning::make_reduction_context(
+           a, fusion::planning::kGlobalReduceAxis, false);
 
    EXPECT_TRUE(meta.fastpath);
    EXPECT_EQ(meta.out_shape, (std::vector<std::size_t>{1}));
@@ -116,7 +125,8 @@ TEST(
    DenseTensor<float> a({2, 3, 4}, std::vector<float>(24, 1), DType::FLOAT32,
                         Device{DeviceType::CPU, 0});
 
-   fusion::planning::ReductionContext meta = fusion::planning::make_reduction_context(a, 1, false);
+   fusion::planning::ReductionContext meta =
+       fusion::planning::make_reduction_context(a, 1, false);
 
    EXPECT_FALSE(meta.fastpath);
    EXPECT_EQ(meta.out_shape, (std::vector<std::size_t>{2, 4}));
@@ -130,7 +140,8 @@ TEST(PlanMetaTest,
    DenseTensor<float> a({2, 3, 4}, std::vector<float>(24, 1.0), DType::FLOAT32,
                         Device{DeviceType::CPU, 0});
 
-   fusion::planning::ReductionContext meta = fusion::planning::make_reduction_context(a, 1, true);
+   fusion::planning::ReductionContext meta =
+       fusion::planning::make_reduction_context(a, 1, true);
 
    EXPECT_FALSE(meta.fastpath);
    EXPECT_EQ(meta.out_shape, (std::vector<std::size_t>{2, 1, 4}));
@@ -155,7 +166,8 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_infers_matmul_output_shape) {
        .out_labels = {0, 1},
    };
 
-   fusion::planning::ContractionContext meta = fusion::planning::make_contraction_context_einsum(a, b, binding);
+   fusion::planning::ContractionContext meta =
+       fusion::planning::make_contraction_context_einsum(a, b, binding);
 
    EXPECT_EQ(meta.out_shape, (std::vector<std::size_t>{2, 3}));
    EXPECT_EQ(meta.lhs.shape, (std::vector<std::size_t>{2, 4}));
@@ -180,7 +192,8 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_stores_binding) {
        .out_labels = {0, 1},
    };
 
-   fusion::planning::ContractionContext meta = fusion::planning::make_contraction_context_einsum(a, b, binding);
+   fusion::planning::ContractionContext meta =
+       fusion::planning::make_contraction_context_einsum(a, b, binding);
 
    EXPECT_EQ(meta.binding.out_labels, (std::vector<Label>{0, 1}));
    ASSERT_EQ(meta.binding.op_axis_labels.size(), 3);

@@ -9,7 +9,7 @@
 namespace fusion::planning::analysis {
 
 std::optional<GemmLikeDesc>
-analyse_gemm_like_contraction(const ExecutionPlan& exec);
+analyse_gemm_like_contraction(const ExecutionPlan &exec);
 
 } // namespace fusion::planning::analysis
 

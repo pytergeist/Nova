@@ -18,8 +18,7 @@ enum class BinaryExecKind : std::uint8_t {
    FlatContiguousBroadcastRHS,
 };
 
-constexpr std::size_t kGlobalReduceAxis =
-    static_cast<std::size_t>(-1);
+constexpr std::size_t kGlobalReduceAxis = static_cast<std::size_t>(-1);
 
 struct BinaryEwiseContext {
    std::vector<std::size_t> out_shape{};
@@ -54,7 +53,8 @@ struct ReductionContext {
 
    ReductionPlan plan{};
 
-   // TODO: Eventually remove these duplicates and use plan.reduction_axis / plan.keep_dim.
+   // TODO: Eventually remove these duplicates and use plan.reduction_axis /
+   // plan.keep_dim.
    bool keepdim{false};
    std::size_t reduction_axis{0};
 
@@ -78,7 +78,6 @@ struct ContractionContext {
 
    OperandLabelBinding binding{};
 };
-
 
 inline std::string_view to_string(BinaryExecKind k) noexcept {
    switch (k) {

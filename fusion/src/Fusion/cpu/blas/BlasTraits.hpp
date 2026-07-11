@@ -15,7 +15,8 @@ template <class Tag, typename T> struct blas_traits {
 
    static bool can_execute(const planning::GemmLikeDesc &) { return false; }
 
-   static void execute(const T *, const T *, T *, const planning::GemmLikeDesc &, T, T) {
+   static void execute(const T *, const T *, T *,
+                       const planning::GemmLikeDesc &, T, T) {
       // no-op default; should never be called when available==false
    }
 };
@@ -58,8 +59,8 @@ template <typename T> struct blas_traits<BatchedGemmBLAS, T> {
       return ok;
    }
 
-   static void execute(const T *A, const T *B, T *C, const planning::GemmLikeDesc &g,
-                       T alpha, T beta) {
+   static void execute(const T *A, const T *B, T *C,
+                       const planning::GemmLikeDesc &g, T alpha, T beta) {
       // Assumes can_execute(g) was true.
       batched_gemm_rowmajor_nn<T>(A, B, C, static_cast<int>(g.M),
                                   static_cast<int>(g.N), static_cast<int>(g.K),

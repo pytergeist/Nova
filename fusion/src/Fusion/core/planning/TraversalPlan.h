@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "Fusion/core/fuir/IR.h"
-#include "Fusion/core/topology/PairIndex.hpp"
 #include "Fusion/core/planning/PlanKinds.h"
+#include "Fusion/core/topology/PairIndex.hpp"
 
 namespace fusion::planning {
 struct DenseTraversalPlan {

@@ -152,8 +152,13 @@ void validate_execution_plan(const ExecutionPlan& plan,
       validate_dense_execution_plan(plan, where);
       break;
 
-   case TraversalKind::Indexed:
-      validate_indexed_execution_plan(plan, where);
+   case TraversalKind::Indexed: // TODO: update when validate_indexed_plan is implemented
+      FUSION_CHECK_CODE(
+          false,
+          planning_error(PlanningError::UnsupportedTraversal,
+                         ErrorCategory::Internal),
+          where,
+          ": planning.execution.indexed_validation_not_implemented");
       break;
 
    default:

@@ -14,7 +14,8 @@ namespace fusion::ops::aligned {
 template <typename T>
 DenseTensor<T> greater(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<GreaterTag>();
-   planning::BinaryEwiseContext meta = planning::make_binary_ewise_context(x, y);
+   planning::BinaryEwiseContext meta =
+       planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
    dense::iter::binary_ewise_tag<T, GreaterThanSIMD>(x, y, meta, out);
    return out;
@@ -23,17 +24,18 @@ DenseTensor<T> greater(const DenseTensor<T> &x, const DenseTensor<T> &y) {
 template <typename T>
 DenseTensor<T> greater_equal(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<GreaterEqualTag>();
-   planning::BinaryEwiseContext meta = planning::make_binary_ewise_context(x, y);
+   planning::BinaryEwiseContext meta =
+       planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
-   dense::iter::binary_ewise_tag<T, GreaterThanEqualSIMD>(x, y, meta,
-                                                                  out);
+   dense::iter::binary_ewise_tag<T, GreaterThanEqualSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
 DenseTensor<T> maximum(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    require_ewise_binary_out_of_place<MaximumTag>();
-   planning::BinaryEwiseContext meta = planning::make_binary_ewise_context(x, y);
+   planning::BinaryEwiseContext meta =
+       planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
    dense::iter::binary_ewise_tag<T, MaximumSIMD>(x, y, meta, out);
    return out;
