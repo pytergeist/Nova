@@ -1,6 +1,7 @@
 #ifndef FUSION_COMMON_ERROR_CHECK_H
 #define FUSION_COMMON_ERROR_CHECK_H
 
+#include <source_location>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -10,7 +11,7 @@
 
 namespace fusion::error {
 
-constexpr ErrorCode common_error(ErrorCategory category) noexcept {
+constexpr ErrorCode common_error(const ErrorCategory category) noexcept {
    return ErrorCode{ErrorDomain::Common, category, 0};
 }
 
@@ -25,56 +26,63 @@ std::string make_message(Args&&... args) {
 
 } // namespace detail
 
+template <typename... Args>
+std::string message(Args&&... args) {
+   return detail::make_message(std::forward<Args>(args)...);
+}
+
 } // namespace fusion::error
 
-#define FUSION_THROW_CODE(code, ...)                                           \
-   do {                                                                       \
-      fusion::error::throw_error(                                           \
-          (code),                                                             \
-          fusion::error::detail::make_message(__VA_ARGS__),                 \
-          std::source_location::current());                                   \
-   } while (false)
+#define FUSION_THROW_CODE(code, message_expr)                                  \
+   ::fusion::error::throw_error(                                               \
+       (code),                                                                \
+       (message_expr),                                                        \
+       std::source_location::current())
 
-#define FUSION_CHECK_CODE(cond, code, ...)                                     \
-   do {                                                                       \
-      if (!(static_cast<bool>(cond))) {                                        \
-         FUSION_THROW_CODE((code), __VA_ARGS__);                              \
-      }                                                                       \
-   } while (false)
+#define FUSION_CHECK_CODE(cond, code, message_expr)                            \
+   (static_cast<bool>(cond)                                                    \
+        ? static_cast<void>(0)                                                 \
+        : ::fusion::error::throw_error(                                        \
+              (code),                                                         \
+              (message_expr),                                                 \
+              std::source_location::current()))
 
-#define FUSION_CHECK(cond, ...)                                                \
+#define FUSION_CHECK(cond, message_expr)                                       \
    FUSION_CHECK_CODE(                                                          \
        (cond),                                                                \
-       fusion::error::common_error(                                         \
-           fusion::error::ErrorCategory::InvalidArgument),                  \
-       __VA_ARGS__)
+       ::fusion::error::common_error(                                         \
+           ::fusion::error::ErrorCategory::InvalidArgument),                  \
+       (message_expr))
 
-#define FUSION_CHECK_PRECONDITION(cond, ...)                                   \
+#define FUSION_CHECK_PRECONDITION(cond, message_expr)                          \
    FUSION_CHECK_CODE(                                                          \
        (cond),                                                                \
-       fusion::error::common_error(                                         \
-           fusion::error::ErrorCategory::FailedPrecondition),               \
-       __VA_ARGS__)
+       ::fusion::error::common_error(                                         \
+           ::fusion::error::ErrorCategory::FailedPrecondition),               \
+       (message_expr))
 
-#define FUSION_CHECK_UNSUPPORTED(cond, ...)                                    \
+#define FUSION_CHECK_UNSUPPORTED(cond, message_expr)                           \
    FUSION_CHECK_CODE(                                                          \
        (cond),                                                                \
-       fusion::error::common_error(                                         \
-           fusion::error::ErrorCategory::Unsupported),                      \
-       __VA_ARGS__)
+       ::fusion::error::common_error(                                         \
+           ::fusion::error::ErrorCategory::Unsupported),                      \
+       (message_expr))
 
-#define FUSION_CHECK_UNAVAILABLE(cond, ...)                                    \
+#define FUSION_CHECK_UNAVAILABLE(cond, message_expr)                           \
    FUSION_CHECK_CODE(                                                          \
        (cond),                                                                \
-       fusion::error::common_error(                                         \
-           fusion::error::ErrorCategory::Unavailable),                      \
-       __VA_ARGS__)
+       ::fusion::error::common_error(                                         \
+           ::fusion::error::ErrorCategory::Unavailable),                      \
+       (message_expr))
 
-#define FUSION_INTERNAL_ASSERT(cond, ...)                                      \
+#define FUSION_INTERNAL_ASSERT(cond, message_expr)                             \
    FUSION_CHECK_CODE(                                                          \
        (cond),                                                                \
-       fusion::error::common_error(                                         \
-           fusion::error::ErrorCategory::Internal),                         \
-       __VA_ARGS__)
+       ::fusion::error::common_error(                                         \
+           ::fusion::error::ErrorCategory::Internal),                         \
+       (message_expr))
+
+#define FUSION_INTERNAL_ASSERT_CODE(cond, code, message_expr)                  \
+   FUSION_CHECK_CODE((cond), (code), (message_expr))
 
 #endif // FUSION_COMMON_ERROR_CHECK_H
