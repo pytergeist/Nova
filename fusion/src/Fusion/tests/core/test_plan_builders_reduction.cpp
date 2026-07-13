@@ -8,26 +8,26 @@
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_keepdim_false_reduces_middle_axis) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ReductionPlan plan =
@@ -43,26 +43,26 @@ TEST(TensorPlanReductionTest,
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_keepdim_true_reduces_middle_axis) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 1, 4},
        .strides = {4, 1, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ReductionPlan plan =
@@ -78,26 +78,26 @@ TEST(TensorPlanReductionTest,
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_keepdim_true_rejects_bad_out_shape) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 4},
        .strides = {4, 1, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, true),
@@ -105,26 +105,26 @@ TEST(TensorPlanReductionTest,
 }
 
 TEST(TensorPlanReductionTest, make_reduction_plan_normalises_negative_axis) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ReductionPlan plan = fusion::planning::make_reduction_plan(
@@ -136,26 +136,26 @@ TEST(TensorPlanReductionTest, make_reduction_plan_normalises_negative_axis) {
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_builds_independent_loops_then_reduction_loop) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ReductionPlan plan =
@@ -165,37 +165,37 @@ TEST(TensorPlanReductionTest,
    ASSERT_EQ(dense.loop.size(), 3);
 
    EXPECT_EQ(dense.loop[0].size, 2);
-   EXPECT_EQ(dense.loop[0].kind, IndexKind::Independent);
+   EXPECT_EQ(dense.loop[0].kind, fusion::fuir::IndexKind::Independent);
 
    EXPECT_EQ(dense.loop[1].size, 4);
-   EXPECT_EQ(dense.loop[1].kind, IndexKind::Independent);
+   EXPECT_EQ(dense.loop[1].kind, fusion::fuir::IndexKind::Independent);
 
    EXPECT_EQ(dense.loop[2].size, 3);
-   EXPECT_EQ(dense.loop[2].kind, IndexKind::Reduction);
+   EXPECT_EQ(dense.loop[2].kind, fusion::fuir::IndexKind::Reduction);
 }
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_sets_stride_bytes_for_keepdim_false) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ReductionPlan plan =
@@ -216,26 +216,26 @@ TEST(TensorPlanReductionTest,
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_sets_stride_bytes_for_keepdim_true) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 1, 4},
        .strides = {4, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ReductionPlan plan =
@@ -255,26 +255,26 @@ TEST(TensorPlanReductionTest,
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_reducing_first_axis_without_keepdim_is_valid) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {3, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ReductionPlan plan =
@@ -289,31 +289,31 @@ TEST(TensorPlanReductionTest,
    EXPECT_EQ(dense.loop[0].size, 3);
    EXPECT_EQ(dense.loop[1].size, 4);
    EXPECT_EQ(dense.loop[2].size, 2);
-   EXPECT_EQ(dense.loop[2].kind, IndexKind::Reduction);
+   EXPECT_EQ(dense.loop[2].kind, fusion::fuir::IndexKind::Reduction);
 }
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_reducing_last_axis_without_keepdim_is_valid) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ReductionPlan plan =
@@ -327,7 +327,7 @@ TEST(TensorPlanReductionTest,
    EXPECT_EQ(dense.loop[0].size, 2);
    EXPECT_EQ(dense.loop[1].size, 3);
    EXPECT_EQ(dense.loop[2].size, 4);
-   EXPECT_EQ(dense.loop[2].kind, IndexKind::Reduction);
+   EXPECT_EQ(dense.loop[2].kind, fusion::fuir::IndexKind::Reduction);
 }
 
 TEST(TensorPlanReductionTest, make_reduction_plan_rejects_empty_descs) {
@@ -336,26 +336,26 @@ TEST(TensorPlanReductionTest, make_reduction_plan_rejects_empty_descs) {
 }
 
 TEST(TensorPlanReductionTest, make_reduction_plan_rejects_axis_out_of_range) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 3, false),
@@ -364,26 +364,26 @@ TEST(TensorPlanReductionTest, make_reduction_plan_rejects_axis_out_of_range) {
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_rejects_keepdim_false_with_wrong_output_rank) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 1, 4},
        .strides = {4, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, false),
@@ -392,26 +392,26 @@ TEST(TensorPlanReductionTest,
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_rejects_keepdim_true_with_wrong_output_rank) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, true),
@@ -421,26 +421,26 @@ TEST(TensorPlanReductionTest,
 TEST(
     TensorPlanReductionTest,
     make_reduction_plan_rejects_keepdim_true_when_reduced_axis_not_one_in_output) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, true),
@@ -448,26 +448,26 @@ TEST(
 }
 
 TEST(TensorPlanReductionTest, make_reduction_plan_rejects_mixed_itemsize) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in{
+   fusion::fuir::OperandDescription in{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(double),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(fusion::planning::make_reduction_plan({out, in}, 1, false),
@@ -476,37 +476,37 @@ TEST(TensorPlanReductionTest, make_reduction_plan_rejects_mixed_itemsize) {
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_rejects_input_rank_mismatch_across_inputs) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in0{
+   fusion::fuir::OperandDescription in0{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription in1{
+   fusion::fuir::OperandDescription in1{
        .shape = {3, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(

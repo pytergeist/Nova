@@ -27,7 +27,7 @@ TEST(PlanMetaTest, make_desc_from_shape_uses_provided_strides) {
    std::vector<std::size_t> shape{2, 3};
    const std::int64_t strides[] = {5, 1};
 
-   OperandDescription desc =
+   fusion::fuir::OperandDescription desc =
        fusion::planning::make_desc_from_shape<float>(shape, strides);
 
    EXPECT_EQ(desc.ndims(), 2);
@@ -40,7 +40,7 @@ TEST(PlanMetaTest,
      make_desc_from_shape_builds_contiguous_strides_when_strides_null) {
    std::vector<std::size_t> shape{2, 3, 4};
 
-   OperandDescription desc =
+   fusion::fuir::OperandDescription desc =
        fusion::planning::make_desc_from_shape<float>(shape, nullptr);
 
    EXPECT_EQ(desc.ndims(), 3);
@@ -53,7 +53,7 @@ TEST(PlanMetaTest, make_desc_from_tensor_copies_shape_and_strides) {
    DenseTensor<float> t({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   OperandDescription desc = fusion::planning::make_desc_from_tensor(t);
+   fusion::fuir::OperandDescription desc = fusion::planning::make_desc_from_tensor(t);
 
    EXPECT_EQ(desc.ndims(), 2);
    EXPECT_EQ(desc.shape, (std::vector<std::size_t>{2, 3}));
@@ -156,7 +156,7 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_infers_matmul_output_shape) {
    DenseTensor<float> b({4, 3}, std::vector<float>(12, 1.0), DType::FLOAT32,
                         Device{DeviceType::CPU, 0});
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1}, // Out: [i, j]
@@ -182,7 +182,7 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_stores_binding) {
    DenseTensor<float> b({4, 3}, std::vector<float>(12, 1.0f), DType::FLOAT32,
                         Device{DeviceType::CPU, 0});
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1}, // Out: [i, j]
@@ -195,9 +195,9 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_stores_binding) {
    fusion::planning::ContractionContext meta =
        fusion::planning::make_contraction_context_einsum(a, b, binding);
 
-   EXPECT_EQ(meta.binding.out_labels, (std::vector<Label>{0, 1}));
+   EXPECT_EQ(meta.binding.out_labels, (std::vector<fusion::fuir::Label>{0, 1}));
    ASSERT_EQ(meta.binding.op_axis_labels.size(), 3);
-   EXPECT_EQ(meta.binding.op_axis_labels[0], (std::vector<Label>{0, 1}));
-   EXPECT_EQ(meta.binding.op_axis_labels[1], (std::vector<Label>{0, 2}));
-   EXPECT_EQ(meta.binding.op_axis_labels[2], (std::vector<Label>{2, 1}));
+   EXPECT_EQ(meta.binding.op_axis_labels[0], (std::vector<fusion::fuir::Label>{0, 1}));
+   EXPECT_EQ(meta.binding.op_axis_labels[1], (std::vector<fusion::fuir::Label>{0, 2}));
+   EXPECT_EQ(meta.binding.op_axis_labels[2], (std::vector<fusion::fuir::Label>{2, 1}));
 }

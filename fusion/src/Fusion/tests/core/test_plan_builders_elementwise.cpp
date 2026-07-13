@@ -8,15 +8,15 @@
 
 TEST(TensorPlanAlignedTest,
      make_elementwise_plan_single_operand_preserves_shape) {
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ElementwisePlan plan =
@@ -32,47 +32,47 @@ TEST(TensorPlanAlignedTest,
    ASSERT_EQ(plan.exec.access.operands.size(), 1);
 
    EXPECT_EQ(dense.loop[0].size, 2);
-   EXPECT_EQ(dense.loop[0].kind, IndexKind::Independent);
+   EXPECT_EQ(dense.loop[0].kind, fusion::fuir::IndexKind::Independent);
    EXPECT_EQ(plan.exec.access.operands[0].affine.byte_stride_per_loop,
              (std::vector<std::int64_t>{
                  3 * static_cast<std::int64_t>(sizeof(float)),
                  1 * static_cast<std::int64_t>(sizeof(float))}));
 
    EXPECT_EQ(dense.loop[1].size, 3);
-   EXPECT_EQ(dense.loop[1].kind, IndexKind::Independent);
+   EXPECT_EQ(dense.loop[1].kind, fusion::fuir::IndexKind::Independent);
 }
 
 TEST(TensorPlanAlignedTest,
      make_elementwise_plan_same_shape_preserves_output_shape) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ElementwisePlan plan =
@@ -107,35 +107,35 @@ TEST(TensorPlanAlignedTest,
 
 TEST(TensorPlanAlignedTest,
      make_elementwise_plan_broadcasts_leading_dimension) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {1, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ElementwisePlan plan =
@@ -166,35 +166,35 @@ TEST(TensorPlanAlignedTest,
 
 TEST(TensorPlanAlignedTest,
      make_elementwise_plan_broadcasts_trailing_dimension) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {2, 1},
        .strides = {1, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ElementwisePlan plan =
@@ -225,35 +225,35 @@ TEST(TensorPlanAlignedTest,
 
 TEST(TensorPlanAlignedTest,
      make_elementwise_plan_right_aligns_lower_rank_operand) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {3},
        .strides = {1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ElementwisePlan plan =
@@ -285,45 +285,45 @@ TEST(TensorPlanAlignedTest,
 
 TEST(TensorPlanAlignedTest,
      make_elementwise_plan_supports_multiple_broadcast_operands) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 3, 4},
        .strides = {12, 4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {1, 3, 1},
        .strides = {3, 1, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription c{
+   fusion::fuir::OperandDescription c{
        .shape = {4},
        .strides = {1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ElementwisePlan plan =
@@ -363,35 +363,35 @@ TEST(TensorPlanAlignedTest,
 
 TEST(TensorPlanAlignedTest,
      make_elementwise_plan_scalar_like_all_ones_shape_broadcasts) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {1, 1},
        .strides = {1, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    fusion::planning::ElementwisePlan plan =
@@ -413,25 +413,25 @@ TEST(TensorPlanAlignedTest,
 }
 
 TEST(TensorPlanAlignedTest, make_elementwise_plan_rejects_mixed_itemsize) {
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(double),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(fusion::planning::make_elementwise_plan({a, b}),
@@ -439,25 +439,25 @@ TEST(TensorPlanAlignedTest, make_elementwise_plan_rejects_mixed_itemsize) {
 }
 
 TEST(TensorPlanAlignedTest, make_elementwise_plan_rejects_shape_mismatch) {
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(fusion::planning::make_elementwise_plan({a, b}),
@@ -466,15 +466,15 @@ TEST(TensorPlanAlignedTest, make_elementwise_plan_rejects_shape_mismatch) {
 
 TEST(TensorPlanAlignedTest,
      make_elementwise_plan_rejects_bad_tensor_description_shape_rank_mismatch) {
-   OperandDescription bad{
+   fusion::fuir::OperandDescription bad{
        .shape = {2, 3},
        .strides = {1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
    EXPECT_THROW(fusion::planning::make_elementwise_plan({bad}),

@@ -7,29 +7,29 @@
 #include "Fusion/core/planning/PlanBuilders.h"
 
 TEST(TensorPlanContractionTest, infer_einsum_out_shape_returns_matmul_shape) {
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -47,40 +47,40 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_returns_matmul_shape) {
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_sets_output_shape) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -100,40 +100,40 @@ TEST(TensorPlanContractionTest,
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_builds_three_loops_for_matmul) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -152,51 +152,51 @@ TEST(TensorPlanContractionTest,
    ASSERT_EQ(dense.loop.size(), 3);
 
    EXPECT_EQ(dense.loop[0].size, 2);
-   EXPECT_EQ(dense.loop[0].kind, IndexKind::Independent);
+   EXPECT_EQ(dense.loop[0].kind, fusion::fuir::IndexKind::Independent);
 
    EXPECT_EQ(dense.loop[1].size, 3);
-   EXPECT_EQ(dense.loop[1].kind, IndexKind::Independent);
+   EXPECT_EQ(dense.loop[1].kind, fusion::fuir::IndexKind::Independent);
 
    EXPECT_EQ(dense.loop[2].size, 4);
-   EXPECT_EQ(dense.loop[2].kind, IndexKind::Reduction);
+   EXPECT_EQ(dense.loop[2].kind, fusion::fuir::IndexKind::Reduction);
 }
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_assigns_m_n_k_roles_for_matmul) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -213,47 +213,47 @@ TEST(TensorPlanContractionTest,
 
    ASSERT_EQ(dense.loop.size(), 3);
 
-   EXPECT_EQ(dense.loop[0].role, IndexRole::M);
-   EXPECT_EQ(dense.loop[1].role, IndexRole::N);
-   EXPECT_EQ(dense.loop[2].role, IndexRole::K);
+   EXPECT_EQ(dense.loop[0].role, fusion::fuir::IndexRole::M);
+   EXPECT_EQ(dense.loop[1].role, fusion::fuir::IndexRole::N);
+   EXPECT_EQ(dense.loop[2].role, fusion::fuir::IndexRole::K);
 }
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_detects_gemm_like_matmul) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -285,40 +285,40 @@ TEST(TensorPlanContractionTest,
 
 TEST(TensorPlanContractionTest,
      make_contraction_plan_einsum_out_rejects_wrong_output_shape) {
-   OperandDescription out{
+   fusion::fuir::OperandDescription out{
        .shape = {2, 4}, // incorrect shape (should be {2, 3}
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -335,29 +335,29 @@ TEST(TensorPlanContractionTest,
 
 TEST(TensorPlanContractionTest,
      infer_einsum_out_shape_rejects_mismatched_contract_dimension) {
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 5},
        .strides = {5, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -372,29 +372,29 @@ TEST(TensorPlanContractionTest,
 }
 
 TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(double),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -410,29 +410,29 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
 
 TEST(TensorPlanContractionTest,
      infer_einsum_out_shape_rejects_repeated_label_within_operand) {
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {4, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 0}, // repeated label
@@ -448,29 +448,29 @@ TEST(TensorPlanContractionTest,
 
 TEST(TensorPlanContractionTest,
      infer_einsum_out_shape_rejects_output_label_missing_from_operands) {
-   OperandDescription a{
+   fusion::fuir::OperandDescription a{
        .shape = {2, 4},
        .strides = {4, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandDescription b{
+   fusion::fuir::OperandDescription b{
        .shape = {4, 3},
        .strides = {3, 1},
        .itemsize = sizeof(float),
-       .layout = LayoutKind::Dense,
-       .access = AccessKind::Affine,
-       .storage = StorageKind::Owned,
-       .update = UpdateKind::ReadOnly,
-       .type = OperandDescType::Tensor,
+       .layout = fusion::fuir::LayoutKind::Dense,
+       .access = fusion::fuir::AccessKind::Affine,
+       .storage = fusion::fuir::StorageKind::Owned,
+       .update = fusion::fuir::UpdateKind::ReadOnly,
+       .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 0},

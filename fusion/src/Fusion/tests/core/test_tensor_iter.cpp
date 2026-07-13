@@ -18,14 +18,14 @@ TEST(TensorIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
    plan.exec.core.itemsize = sizeof(float);
 
    plan.exec.access.operands.resize(3);
-   plan.exec.access.operands[0].access = AccessKind::Affine;
-   plan.exec.access.operands[1].access = AccessKind::Affine;
-   plan.exec.access.operands[2].access = AccessKind::Affine;
+   plan.exec.access.operands[0].access = fusion::fuir::AccessKind::Affine;
+   plan.exec.access.operands[1].access = fusion::fuir::AccessKind::Affine;
+   plan.exec.access.operands[2].access = fusion::fuir::AccessKind::Affine;
 
    struct DenseIterPlanView {
       std::size_t num_operands{};
-      std::span<const LoopDim> loop;
-      std::span<const OperandAccess> operands;
+      std::span<const fusion::fuir::LoopDim> loop;
+      std::span<const fusion::fuir::OperandAccess> operands;
    };
 
    fusion::dense::iter::DenseIterPlanView view =
@@ -66,8 +66,8 @@ TEST(TensorIterTest,
    fusion::planning::DenseTraversalPlan &dense =
        std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    dense.loop = {
-       LoopDim{.size = 2, .kind = IndexKind::Independent},
-       LoopDim{.size = 3, .kind = IndexKind::Independent},
+       fusion::fuir::LoopDim{.size = 2, .kind = fusion::fuir::IndexKind::Independent},
+       fusion::fuir::LoopDim{.size = 3, .kind = fusion::fuir::IndexKind::Independent},
    };
 
    plan.exec.access.operands.resize(3);
@@ -75,7 +75,7 @@ TEST(TensorIterTest,
        fusion::dense::iter::dense_iter_view(plan);
 
    for (auto &access : plan.exec.access.operands) {
-      access.access = AccessKind::Affine;
+      access.access = fusion::fuir::AccessKind::Affine;
       access.affine.byte_stride_per_loop = {
           static_cast<std::int64_t>(3 * sizeof(float)),
           static_cast<std::int64_t>(sizeof(float)),
@@ -313,7 +313,7 @@ TEST(TensorIterTest, contraction_tag_computes_matrix_multiplication_result) {
 
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   OperandLabelBinding binding{
+   fusion::fuir::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1}, // Out: [i, j]
