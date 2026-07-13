@@ -50,7 +50,7 @@ void validate_plan_core(const ExecutionPlan& plan,
 void validate_operand_access_ids(const ExecutionPlan& plan,
                                  const std::string_view where) {
    for (std::size_t i = 0; i < plan.access.operands.size(); ++i) {
-      const OperandAccess& access = plan.access.operands[i];
+      const fuir::OperandAccess& access = plan.access.operands[i];
 
       FUSION_CHECK_CODE(
           access.operand_id < plan.core.num_operands,
@@ -69,7 +69,7 @@ void validate_operand_access_ids(const ExecutionPlan& plan,
 
 } // namespace
 
-void validate_operand_description(const OperandDescription& desc,
+void validate_operand_description(const fuir::OperandDescription& desc,
                                   const std::string_view where) {
    FUSION_CHECK_CODE(
        desc.itemsize > 0,
@@ -106,10 +106,10 @@ void validate_dense_execution_plan(const ExecutionPlan& plan,
            "DenseTraversalPlan"));
 
    for (std::size_t i = 0; i < plan.access.operands.size(); ++i) {
-      const OperandAccess& access = plan.access.operands[i];
+      const fuir::OperandAccess& access = plan.access.operands[i];
 
       FUSION_CHECK_CODE(
-          access.access == AccessKind::Affine,
+          access.access == fuir::AccessKind::Affine,
           planning_error(PlanningError::NonAffineDenseAccess,
                          ErrorCategory::Internal),
           ferr::message(

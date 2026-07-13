@@ -7,7 +7,7 @@
 
 namespace fusion::planning {
 struct AccessPlan {
-   std::vector<OperandAccess> operands{};
+   std::vector<fuir::OperandAccess> operands{};
 };
 } // namespace fusion::planning
 #endif // FUSION_CORE_PLANNING_ACCESS_PLAN_H

@@ -12,8 +12,8 @@
 namespace fusion::dense::iter {
 struct DenseIterPlanView {
    std::size_t num_operands{};
-   std::span<const LoopDim> loop;
-   std::span<const OperandAccess> operands;
+   std::span<const fuir::LoopDim> loop{};
+   std::span<const fuir::OperandAccess> operands{};
 };
 
 template <typename IterPlan>

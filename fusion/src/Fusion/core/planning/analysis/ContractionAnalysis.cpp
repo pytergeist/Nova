@@ -24,20 +24,20 @@ struct GemmRoleExtents {
 GemmRoleExtents compute_gemm_role_extents(const DenseTraversalPlan &traversal) {
    GemmRoleExtents extents{};
 
-   for (const LoopDim &ld : traversal.loop) {
+   for (const fuir::LoopDim &ld : traversal.loop) {
       switch (ld.role) {
-      case IndexRole::Batch:
+      case fuir::IndexRole::Batch:
          extents.batch *= ld.size;
          break;
-      case IndexRole::M:
+      case fuir::IndexRole::M:
          extents.M = ld.size;
          ++extents.m_count;
          break;
-      case IndexRole::N:
+      case fuir::IndexRole::N:
          extents.N = ld.size;
          ++extents.n_count;
          break;
-      case IndexRole::K:
+      case fuir::IndexRole::K:
          extents.K = ld.size;
          ++extents.k_count;
          break;
@@ -56,8 +56,8 @@ bool has_three_affine_operands(const ExecutionPlan &exec) {
       return false;
    }
 
-   for (const OperandAccess &operand : exec.access.operands) {
-      if (operand.access != AccessKind::Affine) {
+   for (const fuir::OperandAccess &operand : exec.access.operands) {
+      if (operand.access != fuir::AccessKind::Affine) {
          return false;
       }
    }
@@ -74,7 +74,7 @@ bool access_rank_matches_loop_rank(const ExecutionPlan &exec,
                                    const DenseTraversalPlan &traversal) {
    const std::size_t rank = traversal.loop.size();
 
-   for (const OperandAccess &operand : exec.access.operands) {
+   for (const fuir::OperandAccess &operand : exec.access.operands) {
       if (operand.affine.byte_stride_per_loop.size() != rank) {
          return false;
       }
@@ -120,15 +120,15 @@ extract_gemm_desc_from_dense_plan(const ExecutionPlan &exec,
    gemm.K = extents.K;
 
    for (std::size_t pos = 0; pos < traversal.loop.size(); ++pos) {
-      const LoopDim &ld = traversal.loop[pos];
+      const fuir::LoopDim &ld = traversal.loop[pos];
 
-      if (ld.role == IndexRole::M) {
+      if (ld.role == fuir::IndexRole::M) {
          gemm.out_rs = out_access[pos] / item;
          gemm.a_rs = a_access[pos] / item;
-      } else if (ld.role == IndexRole::N) {
+      } else if (ld.role == fuir::IndexRole::N) {
          gemm.out_cs = out_access[pos] / item;
          gemm.b_cs = b_access[pos] / item;
-      } else if (ld.role == IndexRole::K) {
+      } else if (ld.role == fuir::IndexRole::K) {
          gemm.a_cs = a_access[pos] / item;
          gemm.b_rs = b_access[pos] / item;
       }

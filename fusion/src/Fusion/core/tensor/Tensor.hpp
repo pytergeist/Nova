@@ -12,7 +12,7 @@
 #include "Fusion/core/tensor/SoATensor.hpp"
 
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/core/fuir/Descs.h"
+#include "Fusion/core/fuir/OperandDescription.h"
 
 template <typename T> class Tensor {
  public:
@@ -27,13 +27,13 @@ template <typename T> class Tensor {
    Tensor() = default;
 
    explicit Tensor(Dense dense)
-       : storage_(std::move(dense)), layout_(LayoutKind::Dense) {}
+       : storage_(std::move(dense)), layout_(fusion::fuir::LayoutKind::Dense) {}
 
    explicit Tensor(SoA soa)
-       : storage_(std::move(soa)), layout_(LayoutKind::SoA) {}
+       : storage_(std::move(soa)), layout_(fusion::fuir::LayoutKind::SoA) {}
 
    explicit Tensor(AoSoA blocked)
-       : storage_(std::move(blocked)), layout_(LayoutKind::AoSoA) {}
+       : storage_(std::move(blocked)), layout_(fusion::fuir::LayoutKind::AoSoA) {}
 
    static Tensor from_dense(Dense dense) { return Tensor(std::move(dense)); }
 
@@ -43,15 +43,15 @@ template <typename T> class Tensor {
       return Tensor(std::move(blocked));
    }
 
-   LayoutKind layout() const noexcept { return layout_; }
+   fusion::fuir::LayoutKind layout() const noexcept { return layout_; }
 
    bool is_dense() const noexcept {
-      return layout_ == LayoutKind::Dense || layout_ == LayoutKind::Strided;
+      return layout_ == fusion::fuir::LayoutKind::Dense || layout_ == fusion::fuir::LayoutKind::Strided;
    }
 
-   bool is_soa() const noexcept { return layout_ == LayoutKind::SoA; }
+   bool is_soa() const noexcept { return layout_ == fusion::fuir::LayoutKind::SoA; }
 
-   bool is_aosoa() const noexcept { return layout_ == LayoutKind::AoSoA; }
+   bool is_aosoa() const noexcept { return layout_ == fusion::fuir::LayoutKind::AoSoA; }
 
    bool is_initialised() const {
       return std::visit([](const auto &x) { return x.base().is_initialised(); },
@@ -304,7 +304,7 @@ template <typename T> class Tensor {
    using Storage = std::variant<Dense, SoA, AoSoA>;
 
    Storage storage_{Dense{}};
-   LayoutKind layout_{LayoutKind::Dense};
+   fusion::fuir::LayoutKind layout_{fusion::fuir::LayoutKind::Dense};
 
    void require_dense(const char *op_name) const {
       FUSION_CHECK(is_dense(), std::string("Tensor::") + op_name +
@@ -317,50 +317,52 @@ template <typename T> class Tensor {
                        " currently requires Dense layouts");
    }
 
-   OperandDescription dense_desc(UpdateKind update) const {
+   // TODO: The below OperandDescription emitters do not below here!
+
+   fusion::fuir::OperandDescription dense_desc(fusion::fuir::UpdateKind update) const {
       const auto &x = dense();
 
-      return OperandDescription{
+      return fusion::fuir::OperandDescription{
           .shape = x.shape(),
           .strides = x.strides(),
           .itemsize = x.dtype_size(),
-          .layout = x.is_contiguous() ? LayoutKind::Dense : LayoutKind::Strided,
-          .access = AccessKind::Affine,
-          .storage = x.is_view() ? StorageKind::View : StorageKind::Owned,
+          .layout = x.is_contiguous() ? fusion::fuir::LayoutKind::Dense : fusion::fuir::LayoutKind::Strided,
+          .access = fusion::fuir::AccessKind::Affine,
+          .storage = x.is_view() ? fusion::fuir::StorageKind::View : fusion::fuir::StorageKind::Owned,
           .update = update,
-          .type = OperandDescType::Tensor,
+          .type = fusion::fuir::OperandDescType::Tensor,
       };
    }
 
-   OperandDescription soa_desc(UpdateKind update) const {
+   fusion::fuir::OperandDescription soa_desc(fusion::fuir::UpdateKind update) const {
       const auto &x = soa();
       const auto &raw = x.base();
 
-      return OperandDescription{
+      return fusion::fuir::OperandDescription{
           .shape = x.storage_shape(),
           .strides = raw.strides(),
           .itemsize = raw.dtype_size(),
-          .layout = LayoutKind::SoA,
-          .access = AccessKind::Affine,
-          .storage = StorageKind::Owned,
+          .layout = fusion::fuir::LayoutKind::SoA,
+          .access = fusion::fuir::AccessKind::Affine,
+          .storage = fusion::fuir::StorageKind::Owned,
           .update = update,
-          .type = OperandDescType::Tensor,
+          .type = fusion::fuir::OperandDescType::Tensor,
       };
    }
 
-   OperandDescription blocked_soa_desc(UpdateKind update) const {
+   fusion::fuir::OperandDescription blocked_soa_desc(fusion::fuir::UpdateKind update) const {
       const auto &x = aosoa();
       const auto &raw = x.base();
 
-      return OperandDescription{
+      return fusion::fuir::OperandDescription{
           .shape = x.storage_shape(),
           .strides = raw.strides(),
           .itemsize = raw.dtype_size(),
-          .layout = LayoutKind::AoSoA,
-          .access = AccessKind::Blocked,
-          .storage = StorageKind::Owned,
+          .layout = fusion::fuir::LayoutKind::AoSoA,
+          .access = fusion::fuir::AccessKind::Blocked,
+          .storage = fusion::fuir::StorageKind::Owned,
           .update = update,
-          .type = OperandDescType::Tensor,
+          .type = fusion::fuir::OperandDescType::Tensor,
       };
    }
 };

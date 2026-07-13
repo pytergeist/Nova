@@ -10,7 +10,7 @@
 
 namespace fusion::planning {
 struct DenseTraversalPlan {
-   std::vector<LoopDim> loop{};
+   std::vector<fuir::LoopDim> loop{};
 };
 
 struct IndexedTraversalPlan {

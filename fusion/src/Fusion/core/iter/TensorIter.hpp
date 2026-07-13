@@ -14,7 +14,7 @@
 namespace fusion::dense::iter {
 
 struct OperandStep {
-   AccessKind kind{AccessKind::Affine};
+   fuir::AccessKind kind{fuir::AccessKind::Affine};
    std::int64_t byte_stride{0};
 };
 
@@ -38,7 +38,7 @@ InnerSegment<N> construct_inner_segment(int inner_dim,
    seg.ptrs = ptr;
    for (std::size_t k = 0; k < N; k++) {
       seg.step[k].kind = view.operands[k].access;
-      if (seg.step[k].kind == AccessKind::Affine) {
+      if (seg.step[k].kind == fuir::AccessKind::Affine) {
          seg.step[k].byte_stride =
              view.operands[k].affine.byte_stride_per_loop[inner_dim];
       } else {
@@ -63,7 +63,7 @@ InnerSegment<N> construct_scalar_segment(const DenseIterPlanView &view,
    seg.ptrs = ptr;
    for (std::size_t k = 0; k < N; k++) {
       seg.step[k].kind = view.operands[k].access;
-      if (seg.step[k].kind == AccessKind::Affine) {
+      if (seg.step[k].kind == fuir::AccessKind::Affine) {
          seg.step[k].byte_stride = 0;
       } else {
          throw std::runtime_error(
@@ -82,16 +82,16 @@ void walk(int dim, const int inn, const DenseIterPlanView &view,
       return;
    }
 
-   const LoopDim &ld = view.loop[dim];
+   const fuir::LoopDim &ld = view.loop[dim];
    for (int64_t i = 0; i < ld.size; ++i) {
       walk(dim + 1, inn, view, ptr, inner);
       for (int k = 0; k < view.num_operands; ++k) {
-         OperandAccess access = view.operands[k];
+         fuir::OperandAccess access = view.operands[k];
          ptr[k] += access.affine.byte_stride_per_loop[dim];
       }
    }
    for (int k = 0; k < view.num_operands; ++k) {
-      OperandAccess access = view.operands[k];
+      fuir::OperandAccess access = view.operands[k];
       ptr[k] -= access.affine.byte_stride_per_loop[dim] * ld.size;
    }
 };

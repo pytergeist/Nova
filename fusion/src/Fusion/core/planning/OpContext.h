@@ -26,9 +26,9 @@ struct BinaryEwiseContext {
 
    ElementwisePlan plan{};
 
-   OperandDescription lhs{};
-   OperandDescription rhs{};
-   OperandDescription out{};
+   fuir::OperandDescription lhs{};
+   fuir::OperandDescription rhs{};
+   fuir::OperandDescription out{};
 
    BinaryExecKind exec{BinaryExecKind::GenericStrided};
 };
@@ -41,8 +41,8 @@ struct UnaryEwiseContext {
 
    ElementwisePlan plan{};
 
-   OperandDescription input{};
-   OperandDescription out{};
+   fuir::OperandDescription input{};
+   fuir::OperandDescription out{};
 };
 
 struct ReductionContext {
@@ -60,8 +60,8 @@ struct ReductionContext {
 
    std::size_t reduce_len{0};
 
-   OperandDescription input{};
-   OperandDescription out{};
+   fuir::OperandDescription input{};
+   fuir::OperandDescription out{};
 };
 
 struct ContractionContext {
@@ -72,11 +72,11 @@ struct ContractionContext {
 
    ContractionPlan plan{};
 
-   OperandDescription lhs{};
-   OperandDescription rhs{};
-   OperandDescription out{};
+   fuir::OperandDescription lhs{};
+   fuir::OperandDescription rhs{};
+   fuir::OperandDescription out{};
 
-   OperandLabelBinding binding{};
+   fuir::OperandLabelBinding binding{};
 };
 
 inline std::string_view to_string(BinaryExecKind k) noexcept {

@@ -27,11 +27,11 @@ BinaryEwiseContext make_binary_ewise_context(const DenseTensor<T> &lhs,
       return ctx;
    }
 
-   OperandDescription lhs_desc = make_desc_from_tensor<T>(lhs);
-   OperandDescription rhs_desc = make_desc_from_tensor<T>(rhs);
+   fuir::OperandDescription lhs_desc = make_desc_from_tensor<T>(lhs);
+   fuir::OperandDescription rhs_desc = make_desc_from_tensor<T>(rhs);
 
-   lhs_desc.update = UpdateKind::ReadOnly;
-   rhs_desc.update = UpdateKind::ReadOnly;
+   lhs_desc.update = fuir::UpdateKind::ReadOnly;
+   rhs_desc.update = fuir::UpdateKind::ReadOnly;
 
    ElementwisePlan input_plan = make_elementwise_plan({lhs_desc, rhs_desc});
 
@@ -39,7 +39,7 @@ BinaryEwiseContext make_binary_ewise_context(const DenseTensor<T> &lhs,
                         input_plan.exec.core.out_shape.end());
 
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
-   ctx.out.update = UpdateKind::Overwrite;
+   ctx.out.update = fuir::UpdateKind::Overwrite;
 
    ctx.lhs = std::move(lhs_desc);
    ctx.rhs = std::move(rhs_desc);
@@ -67,8 +67,8 @@ UnaryEwiseContext make_unary_ewise_context(const DenseTensor<T> &input) {
       return ctx;
    }
 
-   OperandDescription input_desc = make_desc_from_tensor<T>(input);
-   input_desc.update = UpdateKind::ReadOnly;
+   fuir::OperandDescription input_desc = make_desc_from_tensor<T>(input);
+   input_desc.update = fuir::UpdateKind::ReadOnly;
 
    ElementwisePlan input_plan = make_elementwise_plan({input_desc});
 
@@ -77,7 +77,7 @@ UnaryEwiseContext make_unary_ewise_context(const DenseTensor<T> &input) {
                         input_plan.exec.core.out_shape.end());
 
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
-   ctx.out.update = UpdateKind::Overwrite;
+   ctx.out.update = fuir::UpdateKind::Overwrite;
 
    ctx.input = std::move(input_desc);
    ctx.plan = make_elementwise_plan({ctx.out, ctx.input});
@@ -98,8 +98,8 @@ ReductionContext make_reduction_context(const DenseTensor<T> &input,
       return ctx;
    }
 
-   OperandDescription input_desc = make_desc_from_tensor<T>(input);
-   input_desc.update = UpdateKind::ReadOnly;
+   fuir::OperandDescription input_desc = make_desc_from_tensor<T>(input);
+   input_desc.update = fuir::UpdateKind::ReadOnly;
 
    std::vector<std::size_t> out_shape;
    for (std::size_t d = 0; d < input_desc.ndims(); ++d) {
@@ -115,7 +115,7 @@ ReductionContext make_reduction_context(const DenseTensor<T> &input,
    ctx.out_shape = std::move(out_shape);
 
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
-   ctx.out.update = UpdateKind::Accumulate;
+   ctx.out.update = fuir::UpdateKind::Accumulate;
 
    ctx.input = std::move(input_desc);
 
@@ -133,19 +133,19 @@ template <typename T>
 ContractionContext
 make_contraction_context_einsum(const DenseTensor<T> &lhs,
                                 const DenseTensor<T> &rhs,
-                                const OperandLabelBinding &binding) {
+                                const fuir::OperandLabelBinding &binding) {
    ContractionContext ctx{};
 
    ctx.lhs = make_desc_from_tensor<T>(lhs);
    ctx.rhs = make_desc_from_tensor<T>(rhs);
 
-   ctx.lhs.update = UpdateKind::ReadOnly;
-   ctx.rhs.update = UpdateKind::ReadOnly;
+   ctx.lhs.update = fuir::UpdateKind::ReadOnly;
+   ctx.rhs.update = fuir::UpdateKind::ReadOnly;
 
    ctx.out_shape = infer_out_shape_from_binding({ctx.lhs, ctx.rhs}, binding);
 
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
-   ctx.out.update = UpdateKind::Accumulate;
+   ctx.out.update = fuir::UpdateKind::Accumulate;
 
    ctx.plan =
        make_contraction_plan_einsum_out({ctx.out, ctx.lhs, ctx.rhs}, binding);
