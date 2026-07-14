@@ -36,8 +36,8 @@ template <typename T> class TensorView {
    T *data() noexcept { return data_; };
    const T *data() const noexcept { return data_; };
 
-   inline bool is_contiguous() const noexcept {
-      return calc_contiguous(shape_, strides_);
+   bool is_contiguous() const noexcept {
+      return fusion::core::calc_contiguous(shape_, strides_);
    }
 
  private:

@@ -14,48 +14,6 @@
 
 namespace fusion::ops::contraction {
 
-inline OperandLabelBinding make_matmul_binding(std::size_t a_nd,
-                                               std::size_t b_nd) {
-   if (a_nd < 2 || b_nd < 2) {
-      throw std::runtime_error("matmul: expected rank >= 2 for both operands");
-   }
-
-   const std::size_t batch_nd_a = a_nd - 2;
-   const std::size_t batch_nd_b = b_nd - 2;
-   if (batch_nd_a != batch_nd_b) {
-      throw std::runtime_error(
-          "matmul: batch rank mismatch (implement broadcasting/padding)");
-   }
-
-   const std::size_t batch_nd = batch_nd_a;
-
-   const Label base = 0;
-   const Label Li = static_cast<Label>(base + batch_nd);
-   const Label Lj = static_cast<Label>(base + batch_nd + 1);
-   const Label Lk = static_cast<Label>(base + batch_nd + 2);
-
-   std::vector<Label> batch_labels(batch_nd);
-   for (std::size_t t = 0; t < batch_nd; ++t)
-      batch_labels[t] = static_cast<Label>(base + t);
-
-   std::vector<Label> a_labels = batch_labels;
-   a_labels.push_back(Li);
-   a_labels.push_back(Lk);
-
-   std::vector<Label> b_labels = batch_labels;
-   b_labels.push_back(Lk);
-   b_labels.push_back(Lj);
-
-   std::vector<Label> out_labels = batch_labels;
-   out_labels.push_back(Li);
-   out_labels.push_back(Lj);
-
-   OperandLabelBinding binding;
-   binding.op_axis_labels = {out_labels, a_labels, b_labels};
-   binding.out_labels = out_labels;
-   return binding;
-}
-
 template <typename T>
 DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
    FUSION_CHECK(A.is_initialised(), "matmul: A uninitialised");
@@ -74,16 +32,12 @@ DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
    if (kA != kB)
       throw std::runtime_error("matmul: inner dimension mismatch");
 
-   OperandLabelBinding binding =
-       make_matmul_binding(a_shape.size(), b_shape.size());
-   planning::ContractionContext meta =
-       planning::make_contraction_context_einsum<T>(A, B, binding);
+   planning::ContractionContext ctx =
+       planning::make_matmul_context<T>(A, B);
 
-   DenseTensor<T> out = init_out_from_meta(A, B, meta);
+   DenseTensor<T> out = init_out_from_meta(A, B, ctx);
 
-   dense::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD
-
-                                >(A, B, meta, out);
+   dense::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD>(A, B, ctx, out);
 
    return out;
 }
