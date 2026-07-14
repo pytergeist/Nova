@@ -141,6 +141,17 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64|arm64")
 endif()
 
 # ------------------------------------------------------------
+# execution
+# ------------------------------------------------------------
+add_library(fusion_execution INTERFACE)
+
+target_include_directories(fusion_execution INTERFACE ${FUSION_INCLUDE_ROOT})
+target_link_libraries(fusion_execution INTERFACE
+        fusion_core
+)
+
+
+# ------------------------------------------------------------
 # ops
 # ------------------------------------------------------------
 add_library(fusion_ops INTERFACE)

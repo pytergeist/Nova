@@ -5,8 +5,7 @@
 #include <vector>
 
 #include "Fusion/common/Log.hpp"
-
-#include "Fusion/core/iter/TensorIter.hpp"
+#include "Fusion/execution/cpu/Contraction.h"
 #include "Fusion/core/planning/OpContextBuilders.h"
 #include "Fusion/kernels/Serial.hpp"
 
@@ -37,7 +36,7 @@ DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
 
    DenseTensor<T> out = init_out_from_meta(A, B, ctx);
 
-   dense::iter::contraction_tag<T, BatchedGemmBLAS, MultiplySIMD>(A, B, ctx, out);
+   execution::cpu::contraction<T, BatchedGemmBLAS, MultiplySIMD>(A, B, ctx, out);
 
    return out;
 }

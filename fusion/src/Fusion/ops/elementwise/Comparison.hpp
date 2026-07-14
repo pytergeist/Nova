@@ -4,8 +4,8 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/iter/TensorIter.hpp"
 #include "Fusion/core/planning/OpContextBuilders.h"
+#include "Fusion/execution/cpu/BinaryElementwise.h"
 
 #include "Fusion/ops/Helpers.hpp"
 
@@ -17,7 +17,7 @@ DenseTensor<T> greater(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    planning::BinaryEwiseContext meta =
        planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
-   dense::iter::binary_ewise_tag<T, GreaterThanSIMD>(x, y, meta, out);
+   execution::cpu::binary_elementwise<T, GreaterThanSIMD>(x, y, meta, out);
    return out;
 }
 
@@ -27,7 +27,7 @@ DenseTensor<T> greater_equal(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    planning::BinaryEwiseContext meta =
        planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
-   dense::iter::binary_ewise_tag<T, GreaterThanEqualSIMD>(x, y, meta, out);
+   execution::cpu::binary_elementwise<T, GreaterThanEqualSIMD>(x, y, meta, out);
    return out;
 }
 
@@ -37,7 +37,7 @@ DenseTensor<T> maximum(const DenseTensor<T> &x, const DenseTensor<T> &y) {
    planning::BinaryEwiseContext meta =
        planning::make_binary_ewise_context(x, y);
    DenseTensor<T> out = init_out_from_meta(x, y, meta);
-   dense::iter::binary_ewise_tag<T, MaximumSIMD>(x, y, meta, out);
+   execution::cpu::binary_elementwise<T, MaximumSIMD>(x, y, meta, out);
    return out;
 }
 

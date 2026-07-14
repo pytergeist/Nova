@@ -18,14 +18,14 @@ struct OperandStep {
    std::int64_t byte_stride{0};
 };
 
-template <std::size_t N> struct InnerSegment {
+template <std::size_t N> struct DenseSegment {
    std::int64_t len{0};
    std::array<uint8_t *, N> ptrs;
    std::array<OperandStep, N> step;
 };
 
 template <std::size_t N>
-InnerSegment<N> construct_inner_segment(int inner_dim,
+DenseSegment<N> construct_inner_segment(int inner_dim,
                                         const DenseIterPlanView &view,
                                         std::array<uint8_t *, N> &ptr) {
    FUSION_CHECK(inner_dim >= 0, "inner_dim must be non-negative");
@@ -33,7 +33,7 @@ InnerSegment<N> construct_inner_segment(int inner_dim,
    FUSION_CHECK(inner_dim < static_cast<int>(view.loop.size()),
                 "inner_dim out of range");
 
-   InnerSegment<N> seg;
+   DenseSegment<N> seg;
    seg.len = static_cast<std::int64_t>(view.loop[inner_dim].size);
    seg.ptrs = ptr;
    for (std::size_t k = 0; k < N; k++) {
@@ -50,7 +50,7 @@ InnerSegment<N> construct_inner_segment(int inner_dim,
 }
 
 template <std::size_t N>
-InnerSegment<N> construct_scalar_segment(const DenseIterPlanView &view,
+DenseSegment<N> construct_scalar_segment(const DenseIterPlanView &view,
                                          std::array<uint8_t *, N> &ptr) {
    FUSION_CHECK(view.loop.empty(),
                 "construct_scalar_segment: plan must have zero loop dims");
@@ -58,7 +58,7 @@ InnerSegment<N> construct_scalar_segment(const DenseIterPlanView &view,
    FUSION_CHECK(view.operands.size() == N,
                 "construct_scalar_segment: op_access smaller than N");
 
-   InnerSegment<N> seg;
+   DenseSegment<N> seg;
    seg.len = 1;
    seg.ptrs = ptr;
    for (std::size_t k = 0; k < N; k++) {
@@ -77,7 +77,7 @@ template <std::size_t N, class InnerFn>
 void walk(int dim, const int inn, const DenseIterPlanView &view,
           std::array<uint8_t *, N> &ptr, InnerFn &&inner) {
    if (dim == inn) {
-      InnerSegment<N> seg = construct_inner_segment(inn, view, ptr);
+      DenseSegment<N> seg = construct_inner_segment(inn, view, ptr);
       inner(seg);
       return;
    }
@@ -106,7 +106,7 @@ void for_each_outer_then_inner(const DenseIterPlanView &view,
 
    if (ndim == 0) {
       // TODO: evaluate this impl - possibly introducing sutble numerical bugs
-      InnerSegment<N> seg = construct_scalar_segment(view, base);
+      DenseSegment<N> seg = construct_scalar_segment(view, base);
       inner(seg);
       return;
    }
