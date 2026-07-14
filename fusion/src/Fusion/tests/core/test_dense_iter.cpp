@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "Fusion/core/iter/TensorIter.hpp"
+#include "Fusion/core/iter/DenseIter.hpp"
 #include "Fusion/core/planning/OpContextBuilders.h"
 #include "Fusion/core/tensor/DenseTensor.hpp"
 
