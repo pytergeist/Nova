@@ -6,7 +6,7 @@
 #include "Fusion/common/error/Check.h"
 #include "Fusion/core/fuir/FuirErrors.h"
 
-namespace fusion::fuir {
+namespace fusion::fuir::validation {
 
 namespace ferr = fusion::error;
 using ferr::ErrorCategory;
@@ -426,4 +426,4 @@ void validate_role_vector_matches_ir(
                      " indices"));
 }
 
-} // namespace fusion::fuir
+} // namespace fusion::fuir::validation

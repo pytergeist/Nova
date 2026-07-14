@@ -44,7 +44,7 @@ fuir::OperandDescription make_desc_from_shape(const std::vector<std::size_t> &sh
 
    desc.itemsize = sizeof(T);
    desc.access = fuir::AccessKind::Affine;
-   desc.layout = fuir::LayoutKind::Dense;
+   desc.layout = core::LayoutKind::Dense;
    desc.storage = fuir::StorageKind::Owned;
    desc.update = fuir::UpdateKind::ReadOnly;
    desc.type = fuir::OperandDescType::Tensor;
@@ -67,7 +67,7 @@ fuir::OperandDescription make_desc_from_tensor(const DenseTensor<T> &tensor) {
 
    desc.access = fuir::AccessKind::Affine;
    desc.layout =
-       tensor.is_contiguous() ? fuir::LayoutKind::Dense : fuir::LayoutKind::Strided;
+       tensor.is_contiguous() ? core::LayoutKind::Dense : core::LayoutKind::Strided;
    desc.storage = !tensor.is_view() ? fuir::StorageKind::Owned : fuir::StorageKind::View;
    desc.update = fuir::UpdateKind::ReadOnly;
    desc.type = fuir::OperandDescType::Tensor;
@@ -89,7 +89,7 @@ fuir::OperandDescription make_desc_from_aosoa_tensor(const AoSoATensor<T> &tenso
    }
 
    desc.access = fuir::AccessKind::Blocked;
-   desc.layout = fuir::LayoutKind::AoSoA;
+   desc.layout = core::LayoutKind::AoSoA;
    desc.storage = fuir::StorageKind::Owned;
    desc.update = fuir::UpdateKind::ReadOnly;
    desc.type = fuir::OperandDescType::Tensor;

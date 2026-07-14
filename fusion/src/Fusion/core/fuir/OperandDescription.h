@@ -5,9 +5,10 @@
 #include <cstdint>
 #include <vector>
 
+#include "Fusion/core/Layout.h"
+
 namespace fusion::fuir {
 
-enum class LayoutKind : std::int8_t { Dense, Strided, SoA, AoSoA };
 enum class AccessKind : std::int8_t { Affine, Indexed, Segmented, Blocked };
 enum class StorageKind : std::int8_t { Owned, View };
 enum class UpdateKind : std::int8_t { ReadOnly, Overwrite, Accumulate, ScatterAdd };
@@ -15,11 +16,11 @@ enum class UpdateKind : std::int8_t { ReadOnly, Overwrite, Accumulate, ScatterAd
 enum class OperandDescType : std::int8_t { Tensor, Topology, Index };
 
 struct OperandDescription {
-   std::vector<std::size_t> shape;
-   std::vector<std::int64_t> strides;
+   std::vector<std::size_t> shape{};
+   std::vector<std::int64_t> strides{};
    std::size_t itemsize{0};
 
-   LayoutKind layout{LayoutKind::Dense};
+   core::LayoutKind layout{core::LayoutKind::Dense};
    AccessKind access{AccessKind::Affine};
    StorageKind storage{StorageKind::Owned};
    UpdateKind update{UpdateKind::ReadOnly};

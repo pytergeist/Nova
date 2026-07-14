@@ -9,7 +9,7 @@
 #include "Fusion/core/fuir/OperandConstraints.h"
 #include "Fusion/core/fuir/OperandDescription.h"
 
-namespace fusion::fuir {
+namespace fusion::fuir::validation {
 
 void validate_descs_itemsize_group(
     const std::vector<OperandDescription>& descs,
@@ -51,6 +51,6 @@ void validate_role_vector_matches_ir(
     const std::vector<IndexRole>* role_of_id,
     std::string_view where = "validate_role_vector_matches_ir");
 
-} // namespace fusion::fuir
+} // namespace fusion::fuir::validation
 
 #endif // FUSION_CORE_FUIR_FUIR_VALIDATION_H

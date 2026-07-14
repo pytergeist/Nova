@@ -82,7 +82,7 @@ template <typename T> class DenseTensor {
    Device device() const noexcept { return device_; }
 
    bool is_contiguous() const noexcept {
-      return calc_contiguous(shape_, strides_);
+      return fusion::core::calc_contiguous(shape_, strides_);
    }
 
    std::size_t size() const noexcept {

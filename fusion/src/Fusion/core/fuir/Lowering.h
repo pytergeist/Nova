@@ -7,6 +7,7 @@
 
 #include "Fusion/core/fuir/IndexSpaceIR.h"
 #include "Fusion/core/fuir/OperandDescription.h"
+#include "Fusion/core/Layout.h"
 
 namespace fusion::fuir {
 
@@ -26,7 +27,7 @@ struct LoopDim {
 struct OperandAccess {
    std::size_t operand_id{0};
 
-   LayoutKind layout{LayoutKind::Dense};
+   core::LayoutKind layout{core::LayoutKind::Dense};
    StorageKind storage{StorageKind::Owned};
    UpdateKind update{UpdateKind::ReadOnly};
 

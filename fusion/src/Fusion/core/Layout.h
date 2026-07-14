@@ -3,6 +3,12 @@
 
 #include <vector>
 
+
+
+namespace fusion::core {
+
+enum class LayoutKind : std::int8_t { Dense, Strided, SoA, AoSoA };
+
 inline bool calc_contiguous(const std::vector<std::size_t> &shape,
                             const std::vector<std::int64_t> &strides) noexcept {
    const std::size_t nd = shape.size();
@@ -22,5 +28,5 @@ inline bool calc_contiguous(const std::vector<std::size_t> &shape,
    }
    return true;
 }
-
+}// namespace fusion::core
 #endif // LAYOUT_HPP

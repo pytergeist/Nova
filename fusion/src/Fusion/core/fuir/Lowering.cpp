@@ -36,8 +36,8 @@ lower_to_loops(const IndexSpaceIR& ir,
                const std::vector<std::uint32_t>& loop_order) {
    constexpr std::string_view where = "lower_to_loops";
 
-   validate_ir_matches_descs(ir, descs, where);
-   validate_loop_order(ir, loop_order, where);
+   validation::validate_ir_matches_descs(ir, descs, where);
+   validation::validate_loop_order(ir, loop_order, where);
 
    std::vector<LoopDim> loops;
    loops.reserve(loop_order.size());
@@ -63,9 +63,9 @@ lower_to_loops(const IndexSpaceIR& ir,
                const std::vector<IndexRole>* role_of_id) {
    constexpr std::string_view where = "lower_to_loops";
 
-   validate_ir_matches_descs(ir, descs, where);
-   validate_loop_order(ir, loop_order, where);
-   validate_role_vector_matches_ir(ir, role_of_id, where);
+   validation::validate_ir_matches_descs(ir, descs, where);
+   validation::validate_loop_order(ir, loop_order, where);
+   validation::validate_role_vector_matches_ir(ir, role_of_id, where);
 
    std::vector<LoopDim> loops;
    loops.reserve(loop_order.size());
@@ -90,8 +90,8 @@ lower_operand_access(const IndexSpaceIR& ir,
                      const std::vector<std::uint32_t>& loop_order) {
    constexpr std::string_view where = "lower_operand_access";
 
-   validate_ir_matches_descs(ir, descs, where);
-   validate_loop_order(ir, loop_order, where);
+   validation::validate_ir_matches_descs(ir, descs, where);
+   validation::validate_loop_order(ir, loop_order, where);
 
    std::vector<OperandAccess> op_access;
    op_access.reserve(ir.num_operands);
@@ -134,7 +134,7 @@ lower_operand_access(const IndexSpaceIR& ir,
 std::vector<IndexRole>
 compute_roles_for_gemm_like(const IndexSpaceIR& ir,
                             const OperandLabelBinding& binding) {
-   validate_index_space_ir(ir, "compute_roles_for_gemm_like");
+   validation::validate_index_space_ir(ir, "compute_roles_for_gemm_like");
 
    const auto& outL = binding.op_axis_labels[0];
    const auto& aL = binding.op_axis_labels[1];

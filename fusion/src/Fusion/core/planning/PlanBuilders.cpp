@@ -22,7 +22,7 @@ KernelHints make_kernel_hints(const std::vector<fuir::OperandDescription>& descs
    KernelHints hints;
    hints.all_contiguous_like =
        std::ranges::all_of(descs, [](const fuir::OperandDescription& desc) {
-          return desc.layout == fuir::LayoutKind::Dense;
+          return desc.layout == core::LayoutKind::Dense;
        });
    return hints;
 }
