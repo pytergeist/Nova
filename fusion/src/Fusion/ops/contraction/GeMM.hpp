@@ -5,21 +5,18 @@
 #include <vector>
 
 #include "Fusion/common/Log.hpp"
-#include "Fusion/execution/cpu/Contraction.h"
 #include "Fusion/core/planning/OpContextBuilders.h"
+#include "Fusion/execution/cpu/Contraction.h"
 #include "Fusion/kernels/Serial.hpp"
 
-#include "Fusion/ops/Helpers.hpp"
+#include "Fusion/ops/OperandValidation.h"
+#include "Fusion/ops/OutputAllocation.h"
 
 namespace fusion::ops::contraction {
 
 template <typename T>
 DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
-   FUSION_CHECK(A.is_initialised(), "matmul: A uninitialised");
-   FUSION_CHECK(B.is_initialised(), "matmul: B uninitialised");
-   FUSION_CHECK(A.dtype() == B.dtype(), "matmul: dtype mismatch");
-   FUSION_CHECK(A.device() == B.device(), "matmul: device mismatch");
-   require_contraction_out_of_place<MatMulTag>();
+   validation::validate_dense_contraction_operation<T, MatMulTag>(A, B);
 
    const auto &a_shape = A.shape();
    const auto &b_shape = B.shape();
@@ -31,12 +28,12 @@ DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
    if (kA != kB)
       throw std::runtime_error("matmul: inner dimension mismatch");
 
-   planning::ContractionContext ctx =
-       planning::make_matmul_context<T>(A, B);
+   planning::ContractionContext ctx = planning::make_matmul_context<T>(A, B);
 
-   DenseTensor<T> out = init_out_from_meta(A, B, ctx);
+   DenseTensor<T> out = detail::init_out_from_meta(A, B, ctx);
 
-   execution::cpu::contraction<T, BatchedGemmBLAS, MultiplySIMD>(A, B, ctx, out);
+   execution::cpu::contraction<T, BatchedGemmBLAS, MultiplySIMD>(A, B, ctx,
+                                                                 out);
 
    return out;
 }

@@ -1,21 +1,21 @@
 #ifndef FUSION_OPS_REDUCTION_REDUCE_HPP
 #define FUSION_OPS_REDUCTION_REDUCE_HPP
 
-#include "Fusion/execution/cpu/Reduction.h"
 #include "Fusion/core/planning/OpContextBuilders.h"
 #include "Fusion/cpu/simd/SimdTags.hpp"
-
-#include "Fusion/ops/Helpers.hpp"
+#include "Fusion/execution/cpu/Reduction.h"
+#include "Fusion/ops/OperandValidation.h"
+#include "Fusion/ops/OutputAllocation.h"
 
 namespace fusion::ops::reduction {
 
 template <typename T>
 DenseTensor<T> sum(const DenseTensor<T> &x, const std::size_t axis,
                    const bool keep_dim) {
-   require_reduction_out_of_place<SumTag>();
+   validation::validate_dense_reduction_operation<T, SumTag>(x);
    planning::ReductionContext meta =
        planning::make_reduction_context(x, axis, keep_dim);
-   DenseTensor<T> out = init_out_from_meta(x, meta);
+   DenseTensor<T> out = detail::init_out_from_meta(x, meta);
    execution::cpu::reduction<T, SumSIMD>(x, meta, out);
    return out;
 }
@@ -23,10 +23,10 @@ DenseTensor<T> sum(const DenseTensor<T> &x, const std::size_t axis,
 template <typename T>
 DenseTensor<T> mean(const DenseTensor<T> &x, const std::size_t axis,
                     const bool keep_dim) {
-   require_reduction_out_of_place<MeanTag>();
+   validation::validate_dense_reduction_operation<T, MeanTag>(x);
    planning::ReductionContext meta =
        planning::make_reduction_context(x, axis, keep_dim);
-   DenseTensor<T> out = init_out_from_meta(x, meta);
+   DenseTensor<T> out = detail::init_out_from_meta(x, meta);
    execution::cpu::reduction<T, SumSIMD>(x, meta, out);
    const T denom = static_cast<T>(meta.reduce_len);
    out = out / denom;

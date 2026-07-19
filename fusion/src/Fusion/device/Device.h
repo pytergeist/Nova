@@ -6,6 +6,7 @@
 #include "DeviceType.h"
 #include "Fusion/common/Checks.hpp"
 #include "Fusion/common/Log.hpp"
+#include "Fusion/common/error/Check.h"
 
 struct Device final {
    explicit Device(const DeviceType type, const DeviceIdx index = -1)

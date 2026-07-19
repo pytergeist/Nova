@@ -6,37 +6,37 @@
 
 #include "Fusion/core/planning/OpContextBuilders.h"
 #include "Fusion/execution/cpu/BinaryElementwise.h"
-
-#include "Fusion/ops/Helpers.hpp"
+#include "Fusion/ops/OperandValidation.h"
+#include "Fusion/ops/OutputAllocation.h"
 
 namespace fusion::ops::aligned {
 
 template <typename T>
 DenseTensor<T> greater(const DenseTensor<T> &x, const DenseTensor<T> &y) {
-   require_ewise_binary_out_of_place<GreaterTag>();
+   validation::validate_dense_binary_operation<T, GreaterTag>(x, y);
    planning::BinaryEwiseContext meta =
        planning::make_binary_ewise_context(x, y);
-   DenseTensor<T> out = init_out_from_meta(x, y, meta);
+   DenseTensor<T> out = detail::init_out_from_meta(x, y, meta);
    execution::cpu::binary_elementwise<T, GreaterThanSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
 DenseTensor<T> greater_equal(const DenseTensor<T> &x, const DenseTensor<T> &y) {
-   require_ewise_binary_out_of_place<GreaterEqualTag>();
+   validation::validate_dense_binary_operation<T, GreaterEqualTag>(x, y);
    planning::BinaryEwiseContext meta =
        planning::make_binary_ewise_context(x, y);
-   DenseTensor<T> out = init_out_from_meta(x, y, meta);
+   DenseTensor<T> out = detail::init_out_from_meta(x, y, meta);
    execution::cpu::binary_elementwise<T, GreaterThanEqualSIMD>(x, y, meta, out);
    return out;
 }
 
 template <typename T>
 DenseTensor<T> maximum(const DenseTensor<T> &x, const DenseTensor<T> &y) {
-   require_ewise_binary_out_of_place<MaximumTag>();
+   validation::validate_dense_binary_operation<T, MaximumTag>(x, y);
    planning::BinaryEwiseContext meta =
        planning::make_binary_ewise_context(x, y);
-   DenseTensor<T> out = init_out_from_meta(x, y, meta);
+   DenseTensor<T> out = detail::init_out_from_meta(x, y, meta);
    execution::cpu::binary_elementwise<T, MaximumSIMD>(x, y, meta, out);
    return out;
 }
