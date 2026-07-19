@@ -11,7 +11,12 @@ namespace fusion::fuir {
 
 enum class AccessKind : std::int8_t { Affine, Indexed, Segmented, Blocked };
 enum class StorageKind : std::int8_t { Owned, View };
-enum class UpdateKind : std::int8_t { ReadOnly, Overwrite, Accumulate, ScatterAdd };
+enum class UpdateKind : std::int8_t {
+   ReadOnly,
+   Overwrite,
+   Accumulate,
+   ScatterAdd
+};
 
 enum class OperandDescType : std::int8_t { Tensor, Topology, Index };
 
@@ -27,9 +32,7 @@ struct OperandDescription {
 
    OperandDescType type{OperandDescType::Tensor};
 
-   [[nodiscard]] std::size_t ndims() const noexcept {
-      return shape.size();
-   }
+   [[nodiscard]] std::size_t ndims() const noexcept { return shape.size(); }
 };
 
 } // namespace fusion::fuir

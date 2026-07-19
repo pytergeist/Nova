@@ -3,8 +3,8 @@
 
 #include "Fusion/core/fuir/FuirErrors.h"
 #include "Fusion/core/fuir/FuirValidation.h"
-#include "Fusion/core/fuir/IndexSpaceIR.h"
 #include "Fusion/core/fuir/IRBuilders.h"
+#include "Fusion/core/fuir/IndexSpaceIR.h"
 #include "Fusion/core/fuir/Lowering.h"
 #include "Fusion/core/fuir/OperandConstraints.h"
 #include "Fusion/core/fuir/OperandDescription.h"

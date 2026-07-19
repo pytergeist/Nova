@@ -1,26 +1,26 @@
 #ifndef FUSION_CORE_OPS_EXECUTION_CPU_CONTRACTION_H
 #define FUSION_CORE_OPS_EXECUTION_CPU_CONTRACTION_H
 
+#include "Fusion/core/iter/DenseIter.hpp"
 #include "Fusion/core/planning/OpContext.h"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
-#include "Fusion/core/iter/DenseIter.hpp"
 
 namespace fusion::execution::cpu {
 namespace detail {
 template <typename T, class Tag>
-void contraction_scalar_fallback(T *o, const T *a, const T *b, const int64_t &so,
-                              const int64_t &sa, const int64_t &sb,
-                              const std::size_t len) {
+void contraction_scalar_fallback(T *o, const T *a, const T *b,
+                                 const int64_t &so, const int64_t &sa,
+                                 const int64_t &sb, const std::size_t len) {
    Tag tag{};
    for (int64_t i = 0; i < static_cast<int64_t>(len); ++i) {
       o[i * so] += tag(a[i * sa], b[i * sb]);
    }
 }
-} // namespace contraction
+} // namespace detail
 
 template <typename T, class BlasTag, class ScalarTag, class TensorT>
 void contraction(const TensorT &A, const TensorT &B,
-                     planning::ContractionContext &meta, TensorT &out_data) {
+                 planning::ContractionContext &meta, TensorT &out_data) {
 
    auto *out = reinterpret_cast<T *>(out_data.get_ptr());
    std::fill(out, out + out_data.flat_size(), T{0});
@@ -45,26 +45,28 @@ void contraction(const TensorT &A, const TensorT &B,
        reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr())),
    };
 
-   const dense::iter::DenseIterPlanView view = dense::iter::dense_iter_view(meta.plan);
-   for_each_outer_then_inner<3>(view, base, [&](dense::iter::DenseSegment<3> &segment) {
-      const int64_t step = sizeof(T);
-      std::int64_t const out_bytes = segment.step[0].byte_stride;
-      std::int64_t const a_bytes = segment.step[1].byte_stride;
-      std::int64_t const b_bytes = segment.step[2].byte_stride;
+   const dense::iter::DenseIterPlanView view =
+       dense::iter::dense_iter_view(meta.plan);
+   for_each_outer_then_inner<3>(
+       view, base, [&](dense::iter::DenseSegment<3> &segment) {
+          const int64_t step = sizeof(T);
+          std::int64_t const out_bytes = segment.step[0].byte_stride;
+          std::int64_t const a_bytes = segment.step[1].byte_stride;
+          std::int64_t const b_bytes = segment.step[2].byte_stride;
 
-      auto *o = reinterpret_cast<T *>(segment.ptrs[0]);
-      auto *a = reinterpret_cast<const T *>(segment.ptrs[1]);
-      auto *b = reinterpret_cast<const T *>(segment.ptrs[2]);
+          auto *o = reinterpret_cast<T *>(segment.ptrs[0]);
+          auto *a = reinterpret_cast<const T *>(segment.ptrs[1]);
+          auto *b = reinterpret_cast<const T *>(segment.ptrs[2]);
 
-      const int64_t so = out_bytes == 0 ? 0 : out_bytes / step;
-      const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
-      const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
+          const int64_t so = out_bytes == 0 ? 0 : out_bytes / step;
+          const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
+          const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
 
-      detail::contraction_scalar_fallback<T, ScalarTag>(
-          o, a, b, so, sa, sb, static_cast<std::size_t>(segment.len));
-   });
+          detail::contraction_scalar_fallback<T, ScalarTag>(
+              o, a, b, so, sa, sb, static_cast<std::size_t>(segment.len));
+       });
 }
 
-}
+} // namespace fusion::execution::cpu
 
 #endif // FUSION_CORE_OPS_EXECUTION_CPU_CONTRACTION_H

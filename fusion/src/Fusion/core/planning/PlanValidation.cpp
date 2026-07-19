@@ -14,12 +14,11 @@ namespace {
 namespace ferr = fusion::error;
 using ferr::ErrorCategory;
 
-void validate_plan_core(const ExecutionPlan& plan,
+void validate_plan_core(const ExecutionPlan &plan,
                         const std::string_view where) {
    FUSION_CHECK_CODE(
        plan.core.itemsize > 0,
-       planning_error(PlanningError::InvalidItemSize,
-                      ErrorCategory::Internal),
+       planning_error(PlanningError::InvalidItemSize, ErrorCategory::Internal),
        ferr::message(
            where,
            ": planning.execution.invalid_itemsize: itemsize must be > 0"));
@@ -28,85 +27,72 @@ void validate_plan_core(const ExecutionPlan& plan,
        plan.core.out_ndim == plan.core.out_shape.size(),
        planning_error(PlanningError::InvalidOutputRank,
                       ErrorCategory::Internal),
-       ferr::message(
-           where,
-           ": planning.execution.output_rank_mismatch: out_ndim ",
-           plan.core.out_ndim,
-           " does not match out_shape rank ",
-           plan.core.out_shape.size()));
+       ferr::message(where,
+                     ": planning.execution.output_rank_mismatch: out_ndim ",
+                     plan.core.out_ndim, " does not match out_shape rank ",
+                     plan.core.out_shape.size()));
 
    FUSION_CHECK_CODE(
        plan.core.num_operands == plan.access.operands.size(),
        planning_error(PlanningError::AccessOperandCountMismatch,
                       ErrorCategory::Internal),
-       ferr::message(
-           where,
-           ": planning.execution.operand_count_mismatch: core has ",
-           plan.core.num_operands,
-           " operands but access plan has ",
-           plan.access.operands.size()));
+       ferr::message(where,
+                     ": planning.execution.operand_count_mismatch: core has ",
+                     plan.core.num_operands, " operands but access plan has ",
+                     plan.access.operands.size()));
 }
 
-void validate_operand_access_ids(const ExecutionPlan& plan,
+void validate_operand_access_ids(const ExecutionPlan &plan,
                                  const std::string_view where) {
    for (std::size_t i = 0; i < plan.access.operands.size(); ++i) {
-      const fuir::OperandAccess& access = plan.access.operands[i];
+      const fuir::OperandAccess &access = plan.access.operands[i];
 
       FUSION_CHECK_CODE(
           access.operand_id < plan.core.num_operands,
           planning_error(PlanningError::AccessOperandIdMismatch,
                          ErrorCategory::Internal),
           ferr::message(
-              where,
-              ": planning.execution.invalid_operand_id: access entry ",
-              i,
-              " has operand_id ",
-              access.operand_id,
-              " but num_operands is ",
+              where, ": planning.execution.invalid_operand_id: access entry ",
+              i, " has operand_id ", access.operand_id, " but num_operands is ",
               plan.core.num_operands));
    }
 }
 
 } // namespace
 
-void validate_operand_description(const fuir::OperandDescription& desc,
+void validate_operand_description(const fuir::OperandDescription &desc,
                                   const std::string_view where) {
    FUSION_CHECK_CODE(
        desc.itemsize > 0,
        planning_error(PlanningError::InvalidItemSize,
                       ErrorCategory::InvalidArgument),
        ferr::message(
-           where,
-           ": planning.operand.invalid_itemsize: itemsize must be > 0"));
+           where, ": planning.operand.invalid_itemsize: itemsize must be > 0"));
 
    FUSION_CHECK_CODE(
        desc.strides.size() == desc.shape.size(),
        planning_error(PlanningError::ShapeRankMismatch,
                       ErrorCategory::InvalidArgument),
-       ferr::message(
-           where,
-           ": planning.operand.rank_mismatch: strides rank ",
-           desc.strides.size(),
-           " does not match shape rank ",
-           desc.shape.size()));
+       ferr::message(where, ": planning.operand.rank_mismatch: strides rank ",
+                     desc.strides.size(), " does not match shape rank ",
+                     desc.shape.size()));
 }
 
-void validate_dense_execution_plan(const ExecutionPlan& plan,
+void validate_dense_execution_plan(const ExecutionPlan &plan,
                                    const std::string_view where) {
-   const auto* dense = std::get_if<DenseTraversalPlan>(&plan.traversal);
+   const auto *dense = std::get_if<DenseTraversalPlan>(&plan.traversal);
 
    FUSION_CHECK_CODE(
        dense != nullptr,
        planning_error(PlanningError::TraversalPayloadMismatch,
                       ErrorCategory::Internal),
-       ferr::message(
-           where,
-           ": planning.execution.traversal_payload_mismatch: "
-           "traversal_kind is Dense but traversal payload is not "
-           "DenseTraversalPlan"));
+       ferr::message(where,
+                     ": planning.execution.traversal_payload_mismatch: "
+                     "traversal_kind is Dense but traversal payload is not "
+                     "DenseTraversalPlan"));
 
    for (std::size_t i = 0; i < plan.access.operands.size(); ++i) {
-      const fuir::OperandAccess& access = plan.access.operands[i];
+      const fuir::OperandAccess &access = plan.access.operands[i];
 
       FUSION_CHECK_CODE(
           access.access == fuir::AccessKind::Affine,
@@ -123,13 +109,9 @@ void validate_dense_execution_plan(const ExecutionPlan& plan,
           planning_error(PlanningError::AccessRankMismatch,
                          ErrorCategory::Internal),
           ferr::message(
-              where,
-              ": planning.execution.access_rank_mismatch: operand ",
-              i,
-              " has stride rank ",
-              access.affine.byte_stride_per_loop.size(),
-              " but dense loop rank is ",
-              dense->loop.size()));
+              where, ": planning.execution.access_rank_mismatch: operand ", i,
+              " has stride rank ", access.affine.byte_stride_per_loop.size(),
+              " but dense loop rank is ", dense->loop.size()));
    }
 }
 
@@ -157,7 +139,7 @@ void validate_dense_execution_plan(const ExecutionPlan& plan,
 //            ": planning.indexed.invalid_topology: topology.N must be > 0"));
 // }
 
-void validate_execution_plan(const ExecutionPlan& plan,
+void validate_execution_plan(const ExecutionPlan &plan,
                              const std::string_view where) {
    validate_plan_core(plan, where);
    validate_operand_access_ids(plan, where);
@@ -182,9 +164,8 @@ void validate_execution_plan(const ExecutionPlan& plan,
           false,
           planning_error(PlanningError::UnsupportedTraversal,
                          ErrorCategory::Internal),
-          ferr::message(
-              where,
-              ": planning.execution.unsupported_traversal_kind"));
+          ferr::message(where,
+                        ": planning.execution.unsupported_traversal_kind"));
    }
 }
 

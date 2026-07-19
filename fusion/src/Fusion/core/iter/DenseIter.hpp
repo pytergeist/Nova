@@ -115,7 +115,6 @@ void for_each_outer_then_inner(const DenseIterPlanView &view,
    walk(0, inn, view, base, inner);
 }
 
-
 } // namespace fusion::dense::iter
 
 #endif // FUSION_CORE_TENSOR_ITER_HPP

@@ -33,7 +33,8 @@ template <typename T> class Tensor {
        : storage_(std::move(soa)), layout_(fusion::core::LayoutKind::SoA) {}
 
    explicit Tensor(AoSoA blocked)
-       : storage_(std::move(blocked)), layout_(fusion::core::LayoutKind::AoSoA) {}
+       : storage_(std::move(blocked)),
+         layout_(fusion::core::LayoutKind::AoSoA) {}
 
    static Tensor from_dense(Dense dense) { return Tensor(std::move(dense)); }
 
@@ -46,12 +47,17 @@ template <typename T> class Tensor {
    fusion::core::LayoutKind layout() const noexcept { return layout_; }
 
    bool is_dense() const noexcept {
-      return layout_ == fusion::core::LayoutKind::Dense || layout_ == fusion::core::LayoutKind::Strided;
+      return layout_ == fusion::core::LayoutKind::Dense ||
+             layout_ == fusion::core::LayoutKind::Strided;
    }
 
-   bool is_soa() const noexcept { return layout_ == fusion::core::LayoutKind::SoA; }
+   bool is_soa() const noexcept {
+      return layout_ == fusion::core::LayoutKind::SoA;
+   }
 
-   bool is_aosoa() const noexcept { return layout_ == fusion::core::LayoutKind::AoSoA; }
+   bool is_aosoa() const noexcept {
+      return layout_ == fusion::core::LayoutKind::AoSoA;
+   }
 
    bool is_initialised() const {
       return std::visit([](const auto &x) { return x.base().is_initialised(); },

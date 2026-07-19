@@ -26,14 +26,14 @@ enum class FuirError : std::uint8_t {
    InvalidIR,
 };
 
-constexpr error::ErrorCode fuir_error(
-    const FuirError detail,
-    const error::ErrorCategory category) noexcept {
+constexpr error::ErrorCode
+fuir_error(const FuirError detail,
+           const error::ErrorCategory category) noexcept {
    return error::ErrorCode{
-      .domain = error::ErrorDomain::Fuir,
-      .category = category,
-      .detail = static_cast<std::uint16_t>(detail),
-  };
+       .domain = error::ErrorDomain::Fuir,
+       .category = category,
+       .detail = static_cast<std::uint16_t>(detail),
+   };
 }
 
 } // namespace fusion::fuir

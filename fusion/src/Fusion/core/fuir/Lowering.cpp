@@ -11,7 +11,7 @@
 
 namespace fusion::fuir {
 
-std::int64_t stride_bytes_for_binding(const OperandDescription& desc,
+std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
                                       const std::int32_t axis,
                                       const std::size_t index_extent,
                                       const std::size_t itemsize) {
@@ -31,9 +31,9 @@ std::int64_t stride_bytes_for_binding(const OperandDescription& desc,
 }
 
 std::vector<LoopDim>
-lower_to_loops(const IndexSpaceIR& ir,
-               const std::vector<OperandDescription>& descs,
-               const std::vector<std::uint32_t>& loop_order) {
+lower_to_loops(const IndexSpaceIR &ir,
+               const std::vector<OperandDescription> &descs,
+               const std::vector<std::uint32_t> &loop_order) {
    constexpr std::string_view where = "lower_to_loops";
 
    validation::validate_ir_matches_descs(ir, descs, where);
@@ -43,7 +43,7 @@ lower_to_loops(const IndexSpaceIR& ir,
    loops.reserve(loop_order.size());
 
    for (const std::uint32_t id : loop_order) {
-      const IndexDef& idx = ir.indices[id];
+      const IndexDef &idx = ir.indices[id];
 
       LoopDim ld;
       ld.size = idx.extent;
@@ -57,10 +57,10 @@ lower_to_loops(const IndexSpaceIR& ir,
 }
 
 std::vector<LoopDim>
-lower_to_loops(const IndexSpaceIR& ir,
-               const std::vector<OperandDescription>& descs,
-               const std::vector<std::uint32_t>& loop_order,
-               const std::vector<IndexRole>* role_of_id) {
+lower_to_loops(const IndexSpaceIR &ir,
+               const std::vector<OperandDescription> &descs,
+               const std::vector<std::uint32_t> &loop_order,
+               const std::vector<IndexRole> *role_of_id) {
    constexpr std::string_view where = "lower_to_loops";
 
    validation::validate_ir_matches_descs(ir, descs, where);
@@ -71,7 +71,7 @@ lower_to_loops(const IndexSpaceIR& ir,
    loops.reserve(loop_order.size());
 
    for (const std::uint32_t id : loop_order) {
-      const IndexDef& idx = ir.indices[id];
+      const IndexDef &idx = ir.indices[id];
 
       LoopDim ld;
       ld.size = idx.extent;
@@ -85,9 +85,9 @@ lower_to_loops(const IndexSpaceIR& ir,
 }
 
 std::vector<OperandAccess>
-lower_operand_access(const IndexSpaceIR& ir,
-                     const std::vector<OperandDescription>& descs,
-                     const std::vector<std::uint32_t>& loop_order) {
+lower_operand_access(const IndexSpaceIR &ir,
+                     const std::vector<OperandDescription> &descs,
+                     const std::vector<std::uint32_t> &loop_order) {
    constexpr std::string_view where = "lower_operand_access";
 
    validation::validate_ir_matches_descs(ir, descs, where);
@@ -110,7 +110,7 @@ lower_operand_access(const IndexSpaceIR& ir,
 
       for (std::size_t pos = 0; pos < loop_order.size(); ++pos) {
          const std::uint32_t index_id = loop_order[pos];
-         const IndexDef& idx = ir.indices[index_id];
+         const IndexDef &idx = ir.indices[index_id];
 
          if (op == 0 && idx.kind == IndexKind::Reduction) {
             af.byte_stride_per_loop[pos] = 0;
@@ -118,10 +118,7 @@ lower_operand_access(const IndexSpaceIR& ir,
          }
 
          af.byte_stride_per_loop[pos] = stride_bytes_for_binding(
-             descs[op],
-             idx.axis_of_operand[op],
-             idx.extent,
-             ir.itemsize);
+             descs[op], idx.axis_of_operand[op], idx.extent, ir.itemsize);
       }
 
       oa.affine = std::move(af);
@@ -132,15 +129,15 @@ lower_operand_access(const IndexSpaceIR& ir,
 }
 
 std::vector<IndexRole>
-compute_roles_for_gemm_like(const IndexSpaceIR& ir,
-                            const OperandLabelBinding& binding) {
+compute_roles_for_gemm_like(const IndexSpaceIR &ir,
+                            const OperandLabelBinding &binding) {
    validation::validate_index_space_ir(ir, "compute_roles_for_gemm_like");
 
-   const auto& outL = binding.op_axis_labels[0];
-   const auto& aL = binding.op_axis_labels[1];
-   const auto& bL = binding.op_axis_labels[2];
+   const auto &outL = binding.op_axis_labels[0];
+   const auto &aL = binding.op_axis_labels[1];
+   const auto &bL = binding.op_axis_labels[2];
 
-   auto as_set = [](const std::vector<Label>& values) {
+   auto as_set = [](const std::vector<Label> &values) {
       std::unordered_set<Label> result;
       result.reserve(values.size());
 
@@ -194,8 +191,7 @@ compute_roles_for_gemm_like(const IndexSpaceIR& ir,
    std::vector<IndexRole> role_of_id(ir.indices.size(), IndexRole::Batch);
 
    for (std::uint32_t id = 0;
-        id < static_cast<std::uint32_t>(ir.indices.size());
-        ++id) {
+        id < static_cast<std::uint32_t>(ir.indices.size()); ++id) {
       const Label label = ir.indices[id].label;
 
       if (const auto it = role_of_label.find(label);

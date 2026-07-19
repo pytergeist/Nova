@@ -18,16 +18,18 @@ using ferr::ErrorCategory;
 
 namespace {
 
-KernelHints make_kernel_hints(const std::vector<fuir::OperandDescription>& descs) {
+KernelHints
+make_kernel_hints(const std::vector<fuir::OperandDescription> &descs) {
    KernelHints hints;
    hints.all_contiguous_like =
-       std::ranges::all_of(descs, [](const fuir::OperandDescription& desc) {
+       std::ranges::all_of(descs, [](const fuir::OperandDescription &desc) {
           return desc.layout == core::LayoutKind::Dense;
        });
    return hints;
 }
 
-std::vector<std::size_t> get_output_shape_from_indices(const fuir::IndexSpaceIR& ir) {
+std::vector<std::size_t>
+get_output_shape_from_indices(const fuir::IndexSpaceIR &ir) {
    std::vector<std::size_t> out_shape;
    out_shape.resize(ir.out_indices.size());
 
@@ -40,7 +42,7 @@ std::vector<std::size_t> get_output_shape_from_indices(const fuir::IndexSpaceIR&
 }
 
 PlanCore make_plan_core(const ExprKind expr, const TraversalKind traversal,
-                        const fuir::IndexSpaceIR& ir,
+                        const fuir::IndexSpaceIR &ir,
                         std::vector<std::size_t> out_shape) {
    PlanCore plan;
    plan.expr = expr;
@@ -52,30 +54,30 @@ PlanCore make_plan_core(const ExprKind expr, const TraversalKind traversal,
    return plan;
 }
 
-DenseTraversalPlan
-make_dense_traversal_plan(const fuir::IndexSpaceIR& ir,
-                          const std::vector<fuir::OperandDescription>& descs,
-                          const std::vector<std::uint32_t>& loop_order,
-                          const std::vector<fuir::IndexRole>* role_of_id = nullptr) {
+DenseTraversalPlan make_dense_traversal_plan(
+    const fuir::IndexSpaceIR &ir,
+    const std::vector<fuir::OperandDescription> &descs,
+    const std::vector<std::uint32_t> &loop_order,
+    const std::vector<fuir::IndexRole> *role_of_id = nullptr) {
    DenseTraversalPlan plan;
    plan.loop = lower_to_loops(ir, descs, loop_order, role_of_id);
    return plan;
 }
 
-AccessPlan make_access_plan(const fuir::IndexSpaceIR& ir,
-                            const std::vector<fuir::OperandDescription>& descs,
-                            const std::vector<std::uint32_t>& loop_order) {
+AccessPlan make_access_plan(const fuir::IndexSpaceIR &ir,
+                            const std::vector<fuir::OperandDescription> &descs,
+                            const std::vector<std::uint32_t> &loop_order) {
    AccessPlan plan;
    plan.operands = lower_operand_access(ir, descs, loop_order);
    return plan;
 }
 
-ExecutionPlan
-make_dense_execution_plan(const ExprKind expr, const fuir::IndexSpaceIR& ir,
-                          const std::vector<fuir::OperandDescription>& descs,
-                          std::vector<std::size_t> out_shape,
-                          const std::vector<std::uint32_t>& loop_order,
-                          const std::vector<fuir::IndexRole>* role_of_id = nullptr) {
+ExecutionPlan make_dense_execution_plan(
+    const ExprKind expr, const fuir::IndexSpaceIR &ir,
+    const std::vector<fuir::OperandDescription> &descs,
+    std::vector<std::size_t> out_shape,
+    const std::vector<std::uint32_t> &loop_order,
+    const std::vector<fuir::IndexRole> *role_of_id = nullptr) {
    ExecutionPlan exec;
    exec.core =
        make_plan_core(expr, TraversalKind::Dense, ir, std::move(out_shape));
@@ -89,8 +91,9 @@ make_dense_execution_plan(const ExprKind expr, const fuir::IndexSpaceIR& ir,
    return exec;
 }
 
-std::vector<std::uint32_t> make_reduction_loop_order(const fuir::IndexSpaceIR& ir,
-                                                     const std::size_t axis) {
+std::vector<std::uint32_t>
+make_reduction_loop_order(const fuir::IndexSpaceIR &ir,
+                          const std::size_t axis) {
    std::vector<std::uint32_t> loop_order;
    loop_order.reserve(ir.indices.size());
 
@@ -102,7 +105,8 @@ std::vector<std::uint32_t> make_reduction_loop_order(const fuir::IndexSpaceIR& i
    return loop_order;
 }
 
-std::vector<std::uint32_t> make_contraction_loop_order(const fuir::IndexSpaceIR& ir) {
+std::vector<std::uint32_t>
+make_contraction_loop_order(const fuir::IndexSpaceIR &ir) {
    const std::vector<std::uint32_t> outer_order = ir.out_indices;
 
    std::vector<std::uint32_t> reduce_order;
@@ -126,21 +130,21 @@ std::vector<std::uint32_t> make_contraction_loop_order(const fuir::IndexSpaceIR&
 
 } // namespace
 
-ContractionPlan
-make_contraction_plan_einsum_out(const std::vector<fuir::OperandDescription>& descs,
-                                 const fuir::OperandLabelBinding& binding) {
-   FUSION_CHECK_CODE(
-       descs.size() == 3,
-       planning_error(PlanningError::InvalidContraction,
-                      ErrorCategory::InvalidArgument),
-       ferr::message(
-           "planning.contraction.invalid_desc_count: expected descs = {out, A, B}, got ",
-           descs.size()));
+ContractionPlan make_contraction_plan_einsum_out(
+    const std::vector<fuir::OperandDescription> &descs,
+    const fuir::OperandLabelBinding &binding) {
+   FUSION_CHECK_CODE(descs.size() == 3,
+                     planning_error(PlanningError::InvalidContraction,
+                                    ErrorCategory::InvalidArgument),
+                     ferr::message("planning.contraction.invalid_desc_count: "
+                                   "expected descs = {out, A, B}, got ",
+                                   descs.size()));
 
    constexpr fuir::OperandGroupConstraint constraint =
        fuir::OperandGroupConstraint::HomogeneousItemSize;
 
-   fuir::IndexSpaceIR ir = build_ir_from_label_binding(descs, binding, constraint);
+   fuir::IndexSpaceIR ir =
+       build_ir_from_label_binding(descs, binding, constraint);
 
    const std::vector<std::size_t> expected = out_shape_from_ir(ir);
 
@@ -172,16 +176,15 @@ make_contraction_plan_einsum_out(const std::vector<fuir::OperandDescription>& de
    return plan;
 }
 
-ContractionPlan
-make_contraction_plan_einsum(const std::vector<fuir::OperandDescription>& inputs,
-                             const fuir::OperandLabelBinding& binding) {
-   FUSION_CHECK_CODE(
-       inputs.size() == 2,
-       planning_error(PlanningError::InvalidContraction,
-                      ErrorCategory::InvalidArgument),
-       ferr::message(
-           "planning.contraction.invalid_input_count: expected inputs = {A, B}, got ",
-           inputs.size()));
+ContractionPlan make_contraction_plan_einsum(
+    const std::vector<fuir::OperandDescription> &inputs,
+    const fuir::OperandLabelBinding &binding) {
+   FUSION_CHECK_CODE(inputs.size() == 2,
+                     planning_error(PlanningError::InvalidContraction,
+                                    ErrorCategory::InvalidArgument),
+                     ferr::message("planning.contraction.invalid_input_count: "
+                                   "expected inputs = {A, B}, got ",
+                                   inputs.size()));
 
    constexpr fuir::OperandGroupConstraint constraint =
        fuir::OperandGroupConstraint::HomogeneousItemSize;
@@ -192,9 +195,10 @@ make_contraction_plan_einsum(const std::vector<fuir::OperandDescription>& inputs
    dummy_out.itemsize = inputs.front().itemsize;
 
    std::vector<fuir::OperandDescription> tmp = {dummy_out, inputs.front(),
-                                          inputs.back()};
+                                                inputs.back()};
 
-   fuir::IndexSpaceIR ir = build_ir_from_label_binding(tmp, binding, constraint);
+   fuir::IndexSpaceIR ir =
+       build_ir_from_label_binding(tmp, binding, constraint);
 
    const std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
 
@@ -204,22 +208,22 @@ make_contraction_plan_einsum(const std::vector<fuir::OperandDescription>& inputs
    out_desc.itemsize = inputs.front().itemsize;
 
    std::vector<fuir::OperandDescription> descs = {out_desc, inputs.front(),
-                                            inputs.back()};
+                                                  inputs.back()};
 
    return make_contraction_plan_einsum_out(descs, binding);
 }
 
-ReductionPlan make_reduction_plan(const std::vector<fuir::OperandDescription>& descs,
-                                  const std::size_t axis, const bool keepdim) {
-   FUSION_CHECK_CODE(
-       descs.size() >= 2,
-       planning_error(PlanningError::InvalidReduction,
-                      ErrorCategory::InvalidArgument),
-       ferr::message(
-           "planning.reduction.invalid_desc_count: expected at least {out, in}, got ",
-           descs.size()));
+ReductionPlan
+make_reduction_plan(const std::vector<fuir::OperandDescription> &descs,
+                    const std::size_t axis, const bool keepdim) {
+   FUSION_CHECK_CODE(descs.size() >= 2,
+                     planning_error(PlanningError::InvalidReduction,
+                                    ErrorCategory::InvalidArgument),
+                     ferr::message("planning.reduction.invalid_desc_count: "
+                                   "expected at least {out, in}, got ",
+                                   descs.size()));
 
-   const fuir::OperandDescription& in_desc = descs.back();
+   const fuir::OperandDescription &in_desc = descs.back();
 
    const std::size_t ax_norm =
        fuir::norm_axis(static_cast<std::int64_t>(axis), in_desc.ndims());
@@ -243,14 +247,14 @@ ReductionPlan make_reduction_plan(const std::vector<fuir::OperandDescription>& d
 }
 
 ElementwisePlan
-make_elementwise_plan(const std::vector<fuir::OperandDescription>& descs) {
+make_elementwise_plan(const std::vector<fuir::OperandDescription> &descs) {
    constexpr fuir::OperandGroupConstraint constraint =
        fuir::OperandGroupConstraint::HomogeneousItemSize;
 
    const fuir::IndexSpaceIR ir =
        build_elementwise_ir_right_aligned(descs, constraint);
 
-   const std::vector<std::uint32_t>& loop_order = ir.out_indices;
+   const std::vector<std::uint32_t> &loop_order = ir.out_indices;
 
    ElementwisePlan plan;
    plan.exec =

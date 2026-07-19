@@ -4,7 +4,7 @@
 #include <cstdint>
 
 namespace fusion::fuir {
-enum class OperandGroupConstraint: std::int8_t {
+enum class OperandGroupConstraint : std::int8_t {
    HomogeneousItemSize,
    TopologyAllowed,
 };

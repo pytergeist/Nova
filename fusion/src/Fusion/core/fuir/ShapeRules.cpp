@@ -25,11 +25,8 @@ std::size_t norm_axis(const std::int64_t axis, const std::size_t ndims) {
    FUSION_CHECK_CODE(
        normalized >= 0 && normalized < static_cast<std::int64_t>(ndims),
        fuir_error(FuirError::InvalidAxis, ErrorCategory::InvalidArgument),
-       ferr::message(where,
-                     ": fuir.shape.invalid_axis: axis ",
-                     axis,
-                     " out of range for rank ",
-                     ndims));
+       ferr::message(where, ": fuir.shape.invalid_axis: axis ", axis,
+                     " out of range for rank ", ndims));
 
    return static_cast<std::size_t>(normalized);
 }
@@ -39,14 +36,9 @@ std::size_t broadcast_dim(const std::size_t lhs, const std::size_t rhs) {
 
    FUSION_CHECK_CODE(
        lhs == rhs || lhs == 1 || rhs == 1,
-       fuir_error(FuirError::BroadcastMismatch,
-                  ErrorCategory::InvalidArgument),
-       ferr::message(where,
-                     ": fuir.shape.broadcast_mismatch: dimensions ",
-                     lhs,
-                     " and ",
-                     rhs,
-                     " are not broadcast-compatible"));
+       fuir_error(FuirError::BroadcastMismatch, ErrorCategory::InvalidArgument),
+       ferr::message(where, ": fuir.shape.broadcast_mismatch: dimensions ", lhs,
+                     " and ", rhs, " are not broadcast-compatible"));
 
    if (lhs == rhs) {
       return lhs;
@@ -59,7 +51,7 @@ std::size_t broadcast_dim(const std::size_t lhs, const std::size_t rhs) {
    return lhs;
 }
 
-std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR& ir) {
+std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
    constexpr std::string_view where = "out_shape_from_ir";
 
    validation::validate_index_space_ir(ir, where);
@@ -74,10 +66,11 @@ std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR& ir) {
    return out_shape;
 }
 
-std::vector<std::size_t>
-infer_binary_contraction_out_shape_from_binding(const std::vector<OperandDescription>& inputs,
-                             const OperandLabelBinding& binding) {
-   constexpr std::string_view where = "infer_binary_contraction_out_shape_from_binding";
+std::vector<std::size_t> infer_binary_contraction_out_shape_from_binding(
+    const std::vector<OperandDescription> &inputs,
+    const OperandLabelBinding &binding) {
+   constexpr std::string_view where =
+       "infer_binary_contraction_out_shape_from_binding";
 
    FUSION_CHECK_CODE(
        inputs.size() == 2,

@@ -8,16 +8,15 @@
 
 namespace fusion::planning::validation {
 
-void validate_operand_description(const fuir::OperandDescription& desc,
+void validate_operand_description(const fuir::OperandDescription &desc,
                                   std::string_view where);
 
-void validate_execution_plan(const ExecutionPlan& plan,
-                             std::string_view where);
+void validate_execution_plan(const ExecutionPlan &plan, std::string_view where);
 
-void validate_dense_execution_plan(const ExecutionPlan& plan,
+void validate_dense_execution_plan(const ExecutionPlan &plan,
                                    std::string_view where);
 
-void validate_indexed_execution_plan(const ExecutionPlan& plan,
+void validate_indexed_execution_plan(const ExecutionPlan &plan,
                                      std::string_view where);
 
 } // namespace fusion::planning::validation

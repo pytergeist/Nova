@@ -11,17 +11,15 @@
 namespace fusion::error {
 class FusionError : public std::runtime_error {
  public:
-   FusionError(const ErrorCode code, std::string message,
+   FusionError(
+       const ErrorCode code, std::string message,
        const std::source_location location = std::source_location::current())
        : std::runtime_error(std::move(message)), code_(code),
          location_(location) {};
 
-   [[nodiscard]] ErrorCode code() const noexcept {
-      return code_;
-   }
+   [[nodiscard]] ErrorCode code() const noexcept { return code_; }
 
-
-   [[nodiscard]] const std::source_location& location() const noexcept {
+   [[nodiscard]] const std::source_location &location() const noexcept {
       return location_;
    }
 
@@ -30,14 +28,11 @@ class FusionError : public std::runtime_error {
    std::source_location location_;
 };
 
-[[noreturn]] inline void throw_error(const ErrorCode code,
-                              std::string message,
-                              const std::source_location location) {
+[[noreturn]] inline void throw_error(const ErrorCode code, std::string message,
+                                     const std::source_location location) {
    throw FusionError(code, std::move(message), location);
 }
 
-
 } // namespace fusion::error
-
 
 #endif // FUSION_COMMON_ERROR_H

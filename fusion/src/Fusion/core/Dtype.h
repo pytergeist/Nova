@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-enum class DType {
+enum class DType : std::uint8_t {
    FLOAT32 = 0,
    FLOAT64 = 1,
    INT32 = 2,
@@ -24,13 +24,23 @@ inline std::size_t get_dtype_size(DType dtype) {
    case DType::FLOAT64:
       return sizeof(double);
    case DType::INT32:
-      return sizeof(int32_t);
+      return sizeof(std::int32_t);
    case DType::INT64:
-      return sizeof(int64_t);
+      return sizeof(std::int64_t);
    case DType::BOOL:
       return sizeof(bool);
    }
    throw std::runtime_error("Unknown DType");
 };
+
+template <typename T> constexpr DType dtype_for();
+
+template <> constexpr DType dtype_for<float>() { return kFloat32; }
+
+template <> constexpr DType dtype_for<double>() { return kFloat64; }
+
+template <> constexpr DType dtype_for<std::int32_t>() { return kInt32; }
+
+template <> constexpr DType dtype_for<std::int64_t>() { return kInt64; }
 
 #endif // DTYPE_HPP

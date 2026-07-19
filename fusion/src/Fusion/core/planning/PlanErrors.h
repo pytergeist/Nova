@@ -31,9 +31,9 @@ enum class PlanningError : std::uint16_t {
    UnsupportedTraversal,
 };
 
-constexpr error::ErrorCode planning_error(
-    const PlanningError detail,
-    const error::ErrorCategory category) noexcept {
+constexpr error::ErrorCode
+planning_error(const PlanningError detail,
+               const error::ErrorCategory category) noexcept {
    return error::ErrorCode{
        error::ErrorDomain::Planning,
        category,

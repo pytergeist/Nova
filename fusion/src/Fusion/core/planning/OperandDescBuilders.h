@@ -29,8 +29,9 @@ contig_elem_strides(const std::vector<std::size_t> &shape) {
 }
 
 template <typename T>
-fuir::OperandDescription make_desc_from_shape(const std::vector<std::size_t> &shape,
-                                        const std::int64_t *strides_elems) {
+fuir::OperandDescription
+make_desc_from_shape(const std::vector<std::size_t> &shape,
+                     const std::int64_t *strides_elems) {
    fuir::OperandDescription desc;
    desc.shape.assign(shape.begin(), shape.end());
 
@@ -66,9 +67,10 @@ fuir::OperandDescription make_desc_from_tensor(const DenseTensor<T> &tensor) {
    }
 
    desc.access = fuir::AccessKind::Affine;
-   desc.layout =
-       tensor.is_contiguous() ? core::LayoutKind::Dense : core::LayoutKind::Strided;
-   desc.storage = !tensor.is_view() ? fuir::StorageKind::Owned : fuir::StorageKind::View;
+   desc.layout = tensor.is_contiguous() ? core::LayoutKind::Dense
+                                        : core::LayoutKind::Strided;
+   desc.storage =
+       !tensor.is_view() ? fuir::StorageKind::Owned : fuir::StorageKind::View;
    desc.update = fuir::UpdateKind::ReadOnly;
    desc.type = fuir::OperandDescType::Tensor;
 
@@ -77,7 +79,8 @@ fuir::OperandDescription make_desc_from_tensor(const DenseTensor<T> &tensor) {
 }
 
 template <typename T>
-fuir::OperandDescription make_desc_from_aosoa_tensor(const AoSoATensor<T> &tensor) {
+fuir::OperandDescription
+make_desc_from_aosoa_tensor(const AoSoATensor<T> &tensor) {
    fuir::OperandDescription desc;
    desc.shape = tensor.logical_shape();
    desc.itemsize = tensor.base().dtype_size();

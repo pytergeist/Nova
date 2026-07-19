@@ -1,13 +1,13 @@
 #ifndef FUSION_CORE_FUIR_LOWERING_H
 #define FUSION_CORE_FUIR_LOWERING_H
 
-#include <vector>
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
+#include "Fusion/core/Layout.h"
 #include "Fusion/core/fuir/IndexSpaceIR.h"
 #include "Fusion/core/fuir/OperandDescription.h"
-#include "Fusion/core/Layout.h"
 
 namespace fusion::fuir {
 
@@ -38,31 +38,30 @@ struct OperandAccess {
    IndexedAccess indexed{};
 };
 
-std::int64_t stride_bytes_for_binding(
-    const OperandDescription& desc,
-    std::int32_t axis,
-    std::size_t index_extent,
-    std::size_t itemsize);
+std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
+                                      std::int32_t axis,
+                                      std::size_t index_extent,
+                                      std::size_t itemsize);
 
-std::vector<LoopDim> lower_to_loops(
-    const IndexSpaceIR& ir,
-    const std::vector<OperandDescription>& descs,
-    const std::vector<std::uint32_t>& loop_order);
+std::vector<LoopDim>
+lower_to_loops(const IndexSpaceIR &ir,
+               const std::vector<OperandDescription> &descs,
+               const std::vector<std::uint32_t> &loop_order);
 
-std::vector<LoopDim> lower_to_loops(
-    const IndexSpaceIR& ir,
-    const std::vector<OperandDescription>& descs,
-    const std::vector<std::uint32_t>& loop_order,
-    const std::vector<IndexRole>* role_of_id);
+std::vector<LoopDim>
+lower_to_loops(const IndexSpaceIR &ir,
+               const std::vector<OperandDescription> &descs,
+               const std::vector<std::uint32_t> &loop_order,
+               const std::vector<IndexRole> *role_of_id);
 
-std::vector<OperandAccess> lower_operand_access(
-    const IndexSpaceIR& ir,
-    const std::vector<OperandDescription>& descs,
-    const std::vector<std::uint32_t>& loop_order);
+std::vector<OperandAccess>
+lower_operand_access(const IndexSpaceIR &ir,
+                     const std::vector<OperandDescription> &descs,
+                     const std::vector<std::uint32_t> &loop_order);
 
 std::vector<IndexRole>
-compute_roles_for_gemm_like(const IndexSpaceIR& ir,
-                            const OperandLabelBinding& binding);
+compute_roles_for_gemm_like(const IndexSpaceIR &ir,
+                            const OperandLabelBinding &binding);
 
 } // namespace fusion::fuir
 
