@@ -367,8 +367,9 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
    // cannot infer out shape from input operand shapes
-   EXPECT_THROW(infer_binary_contraction_out_shape_from_binding({a, b}, binding),
-                std::runtime_error);
+   EXPECT_THROW(
+       infer_binary_contraction_out_shape_from_binding({a, b}, binding),
+       std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
@@ -404,8 +405,9 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
        .out_labels = {0, 1},
    };
 
-   EXPECT_THROW(infer_binary_contraction_out_shape_from_binding({a, b}, binding),
-                std::runtime_error);
+   EXPECT_THROW(
+       infer_binary_contraction_out_shape_from_binding({a, b}, binding),
+       std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest,
@@ -442,8 +444,9 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
 
-   EXPECT_THROW(infer_binary_contraction_out_shape_from_binding({a, b}, binding),
-                std::runtime_error);
+   EXPECT_THROW(
+       infer_binary_contraction_out_shape_from_binding({a, b}, binding),
+       std::runtime_error);
 }
 
 TEST(TensorPlanContractionTest,
@@ -479,6 +482,7 @@ TEST(TensorPlanContractionTest,
            },
        .out_labels = {0, 9},
    };
-   EXPECT_THROW(infer_binary_contraction_out_shape_from_binding({a, b}, binding),
-                std::runtime_error);
+   EXPECT_THROW(
+       infer_binary_contraction_out_shape_from_binding({a, b}, binding),
+       std::runtime_error);
 }

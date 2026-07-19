@@ -9,10 +9,11 @@ TEST(ExecutionCPUUnaryEwiseTest, tag_fallback_unary_respects_strides) {
    const float a[] = {4., 99., 9., 99., 16., 99.};
    float out[] = {0., 0., 0.};
 
-   fusion::execution::cpu::detail::unary_scalar_fallback<float, SqrtSIMD>(out, a,
-                                                            1, // out stride
-                                                            2, // a stride
-                                                            3  // len
+   fusion::execution::cpu::detail::unary_scalar_fallback<float, SqrtSIMD>(
+       out, a,
+       1, // out stride
+       2, // a stride
+       3  // len
    );
    EXPECT_FLOAT_EQ(out[0], 2.);
    EXPECT_FLOAT_EQ(out[1], 3.);

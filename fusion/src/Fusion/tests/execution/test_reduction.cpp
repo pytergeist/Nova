@@ -5,10 +5,12 @@
 
 #include "Fusion/core/tensor/DenseTensor.hpp"
 
-TEST(ExecutionCPUReductionTest, tag_fallback_reduction_accumulates_into_output) {
+TEST(ExecutionCPUReductionTest,
+     tag_fallback_reduction_accumulates_into_output) {
    const float a[] = {1., 2., 3., 4., 5.};
    float out[] = {1.};
-   fusion::execution::cpu::detail::reduction_scalar_fallback<float, SumSIMD>(out, a, 0, 1, 6);
+   fusion::execution::cpu::detail::reduction_scalar_fallback<float, SumSIMD>(
+       out, a, 0, 1, 6);
 
    EXPECT_FLOAT_EQ(out[0], 16.);
 }
@@ -16,12 +18,14 @@ TEST(ExecutionCPUReductionTest, tag_fallback_reduction_accumulates_into_output) 
 TEST(ExecutionCPUReductionTest, tag_fallback_reduction_respects_strides) {
    const float a[] = {1., 2., 3., 4., 5.};
    float out[] = {1.};
-   fusion::execution::cpu::detail::reduction_scalar_fallback<float, SumSIMD>(out, a, 0, 2, 3);
+   fusion::execution::cpu::detail::reduction_scalar_fallback<float, SumSIMD>(
+       out, a, 0, 2, 3);
 
    EXPECT_FLOAT_EQ(out[0], 10.);
 }
 
-TEST(ExecutionCPUReductionTest, reduction_tag_global_fastpath_sums_all_elements) {
+TEST(ExecutionCPUReductionTest,
+     reduction_tag_global_fastpath_sums_all_elements) {
    DenseTensor<float> a({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({1}, DType::FLOAT32, Device{DeviceType::CPU, 0});
@@ -37,7 +41,8 @@ TEST(ExecutionCPUReductionTest, reduction_tag_global_fastpath_sums_all_elements)
    EXPECT_FLOAT_EQ(out[0], 21.);
 }
 
-TEST(ExecutionCPUReductionTest, reduction_tag_axis_path_reduces_requested_axis) {
+TEST(ExecutionCPUReductionTest,
+     reduction_tag_axis_path_reduces_requested_axis) {
    DenseTensor<float> a({2, 3},
                         std::vector<float>{
                             1,

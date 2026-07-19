@@ -53,7 +53,8 @@ TEST(PlanMetaTest, make_desc_from_tensor_copies_shape_and_strides) {
    DenseTensor<float> t({2, 3}, std::vector<float>{1, 2, 3, 4, 5, 6},
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   fusion::fuir::OperandDescription desc = fusion::planning::make_desc_from_tensor(t);
+   fusion::fuir::OperandDescription desc =
+       fusion::planning::make_desc_from_tensor(t);
 
    EXPECT_EQ(desc.ndims(), 2);
    EXPECT_EQ(desc.shape, (std::vector<std::size_t>{2, 3}));
@@ -197,7 +198,10 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_stores_binding) {
 
    EXPECT_EQ(meta.binding.out_labels, (std::vector<fusion::fuir::Label>{0, 1}));
    ASSERT_EQ(meta.binding.op_axis_labels.size(), 3);
-   EXPECT_EQ(meta.binding.op_axis_labels[0], (std::vector<fusion::fuir::Label>{0, 1}));
-   EXPECT_EQ(meta.binding.op_axis_labels[1], (std::vector<fusion::fuir::Label>{0, 2}));
-   EXPECT_EQ(meta.binding.op_axis_labels[2], (std::vector<fusion::fuir::Label>{2, 1}));
+   EXPECT_EQ(meta.binding.op_axis_labels[0],
+             (std::vector<fusion::fuir::Label>{0, 1}));
+   EXPECT_EQ(meta.binding.op_axis_labels[1],
+             (std::vector<fusion::fuir::Label>{0, 2}));
+   EXPECT_EQ(meta.binding.op_axis_labels[2],
+             (std::vector<fusion::fuir::Label>{2, 1}));
 }

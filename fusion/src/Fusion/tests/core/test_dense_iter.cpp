@@ -54,8 +54,7 @@ TEST(DenseIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
    EXPECT_EQ(calls, 1);
 }
 
-TEST(DenseIterTest,
-     for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
+TEST(DenseIterTest, for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
    fusion::planning::ElementwisePlan plan{};
    plan.exec.core.num_operands = 3;
    plan.exec.core.out_ndim = 2;
@@ -64,8 +63,10 @@ TEST(DenseIterTest,
    fusion::planning::DenseTraversalPlan &dense =
        std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    dense.loop = {
-       fusion::fuir::LoopDim{.size = 2, .kind = fusion::fuir::IndexKind::Independent},
-       fusion::fuir::LoopDim{.size = 3, .kind = fusion::fuir::IndexKind::Independent},
+       fusion::fuir::LoopDim{.size = 2,
+                             .kind = fusion::fuir::IndexKind::Independent},
+       fusion::fuir::LoopDim{.size = 3,
+                             .kind = fusion::fuir::IndexKind::Independent},
    };
 
    plan.exec.access.operands.resize(3);
@@ -110,7 +111,3 @@ TEST(DenseIterTest,
 
    EXPECT_EQ(calls, 2);
 }
-
-
-
-
