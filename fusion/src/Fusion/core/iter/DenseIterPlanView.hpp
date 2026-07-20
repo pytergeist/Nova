@@ -7,7 +7,7 @@
 #include <span>
 #include <variant>
 
-#include "Fusion/common/Checks.hpp"
+#include "Fusion/common/error/Check.h"
 
 namespace fusion::dense::iter {
 struct DenseIterPlanView {

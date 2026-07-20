@@ -31,12 +31,12 @@ TEST(ExecutionCPUBinaryEwiseTest,
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   fusion::planning::BinaryEwiseContext meta =
+   fusion::planning::BinaryEwiseContext ctx =
        fusion::planning::make_binary_ewise_context(a, b);
-   EXPECT_EQ(meta.exec, fusion::planning::BinaryExecKind::FlatContiguous);
-   EXPECT_EQ(meta.fast_len, 6);
+   EXPECT_EQ(ctx.exec, fusion::planning::BinaryExecKind::FlatContiguous);
+   EXPECT_EQ(ctx.fast_len, 6);
 
-   fusion::execution::cpu::binary_elementwise<float, AddSIMD>(a, b, meta, out);
+   fusion::execution::cpu::binary_elementwise<float, AddTag>(out.get_ptr(), a.get_ptr(), b.get_ptr(), ctx);
 
    EXPECT_FLOAT_EQ(out[0], 2.);
    EXPECT_FLOAT_EQ(out[1], 4.);
@@ -54,13 +54,13 @@ TEST(ExecutionCPUBinaryEwiseTest,
                         Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   fusion::planning::BinaryEwiseContext meta =
+   fusion::planning::BinaryEwiseContext ctx =
        fusion::planning::make_binary_ewise_context(a, b);
-   ASSERT_EQ(meta.exec,
+   ASSERT_EQ(ctx.exec,
              fusion::planning::BinaryExecKind::FlatContiguousBroadcastRHS);
-   ASSERT_EQ(meta.out_shape, (std::vector<size_t>{2, 3}));
+   ASSERT_EQ(ctx.out_shape, (std::vector<size_t>{2, 3}));
 
-   fusion::execution::cpu::binary_elementwise<float, AddSIMD>(a, b, meta, out);
+   fusion::execution::cpu::binary_elementwise<float, AddTag>(out.get_ptr(), a.get_ptr(), b.get_ptr(), ctx);
 
    EXPECT_FLOAT_EQ(out[0], 2.);
    EXPECT_FLOAT_EQ(out[1], 4.);
