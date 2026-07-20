@@ -25,13 +25,13 @@ TEST(ExecutionCPUUnaryEwiseTest, unary_ewise_tag_fastpath_computes_square) {
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   fusion::planning::UnaryEwiseContext meta =
+   fusion::planning::UnaryEwiseContext ctx =
        fusion::planning::make_unary_ewise_context(a);
-   ASSERT_TRUE(meta.fastpath);
-   ASSERT_EQ(meta.fast_len, 6);
+   ASSERT_TRUE(ctx.fastpath);
+   ASSERT_EQ(ctx.fast_len, 6);
 
-   fusion::execution::cpu::unary_elementwise<float, SqrtSIMD>(a, meta, out);
 
+   fusion::execution::cpu::unary_elementwise<float, SqrtTag>(out.get_ptr(), a.get_ptr(), ctx);
    EXPECT_FLOAT_EQ(out[0], 1.);
    EXPECT_FLOAT_EQ(out[1], 2.);
    EXPECT_FLOAT_EQ(out[2], 3.);
