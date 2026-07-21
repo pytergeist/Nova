@@ -4,35 +4,53 @@
 #include "Fusion/core/iter/DenseIter.hpp"
 #include "Fusion/core/planning/OpContext.h"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
+#include "Fusion/core/opschema/OpTags.h"
 
 namespace fusion::execution::cpu {
 namespace detail {
-template <typename T, class Tag>
+
+template <class OpTag, class ScalarTag>
+struct ContractionKernelFor;
+
+template <>
+struct ContractionKernelFor<MatMulTag, MulTag> {
+   using type = BatchedGemmBLAS;
+   using scalar_type = MultiplySIMD;
+};
+
+template <class OpTag, class ScalarTag>
+using contraction_kernel_for_t = typename ContractionKernelFor<OpTag, ScalarTag>::type;
+
+template <class OpTag, class ScalarTag>
+using contraction_scalar_kernel_for_t = typename ContractionKernelFor<OpTag, ScalarTag>::scalar_type;
+
+
+template <typename T, class ScalarKernel>
 void contraction_scalar_fallback(T *o, const T *a, const T *b,
                                  const int64_t &so, const int64_t &sa,
                                  const int64_t &sb, const std::size_t len) {
-   Tag tag{};
+   ScalarKernel kernel{};
    for (int64_t i = 0; i < static_cast<int64_t>(len); ++i) {
-      o[i * so] += tag(a[i * sa], b[i * sb]);
+      o[i * so] += kernel(a[i * sa], b[i * sb]);
    }
 }
 } // namespace detail
 
-template <typename T, class BlasTag, class ScalarTag, class TensorT>
-void contraction(const TensorT &A, const TensorT &B,
-                 planning::ContractionContext &meta, TensorT &out_data) {
+template <typename T, class OpTag, class ScalarTag>
+void contraction(T* out, const T* lhs, const T* rhs,
+                 planning::ContractionContext &meta) {
 
-   auto *out = reinterpret_cast<T *>(out_data.get_ptr());
-   std::fill(out, out + out_data.flat_size(), T{0});
+   using Kernel = detail::contraction_kernel_for_t<OpTag, ScalarTag>;
+   using ScalarKernel = detail::contraction_scalar_kernel_for_t<OpTag, ScalarTag>;
 
-   if constexpr (fusion::blas::blas_traits<BlasTag, T>::available) {
+   if constexpr (blas::blas_traits<Kernel, T>::available) {
       if (meta.plan.exec.hints.gemm_like) {
          const auto &g = meta.plan.exec.hints.gemm;
-         if (fusion::blas::blas_traits<BlasTag, T>::can_execute(g)) {
-            const T *baseA = reinterpret_cast<const T *>(A.get_ptr());
-            const T *baseB = reinterpret_cast<const T *>(B.get_ptr());
-            T *baseC = reinterpret_cast<T *>(out_data.get_ptr());
-            fusion::blas::blas_traits<BlasTag, T>::execute(baseA, baseB, baseC,
+         if (blas::blas_traits<Kernel, T>::can_execute(g)) {
+            const T *baseA = reinterpret_cast<const T *>(lhs);
+            const T *baseB = reinterpret_cast<const T *>(rhs);
+            T *baseC = reinterpret_cast<T *>(out);
+            blas::blas_traits<Kernel, T>::execute(baseA, baseB, baseC,
                                                            g, T(1), T(0));
             return;
          }
@@ -41,8 +59,8 @@ void contraction(const TensorT &A, const TensorT &B,
 
    std::array<uint8_t *, 3> base = {
        reinterpret_cast<uint8_t *>(out),
-       reinterpret_cast<uint8_t *>(const_cast<T *>(A.get_ptr())),
-       reinterpret_cast<uint8_t *>(const_cast<T *>(B.get_ptr())),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(lhs)),
+       reinterpret_cast<uint8_t *>(const_cast<T *>(rhs)),
    };
 
    const dense::iter::DenseIterPlanView view =
@@ -62,7 +80,7 @@ void contraction(const TensorT &A, const TensorT &B,
           const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
           const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
 
-          detail::contraction_scalar_fallback<T, ScalarTag>(
+          detail::contraction_scalar_fallback<T, ScalarKernel>(
               o, a, b, so, sa, sb, static_cast<std::size_t>(segment.len));
        });
 }

@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Fusion/common/Checks.hpp"
+#include "Fusion/common/error/Check.h"
 #include "Fusion/common/Log.hpp"
 
 #include "Fusion/alloc/AllocTypes.h"

@@ -65,11 +65,11 @@ TEST(ExecutionCPUContractionTest,
            },
        .out_labels = {0, 1},
    };
-   fusion::planning::ContractionContext meta =
+   fusion::planning::ContractionContext ctx =
        fusion::planning::make_contraction_context_einsum(a, b, binding);
 
-   fusion::execution::cpu::contraction<float, MultiplySIMD, MultiplySIMD>(
-       a, b, meta, out);
+   fusion::execution::cpu::contraction<float, MatMulTag, MulTag>(
+       out.get_ptr(), a.get_ptr(), b.get_ptr(), ctx);
 
    EXPECT_FLOAT_EQ(out[0], 70.);
    EXPECT_FLOAT_EQ(out[1], 80.);

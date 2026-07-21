@@ -30,13 +30,13 @@ TEST(ExecutionCPUReductionTest,
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({1}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   fusion::planning::ReductionContext meta =
+   fusion::planning::ReductionContext ctx =
        fusion::planning::make_reduction_context(
            a, fusion::planning::kGlobalReduceAxis, false);
-   ASSERT_TRUE(meta.fastpath);
-   ASSERT_EQ(meta.fast_len, 6);
+   ASSERT_TRUE(ctx.fastpath);
+   ASSERT_EQ(ctx.fast_len, 6);
 
-   fusion::execution::cpu::reduction<float, SumSIMD>(a, meta, out);
+   fusion::execution::cpu::reduction<float, SumTag>(out.get_ptr(), a.get_ptr(), out.flat_size(), ctx);
 
    EXPECT_FLOAT_EQ(out[0], 21.);
 }
@@ -55,12 +55,12 @@ TEST(ExecutionCPUReductionTest,
                         DType::FLOAT32, Device{DeviceType::CPU, 0});
    DenseTensor<float> out({2}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   fusion::planning::ReductionContext meta =
+   fusion::planning::ReductionContext ctx =
        fusion::planning::make_reduction_context(a, 1, false);
-   ASSERT_FALSE(meta.fastpath);
-   ASSERT_EQ(meta.out_shape, (std::vector<std::size_t>{2}));
+   ASSERT_FALSE(ctx.fastpath);
+   ASSERT_EQ(ctx.out_shape, (std::vector<std::size_t>{2}));
 
-   fusion::execution::cpu::reduction<float, SumSIMD>(a, meta, out);
+   fusion::execution::cpu::reduction<float, SumTag>(out.get_ptr(), a.get_ptr(), out.flat_size(), ctx);
 
    EXPECT_FLOAT_EQ(out[0], 6.);
    EXPECT_FLOAT_EQ(out[1], 15.);

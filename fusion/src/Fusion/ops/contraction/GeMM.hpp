@@ -1,6 +1,8 @@
 #ifndef FUSION_OPS_ALIGNED_GEMM_HPP
 #define FUSION_OPS_ALIGNED_GEMM_HPP
 
+#include "ContractionOp.h"
+
 #include <string_view>
 #include <vector>
 
@@ -28,14 +30,7 @@ DenseTensor<T> matmul(const DenseTensor<T> &A, const DenseTensor<T> &B) {
    if (kA != kB)
       throw std::runtime_error("matmul: inner dimension mismatch");
 
-   planning::ContractionContext ctx = planning::make_matmul_context<T>(A, B);
-
-   DenseTensor<T> out = detail::init_out_from_meta(A, B, ctx);
-
-   execution::cpu::contraction<T, BatchedGemmBLAS, MultiplySIMD>(A, B, ctx,
-                                                                 out);
-
-   return out;
+   return apply_contraction_op<T, MatMulTag, MulTag>(A, B);
 }
 
 template <typename T>
