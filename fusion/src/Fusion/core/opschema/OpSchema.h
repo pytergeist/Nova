@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-enum class OpCategory {
+enum class OpCategory : std::uint8_t {
    EwiseUnary,
    EwiseBinary,
    Reduction,
@@ -12,14 +12,14 @@ enum class OpCategory {
    Topology
 };
 
-enum class ArityKind { Fixed, Variadic };
+enum class ArityKind : std::uint8_t { Fixed, Variadic };
 
 struct AritySpec {
    ArityKind kind;
    std::size_t arity;
 };
 
-enum class MutationKind {
+enum class MutationKind : std::uint8_t {
    OutOfPlace,
    InplaceAllowed,
    InplaceRequired,
