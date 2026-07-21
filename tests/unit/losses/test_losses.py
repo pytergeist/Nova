@@ -13,6 +13,7 @@ from nova.src.losses import MeanSquaredError
 )
 def test_mean_squared_error(reduction_method, y_true, y_pred, expected):
     mse = MeanSquaredError(reduction_method=reduction_method)
-    result = mse.call(y_true, y_pred)
+    result = mse(y_true, y_pred)
+    print(result)
 
     assert result.to_numpy() == expected

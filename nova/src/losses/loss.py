@@ -6,6 +6,7 @@ from nova.src.backend.core import Tensor
 class Loss(ABC):
     """
     Base class for loss functions.
+    Subclasses should define only the per-element loss.
     """
 
     def __init__(self, reduction_method: str = "mean"):
@@ -22,9 +23,11 @@ class Loss(ABC):
 
     def __call__(self, *args, **kwargs):
         """
-        Call the loss function with the provided arguments.
+        Call the loss function with the provided arguments, and reduces the loss to a single scalar.
+        Allows subclasses to be called without explicit .call() method, while allowing additional operations to be chained, such as loss reduction.
         """
-        return self.call(*args, **kwargs)
+        values = self.call(*args, **kwargs)
+        return self.reduce_loss(values)
 
     def reduce_loss(
         self, values: Tensor, sample_weights: Tensor | None = None
