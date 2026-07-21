@@ -1,6 +1,24 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 
-import numpy as np
+from nova.src.backend.core import Tensor
+
+
+class ReductionMethods(str, Enum):
+    MEAN = "mean"
+    MEAN_WITH_SAMPLE_WEIGHT = "mean_with_sample_weight"
+    SUM = "sum"
+
+    def apply(self, values: Tensor, sample_weights: Tensor | None = None):
+        match self:
+            case ReductionMethods.MEAN:
+                return values.sum() / values.size()
+            case ReductionMethods.SUM:
+                return values.sum()
+            case ReductionMethods.MEAN_WITH_SAMPLE_WEIGHT:
+                if sample_weights is None:
+                    raise ValueError("sample weights must be provided.")
+                return values.sum() / (sample_weights.sum() + 1e-8)
 
 
 class Loss(ABC):
@@ -8,8 +26,17 @@ class Loss(ABC):
     Base class for loss functions.
     """
 
+    def __init__(self, reduction: ReductionMethods = ReductionMethods.MEAN):
+        self.reduction = reduction
+
     @abstractmethod
-    def call(self, *args, **kwargs): ...
+    def call(
+        self,
+        y_true: Tensor,
+        y_pred: Tensor,
+        sample_weights: Tensor | None = None,
+        **kwargs,
+    ): ...
 
     def __call__(self, *args, **kwargs):
         """
@@ -19,26 +46,20 @@ class Loss(ABC):
 
     @staticmethod
     def reduce_loss(
-        values: np.ndarray, reduction_method="mean"
-    ):  # TODO: make this method more generic
+        self, values: Tensor, sample_weights: Tensor | None = None
+    ) -> Tensor:  # TODO: make this method more generic
         """
         Reduce the loss values based on the specified reduction method.
+        Loss is being reduced from a vector of sample errors to a single scalar that the optimiser can minimise.
 
         Args:
             values: The loss values to be reduced.
             reduction_method: The method of reduction ('mean', 'sum', etc.).
 
         Returns:
-            Reduced loss value.
+            Reduced loss value scalar.
         """
-        if reduction_method == "mean":
-            return (
-                values / values.size if values.size > 0 else 0.0
-            )  # TODO: implement mean in Fusion backend
-        elif reduction_method == "sum":
-            return values.sum()
-        else:
-            raise ValueError(f"Unknown reduction method: {reduction_method}")
+        self.reduction.apply(values, sample_weights)
 
     def __repr__(self):
         """
