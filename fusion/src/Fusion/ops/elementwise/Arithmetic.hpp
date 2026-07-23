@@ -53,7 +53,8 @@ void sub_inplace(DenseTensor<T> &x, const DenseTensor<T> &y) {
                 "sub_inplace would change tensor shape; "
                 "use out-of-place sub() instead.");
 
-   execution::cpu::binary_elementwise<T, SubTag>(x.get_ptr(), x.get_ptr(), y.get_ptr(), ctx);
+   execution::cpu::binary_elementwise<T, SubTag>(x.get_ptr(), x.get_ptr(),
+                                                 y.get_ptr(), ctx);
 }
 
 } // namespace fusion::ops::aligned
