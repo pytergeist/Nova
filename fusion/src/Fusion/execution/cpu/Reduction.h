@@ -1,21 +1,27 @@
-#ifndef FUSION_CORE_OPS_EXECUTION_CPU_REDUCTION_H
-#define FUSION_CORE_OPS_EXECUTION_CPU_REDUCTION_H
+#ifndef FUSION_EXECUTION_CPU_REDUCTION_H
+#define FUSION_EXECUTION_CPU_REDUCTION_H
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
 
 #include "Fusion/core/iter/DenseIter.hpp"
+#include "Fusion/core/opschema/OpTags.h"
 #include "Fusion/core/planning/OpContext.h"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 
 namespace fusion::execution::cpu {
+
 namespace detail {
 
 template <class OpTag> struct ReductionKernelFor;
 
 template <> struct ReductionKernelFor<SumTag> {
    using type = SumSIMD;
-   template <typename T>
-   static constexpr T finalise(T accumulated,
-                               std::size_t /*reduce_len*/) noexcept {
 
+   template <typename T>
+   [[nodiscard]] static constexpr T
+   finalise(T accumulated, std::size_t /*reduce_len*/) noexcept {
       return accumulated;
    }
 };
@@ -24,8 +30,8 @@ template <> struct ReductionKernelFor<MeanTag> {
    using type = SumSIMD;
 
    template <typename T>
-   static constexpr T finalise(T accumulated, std::size_t reduce_len) noexcept {
-
+   [[nodiscard]] static constexpr T finalise(T accumulated,
+                                             std::size_t reduce_len) noexcept {
       return accumulated / static_cast<T>(reduce_len);
    }
 };
@@ -34,66 +40,108 @@ template <class OpTag>
 using reduction_kernel_for_t = typename ReductionKernelFor<OpTag>::type;
 
 template <typename T, class Kernel>
-void reduction_scalar_fallback(T *o, const T *a, const int64_t &so,
-                               const int64_t &sa, const std::size_t len) {
+void reduction_scalar_fallback(T *out, const T *operand,
+                               std::int64_t out_stride,
+                               std::int64_t operand_stride, std::int64_t len) {
    Kernel kernel{};
-   for (int64_t i = 0; i < len; ++i)
-      o[i * so] += kernel(a[i * sa]);
+
+   for (std::int64_t i = 0; i < len; ++i) {
+      out[i * out_stride] += kernel(operand[i * operand_stride]);
+   }
+}
+
+template <typename T, class Kernel>
+void execute_reduction_segment(
+    const dense::iter::DenseSegmentView<1, 1> &segment) {
+   if (segment.empty()) {
+      return;
+   }
+
+   T *out = segment.template output<T>(0);
+   const T *operand = segment.template input<T>(0);
+
+   const dense::iter::ByteStride out_stride = segment.output_stride(0);
+
+   const dense::iter::ByteStride operand_stride = segment.input_stride(0);
+
+   if constexpr (simd_traits<Kernel, T>::available) {
+      const bool can_vectorise = out_stride.is_broadcast() &&
+                                 operand_stride.template is_contiguous<T>();
+
+      if (can_vectorise) {
+         *out += simd_traits<Kernel, T>::reduce_contiguous(
+             operand, static_cast<std::size_t>(segment.len));
+
+         return;
+      }
+   }
+
+   reduction_scalar_fallback<T, Kernel>(
+       out, operand, out_stride.template element_stride<T>(),
+       operand_stride.template element_stride<T>(), segment.len);
+}
+
+template <typename T>
+[[nodiscard]] dense::iter::DenseSegmentView<1, 1>
+make_contiguous_reduction_segment(T *out, const T *operand, std::size_t len) {
+   dense::iter::DenseSegmentView<1, 1> segment{};
+
+   segment.outputs[0] = reinterpret_cast<std::byte *>(out);
+
+   segment.inputs[0] = reinterpret_cast<const std::byte *>(operand);
+
+   // The full input is reduced into one output value.
+   segment.output_byte_stride[0] = dense::iter::to_byte_stride(0);
+
+   segment.input_byte_stride[0] =
+       dense::iter::to_byte_stride(static_cast<std::int64_t>(sizeof(T)));
+
+   segment.len = static_cast<std::int64_t>(len);
+
+   return segment;
 }
 
 } // namespace detail
 
 template <typename T, class OpTag>
-void reduction(T *out, const T *operand, const std::size_t out_size,
-               planning::ReductionContext &ctx) {
+void reduction(T *out, const T *operand, std::size_t out_size,
+               const planning::ReductionContext &ctx) {
    using Reduction = detail::ReductionKernelFor<OpTag>;
    using Kernel = typename Reduction::type;
-   std::array<uint8_t *, 2> base = {
-       reinterpret_cast<uint8_t *>(const_cast<T *>(out)),
-       reinterpret_cast<uint8_t *>(const_cast<T *>(operand)),
+   using Segment = dense::iter::DenseSegmentView<1, 1>;
+
+   const auto execute_segment = [](const Segment &segment) {
+      detail::execute_reduction_segment<T, Kernel>(segment);
    };
 
    if (ctx.fastpath) {
-      auto *o = reinterpret_cast<T *>(base[0]);
-      const auto *a = reinterpret_cast<const T *>(base[1]);
-      const size_t len = ctx.fast_len;
-      if constexpr (simd_traits<Kernel, T>::available) {
-         *o += simd_traits<Kernel, T>::reduce_contiguous(a, len);
-      } else {
-         detail::reduction_scalar_fallback<T, Kernel>(o, a, 1, 1, len);
-      }
-      *o = Reduction::template finalise<T>(*o, ctx.reduce_len);
+      execute_segment(detail::make_contiguous_reduction_segment(out, operand,
+                                                                ctx.fast_len));
+
+      *out = Reduction::template finalise<T>(*out, ctx.reduce_len);
+
       return;
    }
+
    const dense::iter::DenseIterPlanView view =
        dense::iter::dense_iter_view(ctx.plan);
-   for_each_outer_then_inner<2>(
-       view, base, [&](dense::iter::DenseSegment<2> &segment) {
-          const std::int64_t step = sizeof(T);
-          std::int64_t const out_bytes = segment.step[0].byte_stride;
-          std::int64_t const a_bytes = segment.step[1].byte_stride;
 
-          T *o = reinterpret_cast<T *>(segment.ptrs[0]);
-          const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
+   std::array<std::byte *, 1> outputs{
+       reinterpret_cast<std::byte *>(out),
+   };
 
-          if constexpr (simd_traits<Kernel, T>::available) {
-             if (out_bytes == 0 && a_bytes == step && segment.len > 0) {
-                *o += simd_traits<Kernel, T>::reduce_contiguous(
-                    a, static_cast<size_t>(segment.len));
-                return;
-             }
-          }
+   std::array<const std::byte *, 1> inputs{
+       reinterpret_cast<const std::byte *>(operand),
+   };
 
-          const std::int64_t so = out_bytes / step;
-          const std::int64_t sa = (a_bytes == 0) ? 0 : a_bytes / step;
-          detail::reduction_scalar_fallback<T, Kernel>(o, a, so, sa,
-                                                       segment.len);
-       });
-   for (std::size_t i = 0; i < out_size;
-        ++i) { // TODO: find a way to remove this/manage it better
+   dense::iter::for_each_outer_then_inner<1, 1>(view, outputs, inputs,
+                                                execute_segment);
+
+   for (std::size_t i = 0; i < out_size; ++i) {
       out[i] = Reduction::template finalise<T>(out[i], ctx.reduce_len);
    }
 }
+
 } // namespace fusion::execution::cpu
 
-#endif // FUSION_CORE_OPS_EXECUTION_CPU_REDUCTION_H
+#endif // FUSION_EXECUTION_CPU_REDUCTION_H

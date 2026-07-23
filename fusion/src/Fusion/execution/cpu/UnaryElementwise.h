@@ -1,7 +1,12 @@
-#ifndef FUSION_CORE_OPS_EXECUTION_CPU_UNARY_ELEMENTWISE_H
-#define FUSION_CORE_OPS_EXECUTION_CPU_UNARY_ELEMENTWISE_H
+#ifndef FUSION_EXECUTION_CPU_UNARY_ELEMENTWISE_H
+#define FUSION_EXECUTION_CPU_UNARY_ELEMENTWISE_H
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
 
 #include "Fusion/core/iter/DenseIter.hpp"
+#include "Fusion/core/opschema/OpTags.h"
 #include "Fusion/core/planning/OpContext.h"
 #include "Fusion/cpu/simd/SimdTraits.hpp"
 
@@ -9,98 +14,123 @@ namespace fusion::execution::cpu {
 
 namespace detail {
 
-template <class OpTag>
-struct UnaryKernelFor;
+template <class OpTag> struct UnaryKernelFor;
 
-template <>
-struct UnaryKernelFor<SqrtTag> {
+template <> struct UnaryKernelFor<SqrtTag> {
    using type = SqrtSIMD;
 };
 
-template <>
-struct UnaryKernelFor<LogTag> {
+template <> struct UnaryKernelFor<LogTag> {
    using type = NaturalLogSIMD;
 };
 
-template <>
-struct UnaryKernelFor<ExpTag> {
+template <> struct UnaryKernelFor<ExpTag> {
    using type = ExponentialSIMD;
 };
 
-template <>
-struct UnaryKernelFor<ReciprocalTag> {
+template <> struct UnaryKernelFor<ReciprocalTag> {
    using type = ReciprocalSIMD;
 };
 
-template <class OpTag>
-using unary_kernel_for_t = typename UnaryKernelFor<OpTag>::type;
+template <class OpTag> using unary_kernel_for_t = UnaryKernelFor<OpTag>::type;
 
 template <typename T, class Kernel>
-void unary_scalar_fallback(T *o, const T *a, const int64_t &so,
-                           const int64_t &sa, const std::size_t len) {
+void unary_scalar_fallback(T *out, const T *operand, const int64_t &out_step,
+                           const int64_t &operand_step, const std::size_t len) {
    Kernel kernel{};
    for (int64_t i = 0; i < len; ++i)
-      o[i * so] = kernel(a[i * sa]);
+      out[i * out_step] = kernel(operand[i * operand_step]);
+}
+
+template <typename T, class Kernel>
+void execute_unary_segment(const dense::iter::DenseSegmentView<1, 1> &segment) {
+   if (segment.empty()) {
+      return;
+   }
+
+   T *out = segment.output<T>(0);
+   const T *operand = segment.input<T>(0);
+
+   const dense::iter::ByteStride out_stride = segment.output_stride(0);
+
+   const dense::iter::ByteStride operand_stride = segment.input_stride(0);
+
+   if constexpr (simd_traits<Kernel, T>::available) {
+      const bool can_vectorise = out_stride.is_contiguous<T>() &&
+                                 operand_stride.is_contiguous_or_broadcast<T>();
+
+      if (can_vectorise) {
+         simd_traits<Kernel, T>::execute_contiguous(
+             operand, out, static_cast<std::size_t>(segment.len),
+             operand_stride.is_broadcast());
+
+         return;
+      }
+   }
+
+   const std::int64_t out_step = out_stride.element_stride<T>();
+
+   const std::int64_t operand_step = operand_stride.element_stride<T>();
+
+   detail::unary_scalar_fallback<T, Kernel>(out, operand, out_step,
+                                            operand_step, segment.len);
+}
+
+template <typename T>
+[[nodiscard]] dense::iter::DenseSegmentView<1, 1>
+make_contiguous_unary_segment(T *out, const T *operand, std::size_t len) {
+   const auto contiguous =
+       dense::iter::to_byte_stride(static_cast<std::int64_t>(sizeof(T)));
+
+   dense::iter::DenseSegmentView<1, 1> segment{};
+
+   segment.outputs[0] = reinterpret_cast<std::byte *>(out);
+
+   segment.inputs[0] = reinterpret_cast<const std::byte *>(operand);
+
+   segment.output_byte_stride[0] = contiguous;
+   segment.input_byte_stride[0] = contiguous;
+
+   segment.len = static_cast<std::int64_t>(len);
+
+   return segment;
 }
 
 } // namespace detail
 
 template <typename T, class OpTag>
-void unary_elementwise(T* out, const T* operand, planning::UnaryEwiseContext &ctx) {
+void unary_elementwise(T *out, const T *operand,
+                       const planning::UnaryEwiseContext &ctx) {
    using Kernel = detail::unary_kernel_for_t<OpTag>;
-   std::array<uint8_t *, 2> base = { // TODO: change ownership model away from array of ptrs
-       reinterpret_cast<uint8_t *>(const_cast<T *>(out)),
-       reinterpret_cast<uint8_t *>(const_cast<T *>(operand)),
+
+   using Segment = dense::iter::DenseSegmentView<1, 1>;
+
+   const auto execute_segment = [](const Segment &segment) {
+      detail::execute_unary_segment<T, Kernel>(segment);
    };
 
-   if (ctx.fastpath) { // TODO: is contig check correct here?
-      auto *o = reinterpret_cast<T *>(base[0]);
-      const auto *a = reinterpret_cast<const T *>(base[1]);
-      const size_t len = ctx.fast_len;
-      if constexpr (simd_traits<Kernel, T>::available) {
-         simd_traits<Kernel, T>::execute_contiguous(a, o, len, false);
-      } else {
-         detail::unary_scalar_fallback<T, Kernel>(o, a, 1, 1, len);
-      }
+   if (ctx.fastpath) {
+      execute_segment(
+          detail::make_contiguous_unary_segment(out, operand, ctx.fast_len));
+
       return;
    }
+
    const dense::iter::DenseIterPlanView view =
        dense::iter::dense_iter_view(ctx.plan);
-   for_each_outer_then_inner<2>(
-       view, base, [&](dense::iter::DenseSegment<2> &segment) {
-          const std::int64_t step = sizeof(T);
-          std::int64_t const out_bytes = segment.step[0].byte_stride;
-          std::int64_t const a_bytes = segment.step[1].byte_stride;
-          const bool out_contig = out_bytes == step;
-          const bool a_unit = a_bytes == 0 || a_bytes == step;
 
-          T *o = reinterpret_cast<T *>(segment.ptrs[0]);
-          const T *a = reinterpret_cast<const T *>(segment.ptrs[1]);
+   std::array<std::byte *, 1> outputs{
+       reinterpret_cast<std::byte *>(out),
+   };
 
-          if constexpr (simd_traits<Kernel, T>::available) {
+   std::array<const std::byte *, 1> inputs{
+       reinterpret_cast<const std::byte *>(operand),
+   };
 
-             if (out_contig && a_unit && segment.len > 0) {
-                const bool a_scalar = a_bytes == 0;
-                simd_traits<Kernel, T>::execute_contiguous(
-                    a, o, static_cast<size_t>(segment.len), a_scalar);
-                return;
-             }
-             const bool a_unit = a_bytes == step;
-             if (out_contig && a_unit) {
-                const int64_t so = 1;
-                const int64_t sa = a_bytes / step;
-                detail::unary_scalar_fallback<T, Kernel>(o, a, so, sa,
-                                                      segment.len);
-                return;
-             }
-          }
-
-          const int64_t so = a_bytes / step;
-          const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
-          detail::unary_scalar_fallback<T, Kernel>(o, a, so, sa, segment.len);
-       });
+   dense::iter::for_each_outer_then_inner<1, 1>(view, outputs, inputs,
+                                                execute_segment);
 }
 
 } // namespace fusion::execution::cpu
 
-#endif // FUSION_CORE_OPS_EXECUTION_CPU_UNARY_ELEMENTWISE_H
+#endif // FUSION_EXECUTION_CPU_UNARY_ELEMENTWISE_H

@@ -1,90 +1,113 @@
-#ifndef FUSION_CORE_OPS_EXECUTION_CPU_CONTRACTION_H
-#define FUSION_CORE_OPS_EXECUTION_CPU_CONTRACTION_H
+#ifndef FUSION_EXECUTION_CPU_CONTRACTION_H
+#define FUSION_EXECUTION_CPU_CONTRACTION_H
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
 
 #include "Fusion/core/iter/DenseIter.hpp"
-#include "Fusion/core/planning/OpContext.h"
-#include "Fusion/cpu/simd/SimdTraits.hpp"
 #include "Fusion/core/opschema/OpTags.h"
+#include "Fusion/core/planning/OpContext.h"
+#include "Fusion/cpu/blas/BlasTraits.hpp"
+#include "Fusion/cpu/simd/SimdTraits.hpp"
 
 namespace fusion::execution::cpu {
+
 namespace detail {
 
-template <class OpTag, class ScalarTag>
-struct ContractionKernelFor;
+template <class OpTag, class ScalarTag> struct ContractionKernelFor;
 
-template <>
-struct ContractionKernelFor<MatMulTag, MulTag> {
+template <> struct ContractionKernelFor<MatMulTag, MulTag> {
    using type = BatchedGemmBLAS;
    using scalar_type = MultiplySIMD;
 };
 
 template <class OpTag, class ScalarTag>
-using contraction_kernel_for_t = typename ContractionKernelFor<OpTag, ScalarTag>::type;
+using contraction_kernel_for_t =
+    typename ContractionKernelFor<OpTag, ScalarTag>::type;
 
 template <class OpTag, class ScalarTag>
-using contraction_scalar_kernel_for_t = typename ContractionKernelFor<OpTag, ScalarTag>::scalar_type;
-
+using contraction_scalar_kernel_for_t =
+    typename ContractionKernelFor<OpTag, ScalarTag>::scalar_type;
 
 template <typename T, class ScalarKernel>
-void contraction_scalar_fallback(T *o, const T *a, const T *b,
-                                 const int64_t &so, const int64_t &sa,
-                                 const int64_t &sb, const std::size_t len) {
+void contraction_scalar_fallback(T *out, const T *lhs, const T *rhs,
+                                 std::int64_t out_stride,
+                                 std::int64_t lhs_stride,
+                                 std::int64_t rhs_stride, std::int64_t len) {
    ScalarKernel kernel{};
-   for (int64_t i = 0; i < static_cast<int64_t>(len); ++i) {
-      o[i * so] += kernel(a[i * sa], b[i * sb]);
+
+   for (std::int64_t i = 0; i < len; ++i) {
+      out[i * out_stride] += kernel(lhs[i * lhs_stride], rhs[i * rhs_stride]);
    }
 }
+
+template <typename T, class ScalarKernel>
+void execute_contraction_segment(
+    const dense::iter::DenseSegmentView<2, 1> &segment) {
+   if (segment.empty()) {
+      return;
+   }
+
+   T *out = segment.template output<T>(0);
+   const T *lhs = segment.template input<T>(0);
+   const T *rhs = segment.template input<T>(1);
+
+   const std::int64_t out_stride =
+       segment.output_stride(0).template element_stride<T>();
+
+   const std::int64_t lhs_stride =
+       segment.input_stride(0).template element_stride<T>();
+
+   const std::int64_t rhs_stride =
+       segment.input_stride(1).template element_stride<T>();
+
+   contraction_scalar_fallback<T, ScalarKernel>(
+       out, lhs, rhs, out_stride, lhs_stride, rhs_stride, segment.len);
+}
+
 } // namespace detail
 
 template <typename T, class OpTag, class ScalarTag>
-void contraction(T* out, const T* lhs, const T* rhs,
-                 planning::ContractionContext &meta) {
-
+void contraction(T *out, const T *lhs, const T *rhs,
+                 const planning::ContractionContext &ctx) {
    using Kernel = detail::contraction_kernel_for_t<OpTag, ScalarTag>;
-   using ScalarKernel = detail::contraction_scalar_kernel_for_t<OpTag, ScalarTag>;
+
+   using ScalarKernel =
+       detail::contraction_scalar_kernel_for_t<OpTag, ScalarTag>;
 
    if constexpr (blas::blas_traits<Kernel, T>::available) {
-      if (meta.plan.exec.hints.gemm_like) {
-         const auto &g = meta.plan.exec.hints.gemm;
-         if (blas::blas_traits<Kernel, T>::can_execute(g)) {
-            const T *baseA = reinterpret_cast<const T *>(lhs);
-            const T *baseB = reinterpret_cast<const T *>(rhs);
-            T *baseC = reinterpret_cast<T *>(out);
-            blas::blas_traits<Kernel, T>::execute(baseA, baseB, baseC,
-                                                           g, T(1), T(0));
+      if (ctx.plan.exec.hints.gemm_like) {
+         const auto &gemm = ctx.plan.exec.hints.gemm;
+
+         if (blas::blas_traits<Kernel, T>::can_execute(gemm)) {
+            blas::blas_traits<Kernel, T>::execute(lhs, rhs, out, gemm, T{1},
+                                                  T{0});
+
             return;
          }
       }
    }
 
-   std::array<uint8_t *, 3> base = {
-       reinterpret_cast<uint8_t *>(out),
-       reinterpret_cast<uint8_t *>(const_cast<T *>(lhs)),
-       reinterpret_cast<uint8_t *>(const_cast<T *>(rhs)),
+   const dense::iter::DenseIterPlanView view =
+       dense::iter::dense_iter_view(ctx.plan);
+
+   std::array<std::byte *, 1> outputs{
+       reinterpret_cast<std::byte *>(out),
    };
 
-   const dense::iter::DenseIterPlanView view =
-       dense::iter::dense_iter_view(meta.plan);
-   for_each_outer_then_inner<3>(
-       view, base, [&](dense::iter::DenseSegment<3> &segment) {
-          const int64_t step = sizeof(T);
-          std::int64_t const out_bytes = segment.step[0].byte_stride;
-          std::int64_t const a_bytes = segment.step[1].byte_stride;
-          std::int64_t const b_bytes = segment.step[2].byte_stride;
+   std::array<const std::byte *, 2> inputs{
+       reinterpret_cast<const std::byte *>(lhs),
+       reinterpret_cast<const std::byte *>(rhs),
+   };
 
-          auto *o = reinterpret_cast<T *>(segment.ptrs[0]);
-          auto *a = reinterpret_cast<const T *>(segment.ptrs[1]);
-          auto *b = reinterpret_cast<const T *>(segment.ptrs[2]);
-
-          const int64_t so = out_bytes == 0 ? 0 : out_bytes / step;
-          const int64_t sa = a_bytes == 0 ? 0 : a_bytes / step;
-          const int64_t sb = b_bytes == 0 ? 0 : b_bytes / step;
-
-          detail::contraction_scalar_fallback<T, ScalarKernel>(
-              o, a, b, so, sa, sb, static_cast<std::size_t>(segment.len));
+   dense::iter::for_each_outer_then_inner<2, 1>(
+       view, outputs, inputs,
+       [](const dense::iter::DenseSegmentView<2, 1> &segment) {
+          detail::execute_contraction_segment<T, ScalarKernel>(segment);
        });
 }
 
 } // namespace fusion::execution::cpu
 
-#endif // FUSION_CORE_OPS_EXECUTION_CPU_CONTRACTION_H
+#endif // FUSION_EXECUTION_CPU_CONTRACTION_H
