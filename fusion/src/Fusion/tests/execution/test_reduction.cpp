@@ -36,7 +36,8 @@ TEST(ExecutionCPUReductionTest,
    ASSERT_TRUE(ctx.fastpath);
    ASSERT_EQ(ctx.fast_len, 6);
 
-   fusion::execution::cpu::reduction<float, SumTag>(out.get_ptr(), a.get_ptr(), out.flat_size(), ctx);
+   fusion::execution::cpu::reduction<float, SumTag>(out.get_ptr(), a.get_ptr(),
+                                                    out.flat_size(), ctx);
 
    EXPECT_FLOAT_EQ(out[0], 21.);
 }
@@ -60,7 +61,8 @@ TEST(ExecutionCPUReductionTest,
    ASSERT_FALSE(ctx.fastpath);
    ASSERT_EQ(ctx.out_shape, (std::vector<std::size_t>{2}));
 
-   fusion::execution::cpu::reduction<float, SumTag>(out.get_ptr(), a.get_ptr(), out.flat_size(), ctx);
+   fusion::execution::cpu::reduction<float, SumTag>(out.get_ptr(), a.get_ptr(),
+                                                    out.flat_size(), ctx);
 
    EXPECT_FLOAT_EQ(out[0], 6.);
    EXPECT_FLOAT_EQ(out[1], 15.);

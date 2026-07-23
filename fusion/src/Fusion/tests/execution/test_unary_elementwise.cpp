@@ -30,8 +30,8 @@ TEST(ExecutionCPUUnaryEwiseTest, unary_ewise_tag_fastpath_computes_square) {
    ASSERT_TRUE(ctx.fastpath);
    ASSERT_EQ(ctx.fast_len, 6);
 
-
-   fusion::execution::cpu::unary_elementwise<float, SqrtTag>(out.get_ptr(), a.get_ptr(), ctx);
+   fusion::execution::cpu::unary_elementwise<float, SqrtTag>(out.get_ptr(),
+                                                             a.get_ptr(), ctx);
    EXPECT_FLOAT_EQ(out[0], 1.);
    EXPECT_FLOAT_EQ(out[1], 2.);
    EXPECT_FLOAT_EQ(out[2], 3.);

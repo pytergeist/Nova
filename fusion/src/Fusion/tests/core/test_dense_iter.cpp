@@ -33,22 +33,28 @@ TEST(DenseIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
    float a = 1.0;
    float b = 1.0;
 
-   std::array<uint8_t *, 3> base = {reinterpret_cast<uint8_t *>(&out),
-                                    reinterpret_cast<uint8_t *>(&a),
-                                    reinterpret_cast<uint8_t *>(&b)};
+   std::array<std::byte *, 1> outputs{
+       reinterpret_cast<std::byte *>(&out),
+   };
+
+   std::array<const std::byte *, 2> inputs{
+       reinterpret_cast<const std::byte *>(&a),
+       reinterpret_cast<const std::byte *>(&b),
+   };
 
    int calls = 0;
 
-   fusion::dense::iter::for_each_outer_then_inner<3>(
-       view, base, [&](fusion::dense::iter::DenseSegment<3> &segment) {
+   fusion::dense::iter::for_each_outer_then_inner<2, 1>(
+       view, outputs, inputs,
+       [&](const fusion::dense::iter::DenseSegmentView<2, 1> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 1);
-          EXPECT_EQ(segment.ptrs[0], reinterpret_cast<uint8_t *>(&out));
-          EXPECT_EQ(segment.ptrs[1], reinterpret_cast<uint8_t *>(&a));
-          EXPECT_EQ(segment.ptrs[2], reinterpret_cast<uint8_t *>(&b));
-          EXPECT_EQ(segment.step[0].byte_stride, 0);
-          EXPECT_EQ(segment.step[1].byte_stride, 0);
-          EXPECT_EQ(segment.step[2].byte_stride, 0);
+          EXPECT_EQ(segment.outputs[0], reinterpret_cast<std::byte *>(&out));
+          EXPECT_EQ(segment.inputs[0], reinterpret_cast<std::byte *>(&a));
+          EXPECT_EQ(segment.inputs[1], reinterpret_cast<std::byte *>(&b));
+          EXPECT_EQ(segment.output_byte_stride[0].stride, 0);
+          EXPECT_EQ(segment.output_byte_stride[0].stride, 0);
+          EXPECT_EQ(segment.output_byte_stride[1].stride, 0);
        });
 
    EXPECT_EQ(calls, 1);
@@ -92,21 +98,24 @@ TEST(DenseIterTest, for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
    float *ap = a.data<float>();
    float *bp = b.data<float>();
 
-   std::array<uint8_t *, 3> base = {
-       reinterpret_cast<uint8_t *>(outp),
-       reinterpret_cast<uint8_t *>(ap),
-       reinterpret_cast<uint8_t *>(bp),
+   std::array<std::byte *, 1> outputs{
+       reinterpret_cast<std::byte *>(&outp),
    };
 
+   std::array<const std::byte *, 2> inputs{
+       reinterpret_cast<const std::byte *>(&ap),
+       reinterpret_cast<const std::byte *>(&bp),
+   };
    int calls = 0;
 
-   fusion::dense::iter::for_each_outer_then_inner<3>(
-       view, base, [&](fusion::dense::iter::DenseSegment<3> &segment) {
+   fusion::dense::iter::for_each_outer_then_inner<2, 1>(
+       view, outputs, inputs,
+       [&](const fusion::dense::iter::DenseSegmentView<2, 1> &segment) {
           ++calls;
           EXPECT_EQ(segment.len, 3);
-          EXPECT_EQ(segment.step[0].byte_stride, sizeof(float));
-          EXPECT_EQ(segment.step[1].byte_stride, sizeof(float));
-          EXPECT_EQ(segment.step[2].byte_stride, sizeof(float));
+          EXPECT_EQ(segment.output_byte_stride[0].stride, sizeof(float));
+          EXPECT_EQ(segment.input_byte_stride[0].stride, sizeof(float));
+          EXPECT_EQ(segment.input_byte_stride[1].stride, sizeof(float));
        });
 
    EXPECT_EQ(calls, 2);

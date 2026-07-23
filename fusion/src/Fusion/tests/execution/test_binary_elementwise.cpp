@@ -36,7 +36,8 @@ TEST(ExecutionCPUBinaryEwiseTest,
    EXPECT_EQ(ctx.exec, fusion::planning::BinaryExecKind::FlatContiguous);
    EXPECT_EQ(ctx.fast_len, 6);
 
-   fusion::execution::cpu::binary_elementwise<float, AddTag>(out.get_ptr(), a.get_ptr(), b.get_ptr(), ctx);
+   fusion::execution::cpu::binary_elementwise<float, AddTag>(
+       out.get_ptr(), a.get_ptr(), b.get_ptr(), ctx);
 
    EXPECT_FLOAT_EQ(out[0], 2.);
    EXPECT_FLOAT_EQ(out[1], 4.);
@@ -60,7 +61,8 @@ TEST(ExecutionCPUBinaryEwiseTest,
              fusion::planning::BinaryExecKind::FlatContiguousBroadcastRHS);
    ASSERT_EQ(ctx.out_shape, (std::vector<size_t>{2, 3}));
 
-   fusion::execution::cpu::binary_elementwise<float, AddTag>(out.get_ptr(), a.get_ptr(), b.get_ptr(), ctx);
+   fusion::execution::cpu::binary_elementwise<float, AddTag>(
+       out.get_ptr(), a.get_ptr(), b.get_ptr(), ctx);
 
    EXPECT_FLOAT_EQ(out[0], 2.);
    EXPECT_FLOAT_EQ(out[1], 4.);
