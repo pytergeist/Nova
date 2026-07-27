@@ -1,0 +1,24 @@
+#ifndef FUSION_CORE_PLANNING_TRAVERSAL_PLAN_H
+#define FUSION_CORE_PLANNING_TRAVERSAL_PLAN_H
+
+#include <variant>
+#include <vector>
+
+#include "Fusion/compiler/ir/IR.h"
+#include "Fusion/compiler/planning/PlanKinds.h"
+#include "Fusion/core/topology/PairIndex.hpp"
+
+namespace fusion::planning {
+struct DenseTraversalPlan {
+   std::vector<fuir::LoopDim> loop{};
+};
+
+struct IndexedTraversalPlan {
+   IndexedFormat format{IndexedFormat::BlockedCRS};
+   BlockedCRS blocked_crs;
+};
+
+using TraversalPlan = std::variant<DenseTraversalPlan, IndexedTraversalPlan>;
+} // namespace fusion::planning
+
+#endif // FUSION_CORE_PLANNING_TRAVERSAL_PLAN_H
