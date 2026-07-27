@@ -254,3 +254,43 @@ Contributions are welcome, particularly from those interested in:
 - Physics-informed and scientific machine learning
 
 Contribution guidelines will be added in CONTRIBUTING.md.
+
+
+## Build dependency graph
+
+```aiignore
+                         common
+                            │
+                            ▼
+                           core
+                 ┌──────────┼────────────┐
+                 │          │            │
+                 ▼          ▼            ▼
+             opschema   compiler/ir   kernels
+                 │          │
+                 │          ▼
+                 │   compiler/lowering
+                 │          │
+                 └────┬─────┘
+                      ▼
+              compiler/planning
+                      │
+                      ▼
+               execution/iter
+                      │
+                      ▼
+               execution/cpu
+                      │
+                      ▼
+                     ops
+                ┌─────┴─────────┐
+                ▼               ▼
+          autodiff/ops    simulation/ops
+                │               │
+                └───────┬───────┘
+                        ▼
+                 simulation/autodiff
+                        │
+                        ▼
+                      Nova Api
+```
