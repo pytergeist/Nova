@@ -15,8 +15,6 @@
 
 #include "Fusion/ops/OpParams.hpp"
 
-#include "Fusion/alloc/DefaultAllocator.h"
-
 template <typename T> struct ADTensor;
 
 // TODO: this doesn't follow the rule of 5

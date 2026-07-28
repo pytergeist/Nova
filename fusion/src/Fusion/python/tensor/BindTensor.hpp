@@ -8,10 +8,10 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "../../core/dtype/Dtype.h"
 #include "Fusion/Random.hpp"
 #include "Fusion/Tensor.h"
 #include "Fusion/TensorFactory.hpp"
-#include "Fusion/core/Dtype.h"
 
 #include "Helpers.hpp"
 

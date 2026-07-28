@@ -11,12 +11,12 @@
 
 #include "Fusion/Tensor.h"
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/core/Dtype.h"
 #include "Fusion/core/tensor/AoSoATensor.hpp"
 #include "Fusion/core/tensor/DenseTensor.hpp"
 #include "Fusion/core/tensor/SoATensor.hpp"
 #include "Fusion/core/tensor/Tensor.hpp"
-#include "Fusion/device/Device.h"
+#include "Fusion/core/device/Device.h"
+#include "core/dtype/Dtype.h"
 
 namespace fusion::factory {
 
