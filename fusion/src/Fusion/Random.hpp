@@ -6,7 +6,7 @@
 #include <random>
 #include <vector>
 
-#include "Fusion/core/Dtype.h"
+#include "core/dtype/Dtype.h"
 
 #include "Fusion/Tensor.h"
 

@@ -1,10 +1,10 @@
 #ifndef FUSION_OPS_CONTRACTION_OP_H
 #define FUSION_OPS_CONTRACTION_OP_H
 
-#include "Fusion/core/planning/OpContextBuilders.h"
 #include "Fusion/execution/cpu/Contraction.h"
 #include "Fusion/ops/OperandValidation.h"
 #include "Fusion/ops/OutputAllocation.h"
+#include "Fusion/compiler/planning/OpContextBuilders.h"
 
 namespace fusion::ops {
 

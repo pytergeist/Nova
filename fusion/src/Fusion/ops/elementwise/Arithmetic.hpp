@@ -3,7 +3,7 @@
 
 #include <string_view>
 
-#include "Fusion/core/planning/OpContextBuilders.h"
+#include "Fusion/compiler/planning/OpContextBuilders.h"
 #include "Fusion/execution/cpu/BinaryElementwise.h"
 #include "Fusion/ops/elementwise/BinaryOp.h"
 #include "Fusion/ops/elementwise/UnaryOp.h"

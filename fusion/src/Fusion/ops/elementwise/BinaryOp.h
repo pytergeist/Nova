@@ -1,7 +1,7 @@
 #ifndef FUSION_OPS_ELEMENTWISE_BINARY_OP_H
 #define FUSION_OPS_ELEMENTWISE_BINARY_OP_H
 
-#include "Fusion/core/planning/OpContextBuilders.h"
+#include "Fusion/compiler/planning/OpContextBuilders.h"
 #include "Fusion/execution/cpu/BinaryElementwise.h"
 #include "Fusion/ops/OperandValidation.h"
 #include "Fusion/ops/OutputAllocation.h"

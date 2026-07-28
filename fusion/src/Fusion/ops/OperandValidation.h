@@ -4,11 +4,14 @@
 #include <string_view>
 
 #include "Fusion/common/error/Check.h"
-#include "Fusion/core/opschema/OpRequirements.h"
-#include "Fusion/core/tensor/DenseTensor.hpp"
+#include "Fusion/opschema/OpRequirements.h"
 
 // TODO: future state - ensure dtype invariant at tensor construction, not in
 // semantic operations
+
+
+template <typename T>
+class DenseTensor;
 
 namespace fusion::ops::validation {
 

@@ -4,7 +4,7 @@
 #include <string_view>
 #include <vector>
 
-#include "Fusion/core/planning/OpContextBuilders.h"
+#include "Fusion/compiler/planning/OpContextBuilders.h"
 #include "Fusion/execution/cpu/BinaryElementwise.h"
 #include "Fusion/ops/OperandValidation.h"
 #include "Fusion/ops/OutputAllocation.h"

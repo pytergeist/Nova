@@ -1,9 +1,8 @@
 #ifndef FUSION_OPS_OUTPUT_ALLOCATION_H
 #define FUSION_OPS_OUTPUT_ALLOCATION_H
 
-#include "Fusion/core/planning/OpContextBuilders.h"
-
-#include "Fusion/core/planning/OpContext.h"
+#include "Fusion/compiler/planning/OpContextBuilders.h"
+#include "Fusion/compiler/planning/OpContext.h"
 
 namespace fusion::ops::detail {
 template <typename T>

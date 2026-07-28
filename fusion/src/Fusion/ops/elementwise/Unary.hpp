@@ -1,7 +1,7 @@
 #ifndef FUSION_OPS_ALIGNED_UNARY_HPP
 #define FUSION_OPS_ALIGNED_UNARY_HPP
 
-#include "Fusion/core/planning/OpContextBuilders.h"
+#include "Fusion/compiler/planning/OpContextBuilders.h"
 #include "Fusion/ops/OperandValidation.h"
 #include "Fusion/ops/elementwise/UnaryOp.h"
 

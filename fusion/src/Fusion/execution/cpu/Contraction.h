@@ -5,11 +5,11 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "Fusion/core/iter/DenseIter.hpp"
-#include "Fusion/core/opschema/OpTags.h"
-#include "Fusion/core/planning/OpContext.h"
-#include "Fusion/cpu/blas/BlasTraits.hpp"
-#include "Fusion/cpu/simd/SimdTraits.hpp"
+#include "Fusion/compiler/planning/OpContext.h"
+#include "Fusion/execution/iter/DenseIter.hpp"
+#include "Fusion/kernels/blas/BlasTraits.hpp"
+#include "Fusion/kernels/simd/SimdTraits.hpp"
+#include "Fusion/opschema/OpTags.h"
 
 namespace fusion::execution::cpu {
 

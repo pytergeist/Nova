@@ -6,10 +6,10 @@
 #include <string_view>
 #include <vector>
 
+#include "../../kernels/scalar/Serial.hpp"
 #include "Fusion/common/Log.hpp"
-#include "Fusion/core/planning/OpContextBuilders.h"
+#include "Fusion/compiler/planning/OpContextBuilders.h"
 #include "Fusion/execution/cpu/Contraction.h"
-#include "Fusion/kernels/Serial.hpp"
 
 #include "Fusion/ops/OperandValidation.h"
 #include "Fusion/ops/OutputAllocation.h"
