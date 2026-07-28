@@ -6,8 +6,8 @@ target_include_directories(fusion_device_tests PRIVATE
         ${FUSION_INCLUDE_ROOT}
 )
 
-target_link_libraries(fusion_device_tests PRIVATE fusion_device
-        GTest::gtest
+target_link_libraries(fusion_device_tests PRIVATE
+        fusion_core
         GTest::gtest_main
 )
 

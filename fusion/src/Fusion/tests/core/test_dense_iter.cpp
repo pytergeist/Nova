@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "Fusion/core/iter/DenseIter.hpp"
-#include "Fusion/core/planning/OpContextBuilders.h"
+#include "Fusion/execution/iter/DenseIter.hpp"
+#include "Fusion/compiler/planning/OpContextBuilders.h"
 #include "Fusion/core/tensor/DenseTensor.hpp"
 
 TEST(DenseIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {

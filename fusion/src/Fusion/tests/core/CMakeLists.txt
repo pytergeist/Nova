@@ -12,9 +12,8 @@ target_include_directories(fusion_core_tests PRIVATE
         ${FUSION_INCLUDE_ROOT}
 )
 
-target_link_libraries(fusion_core_tests PRIVATE fusion_core
-        fusion_storage
-        fusion_alloc
+target_link_libraries(fusion_core_tests PRIVATE fusion_compiler
+        fusion_core
         GTest::gtest
         GTest::gtest_main
 )

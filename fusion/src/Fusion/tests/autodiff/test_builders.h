@@ -5,7 +5,7 @@
 
 #include "Fusion/autodiff/ADTensor.hpp"
 #include "Fusion/core/tensor/DenseTensor.hpp"
-#include "Fusion/device/Device.h"
+#include "Fusion/core/device/Device.h"
 
 namespace test_builders {
 

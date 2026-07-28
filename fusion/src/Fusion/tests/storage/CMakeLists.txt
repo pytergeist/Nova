@@ -8,8 +8,8 @@ target_include_directories(fusion_storage_tests PRIVATE
         ${FUSION_INCLUDE_ROOT}
 )
 
-target_link_libraries(fusion_storage_tests PRIVATE fusion_storage
-        fusion_alloc
+target_link_libraries(fusion_storage_tests PRIVATE
+        fusion_core
         GTest::gtest
         GTest::gtest_main
 )

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "Fusion/device/Device.h"
+#include "Fusion/core/device/Device.h"
 
 TEST(DeviceTest, cpu_device_reports_cpu_type_and_index) {
    Device d(DeviceType::CPU, 0);

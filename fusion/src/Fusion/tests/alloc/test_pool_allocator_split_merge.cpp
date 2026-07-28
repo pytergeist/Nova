@@ -2,9 +2,9 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "Fusion/alloc/AllocTypes.h"
-#include "Fusion/alloc/FUAllocator.h"
-#include "Fusion/alloc/Pool.h"
+#include "Fusion/core/memory/alloc/AllocTypes.h"
+#include "Fusion/core/memory/alloc/FUAllocator.h"
+#include "Fusion/core/memory/alloc/Pool.h"
 
 #include "Fusion/common/Log.hpp"
 

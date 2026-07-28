@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "Fusion/core/planning/OpContextBuilders.h"
+#include "Fusion/compiler/planning/OpContextBuilders.h"
 #include "Fusion/core/tensor/DenseTensor.hpp"
 
 TEST(PlanMetaTest, contig_elem_strides_returns_row_major_strides_for_2d_shape) {

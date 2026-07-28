@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Fusion/core/planning/PlanBuilders.h"
+#include "Fusion/compiler/planning/PlanBuilders.h"
 
 TEST(TensorPlanAlignedTest,
      make_elementwise_plan_single_operand_preserves_shape) {

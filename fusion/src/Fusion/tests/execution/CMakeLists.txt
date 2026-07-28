@@ -11,8 +11,6 @@ target_include_directories(fusion_execution_tests PRIVATE
 
 target_link_libraries(fusion_execution_tests PRIVATE fusion_execution
         fusion_core
-        fusion_storage
-        fusion_alloc
         GTest::gtest
         GTest::gtest_main
 )

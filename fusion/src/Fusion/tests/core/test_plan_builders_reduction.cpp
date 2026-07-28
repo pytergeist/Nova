@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Fusion/core/planning/PlanBuilders.h"
+#include "Fusion/compiler/planning/PlanBuilders.h"
 
 TEST(TensorPlanReductionTest,
      make_reduction_plan_keepdim_false_reduces_middle_axis) {

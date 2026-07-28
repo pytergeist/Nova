@@ -3,8 +3,8 @@
 
 #include "counting_allocator.h"
 
-#include "Fusion/device/Device.h"
-#include "Fusion/storage/DenseStorage.hpp"
+#include "Fusion/core/device/Device.h"
+#include "Fusion/core/memory/storage/DenseStorage.hpp"
 
 TEST(DenseStorageTest, construct_from_count_allocates_requested_elements) {
    CountingAllocator alloc;

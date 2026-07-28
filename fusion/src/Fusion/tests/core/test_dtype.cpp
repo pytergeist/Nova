@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "Fusion/core/Dtype.h"
+#include "../../core/dtype/Dtype.h"
 
 TEST(DTypeTest, float32_size_matches_float) {
    EXPECT_EQ(get_dtype_size(DType::FLOAT32), sizeof(float));

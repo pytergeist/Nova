@@ -4,8 +4,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "Fusion/alloc/AllocatorInterface.h"
-#include "Fusion/storage/TensorBuffer.hpp"
+#include "Fusion/core/memory/alloc/AllocatorInterface.h"
+#include "Fusion/core/memory/storage/TensorBuffer.hpp"
 
 class CountingAllocator final : public IAllocator {
  public:

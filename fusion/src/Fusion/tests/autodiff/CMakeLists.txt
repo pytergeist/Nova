@@ -20,9 +20,8 @@ target_include_directories(fusion_autodiff_tests PRIVATE
 )
 
 target_link_libraries(fusion_autodiff_tests PRIVATE fusion_autodiff
+        fusion_compiler
         fusion_core
-        fusion_storage
-        fusion_alloc
         GTest::gtest
         GTest::gtest_main
 )

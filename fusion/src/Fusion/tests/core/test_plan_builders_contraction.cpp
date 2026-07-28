@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "Fusion/core/planning/PlanBuilders.h"
+#include "Fusion/compiler/planning/PlanBuilders.h"
 
 TEST(TensorPlanContractionTest, infer_einsum_out_shape_returns_matmul_shape) {
    fusion::fuir::OperandDescription a{

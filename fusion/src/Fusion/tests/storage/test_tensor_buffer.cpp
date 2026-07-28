@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "Fusion/storage/TensorBuffer.hpp"
+#include "Fusion/core/memory/storage/TensorBuffer.hpp"
 #include "counting_allocator.h"
 
 TEST(TensorBufferTest, default_constructed_buffer_is_empty) {

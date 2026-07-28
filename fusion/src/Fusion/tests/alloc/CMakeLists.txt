@@ -12,7 +12,7 @@ target_include_directories(fusion_alloc_tests PRIVATE
 )
 
 target_link_libraries(fusion_alloc_tests PRIVATE
-        fusion_alloc
+        fusion_core
         GTest::gtest
         GTest::gtest_main
 )

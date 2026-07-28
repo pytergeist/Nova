@@ -5,7 +5,7 @@
 #include <random>
 #include <vector>
 
-#include "Fusion/alloc/FUAllocator.h"
+#include "Fusion/core/memory/alloc/FUAllocator.h"
 
 class FUAllocatorFuzzTest : public ::testing::Test {
  protected:
