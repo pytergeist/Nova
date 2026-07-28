@@ -7,19 +7,19 @@
 #include <utility>
 #include <vector>
 
-#include "Fusion/alloc/DefaultAllocator.h"
+#include "../dtype/Dtype.h"
+#include "Fusion/core/memory/alloc/DefaultAllocator.h"
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/core/Dtype.h"
 #include "Fusion/core/Layout.h"
-#include "Fusion/device/Device.h"
+#include "Fusion/core/device/Device.h"
 #include "Fusion/ops/contraction/GeMM.hpp"
 #include "Fusion/ops/elementwise/Arithmetic.hpp"
 #include "Fusion/ops/elementwise/Comparison.hpp"
 #include "Fusion/ops/elementwise/Unary.hpp"
 #include "Fusion/ops/reduction/Reduce.hpp"
-#include "Fusion/storage/DenseStorage.hpp"
-#include "Fusion/storage/StorageInterface.hpp"
-#include "Fusion/storage/TensorView.hpp"
+#include "Fusion/core/memory/storage/DenseStorage.hpp"
+#include "Fusion/core/memory/storage/StorageInterface.hpp"
+#include "TensorView.hpp"
 
 #include "Fusion/common/Log.hpp"
 

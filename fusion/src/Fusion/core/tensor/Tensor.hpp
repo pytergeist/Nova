@@ -12,7 +12,7 @@
 #include "Fusion/core/tensor/SoATensor.hpp"
 
 #include "Fusion/common/Checks.hpp"
-#include "Fusion/core/fuir/OperandDescription.h"
+#include "Fusion/compiler/ir/OperandDescription.h"
 
 template <typename T> class Tensor {
  public:
