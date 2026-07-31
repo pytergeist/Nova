@@ -151,7 +151,7 @@ class Block(ABC):
 
         self.built = True
 
-    # TODO: Make abstract method once relevant tests are refactored
+    # TODO: Make abstract method once relevant test are refactored
     def build(self, input_shape):
         """
         Subclasses override this to:

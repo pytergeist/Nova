@@ -15,7 +15,7 @@
 #include "Fusion/core/memory/alloc/AllocTypes.h"
 #include "Fusion/core/memory/alloc/AllocatorInterface.h"
 
-// TODO: this is only used in tests - move somewhere else
+// TODO: this is only used in test - move somewhere else
 inline void *aligned_alloc_bytes(size_t alignment, size_t size) {
    if (alignment < alignof(void *) || (alignment & (alignment - 1)) != 0) {
       throw std::invalid_argument(
