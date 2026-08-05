@@ -1,3 +1,4 @@
+import re
 import uuid
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
@@ -91,7 +92,7 @@ class Block(ABC):
 
         Subclasses can override this classmethod if they want a custom name.
         """
-        return cls.lower_case(cls.__name__)
+        return re.sub(r"([a-z])([A-Z])", r"\1_\2", cls.__name__).lower()
 
     @abstractmethod
     def get_config(self) -> Dict[str, Any]: ...

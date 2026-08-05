@@ -21,7 +21,6 @@ if(APPLE)
     list(PREPEND CMAKE_PREFIX_PATH
             "${HOMEBREW_PREFIX}"
             "${HOMEBREW_PREFIX}/opt/openblas"
-            "${HOMEBREW_PREFIX}/opt/eigen"
             "${HOMEBREW_PREFIX}/opt/pybind11"
             "${HOMEBREW_PREFIX}/opt/sleef"
     )
@@ -73,11 +72,6 @@ set_target_properties(OpenBLAS::OpenBLAS PROPERTIES
         IMPORTED_LOCATION "${OPENBLAS_LIB}"
         INTERFACE_INCLUDE_DIRECTORIES "${OPENBLAS_INCLUDE_DIR}"
 )
-
-# ---------- Eigen3 ----------
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
-
-message(STATUS "Eigen3 include dir: ${EIGEN3_INCLUDE_DIR}")
 
 
 # ---------- Tests / GoogleTest ----------
