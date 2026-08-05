@@ -6,7 +6,13 @@ import pytest
 from nova.src.backend.core import Tensor
 from nova.src.backend.topology.builder import Builder
 from nova.src.blocks import Block, activations
-from nova.src.blocks.activations.activations import LeakyReLU, ReLU, Softmax, Softplus
+from nova.src.blocks.activations.activations import (
+    LeakyReLU,
+    ReLU,
+    Sigmoid,
+    Softmax,
+    Softplus,
+)
 
 
 class MockActivation(Block):
@@ -38,6 +44,7 @@ def _util_activation_call_test_with_np_allclose(
         ("LeakyReLU", "leakyrelu"),
         ("Softmax", "softmax"),
         ("Softplus", "softplus"),
+        ("Sigmoid", "sigmoid"),
     ],
 )
 def test_name_lower_case(name, expected):
@@ -55,6 +62,7 @@ def test_name_method_returns_snake_case_class_name():
         ("leaky_relu", LeakyReLU),
         ("softmax", Softmax),
         ("softplus", Softplus),
+        ("sigmoid", Sigmoid),
     ],
 )
 def test_activations_module_str_get_method(name, expected):
@@ -110,6 +118,17 @@ def test_leaky_relu_call_method(activation_fn, data, expected, negative_slope):
     _util_activation_call_test_with_np_allclose(
         activation_fn, data, expected, alpha=negative_slope
     )
+
+
+@pytest.mark.parametrize(
+    "activation_fn, data, expected",
+    [
+        ("sigmoid", Tensor([1.0, 1.0]), [0.7310586, 0.7310586]),
+        ("sigmoid", Tensor([-1.0, 1.0]), [0.2689414, 0.7310586]),
+    ],
+)
+def test_sigmoid_call_method(activation_fn, data, expected):
+    _util_activation_call_test_with_np_allclose(activation_fn, data, expected)
 
 
 @pytest.mark.parametrize(
