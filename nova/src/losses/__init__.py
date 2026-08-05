@@ -1,4 +1,4 @@
 from .loss import Loss
-from .losses import MeanSquaredError
+from .losses import BinaryCrossEntropy, MeanAbsoluteError, MeanSquaredError
 
-__all__ = ["Loss", "MeanSquaredError"]
+__all__ = ["Loss", "MeanSquaredError", "BinaryCrossEntropy", "MeanAbsoluteError"]
