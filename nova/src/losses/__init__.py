@@ -1,4 +1,4 @@
 from .loss import Loss
-from .loss_fn import MeanSquaredError
+from .losses import MeanSquaredError
 
 __all__ = ["Loss", "MeanSquaredError"]
