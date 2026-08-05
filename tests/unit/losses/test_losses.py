@@ -39,3 +39,8 @@ def test_invalid_reduction_method(reduction_method):
         ValueError, match=f"Invalid reduction method: {reduction_method}"
     ):
         DummyLoss(reduction_method)
+
+
+@pytest.mark.parametrize("expected", ["DummyLoss"])
+def test_repr(expected):
+    assert repr(DummyLoss()) == f"<LossFunction: {expected}>"

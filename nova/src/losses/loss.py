@@ -91,4 +91,4 @@ class Loss(ABC):
         """
         Return a string representation of the loss function.
         """
-        return f"<LossFunction: {self.__class__.__name__}() at {hex(id(self))}>"
+        return f"<LossFunction: {self.__class__.__name__}>"
