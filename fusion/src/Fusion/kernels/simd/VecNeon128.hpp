@@ -51,7 +51,7 @@ inline void sqrt_contiguous(T *__restrict dst, const T *__restrict a,
                             std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::unary_contiguous_apply<T, B>(
+   return simd::detail::map1_contiguous_apply<T, B>(
        dst, a, n, [](B::vec vx) -> B::vec { return B::sqrt(vx); },
        [](T x) -> T { return std::sqrt(x); });
 }
@@ -61,7 +61,7 @@ inline void exp_contiguous(T *__restrict dst, const T *__restrict a,
                            std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::unary_contiguous_apply<T, B>(
+   return simd::detail::map1_contiguous_apply<T, B>(
        dst, a, n, [](B::vec vx) -> B::vec { return B::exp(vx); },
        [](T x) -> T { return std::exp(x); });
 }
@@ -71,7 +71,7 @@ inline void log_contiguous(T *__restrict dst, const T *__restrict a,
                            std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::unary_contiguous_apply<T, B>(
+   return simd::detail::map1_contiguous_apply<T, B>(
        dst, a, n, [](B::vec vx) -> B::vec { return B::log(vx); },
        [](T x) -> T { return std::log(x); });
 }
@@ -81,7 +81,7 @@ inline void reciprocal_contiguous(T *__restrict dst, const T *__restrict a,
                                   std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::unary_contiguous_apply<T, B>(
+   return simd::detail::map1_contiguous_apply<T, B>(
        dst, a, n, [](B::vec vx) -> B::vec { return B::reciprocal(vx); },
        [](T x) -> T { return 1 / x; });
 }
@@ -91,7 +91,7 @@ inline void pow_contiguous(T *__restrict dst, const T *__restrict a,
                            const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_apply<T, B>(
+   return simd::detail::map2_contiguous_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::pow(vx, vy); },
        [](T x, T y) -> T { return std::pow(x, y); });
@@ -102,7 +102,7 @@ inline void maximum_contiguous(T *__restrict dst, const T *__restrict a,
                                const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_apply<T, B>(
+   return simd::detail::map2_contiguous_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::maximum(vx, vy); },
        [](T x, T y) -> T { return x > y ? x : y; });
@@ -113,7 +113,7 @@ inline void greater_than_contiguous(T *__restrict dst, const T *__restrict a,
                                     const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_apply<T, B>(
+   return simd::detail::map2_contiguous_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec {
           return B::blend(B::cgt(vx, vy), B::duplicate(1.0f),
@@ -128,7 +128,7 @@ greater_than_equal_contiguous(T *__restrict dst, const T *__restrict a,
                               const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_apply<T, B>(
+   return simd::detail::map2_contiguous_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec {
           return B::blend(B::cge(vx, vy), B::duplicate(1.0f),
@@ -142,7 +142,7 @@ inline void add_contiguous(T *__restrict dst, const T *__restrict a,
                            const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_apply<T, B>(
+   return simd::detail::map2_contiguous_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::add(vx, vy); },
        [](T x, T y) -> T { return x + y; });
@@ -153,7 +153,7 @@ inline void sub_contiguous(T *__restrict dst, const T *__restrict a,
                            const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_apply<T, B>(
+   return simd::detail::map2_contiguous_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::sub(vx, vy); },
        [](T x, T y) -> T { return x - y; });
@@ -164,7 +164,7 @@ inline void mul_contiguous(T *__restrict dst, const T *__restrict a,
                            const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_apply<T, B>(
+   return simd::detail::map2_contiguous_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::mul(vx, vy); },
        [](T x, T y) -> T { return x * y; });
@@ -175,7 +175,7 @@ inline void div_contiguous(T *__restrict dst, const T *__restrict a,
                            const T *__restrict b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_apply<T, B>(
+   return simd::detail::map2_contiguous_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::div(vx, vy); },
        [](T x, T y) -> T { return x / y; });
@@ -194,7 +194,7 @@ inline void greater_than_contiguous_scalar(T *__restrict dst,
                                            std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_scalar_apply<T, B>(
+   return simd::detail::map2_contiguous_scalar_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec {
           return B::blend(B::cgt(vx, vy), B::duplicate(1.0f),
@@ -209,7 +209,7 @@ inline void greater_than_equal_contiguous_scalar(T *__restrict dst,
                                                  const T b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_scalar_apply<T, B>(
+   return simd::detail::map2_contiguous_scalar_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec {
           return B::blend(B::cge(vx, vy), B::duplicate(1.0f),
@@ -223,7 +223,7 @@ inline void pow_contiguous_scalar(T *__restrict dst, const T *__restrict a,
                                   const T b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_scalar_apply<T, B>(
+   return simd::detail::map2_contiguous_scalar_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::pow(vx, vy); },
        [](T x, T y) -> T { return std::pow(x, y); });
@@ -234,7 +234,7 @@ inline void maximum_contiguous_scalar(T *__restrict dst, const T *__restrict a,
                                       const T b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_scalar_apply<T, B>(
+   return simd::detail::map2_contiguous_scalar_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::maximum(vx, vy); },
        [](T x, T y) -> T {
@@ -248,7 +248,7 @@ inline void add_contiguous_scalar(T *__restrict dst, const T *__restrict a,
                                   const T b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_scalar_apply<T, B>(
+   return simd::detail::map2_contiguous_scalar_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::add(vx, vy); },
        [](T x, T y) -> T { return x + y; });
@@ -259,7 +259,7 @@ inline void sub_contiguous_scalar(T *__restrict dst, const T *__restrict a,
                                   const T b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_scalar_apply<T, B>(
+   return simd::detail::map2_contiguous_scalar_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::sub(vx, vy); },
        [](T x, T y) -> T { return x - y; });
@@ -270,7 +270,7 @@ inline void mul_contiguous_scalar(T *__restrict dst, const T *__restrict a,
                                   const T b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_scalar_apply<T, B>(
+   return simd::detail::map2_contiguous_scalar_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::mul(vx, vy); },
        [](T x, T y) -> T { return x * y; });
@@ -281,7 +281,7 @@ inline void div_contiguous_scalar(T *__restrict dst, const T *__restrict a,
                                   const T b, std::size_t n) {
 
    using B = Neon128<T>;
-   return simd::detail::binary_contiguous_scalar_apply<T, B>(
+   return simd::detail::map2_contiguous_scalar_apply<T, B>(
        dst, a, b, n,
        [](B::vec vx, B::vec vy) -> B::vec { return B::div(vx, vy); },
        [](T x, T y) -> T { return x / y; });

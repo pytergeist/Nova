@@ -5,13 +5,11 @@
 
 #include "BackendConcept.hpp"
 
-namespace simd {
-
-namespace detail {
+namespace simd::detail {
 
 template <typename T, BackendConcept Backend, class BinaryVecOp,
           class BinaryScalarOp>
-void binary_contiguous_apply(T *__restrict dst, const T *__restrict a,
+void map2_contiguous_apply(T *__restrict dst, const T *__restrict a,
                              const T *__restrict b, std::size_t n,
                              BinaryVecOp vec_op, BinaryScalarOp scalar_op) {
 
@@ -61,7 +59,7 @@ void binary_contiguous_apply(T *__restrict dst, const T *__restrict a,
 
 template <typename T, BackendConcept Backend, class BinaryVecOp,
           class BinaryScalarOp>
-void binary_contiguous_scalar_apply(T *__restrict dst, const T *__restrict a,
+void map2_contiguous_scalar_apply(T *__restrict dst, const T *__restrict a,
                                     const T b, std::size_t n,
                                     BinaryVecOp vec_op,
                                     BinaryScalarOp scalar_op) {
@@ -107,7 +105,7 @@ void binary_contiguous_scalar_apply(T *__restrict dst, const T *__restrict a,
 
 template <typename T, BackendConcept Backend, class UnaryVecOp,
           class UnaryScalarOp>
-void unary_contiguous_apply(T *__restrict dst, const T *__restrict a,
+void map1_contiguous_apply(T *__restrict dst, const T *__restrict a,
                             std::size_t n, UnaryVecOp vec_op,
                             UnaryScalarOp scalar_op) {
 
@@ -201,8 +199,8 @@ void reduce_contiguous_apply(T *__restrict dst, const T *__restrict a,
    *dst = result;
 };
 
-} // namespace detail
+} // namespace simd::detail
 
-} // namespace simd
+
 
 #endif // FUSION_CPU_VEC_LOOP_HPP
