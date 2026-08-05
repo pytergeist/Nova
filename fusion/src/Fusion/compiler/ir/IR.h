@@ -1,7 +1,7 @@
-#ifndef FUSION_CORE_FUIR_IR_H
-#define FUSION_CORE_FUIR_IR_H
+#ifndef FUSION_COMPILER_IR_IR_H
+#define FUSION_COMPILER_IR_IR_H
 
-#include "../lowering/Lowering.h"
+#include "Fusion/compiler/lowering/Lowering.h"
 #include "Fusion/compiler/ir/Builders.h"
 #include "Fusion/compiler/ir/IRErrors.h"
 #include "Fusion/compiler/ir/IRValidation.h"
@@ -10,4 +10,4 @@
 #include "Fusion/compiler/ir/OperandDescription.h"
 #include "Fusion/compiler/ir/ShapeRules.h"
 
-#endif // FUSION_CORE_FUIR_IR_H
+#endif // FUSION_COMPILER_IR_IR_H
