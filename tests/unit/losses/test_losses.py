@@ -1,7 +1,7 @@
 import pytest
 
 from nova.src.backend.core import Tensor
-from nova.src.losses import MeanSquaredError
+from nova.src.losses import Loss, MeanSquaredError
 
 
 @pytest.mark.parametrize(
@@ -17,3 +17,25 @@ def test_mean_squared_error(reduction_method, y_true, y_pred, expected):
     print(result)
 
     assert result.to_numpy() == expected
+
+
+class DummyLoss(Loss):
+    def call(self, y_true, y_pred, sample_weights=None, **kwargs):
+        return
+
+
+@pytest.mark.parametrize(
+    "reduction_method, expected",
+    [("mean", "mean"), ("mean_with_sample_weight", "mean_with_sample_weight")],
+)
+def test_is_valid_reduction_method(reduction_method, expected):
+    loss = DummyLoss(reduction_method)
+    assert loss.reduction_method == expected
+
+
+@pytest.mark.parametrize("reduction_method", ["invalid", "average", "mode", None])
+def test_invalid_reduction_method(reduction_method):
+    with pytest.raises(
+        ValueError, match=f"Invalid reduction method: {reduction_method}"
+    ):
+        DummyLoss(reduction_method)
