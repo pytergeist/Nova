@@ -15,7 +15,8 @@ class MeanAbsoluteError(Loss):
         super().__init__(reduction_method=reduction_method)
 
     def call(self, y_true: Tensor, y_pred: Tensor) -> Tensor:
-        return (y_true - y_pred).maximum((y_true - y_pred) * -1)
+        # TODO: when abs function has been implemented, refactor this.
+        return ((y_true - y_pred) ** 2).sqrt()
 
 
 class BinaryCrossEntropy(Loss):
