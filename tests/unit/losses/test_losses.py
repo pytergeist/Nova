@@ -72,4 +72,6 @@ def test_invalid_reduction_method(reduction_method):
 
 @pytest.mark.parametrize("expected", ["DummyLoss"])
 def test_repr(expected):
-    assert repr(DummyLoss()) == f"<LossFunction: {expected}>"
+    loss = DummyLoss()
+
+    assert repr(loss) == f"<LossFunction: {expected}() at {hex(id(loss))}>"
