@@ -25,7 +25,9 @@ class BinaryCrossEntropy(Loss):
 
     def call(self, y_true: Tensor, y_pred: Tensor) -> Tensor:
         delta = 1e-7  # Delta added to account for numerical stability. Log 0 is giving a nan. Remove when implemented in C++.
-        return (
-            y_true * (y_pred + delta).log()
-            + (y_true * -1 + 1) * (y_pred * -1 + 1 + delta).log()
-        ) * -1
+        # Also refactor this equation when Tensor's don't have to be on the left.
+
+        positive_term = y_true * (y_pred + delta).log()
+        negative_term = (y_true * -1 + 1) * (y_pred * -1 + 1 + delta).log()
+
+        return (positive_term + negative_term) * -1
