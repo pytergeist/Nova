@@ -35,7 +35,6 @@ struct LogicalAxis {
    IndexKind kind{IndexKind::Independent};
 };
 
-
 struct AxisUse {
    PhysicalAxisId axis_id{0};
    LogicalAxisId logical_axis_id{0};

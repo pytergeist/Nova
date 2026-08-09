@@ -161,10 +161,8 @@ void reduce_contiguous_apply(T *__restrict dst, const T *__restrict a,
    constexpr std::size_t kStep = B::kStep;
 
    const T *__restrict pa = a;
-   T *__restrict pd = dst;
 
    FUSION_CONST_ASSUME_ALIGNED(T, pa, 64);
-   FUSION_ASSUME_ALIGNED(T, pd, 64);
 
    std::size_t i = 0;
 
