@@ -32,11 +32,12 @@ using LogicalAxisId = std::uint32_t;
 
 struct LogicalAxis {
    Label label{0};
+   std::size_t extent{1};
    IndexKind kind{IndexKind::Independent};
 };
 
 struct AxisUse {
-   PhysicalAxisId axis_id{0};
+   PhysicalAxisId physical_axis_id{0};
    LogicalAxisId logical_axis_id{0};
    AxisAccess access{AxisAccess::Direct};
 };
@@ -66,6 +67,13 @@ struct IndexSpaceIR {
 
    std::vector<IndexDef> indices;
    std::vector<std::uint32_t> out_indices;
+
+   std::vector<LogicalAxis> logical_axes;
+   std::vector<PhysicalAxis> physical_axes;
+
+   std::vector<AxisUse> axis_use;
+   std::vector<OperandUse> operand_use;
+
 };
 
 struct OperandLabelBinding {
