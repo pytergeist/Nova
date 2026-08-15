@@ -6,10 +6,64 @@
 #include "Fusion/common/error/Check.h"
 #include "Fusion/compiler/ir/IRErrors.h"
 
+// TODO: Need to move validation of the lowering pipeline out of IR validation
+// and into lowering
+
 namespace fusion::fuir::validation {
 
 namespace ferr = fusion::error;
 using ferr::ErrorCategory;
+
+using PhysicalAxesByOperand = std::vector<std::vector<PhysicalAxis>>;
+
+namespace detail {
+void validate_physical_axis_operand_ids(
+    const PhysicalAxesByOperand &physical_axes, std::string_view where);
+
+void validate_physical_axis_ids(const PhysicalAxesByOperand &physical_axes,
+                                std::string_view where);
+
+void validate_physical_axis_extents(const PhysicalAxesByOperand &physical_axes,
+                                    std::string_view where);
+
+void validate_axis_use_physical_axis_references(
+    const std::vector<OperandUse> &operand_uses,
+    const PhysicalAxesByOperand &physical_axes, std::string_view where);
+
+void validate_axis_use_logical_axis_references(
+    const std::vector<OperandUse> &operand_uses,
+    const std::vector<LogicalAxis> &logical_axes, std::string_view where);
+
+void validate_unique_physical_axis_uses(
+    const std::vector<OperandUse> &operand_uses, std::string_view where);
+
+void validate_direct_axis_uses(const std::vector<OperandUse> &operand_uses,
+                               const PhysicalAxesByOperand &physical_axes,
+                               const std::vector<LogicalAxis> &logical_axes,
+                               std::string_view where);
+
+void validate_broadcast_axis_uses(const std::vector<OperandUse> &operand_uses,
+                                  const PhysicalAxesByOperand &physical_axes,
+                                  const std::vector<LogicalAxis> &logical_axes,
+                                  std::string_view where);
+
+void validate_no_indexed_axis_uses(const std::vector<OperandUse> &operand_uses,
+                                   std::string_view where);
+
+void validate_logical_axis_participation(
+    const std::vector<LogicalAxis> &logical_axes,
+    const std::vector<OperandUse> &operand_uses, std::string_view where);
+
+void validate_operand_use_operand_ids(
+    const std::vector<OperandUse> &operand_uses, std::size_t num_operands,
+    std::string_view where);
+
+void validate_elementwise_index_space(
+    const std::vector<LogicalAxis> &logical_axes,
+    const PhysicalAxesByOperand &physical_axes,
+    const std::vector<OperandUse> &operand_uses, std::string_view where);
+
+} // namespace detail
 
 void validate_descs_itemsize_group(const std::vector<OperandDescription> &descs,
                                    const OperandGroupConstraint constraint,
