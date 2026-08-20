@@ -24,6 +24,22 @@ enum class FuirError : std::uint8_t {
    InvalidIndexId,
    DescriptorCountMismatch,
    InvalidIR,
+
+   // Additions for new IR model
+   PhysicalAxisOperandMismatch, // used
+   InvalidPhysicalAxisId, // used
+   DuplicatePhysicalAxisId,
+   InvalidPhysicalExtent, // used
+
+   InvalidOperandUseId,
+   InvalidPhysicalAxisReference,
+   InvalidLogicalAxisId,
+   DuplicatePhysicalAxisUse,
+
+   DirectExtentMismatch,
+   BroadcastExtentMismatch,
+   IndexedAccessUnsupported,
+   UnusedLogicalAxis,
 };
 
 constexpr error::ErrorCode
