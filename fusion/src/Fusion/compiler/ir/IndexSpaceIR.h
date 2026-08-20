@@ -69,9 +69,8 @@ struct IndexSpaceIR {
    std::vector<std::uint32_t> out_indices;
 
    std::vector<LogicalAxis> logical_axes;
-   std::vector<PhysicalAxis> physical_axes;
-
-   std::vector<AxisUse> axis_use;
+   std::vector<std::vector<PhysicalAxis>> physical_axes;
+   
    std::vector<OperandUse> operand_use;
 
 };

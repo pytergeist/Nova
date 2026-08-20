@@ -18,17 +18,97 @@ using PhysicalAxesByOperand = std::vector<std::vector<PhysicalAxis>>;
 
 namespace detail {
 void validate_physical_axis_operand_ids(
-    const PhysicalAxesByOperand &physical_axes, std::string_view where);
+    const PhysicalAxesByOperand &physical_axes, std::string_view where) {
+   for (std::size_t op = 0; op < physical_axes.size(); ++op) {
+      const std::vector<PhysicalAxis> &axes_by_operand = physical_axes[op];
+      for (const PhysicalAxis &physical_ax : axes_by_operand) {
+         FUSION_CHECK_CODE(
+             physical_ax.operand_id == static_cast<OperandId>(op),
+             fuir_error(FuirError::PhysicalAxisOperandMismatch,
+                        ErrorCategory::InvalidArgument),
+             ferr::message(
+                 where,
+                 ": ir.physical_axis.operand_id_mismatch: physical axis ",
+                 physical_ax.axis_id, " declares operand_id ",
+                 physical_ax.operand_id,
+                 ", but is stored in operand collection ", op));
+      }
+   }
+}
 
 void validate_physical_axis_ids(const PhysicalAxesByOperand &physical_axes,
-                                std::string_view where);
+                                std::string_view where) {
+   for (std::size_t op = 0; op < physical_axes.size(); ++op) {
+      const std::vector<PhysicalAxis> &axes_by_operand = physical_axes[op];
+      for (std::size_t axis_id = 0; axis_id < axes_by_operand.size();
+           ++axis_id) {
+         const PhysicalAxis &physical_ax = axes_by_operand[axis_id];
+         FUSION_CHECK_CODE(
+             physical_ax.axis_id == static_cast<PhysicalAxisId>(axis_id),
+             fuir_error(FuirError::InvalidPhysicalAxisId,
+                        ErrorCategory::InvalidArgument),
+             ferr::message(where,
+                           ": ir.physical_axis.axis_id_mismatch: physical "
+                           "axis declares axis_id ",
+                           physical_ax.axis_id,
+                           ", but is stored at axis position ", axis_id,
+                           " for operand ", op));
+      }
+   }
+}
 
 void validate_physical_axis_extents(const PhysicalAxesByOperand &physical_axes,
-                                    std::string_view where);
+                                    std::string_view where) {
+   for (const std::vector<PhysicalAxis> &axes_by_operand : physical_axes) {
+      for (const PhysicalAxis &physical_ax : axes_by_operand) {
+         FUSION_CHECK_CODE(
+             physical_ax.extent > 0,
+             fuir_error(FuirError::InvalidPhysicalExtent,
+                        ErrorCategory::InvalidArgument),
+             ferr::message(
+                 where, ": fuir.physical_axis.invalid_extent: physical axis ",
+                 physical_ax.axis_id, " for operand ", physical_ax.operand_id,
+                 " has extent ", physical_ax.extent,
+                 "; expected an extent greater than zero"));
+      }
+   }
+}
 
 void validate_axis_use_physical_axis_references(
     const std::vector<OperandUse> &operand_uses,
-    const PhysicalAxesByOperand &physical_axes, std::string_view where);
+    const PhysicalAxesByOperand &physical_axes, std::string_view where) {
+   // TODO: left below check into helper
+   for (const OperandUse &operand_use : operand_uses) {
+      const std::size_t op = static_cast<std::size_t>(operand_use.operand_id);
+
+      FUSION_CHECK_CODE(
+          op < physical_axes.size(),
+          fuir_error(FuirError::InvalidOperandUseId,
+                     ErrorCategory::InvalidArgument),
+          ferr::message(
+              where,
+              ": fuir.operand_use.invalid_operand_reference: operand_use "
+              "references operand_id ",
+              operand_use.operand_id, ", but the IR contains ",
+              physical_axes.size(), " operand collections"));
+
+      const std::vector<PhysicalAxis> &operand_axes = physical_axes[op];
+
+      for (const AxisUse &axis_use : operand_use.axis_use) {
+         FUSION_CHECK_CODE(
+             static_cast<std::size_t>(axis_use.physical_axis_id) <
+                 operand_axes.size(),
+             fuir_error(FuirError::InvalidPhysicalAxisReference,
+                        ErrorCategory::InvalidArgument),
+             ferr::message(
+                 where,
+                 ": fuir.axis_use.invalid_physical_axis_reference: operand ",
+                 operand_use.operand_id, " references physical_axis_id ",
+                 axis_use.physical_axis_id, ", but that operand has ",
+                 operand_axes.size(), " physical axes"));
+      }
+   }
+}
 
 void validate_axis_use_logical_axis_references(
     const std::vector<OperandUse> &operand_uses,
