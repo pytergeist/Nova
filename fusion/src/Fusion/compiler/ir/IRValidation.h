@@ -44,6 +44,14 @@ void validate_role_vector_matches_ir(
     const IndexSpaceIR &ir, const std::vector<IndexRole> *role_of_id,
     std::string_view where = "validate_role_vector_matches_ir");
 
+void validate_elementwise_index_space_ir(
+    const IndexSpaceIR &ir,
+    std::string_view where = "validate_elementwise_index_space_ir");
+
+void validate_unary_reduction_index_space_ir(
+   const IndexSpaceIR &ir,
+   std::string_view where = "validate_unary_reduction_index_space_ir");
+
 } // namespace fusion::fuir::validation
 
 #endif // FUSION_CORE_FUIR_FUIR_VALIDATION_H
