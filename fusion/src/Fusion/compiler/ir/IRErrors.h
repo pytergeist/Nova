@@ -28,18 +28,28 @@ enum class FuirError : std::uint8_t {
    // Additions for new IR model
    PhysicalAxisOperandMismatch, // used
    InvalidPhysicalAxisId, // used
-   DuplicatePhysicalAxisId,
+   DuplicatePhysicalAxisId, // used
    InvalidPhysicalExtent, // used
 
    InvalidOperandUseId,
-   InvalidPhysicalAxisReference,
+   InvalidPhysicalAxisReference, // used
+   InvalidLogicalAxisReference, // used
    InvalidLogicalAxisId,
-   DuplicatePhysicalAxisUse,
+   DuplicatePhysicalAxisUse, // used
 
    DirectExtentMismatch,
    BroadcastExtentMismatch,
    IndexedAccessUnsupported,
    UnusedLogicalAxis,
+
+   PhysicalAxisCollectionCountMismatch,
+   InvalidLogicalExtent,
+   IncompletePhysicalAxisUse,
+   DuplicateLogicalAxisUse,
+   UnaryReductionOperandCountMismatch,
+   InvalidReductionAxisCount,
+   ReductionInputMappingMismatch,
+   ReductionOutputMappingMismatch,
 };
 
 constexpr error::ErrorCode

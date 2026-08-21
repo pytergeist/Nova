@@ -9,6 +9,7 @@
 #include "Fusion/common/error/ErrorCode.h"
 
 namespace fusion::error {
+// TODO: does the below need to be more general and therefore inherit from std::exception
 class FusionError : public std::runtime_error {
  public:
    FusionError(
