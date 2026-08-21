@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <string_view>
 #include <unordered_map>
 #include <utility>
@@ -13,12 +12,190 @@
 #include "Fusion/compiler/ir/IRValidation.h"
 #include "Fusion/compiler/ir/ShapeRules.h"
 
+#include <iostream>
+
 namespace fusion::fuir {
 
 namespace ferr = fusion::error;
 using ferr::ErrorCategory;
 
 namespace {
+
+// calculate max_ndm
+
+// Loop num operands:
+// calculate logical indices/index kind from max ndim/padding
+// create logical axis/set index kind
+
+// set OperandId
+// outputId = 0
+// +1 A
+// +2 B
+
+// per OperandId:
+// Set PhysicalAxisId
+// i = 0
+// j = i + 1
+// k = j + 1
+// ...
+
+// Set extent
+// extent = operand.shape[OperandAxis]
+
+// Set AxisAccess
+// Direct: if physical coord = logical coord | base + l * stride
+// Indexed: if physical coord = I[logical coord] | base + I[l] * stride
+// Broadcast: if physical coord = 0 | base + I[l] * 0
+
+// create Axis Use
+// create OperandUse
+
+std::vector<LogicalAxis>
+build_elementwise_logical_axes(const std::vector<OperandDescription> &descs,
+                               std::size_t max_rank) {
+   std::vector<LogicalAxis> logical_axes;
+   logical_axes.reserve(max_rank);
+   for (std::size_t rank = 0; rank < max_rank; ++rank) {
+      std::size_t extent = 1;
+      for (const auto &desc : descs) {
+         const std::size_t pad = max_rank - desc.ndims();
+         if (rank < pad) {
+            continue;
+         }
+         extent = broadcast_dim(extent, desc.shape[rank - pad]);
+      }
+      logical_axes.emplace_back(LogicalAxis{
+          .label = rank, .extent = extent, .kind = IndexKind::Independent});
+   }
+   return logical_axes;
+}
+
+std::vector<LogicalAxis>
+build_unary_reduction_logical_axes(const std::vector<OperandDescription> &descs,
+                                   const std::size_t axis) {
+   const OperandDescription &in_desc = descs.back();
+
+   std::vector<LogicalAxis> logical_axes;
+   logical_axes.reserve(in_desc.ndims());
+
+   for (std::size_t rank = 0; rank < in_desc.shape.size(); ++rank) {
+      const IndexKind index_kind =
+          axis == rank ? IndexKind::Reduction : IndexKind::Independent;
+      logical_axes.emplace_back(LogicalAxis{
+          .label = rank, .extent = in_desc.shape[rank], .kind = index_kind});
+   }
+   return logical_axes;
+}
+
+std::size_t max_operand_rank(const std::vector<OperandDescription> &descs) {
+   std::size_t max_nd = 0;
+   for (const OperandDescription &desc : descs) {
+      max_nd = std::max(max_nd, desc.ndims());
+   }
+   return max_nd;
+}
+
+std::vector<std::vector<PhysicalAxis>>
+build_operand_physical_axes(const std::vector<OperandDescription> &descs) {
+   std::vector<std::vector<PhysicalAxis>> physical_axes;
+   physical_axes.resize(descs.size());
+   for (std::size_t op = 0; op < descs.size(); ++op) {
+      const OperandDescription &desc = descs[op];
+
+      std::vector<PhysicalAxis> &axes = physical_axes[op];
+      axes.reserve(desc.ndims());
+
+      for (std::size_t ax = 0; ax < desc.ndims(); ++ax) {
+         axes.emplace_back(
+             PhysicalAxis{.operand_id = static_cast<std::uint32_t>(op),
+                          .axis_id = static_cast<std::uint32_t>(ax),
+                          .extent = desc.shape[ax]});
+      }
+   }
+   return physical_axes;
+}
+
+std::vector<OperandUse> build_unary_reduction_operand_uses(
+    const std::vector<std::vector<PhysicalAxis>> &physical_axes,
+    const std::vector<LogicalAxis> &logical_axes, const std::size_t axis,
+    const bool keepdim) {
+   std::vector<OperandUse> operand_uses;
+   operand_uses.reserve(physical_axes.size());
+   for (std::size_t op = 0; op < physical_axes.size(); ++op) {
+
+      const std::vector<PhysicalAxis> &operand_axes = physical_axes[op];
+
+      std::vector<AxisUse> axes_use;
+      axes_use.reserve(operand_axes.size());
+
+      for (const PhysicalAxis &physical_axis : operand_axes) {
+         LogicalAxisId logical_axis_id;
+
+         if (op == 0 && !keepdim) {
+            logical_axis_id = static_cast<LogicalAxisId>(
+                physical_axis.axis_id < axis ? physical_axis.axis_id
+                                             : physical_axis.axis_id + 1);
+         } else {
+            logical_axis_id = static_cast<LogicalAxisId>(physical_axis.axis_id);
+         }
+
+         const LogicalAxis &logical_axis = logical_axes.at(logical_axis_id);
+
+         const AxisAccess access =
+             physical_axis.extent == 1 && logical_axis.extent > 1
+                 ? AxisAccess::Broadcast
+                 : AxisAccess::Direct;
+
+         axes_use.emplace_back(AxisUse{
+             .physical_axis_id = physical_axis.axis_id,
+             .logical_axis_id = logical_axis_id,
+             .access = access,
+         });
+      }
+
+      operand_uses.emplace_back(OperandUse{
+          .operand_id = static_cast<OperandId>(op),
+          .axis_use = std::move(axes_use),
+      });
+   }
+
+   return operand_uses;
+}
+
+std::vector<OperandUse> build_elementwise_operand_uses_right_aligned(
+    const std::vector<std::vector<PhysicalAxis>> &physical_axes,
+    const std::vector<LogicalAxis> &logical_axes, const std::size_t max_rank) {
+   std::vector<OperandUse> operand_use;
+   operand_use.reserve(physical_axes.size());
+   for (std::size_t op = 0; op < physical_axes.size(); ++op) {
+
+      const std::vector<PhysicalAxis> &operand_axes = physical_axes[op];
+      const std::size_t pad = max_rank - operand_axes.size();
+
+      std::vector<AxisUse> axes_use;
+      axes_use.reserve(operand_axes.size());
+
+      for (const PhysicalAxis &axis : operand_axes) {
+         const LogicalAxisId logical_axis_id = static_cast<LogicalAxisId>(
+             pad + static_cast<std::size_t>(axis.axis_id));
+         const std::size_t logical_extent =
+             logical_axes.at(logical_axis_id).extent;
+
+         const AxisAccess access = axis.extent == 1 && logical_extent > 1
+                                       ? AxisAccess::Broadcast
+                                       : AxisAccess::Direct;
+
+         axes_use.emplace_back(AxisUse{.physical_axis_id = axis.axis_id,
+                                       .logical_axis_id = logical_axis_id,
+                                       .access = access});
+      }
+
+      operand_use.emplace_back(
+          OperandUse{.operand_id = static_cast<std::uint32_t>(op),
+                     .axis_use = std::move(axes_use)});
+   }
+   return operand_use;
+};
 
 std::uint32_t
 bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t> &label_to_id,
@@ -75,40 +252,50 @@ build_elementwise_ir_right_aligned(const std::vector<OperandDescription> &descs,
    ir.num_operands = descs.size();
    ir.itemsize = descs.front().itemsize;
 
-   std::size_t max_nd = 0;
-   for (const OperandDescription &desc : descs) {
-      max_nd = std::max(max_nd, desc.ndims());
-   }
+   std::size_t max_rank = max_operand_rank(descs);
 
-   ir.indices.resize(max_nd);
-   ir.out_indices.resize(max_nd);
+   std::vector<LogicalAxis> const logical_axes =
+       build_elementwise_logical_axes(descs, max_rank);
 
-   for (std::size_t od = 0; od < max_nd; ++od) {
+   std::vector<std::vector<PhysicalAxis>> const physical_axes =
+       build_operand_physical_axes(descs);
+
+   const std::vector<OperandUse> operand_uses =
+       build_elementwise_operand_uses_right_aligned(physical_axes, logical_axes,
+                                                    max_rank);
+
+   ir.indices.resize(max_rank);
+   ir.out_indices.resize(max_rank);
+   ir.logical_axes = logical_axes;
+   ir.physical_axes = physical_axes;
+   ir.operand_use = operand_uses;
+
+   for (std::size_t rank = 0; rank < max_rank; ++rank) {
       IndexDef idx;
-      idx.label = static_cast<Label>(od);
+      idx.label = static_cast<Label>(rank);
       idx.kind = IndexKind::Independent;
       idx.extent = 1;
       idx.axis_of_operand.assign(ir.num_operands, -1);
 
       for (std::size_t op = 0; op < ir.num_operands; ++op) {
          const OperandDescription &desc = descs[op];
-         const std::size_t pad = max_nd - desc.ndims();
+         const std::size_t pad = max_rank - desc.ndims();
 
-         if (od < pad) {
+         if (rank < pad) {
             idx.axis_of_operand[op] = -1;
             continue;
          }
 
-         const std::size_t in_ax = od - pad;
+         const std::size_t in_ax = rank - pad;
          idx.axis_of_operand[op] = static_cast<std::int32_t>(in_ax);
          idx.extent = broadcast_dim(idx.extent, desc.shape[in_ax]);
       }
 
-      ir.indices[od] = std::move(idx);
-      ir.out_indices[od] = static_cast<std::uint32_t>(od);
+      ir.indices[rank] = std::move(idx);
+      ir.out_indices[rank] = static_cast<std::uint32_t>(rank);
    }
 
-   validation::validate_index_space_ir(ir, where);
+   validation::validate_elementwise_index_space_ir(ir, where);
    return ir;
 }
 
@@ -134,6 +321,17 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
    // out_indices. If IndexSpaceIR::out_indices becomes the sole source of
    // output shape truth, this needs to represent kept size-1 axes explicitly.
    ir.out_indices.reserve(in_nd > 0 ? in_nd - 1 : 0);
+
+   const std::vector<LogicalAxis> logical_axes =
+       build_unary_reduction_logical_axes(descs, axis);
+   std::vector<std::vector<PhysicalAxis>> const physical_axes =
+       build_operand_physical_axes(descs);
+   std::vector<OperandUse> const operand_uses = build_unary_reduction_operand_uses(
+       physical_axes, logical_axes, axis, keepdim);
+
+   ir.logical_axes = logical_axes;
+   ir.physical_axes = physical_axes;
+   ir.operand_use = operand_uses;
 
    auto out_axis_for_in_axis = [&](const std::size_t in_ax) -> std::int32_t {
       if (keepdim) {
@@ -170,7 +368,7 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
          ir.out_indices.push_back(static_cast<std::uint32_t>(in_ax));
       }
    }
-
+   validation::validate_unary_reduction_index_space_ir(ir, where);
    validation::validate_index_space_ir(ir, where);
    return ir;
 }
