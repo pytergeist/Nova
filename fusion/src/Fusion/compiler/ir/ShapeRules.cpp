@@ -51,7 +51,7 @@ std::size_t broadcast_dim(const std::size_t lhs, const std::size_t rhs) {
    return lhs;
 }
 
-std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
+std::vector<std::size_t> infer_out_shape_from_ir(const IndexSpaceIR &ir) {
    constexpr std::string_view where = "out_shape_from_ir";
 
    validation::validate_index_space_ir(ir, where);
@@ -100,7 +100,34 @@ std::vector<std::size_t> infer_binary_contraction_out_shape_from_binding(
    const IndexSpaceIR ir =
        build_ir_from_label_binding(descs, binding, constraint);
 
-   return out_shape_from_ir(ir);
+   return infer_out_shape_from_ir(ir);
+}
+
+std::vector<std::size_t>
+infer_out_shape_from_binding(const std::vector<OperandDescription> &descs,
+                             const OperandLabelBinding &binding) {
+   constexpr std::string_view where = "infer_out_shape_from_binding";
+
+   std::vector<std::size_t> out_shape;
+   out_shape.reserve(binding.out_labels.size());
+   for (const Label &label : binding.out_labels) {
+      std::size_t logical_extent = 1;
+      for (std::size_t op = 0; op < descs.size(); ++op) {
+         const OperandDescription &desc = descs[op];
+         // NB: This fn is currently only called with {lhs, rhs} (e.g. no output
+         // operand), therefore we offset the index for the op_axis_labels by 1.
+         const std::vector<Label> &labels = binding.op_axis_labels.at(op + 1);
+
+         for (std::size_t ax = 0; ax < labels.size(); ++ax) {
+            if (labels[ax] != label) {
+               continue;
+            }
+            logical_extent = broadcast_dim(logical_extent, desc.shape.at(ax));
+         }
+      }
+      out_shape.push_back(logical_extent);
+   }
+   return out_shape;
 }
 
 } // namespace fusion::fuir
