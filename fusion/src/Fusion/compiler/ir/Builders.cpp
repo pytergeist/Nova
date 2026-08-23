@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -87,6 +88,108 @@ build_unary_reduction_logical_axes(const std::vector<OperandDescription> &descs,
    return logical_axes;
 }
 
+struct AxisOccurrence {
+   OperandId operand_id{0};
+   PhysicalAxisId axis_id{0};
+};
+
+using LabelOccurrences = std::unordered_map<Label, std::vector<AxisOccurrence>>;
+
+LabelOccurrences build_label_occurrences(const OperandLabelBinding &binding) {
+   LabelOccurrences label_occurrences;
+   for (std::size_t op = 0; op < binding.op_axis_labels.size(); ++op) {
+      const std::vector<Label> &op_labels = binding.op_axis_labels[op];
+
+      for (std::size_t ax = 0; ax < op_labels.size(); ++ax) {
+         label_occurrences[op_labels[ax]].push_back(AxisOccurrence{
+             .operand_id = static_cast<OperandId>(op),
+             .axis_id = static_cast<PhysicalAxisId>(ax),
+         });
+      }
+   }
+   return label_occurrences;
+}
+
+std::vector<LogicalAxis>
+build_contraction_logical_axes(const std::vector<OperandDescription> &descs,
+                               const OperandLabelBinding &binding) {
+
+   LabelOccurrences occurrences = build_label_occurrences(binding);
+
+   std::vector<LogicalAxis> logical_axes;
+
+   std::unordered_set<Label> label_set;
+
+   for (std::size_t orank = 0; orank < binding.out_labels.size(); ++orank) {
+      const Label &label = binding.out_labels[orank];
+      const std::vector<AxisOccurrence> axis_occurrences =
+          occurrences.at(label);
+      if (!label_set.insert(label).second) {
+         continue;
+      }
+      std::size_t extent = 1;
+      for (const AxisOccurrence &axis_occurrence : axis_occurrences) {
+         const PhysicalAxisId operand_id = axis_occurrence.operand_id;
+         const PhysicalAxisId physical_axis_id = axis_occurrence.axis_id;
+         const std::size_t physical_extent =
+             descs.at(operand_id).shape[physical_axis_id];
+         extent = broadcast_dim(extent, physical_extent);
+      }
+      logical_axes.emplace_back(LogicalAxis{
+          .label = label, .extent = extent, .kind = IndexKind::Independent});
+   }
+
+   for (std::size_t op = 1; op < binding.op_axis_labels.size(); ++op) {
+      const std::vector<Label> &op_labels = binding.op_axis_labels[op];
+
+      for (const Label &label : op_labels) {
+         if (std::ranges::find(binding.out_labels, label) !=
+             binding.out_labels.end()) {
+            continue;
+         }
+         const auto it = label_set.insert(label);
+         if (!it.second) {
+            continue;
+         }
+
+         const std::vector<AxisOccurrence> axis_occurrences =
+             occurrences.at(label);
+         const AxisOccurrence &first = axis_occurrences.front();
+         const std::size_t extent =
+             descs.at(first.operand_id).shape[first.axis_id];
+         for (const AxisOccurrence &axis_occurrence : axis_occurrences) {
+            const std::size_t cextent = descs.at(axis_occurrence.operand_id)
+                                            .shape[axis_occurrence.axis_id];
+            if (extent != cextent) {
+               throw std::runtime_error("test");
+            }
+         }
+         logical_axes.emplace_back(LogicalAxis{
+             .label = label, .extent = extent, .kind = IndexKind::Reduction});
+      }
+   }
+   return logical_axes;
+}
+
+using LogicalAxisIdByLabel = std::unordered_map<Label, LogicalAxisId>;
+
+LogicalAxisIdByLabel
+build_logical_axis_id_by_label(const std::vector<LogicalAxis> &logical_axes) {
+   LogicalAxisIdByLabel ids_by_label;
+   ids_by_label.reserve(logical_axes.size());
+
+   for (std::size_t id = 0; id < logical_axes.size(); ++id) {
+      const auto [it, inserted] = ids_by_label.emplace(
+          logical_axes[id].label, static_cast<LogicalAxisId>(id));
+
+      if (!inserted) {
+         throw std::runtime_error("duplicate logical axis label");
+      }
+   }
+
+   return ids_by_label;
+}
+
 std::size_t max_operand_rank(const std::vector<OperandDescription> &descs) {
    std::size_t max_nd = 0;
    for (const OperandDescription &desc : descs) {
@@ -107,7 +210,7 @@ build_operand_physical_axes(const std::vector<OperandDescription> &descs) {
 
       for (std::size_t ax = 0; ax < desc.ndims(); ++ax) {
          axes.emplace_back(
-             PhysicalAxis{.operand_id = static_cast<std::uint32_t>(op),
+             PhysicalAxis{.operand_id = static_cast<OperandId>(op),
                           .axis_id = static_cast<std::uint32_t>(ax),
                           .extent = desc.shape[ax]});
       }
@@ -165,8 +268,8 @@ std::vector<OperandUse> build_unary_reduction_operand_uses(
 std::vector<OperandUse> build_elementwise_operand_uses_right_aligned(
     const std::vector<std::vector<PhysicalAxis>> &physical_axes,
     const std::vector<LogicalAxis> &logical_axes, const std::size_t max_rank) {
-   std::vector<OperandUse> operand_use;
-   operand_use.reserve(physical_axes.size());
+   std::vector<OperandUse> operand_uses;
+   operand_uses.reserve(physical_axes.size());
    for (std::size_t op = 0; op < physical_axes.size(); ++op) {
 
       const std::vector<PhysicalAxis> &operand_axes = physical_axes[op];
@@ -190,12 +293,65 @@ std::vector<OperandUse> build_elementwise_operand_uses_right_aligned(
                                        .access = access});
       }
 
-      operand_use.emplace_back(
-          OperandUse{.operand_id = static_cast<std::uint32_t>(op),
+      operand_uses.emplace_back(
+          OperandUse{.operand_id = static_cast<OperandId>(op),
                      .axis_use = std::move(axes_use)});
    }
-   return operand_use;
+   return operand_uses;
 };
+
+std::vector<OperandUse> build_contraction_operand_uses(
+    const std::vector<std::vector<PhysicalAxis>> &physical_axes,
+    const std::vector<LogicalAxis> &logical_axes,
+    const OperandLabelBinding &binding) {
+
+   LogicalAxisIdByLabel logical_axis_id_by_label =
+       build_logical_axis_id_by_label(logical_axes);
+   std::vector<OperandUse> operand_uses;
+   operand_uses.reserve(physical_axes.size());
+   for (std::size_t op = 0; op < physical_axes.size(); ++op) {
+      const std::vector<Label> &operand_labels = binding.op_axis_labels[op];
+      const std::vector<PhysicalAxis> &operand_axes = physical_axes[op];
+
+      std::vector<AxisUse> axes_use;
+      axes_use.reserve(operand_axes.size());
+
+      for (std::size_t ax = 0; ax < operand_axes.size(); ++ax) {
+         const PhysicalAxis &physical_axis = operand_axes[ax];
+
+         const Label label = operand_labels.at(physical_axis.axis_id);
+
+         const LogicalAxisId logical_axis_id =
+             logical_axis_id_by_label.at(label);
+
+         const LogicalAxis &logical_axis = logical_axes.at(logical_axis_id);
+
+         AxisAccess access = AxisAccess::Direct;
+
+         if (physical_axis.extent != logical_axis.extent) {
+            const bool valid_input_broadcast =
+                op != 0 && logical_axis.kind == IndexKind::Independent &&
+                physical_axis.extent == 1 && logical_axis.extent > 1;
+
+            if (valid_input_broadcast) {
+               access = AxisAccess::Broadcast;
+            } else {
+               throw std::runtime_error("invalid contraction axis mapping");
+            }
+         }
+
+         axes_use.emplace_back(
+             AxisUse{.physical_axis_id = physical_axis.axis_id,
+                     .logical_axis_id = logical_axis_id,
+                     .access = access});
+      }
+
+      operand_uses.emplace_back(
+          OperandUse{.operand_id = static_cast<OperandId>(op),
+                     .axis_use = std::move(axes_use)});
+   }
+   return operand_uses;
+}
 
 std::uint32_t
 bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t> &label_to_id,
@@ -326,8 +482,9 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
        build_unary_reduction_logical_axes(descs, axis);
    std::vector<std::vector<PhysicalAxis>> const physical_axes =
        build_operand_physical_axes(descs);
-   std::vector<OperandUse> const operand_uses = build_unary_reduction_operand_uses(
-       physical_axes, logical_axes, axis, keepdim);
+   std::vector<OperandUse> const operand_uses =
+       build_unary_reduction_operand_uses(physical_axes, logical_axes, axis,
+                                          keepdim);
 
    ir.logical_axes = logical_axes;
    ir.physical_axes = physical_axes;
@@ -373,6 +530,16 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
    return ir;
 }
 
+std::string print_kind(const IndexKind kind) {
+   if (kind == IndexKind::Independent) {
+      return std::string("Independent");
+   }
+   if (kind == IndexKind::Reduction) {
+      return std::string("Reduction");
+   }
+   return std::string("Unknown");
+}
+
 IndexSpaceIR
 build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
                             const OperandLabelBinding &bind,
@@ -382,9 +549,28 @@ build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
    validation::validate_descs_itemsize_group(descs, constraint, where);
    validation::validate_operand_label_binding(descs, bind, where);
 
+   const std::vector<LogicalAxis> logical_axes =
+       build_contraction_logical_axes(descs, bind);
+   const std::vector<std::vector<PhysicalAxis>> physical_axes =
+       build_operand_physical_axes(descs);
+
+   const std::vector<OperandUse> operand_uses =
+       build_contraction_operand_uses(physical_axes, logical_axes, bind);
+
+   // for (std::size_t ax = 0; ax < logical_axes.size(); ++ax) {
+   //    std::cerr << "Logical Axis ID: " << ax << " | ";
+   //    LogicalAxis axis = logical_axes[ax];
+   //    std::cerr << "Label: " << axis.label << " | ";
+   //    std::cerr << "Extent: " << axis.extent << " | ";
+   //    std::cerr << "Kind: " << print_kind(axis.kind) << std::endl;
+   // }
+
    IndexSpaceIR ir;
    ir.num_operands = descs.size();
    ir.itemsize = descs.front().itemsize;
+   ir.logical_axes = logical_axes;
+   ir.physical_axes = physical_axes;
+   ir.operand_use = operand_uses;
 
    std::unordered_map<Label, std::uint32_t> label_to_id;
    label_to_id.reserve(64);
