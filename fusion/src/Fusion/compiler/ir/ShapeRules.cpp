@@ -51,7 +51,9 @@ std::size_t broadcast_dim(const std::size_t lhs, const std::size_t rhs) {
    return lhs;
 }
 
-std::vector<std::size_t> infer_out_shape_from_ir(const IndexSpaceIR &ir) {
+std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
+   // TODO: this is not an inference - therefore this does not belong in
+   // shaperules
    constexpr std::string_view where = "out_shape_from_ir";
 
    validation::validate_index_space_ir(ir, where);
@@ -59,8 +61,10 @@ std::vector<std::size_t> infer_out_shape_from_ir(const IndexSpaceIR &ir) {
    std::vector<std::size_t> out_shape;
    out_shape.reserve(ir.out_indices.size());
 
-   for (const std::uint32_t id : ir.out_indices) {
-      out_shape.push_back(ir.indices[id].extent);
+   const std::vector<PhysicalAxis> &out_axes = ir.physical_axes.front();
+
+   for (const PhysicalAxis &axis : out_axes) {
+      out_shape.push_back(axis.extent);
    }
 
    return out_shape;
@@ -100,13 +104,27 @@ std::vector<std::size_t> infer_binary_contraction_out_shape_from_binding(
    const IndexSpaceIR ir =
        build_ir_from_label_binding(descs, binding, constraint);
 
-   return infer_out_shape_from_ir(ir);
+   return out_shape_from_ir(ir);
 }
 
 std::vector<std::size_t>
 infer_out_shape_from_binding(const std::vector<OperandDescription> &descs,
                              const OperandLabelBinding &binding) {
    constexpr std::string_view where = "infer_out_shape_from_binding";
+
+   FUSION_CHECK_CODE(
+       descs.size() == 2,
+       fuir_error(FuirError::DescriptorCountMismatch,
+                  ErrorCategory::InvalidArgument),
+       ferr::message(where,
+                     ": fuir.shape.invalid_input_count: expected inputs = "
+                     "{A, B}, got ",
+                     descs.size()));
+
+   constexpr OperandGroupConstraint constraint =
+       OperandGroupConstraint::HomogeneousItemSize;
+
+   validation::validate_descs_itemsize_group(descs, constraint, where);
 
    std::vector<std::size_t> out_shape;
    out_shape.reserve(binding.out_labels.size());
