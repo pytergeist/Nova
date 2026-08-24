@@ -54,19 +54,9 @@ enum class IndexRole {
    K,
 };
 
-struct IndexDef {
-   Label label{0};
-   std::size_t extent{1};
-   IndexKind kind{IndexKind::Independent};
-   std::vector<std::int32_t> axis_of_operand;
-};
-
 struct IndexSpaceIR {
    std::size_t num_operands{0};
    std::size_t itemsize{0};
-
-   std::vector<IndexDef> indices;
-   std::vector<std::uint32_t> out_indices;
 
    std::vector<LogicalAxis> logical_axes;
    std::vector<std::vector<PhysicalAxis>> physical_axes;

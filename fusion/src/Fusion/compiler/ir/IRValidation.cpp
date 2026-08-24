@@ -57,7 +57,7 @@ void validate_physical_axis_ids(const PhysicalAxesByOperand &physical_axes,
    }
 }
 
-void validate_physical_axis_extents(const PhysicalAxesByOperand &physical_axes,
+static void validate_physical_axis_extents(const PhysicalAxesByOperand &physical_axes,
                                     std::string_view where) {
    for (const std::vector<PhysicalAxis> &axes_by_operand : physical_axes) {
       for (const PhysicalAxis &physical_ax : axes_by_operand) {
@@ -571,7 +571,6 @@ void validate_unary_reduction_output_mapping(
 
 void validate_elementwise_index_space_ir(const IndexSpaceIR &ir,
                                          const std::string_view where) {
-   validate_index_space_ir(ir, where); // while legacy IndexDef still exists
 
    detail::validate_physical_axis_operand_ids(ir.physical_axes, where);
    detail::validate_physical_axis_ids(ir.physical_axes, where);
@@ -603,7 +602,6 @@ void validate_elementwise_index_space_ir(const IndexSpaceIR &ir,
 void validate_unary_reduction_index_space_ir(
     const IndexSpaceIR &ir,
     const std::string_view where) {
-   validate_index_space_ir(ir, where);
 
    detail::validate_unary_reduction_operand_count(ir, where);
 
@@ -891,37 +889,15 @@ void validate_index_space_ir(const IndexSpaceIR &ir,
        ferr::message(where,
                      ": fuir.ir.invalid_itemsize: itemsize must be > 0"));
 
-   for (std::size_t id = 0; id < ir.indices.size(); ++id) {
-      const IndexDef &index = ir.indices[id];
+   for (std::size_t id = 0; id < ir.logical_axes.size(); ++id) {
+      const LogicalAxis &axis = ir.logical_axes[id];
 
       FUSION_CHECK_CODE(
-          index.extent > 0,
+          axis.extent > 0,
           fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-          ferr::message(where, ": fuir.ir.invalid_index_extent: index ", id,
-                        " has extent ", index.extent));
+          ferr::message(where, ": fuir.ir.invalid_index_extent: logical axis ", id,
+                        " has extent ", axis.extent));
 
-      FUSION_CHECK_CODE(
-          index.axis_of_operand.size() == ir.num_operands,
-          fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-          ferr::message(where, ": fuir.ir.axis_binding_rank_mismatch: index ",
-                        id, " has axis_of_operand size ",
-                        index.axis_of_operand.size(), " but num_operands is ",
-                        ir.num_operands));
-   }
-
-   for (std::uint32_t id : ir.out_indices) {
-      FUSION_CHECK_CODE(
-          id < ir.indices.size(),
-          fuir_error(FuirError::InvalidIndexId, ErrorCategory::Internal),
-          ferr::message(where, ": fuir.ir.invalid_out_index_id: out index id ",
-                        id, " but indices size is ", ir.indices.size()));
-
-      FUSION_CHECK_CODE(
-          ir.indices[id].kind == IndexKind::Independent,
-          fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-          ferr::message(where,
-                        ": fuir.ir.invalid_out_index_kind: out index id ", id,
-                        " is not independent"));
    }
 }
 
@@ -934,11 +910,11 @@ void validate_loop_order(const IndexSpaceIR &ir,
       const std::uint32_t id = loop_order[pos];
 
       FUSION_CHECK_CODE(
-          id < ir.indices.size(),
+          id < ir.logical_axes.size(),
           fuir_error(FuirError::InvalidIndexId, ErrorCategory::Internal),
           ferr::message(
               where, ": fuir.lowering.invalid_loop_index_id: loop_order[", pos,
-              "] = ", id, " but indices size is ", ir.indices.size()));
+              "] = ", id, " but logical_axes size is ", ir.logical_axes.size()));
    }
 }
 
@@ -958,27 +934,8 @@ void validate_ir_matches_descs(const IndexSpaceIR &ir,
    validate_index_space_ir(ir, where);
    validate_desc_count_matches_ir(ir, descs, where);
 
-   for (std::size_t index_id = 0; index_id < ir.indices.size(); ++index_id) {
-      const IndexDef &index = ir.indices[index_id];
-
-      for (std::size_t op = 0; op < ir.num_operands; ++op) {
-         const std::int32_t axis = index.axis_of_operand[op];
-
-         if (axis < 0) {
-            continue;
-         }
-
-         const std::size_t axis_u = static_cast<std::size_t>(axis);
-
-         FUSION_CHECK_CODE(
-             axis_u < descs[op].ndims(),
-             fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-             ferr::message(where, ": fuir.ir.invalid_axis_binding: index ",
-                           index_id, " binds operand ", op, " to axis ", axis,
-                           " but operand rank is ", descs[op].ndims()));
-      }
    }
-}
+
 
 void validate_role_vector_matches_ir(const IndexSpaceIR &ir,
                                      const std::vector<IndexRole> *role_of_id,
@@ -988,13 +945,13 @@ void validate_role_vector_matches_ir(const IndexSpaceIR &ir,
    }
 
    FUSION_CHECK_CODE(
-       role_of_id->size() == ir.indices.size(),
+       role_of_id->size() == ir.logical_axes.size(),
        fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
        ferr::message(where,
                      ": fuir.lowering.role_vector_size_mismatch: role_of_id "
                      "has size ",
-                     role_of_id->size(), " but IR has ", ir.indices.size(),
-                     " indices"));
+                     role_of_id->size(), " but IR has ", ir.logical_axes.size(),
+                     " logical axes"));
 }
 
 } // namespace fusion::fuir::validation

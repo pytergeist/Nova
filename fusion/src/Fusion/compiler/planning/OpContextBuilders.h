@@ -184,7 +184,7 @@ make_contraction_context_einsum(const DenseTensor<T> &lhs,
    ctx.lhs.update = fuir::UpdateKind::ReadOnly;
    ctx.rhs.update = fuir::UpdateKind::ReadOnly;
 
-   ctx.out_shape = infer_binary_contraction_out_shape_from_binding(
+   ctx.out_shape = infer_out_shape_from_binding(
        {ctx.lhs, ctx.rhs}, binding);
 
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);

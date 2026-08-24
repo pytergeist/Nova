@@ -58,10 +58,10 @@ std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
 
    validation::validate_index_space_ir(ir, where);
 
-   std::vector<std::size_t> out_shape;
-   out_shape.reserve(ir.out_indices.size());
-
    const std::vector<PhysicalAxis> &out_axes = ir.physical_axes.front();
+
+   std::vector<std::size_t> out_shape;
+   out_shape.reserve(out_axes.size());
 
    for (const PhysicalAxis &axis : out_axes) {
       out_shape.push_back(axis.extent);

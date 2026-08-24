@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-#include "../../kernels/scalar/Serial.hpp"
+#include "Fusion/kernels/scalar/Serial.hpp"
 #include "Fusion/common/Log.hpp"
 #include "Fusion/compiler/planning/OpContextBuilders.h"
 #include "Fusion/execution/cpu/Contraction.h"

@@ -353,47 +353,6 @@ std::vector<OperandUse> build_contraction_operand_uses(
    return operand_uses;
 }
 
-std::uint32_t
-bind_idx_to_ir_by_label(std::unordered_map<Label, std::uint32_t> &label_to_id,
-                        IndexSpaceIR &ir, const Label label) {
-   const auto it = label_to_id.find(label);
-   if (it != label_to_id.end()) {
-      return it->second;
-   }
-
-   const std::uint32_t id = static_cast<std::uint32_t>(ir.indices.size());
-
-   IndexDef idx;
-   idx.extent = 1;
-   idx.label = label;
-   idx.kind = IndexKind::Reduction;
-   idx.axis_of_operand.assign(ir.num_operands, -1);
-
-   ir.indices.push_back(std::move(idx));
-   label_to_id.emplace(label, id);
-
-   return id;
-}
-
-void set_out_labels_from_binding(
-    const std::unordered_map<Label, std::uint32_t> &label_to_id,
-    const OperandLabelBinding &bind, IndexSpaceIR &ir,
-    const std::string_view where) {
-   for (const Label label : bind.out_labels) {
-      const auto it = label_to_id.find(label);
-
-      FUSION_INTERNAL_ASSERT_CODE(
-          it != label_to_id.end(),
-          fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-          ferr::message(
-              where, ": fuir.binding.internal_missing_output_label: label ",
-              label, " passed validation but was not present in label map"));
-
-      const std::uint32_t id = it->second;
-      ir.indices[id].kind = IndexKind::Independent;
-      ir.out_indices.push_back(id);
-   }
-}
 
 } // namespace
 
@@ -420,36 +379,9 @@ build_elementwise_ir_right_aligned(const std::vector<OperandDescription> &descs,
        build_elementwise_operand_uses_right_aligned(physical_axes, logical_axes,
                                                     max_rank);
 
-   ir.indices.resize(max_rank);
-   ir.out_indices.resize(max_rank);
    ir.logical_axes = logical_axes;
    ir.physical_axes = physical_axes;
    ir.operand_use = operand_uses;
-
-   for (std::size_t rank = 0; rank < max_rank; ++rank) {
-      IndexDef idx;
-      idx.label = static_cast<Label>(rank);
-      idx.kind = IndexKind::Independent;
-      idx.extent = 1;
-      idx.axis_of_operand.assign(ir.num_operands, -1);
-
-      for (std::size_t op = 0; op < ir.num_operands; ++op) {
-         const OperandDescription &desc = descs[op];
-         const std::size_t pad = max_rank - desc.ndims();
-
-         if (rank < pad) {
-            idx.axis_of_operand[op] = -1;
-            continue;
-         }
-
-         const std::size_t in_ax = rank - pad;
-         idx.axis_of_operand[op] = static_cast<std::int32_t>(in_ax);
-         idx.extent = broadcast_dim(idx.extent, desc.shape[in_ax]);
-      }
-
-      ir.indices[rank] = std::move(idx);
-      ir.out_indices[rank] = static_cast<std::uint32_t>(rank);
-   }
 
    validation::validate_elementwise_index_space_ir(ir, where);
    return ir;
@@ -463,21 +395,6 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
    validation::validate_descs_itemsize_group(descs, constraint, where);
    validation::validate_reduction_request(descs, axis, keepdim, where);
 
-   const OperandDescription &in_desc = descs.back();
-   const std::size_t in_nd = in_desc.ndims();
-
-   IndexSpaceIR ir;
-   ir.num_operands = descs.size();
-   ir.itemsize = descs.front().itemsize;
-
-   ir.indices.resize(in_nd);
-   ir.out_indices.clear();
-
-   // TODO: keepdim reductions currently exclude the reduced axis from
-   // out_indices. If IndexSpaceIR::out_indices becomes the sole source of
-   // output shape truth, this needs to represent kept size-1 axes explicitly.
-   ir.out_indices.reserve(in_nd > 0 ? in_nd - 1 : 0);
-
    const std::vector<LogicalAxis> logical_axes =
        build_unary_reduction_logical_axes(descs, axis);
    std::vector<std::vector<PhysicalAxis>> const physical_axes =
@@ -486,47 +403,13 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
        build_unary_reduction_operand_uses(physical_axes, logical_axes, axis,
                                           keepdim);
 
+   IndexSpaceIR ir;
+   ir.num_operands = descs.size();
+   ir.itemsize = descs.front().itemsize;
    ir.logical_axes = logical_axes;
    ir.physical_axes = physical_axes;
    ir.operand_use = operand_uses;
-
-   auto out_axis_for_in_axis = [&](const std::size_t in_ax) -> std::int32_t {
-      if (keepdim) {
-         return static_cast<std::int32_t>(in_ax);
-      }
-
-      if (in_ax == axis) {
-         return -1;
-      }
-
-      if (in_ax < axis) {
-         return static_cast<std::int32_t>(in_ax);
-      }
-
-      return static_cast<std::int32_t>(in_ax - 1);
-   };
-
-   for (std::size_t in_ax = 0; in_ax < in_nd; ++in_ax) {
-      IndexDef idx;
-      idx.label = static_cast<Label>(in_ax);
-      idx.extent = in_desc.shape[in_ax];
-      idx.kind = in_ax == axis ? IndexKind::Reduction : IndexKind::Independent;
-      idx.axis_of_operand.assign(ir.num_operands, -1);
-
-      idx.axis_of_operand[0] = out_axis_for_in_axis(in_ax);
-
-      for (std::size_t op = 1; op < ir.num_operands; ++op) {
-         idx.axis_of_operand[op] = static_cast<std::int32_t>(in_ax);
-      }
-
-      ir.indices[in_ax] = std::move(idx);
-
-      if (in_ax != axis) {
-         ir.out_indices.push_back(static_cast<std::uint32_t>(in_ax));
-      }
-   }
    validation::validate_unary_reduction_index_space_ir(ir, where);
-   validation::validate_index_space_ir(ir, where);
    return ir;
 }
 
@@ -557,14 +440,6 @@ build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
    const std::vector<OperandUse> operand_uses =
        build_contraction_operand_uses(physical_axes, logical_axes, bind);
 
-   // for (std::size_t ax = 0; ax < logical_axes.size(); ++ax) {
-   //    std::cerr << "Logical Axis ID: " << ax << " | ";
-   //    LogicalAxis axis = logical_axes[ax];
-   //    std::cerr << "Label: " << axis.label << " | ";
-   //    std::cerr << "Extent: " << axis.extent << " | ";
-   //    std::cerr << "Kind: " << print_kind(axis.kind) << std::endl;
-   // }
-
    IndexSpaceIR ir;
    ir.num_operands = descs.size();
    ir.itemsize = descs.front().itemsize;
@@ -572,31 +447,6 @@ build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
    ir.physical_axes = physical_axes;
    ir.operand_use = operand_uses;
 
-   std::unordered_map<Label, std::uint32_t> label_to_id;
-   label_to_id.reserve(64);
-
-   for (std::size_t op = 0; op < descs.size(); ++op) {
-      const OperandDescription &desc = descs[op];
-      const std::vector<Label> &labels = bind.op_axis_labels[op];
-
-      for (std::size_t ax = 0; ax < labels.size(); ++ax) {
-         const Label label = labels[ax];
-
-         const std::uint32_t id =
-             bind_idx_to_ir_by_label(label_to_id, ir, label);
-
-         IndexDef &idx = ir.indices[id];
-         idx.axis_of_operand[op] = static_cast<std::int32_t>(ax);
-         idx.extent = broadcast_dim(idx.extent, desc.shape[ax]);
-      }
-   }
-
-   ir.out_indices.clear();
-   ir.out_indices.reserve(bind.out_labels.size());
-
-   set_out_labels_from_binding(label_to_id, bind, ir, where);
-
-   validation::validate_index_space_ir(ir, where);
    return ir;
 }
 
