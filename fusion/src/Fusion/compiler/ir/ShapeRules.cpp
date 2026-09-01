@@ -1,8 +1,8 @@
 #include "Fusion/compiler/ir/ShapeRules.h"
 
 #include <cstddef>
-#include <cstdint>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
 #include "Fusion/common/error/Check.h"
@@ -14,7 +14,10 @@
 namespace fusion::fuir {
 
 namespace ferr = fusion::error;
+
 using ferr::ErrorCategory;
+
+using LabelExtentMap = std::unordered_map<Label, std::size_t>;
 
 std::size_t norm_axis(const std::int64_t axis, const std::size_t ndims) {
    constexpr std::string_view where = "norm_axis";
@@ -146,6 +149,39 @@ infer_out_shape_from_binding(const std::vector<OperandDescription> &descs,
       out_shape.push_back(logical_extent);
    }
    return out_shape;
+}
+
+LabelExtentMap resolve_binary_contraction_label_extents(
+    const std::vector<OperandDescription> &inputs,
+    const OperandLabelBinding &binding) {
+   std::unordered_set<Label> output_labels(binding.out_labels.begin(),
+                                           binding.out_labels.end());
+
+   LabelExtentMap extents_by_label;
+   extents_by_label.reserve(inputs[0].ndims() + inputs[1].ndims());
+
+   for (std::size_t input_id = 0; input_id < inputs.size(); ++input_id) {
+      const OperandDescription &input = inputs[input_id];
+      const std::vector<Label> &labels = binding.op_axis_labels[input_id + 1];
+
+      for (std::size_t axis_id = 0; axis_id < labels.size(); ++axis_id) {
+         const Label label = labels[axis_id];
+         const std::size_t physical_extent = input.shape[axis_id];
+
+         const auto [it, inserted] =
+             extents_by_label.emplace(label, physical_extent);
+
+         if (inserted) {
+            continue;
+         }
+
+         if (output_labels.contains(label)) {
+            it->second = std::max(it->second, physical_extent);
+         }
+      }
+   }
+
+   return extents_by_label;
 }
 
 } // namespace fusion::fuir
