@@ -162,7 +162,7 @@ ContractionPlan make_contraction_plan_einsum_out(
    fuir::IndexSpaceIR ir =
        build_ir_from_label_binding(descs, binding, constraint);
 
-   const std::vector<std::size_t> expected = out_shape_from_ir(ir);
+   const std::vector<std::size_t> expected = fuir::shape::out_shape_from_ir(ir);
 
    FUSION_CHECK_CODE(
        descs.front().shape == expected,
@@ -216,7 +216,7 @@ ContractionPlan make_contraction_plan_einsum(
    fuir::IndexSpaceIR ir =
        build_ir_from_label_binding(tmp, binding, constraint);
 
-   const std::vector<std::size_t> out_shape = out_shape_from_ir(ir);
+   const std::vector<std::size_t> out_shape = fuir::shape::out_shape_from_ir(ir);
 
    fuir::OperandDescription out_desc;
    out_desc.shape = out_shape;
@@ -242,7 +242,7 @@ make_reduction_plan(const std::vector<fuir::OperandDescription> &descs,
    const fuir::OperandDescription &in_desc = descs.back();
 
    const std::size_t ax_norm =
-       fuir::norm_axis(static_cast<std::int64_t>(axis), in_desc.ndims());
+       fuir::shape::norm_axis(static_cast<std::int64_t>(axis), in_desc.ndims());
 
    constexpr fuir::OperandGroupConstraint constraint =
        fuir::OperandGroupConstraint::HomogeneousItemSize;
@@ -275,7 +275,7 @@ make_elementwise_plan(const std::vector<fuir::OperandDescription> &descs) {
    ElementwisePlan plan;
    plan.exec =
        make_dense_execution_plan(ExprKind::Elementwise, ir, descs,
-                                 get_output_shape_from_indices(ir), loop_order);
+                                 descs.front().shape, loop_order);
 
    return plan;
 }

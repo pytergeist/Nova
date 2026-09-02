@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Fusion/compiler/ir/IR.h"
+#include "Fusion/compiler/ir/ShapeRules.h"
 #include "Fusion/compiler/planning/OpContext.h"
 #include "Fusion/compiler/planning/OperandDescBuilders.h"
 #include "Fusion/compiler/planning/PlanBuilders.h"
@@ -35,8 +36,7 @@ BinaryEwiseContext make_binary_ewise_context(const DenseTensor<T> &lhs,
 
    ElementwisePlan input_plan = make_elementwise_plan({lhs_desc, rhs_desc});
 
-   ctx.out_shape.assign(input_plan.exec.core.out_shape.begin(),
-                        input_plan.exec.core.out_shape.end());
+   ctx.out_shape = fuir::shape::infer_elementwise_out_shape({lhs_desc, rhs_desc});
 
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
    ctx.out.update = fuir::UpdateKind::Overwrite;
@@ -73,8 +73,7 @@ UnaryEwiseContext make_unary_ewise_context(const DenseTensor<T> &input) {
    ElementwisePlan input_plan = make_elementwise_plan({input_desc});
 
    ctx.fastpath = false;
-   ctx.out_shape.assign(input_plan.exec.core.out_shape.begin(),
-                        input_plan.exec.core.out_shape.end());
+   ctx.out_shape = fuir::shape::infer_elementwise_out_shape({input_desc});
 
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
    ctx.out.update = fuir::UpdateKind::Overwrite;
@@ -184,7 +183,7 @@ make_contraction_context_einsum(const DenseTensor<T> &lhs,
    ctx.lhs.update = fuir::UpdateKind::ReadOnly;
    ctx.rhs.update = fuir::UpdateKind::ReadOnly;
 
-   ctx.out_shape = infer_out_shape_from_binding(
+   ctx.out_shape = fuir::shape::infer_binary_contraction_out_shape_from_binding(
        {ctx.lhs, ctx.rhs}, binding);
 
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
