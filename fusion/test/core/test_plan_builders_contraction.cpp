@@ -40,7 +40,7 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_returns_matmul_shape) {
    };
 
    const std::vector<std::size_t> out_shape =
-       fusion::fuir::infer_out_shape_from_binding({a, b}, binding);
+       fusion::fuir::shape::infer_binary_contraction_out_shape_from_binding({a, b}, binding);
 
    EXPECT_EQ(out_shape, (std::vector<std::size_t>{2, 3}));
 }
@@ -368,7 +368,7 @@ TEST(TensorPlanContractionTest,
    };
    // cannot infer out shape from input operand shapes
    EXPECT_THROW(
-       fusion::fuir::infer_out_shape_from_binding({a, b}, binding),
+       fusion::fuir::shape::infer_binary_contraction_out_shape_from_binding({a, b}, binding),
        std::runtime_error);
 }
 
@@ -406,7 +406,7 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
    };
 
    EXPECT_THROW(
-       fusion::fuir::infer_out_shape_from_binding({a, b}, binding),
+       fusion::fuir::shape::infer_binary_contraction_out_shape_from_binding({a, b}, binding),
        std::runtime_error);
 }
 
@@ -445,7 +445,7 @@ TEST(TensorPlanContractionTest,
    };
 
    EXPECT_THROW(
-       fusion::fuir::infer_out_shape_from_binding({a, b}, binding),
+       fusion::fuir::shape::infer_binary_contraction_out_shape_from_binding({a, b}, binding),
        std::runtime_error);
 }
 
@@ -483,6 +483,6 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 9},
    };
    EXPECT_THROW(
-       fusion::fuir::infer_out_shape_from_binding({a, b}, binding),
+       fusion::fuir::shape::infer_binary_contraction_out_shape_from_binding({a, b}, binding),
        std::runtime_error);
 }

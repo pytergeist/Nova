@@ -63,7 +63,7 @@ build_elementwise_logical_axes(const std::vector<OperandDescription> &descs,
          if (rank < pad) {
             continue;
          }
-         extent = broadcast_dim(extent, desc.shape[rank - pad]);
+         extent = shape::broadcast_dim(extent, desc.shape[rank - pad]);
       }
       logical_axes.emplace_back(LogicalAxis{
           .label = rank, .extent = extent, .kind = IndexKind::Independent});
@@ -93,6 +93,7 @@ struct AxisOccurrence {
    PhysicalAxisId axis_id{0};
 };
 
+// TODO: Move type defs to top of/or different file
 using LabelOccurrences = std::unordered_map<Label, std::vector<AxisOccurrence>>;
 
 LabelOccurrences build_label_occurrences(const OperandLabelBinding &binding) {
@@ -133,7 +134,7 @@ build_contraction_logical_axes(const std::vector<OperandDescription> &descs,
          const PhysicalAxisId physical_axis_id = axis_occurrence.axis_id;
          const std::size_t physical_extent =
              descs.at(operand_id).shape[physical_axis_id];
-         extent = broadcast_dim(extent, physical_extent);
+         extent = shape::broadcast_dim(extent, physical_extent);
       }
       logical_axes.emplace_back(LogicalAxis{
           .label = label, .extent = extent, .kind = IndexKind::Independent});
