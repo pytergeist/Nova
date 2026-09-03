@@ -1,10 +1,10 @@
 #include "Fusion/compiler/ir/ShapeRules.h"
 
 #include <cstddef>
+#include <iostream>
 #include <string_view>
 #include <unordered_set>
 #include <vector>
-#include <iostream>
 
 #include "Fusion/common/error/Check.h"
 #include "Fusion/compiler/ir/Builders.h"
@@ -17,8 +17,6 @@ namespace fusion::fuir::shape {
 namespace ferr = error;
 
 using ferr::ErrorCategory;
-
-using LabelExtentMap = std::unordered_map<Label, std::size_t>;
 
 std::size_t norm_axis(const std::int64_t axis, const std::size_t ndims) {
    constexpr std::string_view where = "norm_axis";
@@ -55,15 +53,21 @@ std::size_t broadcast_dim(const std::size_t lhs, const std::size_t rhs) {
    return lhs;
 }
 
-
-LabelExtentMap resolve_binary_contraction_label_extents(
-    const std::vector<OperandDescription> &inputs,
-    const OperandLabelBinding &binding) {
+LabelExtentMap
+resolve_contraction_label_extents(const std::vector<OperandDescription> &inputs,
+                                  const OperandLabelBinding &binding) {
    const std::unordered_set<Label> output_labels(binding.out_labels.begin(),
-                                           binding.out_labels.end());
+                                                 binding.out_labels.end());
 
    LabelExtentMap extents_by_label;
-   extents_by_label.reserve(inputs[0].ndims() + inputs[1].ndims());
+
+   std::size_t total_axis_count = 0;
+
+   for (const OperandDescription &input : inputs) {
+      total_axis_count += input.ndims();
+   }
+
+   extents_by_label.reserve(total_axis_count);
 
    for (std::size_t input_id = 0; input_id < inputs.size(); ++input_id) {
       const OperandDescription &input = inputs[input_id];
@@ -89,19 +93,6 @@ LabelExtentMap resolve_binary_contraction_label_extents(
    return extents_by_label;
 }
 
-std::string tt_shape_str(std::vector<std::size_t> shape_) {
-   std::ostringstream oss;
-   oss << '(';
-   for (size_t i = 0; i < shape_.size(); ++i) {
-      oss << shape_[i];
-      if (i + 1 < shape_.size()) {
-         oss << ',';
-      }
-   }
-   oss << ')';
-   return oss.str();
-}
-
 std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
    // TODO: this is not an inference - therefore this does not belong in
    // shaperules
@@ -120,9 +111,8 @@ std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
    return out_shape;
 }
 
-
-std::vector<std::size_t> infer_elementwise_out_shape(
-    const std::vector<OperandDescription> &inputs) {
+std::vector<std::size_t>
+infer_elementwise_out_shape(const std::vector<OperandDescription> &inputs) {
    std::size_t max_rank = 0;
 
    for (const OperandDescription &input : inputs) {
@@ -134,51 +124,48 @@ std::vector<std::size_t> infer_elementwise_out_shape(
    for (const OperandDescription &input : inputs) {
       const std::size_t rank_padding = max_rank - input.ndims();
 
-      for (std::size_t physical_axis_id = 0;
-           physical_axis_id < input.ndims(); ++physical_axis_id) {
-         const std::size_t logical_axis_id =
-             rank_padding + physical_axis_id;
+      for (std::size_t physical_axis_id = 0; physical_axis_id < input.ndims();
+           ++physical_axis_id) {
+         const std::size_t logical_axis_id = rank_padding + physical_axis_id;
 
          out_shape.at(logical_axis_id) = broadcast_dim(
              out_shape.at(logical_axis_id), input.shape.at(physical_axis_id));
-           }
+      }
    }
 
    return out_shape;
 }
 
-
-
-
-std::vector<std::size_t>
-infer_binary_contraction_out_shape_from_binding(const std::vector<OperandDescription> &descs,
-                             const OperandLabelBinding &binding) {
+std::vector<std::size_t> infer_binary_contraction_out_shape_from_binding(
+    const std::vector<OperandDescription> &inputs,
+    const OperandLabelBinding &binding) {
    constexpr std::string_view where = "infer_out_shape_from_binding";
 
    FUSION_CHECK_CODE(
-       descs.size() == 2,
+       inputs.size() == 2,
        fuir_error(FuirError::DescriptorCountMismatch,
                   ErrorCategory::InvalidArgument),
        ferr::message(where,
                      ": fuir.shape.invalid_input_count: expected inputs = "
                      "{A, B}, got ",
-                     descs.size()));
+                     inputs.size()));
 
    constexpr OperandGroupConstraint constraint =
        OperandGroupConstraint::HomogeneousItemSize;
 
-   validation::validate_descs_itemsize_group(descs, constraint, where);
+   validation::validate_descs_itemsize_group(inputs, constraint, where);
 
    std::vector<std::size_t> out_shape;
    out_shape.reserve(binding.out_labels.size());
 
-   const LabelExtentMap label_extents = resolve_binary_contraction_label_extents(descs, binding);
+   const LabelExtentMap label_extents =
+       resolve_contraction_label_extents(inputs, binding);
 
-   for (const Label& label : binding.out_labels) {
+   for (const Label &label : binding.out_labels) {
       const std::size_t label_extent = label_extents.at(label);
       out_shape.push_back(label_extent);
    }
    return out_shape;
 }
 
-} // namespace fusion::fuir
+} // namespace fusion::fuir::shape

@@ -88,85 +88,32 @@ build_unary_reduction_logical_axes(const std::vector<OperandDescription> &descs,
    return logical_axes;
 }
 
-struct AxisOccurrence {
-   OperandId operand_id{0};
-   PhysicalAxisId axis_id{0};
-};
-
-// TODO: Move type defs to top of/or different file
-using LabelOccurrences = std::unordered_map<Label, std::vector<AxisOccurrence>>;
-
-LabelOccurrences build_label_occurrences(const OperandLabelBinding &binding) {
-   LabelOccurrences label_occurrences;
-   for (std::size_t op = 0; op < binding.op_axis_labels.size(); ++op) {
-      const std::vector<Label> &op_labels = binding.op_axis_labels[op];
-
-      for (std::size_t ax = 0; ax < op_labels.size(); ++ax) {
-         label_occurrences[op_labels[ax]].push_back(AxisOccurrence{
-             .operand_id = static_cast<OperandId>(op),
-             .axis_id = static_cast<PhysicalAxisId>(ax),
-         });
-      }
-   }
-   return label_occurrences;
-}
-
 std::vector<LogicalAxis>
-build_contraction_logical_axes(const std::vector<OperandDescription> &descs,
+build_contraction_logical_axes(const shape::LabelExtentMap &label_extent_map,
                                const OperandLabelBinding &binding) {
 
-   LabelOccurrences occurrences = build_label_occurrences(binding);
-
    std::vector<LogicalAxis> logical_axes;
+   std::unordered_set<Label> labels_seen;
 
-   std::unordered_set<Label> label_set;
-
-   for (std::size_t orank = 0; orank < binding.out_labels.size(); ++orank) {
-      const Label &label = binding.out_labels[orank];
-      const std::vector<AxisOccurrence> axis_occurrences =
-          occurrences.at(label);
-      if (!label_set.insert(label).second) {
+   for (const Label label : binding.out_labels) {
+      if (!labels_seen.insert(label).second) {
          continue;
       }
-      std::size_t extent = 1;
-      for (const AxisOccurrence &axis_occurrence : axis_occurrences) {
-         const PhysicalAxisId operand_id = axis_occurrence.operand_id;
-         const PhysicalAxisId physical_axis_id = axis_occurrence.axis_id;
-         const std::size_t physical_extent =
-             descs.at(operand_id).shape[physical_axis_id];
-         extent = shape::broadcast_dim(extent, physical_extent);
-      }
-      logical_axes.emplace_back(LogicalAxis{
-          .label = label, .extent = extent, .kind = IndexKind::Independent});
+      logical_axes.emplace_back(
+          LogicalAxis{.label = label,
+                      .extent = label_extent_map.at(label),
+                      .kind = IndexKind::Independent});
    }
 
    for (std::size_t op = 1; op < binding.op_axis_labels.size(); ++op) {
-      const std::vector<Label> &op_labels = binding.op_axis_labels[op];
-
-      for (const Label &label : op_labels) {
-         if (std::ranges::find(binding.out_labels, label) !=
-             binding.out_labels.end()) {
+      for (const Label label : binding.op_axis_labels[op]) {
+         if (!labels_seen.insert(label).second) {
             continue;
          }
-         const auto it = label_set.insert(label);
-         if (!it.second) {
-            continue;
-         }
-
-         const std::vector<AxisOccurrence> axis_occurrences =
-             occurrences.at(label);
-         const AxisOccurrence &first = axis_occurrences.front();
-         const std::size_t extent =
-             descs.at(first.operand_id).shape[first.axis_id];
-         for (const AxisOccurrence &axis_occurrence : axis_occurrences) {
-            const std::size_t cextent = descs.at(axis_occurrence.operand_id)
-                                            .shape[axis_occurrence.axis_id];
-            if (extent != cextent) {
-               throw std::runtime_error("test");
-            }
-         }
-         logical_axes.emplace_back(LogicalAxis{
-             .label = label, .extent = extent, .kind = IndexKind::Reduction});
+         logical_axes.emplace_back(
+             LogicalAxis{.label = label,
+                         .extent = label_extent_map.at(label),
+                         .kind = IndexKind::Reduction});
       }
    }
    return logical_axes;
@@ -354,7 +301,6 @@ std::vector<OperandUse> build_contraction_operand_uses(
    return operand_uses;
 }
 
-
 } // namespace
 
 IndexSpaceIR
@@ -426,20 +372,24 @@ std::string print_kind(const IndexKind kind) {
 
 IndexSpaceIR
 build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
-                            const OperandLabelBinding &bind,
+                            const OperandLabelBinding &binding,
                             const OperandGroupConstraint constraint) {
    constexpr std::string_view where = "build_ir_from_label_binding";
 
    validation::validate_descs_itemsize_group(descs, constraint, where);
-   validation::validate_operand_label_binding(descs, bind, where);
+   validation::validate_operand_label_binding(descs, binding, where);
+
+   const std::vector<OperandDescription> inputs(descs.begin() + 1, descs.end());
+   const shape::LabelExtentMap label_extent_map =
+       shape::resolve_contraction_label_extents(inputs, binding);
 
    const std::vector<LogicalAxis> logical_axes =
-       build_contraction_logical_axes(descs, bind);
+       build_contraction_logical_axes(label_extent_map, binding);
    const std::vector<std::vector<PhysicalAxis>> physical_axes =
        build_operand_physical_axes(descs);
 
    const std::vector<OperandUse> operand_uses =
-       build_contraction_operand_uses(physical_axes, logical_axes, bind);
+       build_contraction_operand_uses(physical_axes, logical_axes, binding);
 
    IndexSpaceIR ir;
    ir.num_operands = descs.size();
