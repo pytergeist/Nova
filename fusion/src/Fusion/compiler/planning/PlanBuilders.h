@@ -15,11 +15,7 @@ ReductionPlan
 make_reduction_plan(const std::vector<fuir::OperandDescription> &desc,
                     const std::size_t axis, const bool keepdim);
 
-ContractionPlan make_contraction_plan_einsum(
-    const std::vector<fuir::OperandDescription> &inputs,
-    const fuir::OperandLabelBinding &binding);
-
-ContractionPlan make_contraction_plan_einsum_out(
+ContractionPlan make_contraction_plan_from_binding(
     const std::vector<fuir::OperandDescription> &descs,
     const fuir::OperandLabelBinding &binding);
 

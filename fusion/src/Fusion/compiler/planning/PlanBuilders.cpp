@@ -2,10 +2,10 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <numeric>
 #include <optional>
 #include <ranges>
 #include <vector>
-#include <numeric>
 
 #include "Fusion/common/error/Check.h"
 #include "Fusion/compiler/planning/PlanErrors.h"
@@ -27,20 +27,6 @@ make_kernel_hints(const std::vector<fuir::OperandDescription> &descs) {
           return desc.layout == core::LayoutKind::Dense;
        });
    return hints;
-}
-
-std::vector<std::size_t>
-get_output_shape_from_indices(const fuir::IndexSpaceIR &ir) {
-   const std::vector<fuir::PhysicalAxis> out_axes = ir.physical_axes.front();
-   std::vector<std::size_t> out_shape;
-   out_shape.resize(out_axes.size());
-
-   for (std::size_t i = 0; i < out_axes.size(); ++i) {
-      const std::size_t physical_extent = out_axes[i].extent;
-      out_shape[i] = physical_extent;
-   }
-
-   return out_shape;
 }
 
 PlanCore make_plan_core(const ExprKind expr, const TraversalKind traversal,
@@ -130,8 +116,9 @@ make_reduction_loop_order(const fuir::IndexSpaceIR &ir) {
 //
 //    std::vector<std::uint32_t> loop_order;
 //    loop_order.reserve(outer_order.size() + reduce_order.size());
-//    loop_order.insert(loop_order.end(), outer_order.begin(), outer_order.end());
-//    loop_order.insert(loop_order.end(), reduce_order.begin(),
+//    loop_order.insert(loop_order.end(), outer_order.begin(),
+//    outer_order.end()); loop_order.insert(loop_order.end(),
+//    reduce_order.begin(),
 //                      reduce_order.end());
 //
 //    return loop_order;
@@ -146,7 +133,7 @@ make_logical_axis_order(const std::vector<fuir::LogicalAxis> &logical_axes) {
 
 } // namespace
 
-ContractionPlan make_contraction_plan_einsum_out(
+ContractionPlan make_contraction_plan_from_binding(
     const std::vector<fuir::OperandDescription> &descs,
     const fuir::OperandLabelBinding &binding) {
    FUSION_CHECK_CODE(descs.size() == 3,
@@ -159,10 +146,15 @@ ContractionPlan make_contraction_plan_einsum_out(
    constexpr fuir::OperandGroupConstraint constraint =
        fuir::OperandGroupConstraint::HomogeneousItemSize;
 
+   const std::vector<fuir::OperandDescription> inputs(descs.begin() + 1,
+                                                      descs.end());
+
+   const std::vector<std::size_t> expected =
+       fuir::shape::infer_binary_contraction_out_shape_from_binding(inputs,
+                                                                    binding);
+
    fuir::IndexSpaceIR ir =
        build_ir_from_label_binding(descs, binding, constraint);
-
-   const std::vector<std::size_t> expected = fuir::shape::out_shape_from_ir(ir);
 
    FUSION_CHECK_CODE(
        descs.front().shape == expected,
@@ -179,9 +171,9 @@ ContractionPlan make_contraction_plan_einsum_out(
        compute_roles_for_gemm_like(ir, binding);
 
    ContractionPlan plan;
-   plan.exec = make_dense_execution_plan(ExprKind::Contraction, ir, descs,
-                                         get_output_shape_from_indices(ir),
-                                         loop_order, &role_of_id);
+   plan.exec =
+       make_dense_execution_plan(ExprKind::Contraction, ir, descs,
+                                 descs.front().shape, loop_order, &role_of_id);
 
    if (std::optional<GemmLikeDesc> gemm =
            analysis::analyse_gemm_like_contraction(plan.exec)) {
@@ -190,43 +182,6 @@ ContractionPlan make_contraction_plan_einsum_out(
    }
 
    return plan;
-}
-
-ContractionPlan make_contraction_plan_einsum(
-    const std::vector<fuir::OperandDescription> &inputs,
-    const fuir::OperandLabelBinding &binding) {
-   FUSION_CHECK_CODE(inputs.size() == 2,
-                     planning_error(PlanningError::InvalidContraction,
-                                    ErrorCategory::InvalidArgument),
-                     ferr::message("planning.contraction.invalid_input_count: "
-                                   "expected inputs = {A, B}, got ",
-                                   inputs.size()));
-
-   constexpr fuir::OperandGroupConstraint constraint =
-       fuir::OperandGroupConstraint::HomogeneousItemSize;
-
-   fuir::OperandDescription dummy_out;
-   dummy_out.shape.assign(binding.out_labels.size(), 1);
-   dummy_out.strides.assign(dummy_out.ndims(), 0);
-   dummy_out.itemsize = inputs.front().itemsize;
-
-   std::vector<fuir::OperandDescription> tmp = {dummy_out, inputs.front(),
-                                                inputs.back()};
-
-   fuir::IndexSpaceIR ir =
-       build_ir_from_label_binding(tmp, binding, constraint);
-
-   const std::vector<std::size_t> out_shape = fuir::shape::out_shape_from_ir(ir);
-
-   fuir::OperandDescription out_desc;
-   out_desc.shape = out_shape;
-   out_desc.strides.assign(out_desc.ndims(), 0);
-   out_desc.itemsize = inputs.front().itemsize;
-
-   std::vector<fuir::OperandDescription> descs = {out_desc, inputs.front(),
-                                                  inputs.back()};
-
-   return make_contraction_plan_einsum_out(descs, binding);
 }
 
 ReductionPlan
@@ -250,8 +205,7 @@ make_reduction_plan(const std::vector<fuir::OperandDescription> &descs,
    const fuir::IndexSpaceIR ir =
        build_reduction_ir(descs, ax_norm, keepdim, constraint);
 
-   const std::vector<std::uint32_t> loop_order =
-       make_reduction_loop_order(ir);
+   const std::vector<std::uint32_t> loop_order = make_reduction_loop_order(ir);
 
    ReductionPlan plan;
    plan.exec = make_dense_execution_plan(ExprKind::Reduction, ir, descs,
@@ -270,12 +224,12 @@ make_elementwise_plan(const std::vector<fuir::OperandDescription> &descs) {
    const fuir::IndexSpaceIR ir =
        build_elementwise_ir_right_aligned(descs, constraint);
 
-   const std::vector<std::uint32_t> &loop_order = make_logical_axis_order(ir.logical_axes);
+   const std::vector<std::uint32_t> &loop_order =
+       make_logical_axis_order(ir.logical_axes);
 
    ElementwisePlan plan;
-   plan.exec =
-       make_dense_execution_plan(ExprKind::Elementwise, ir, descs,
-                                 descs.front().shape, loop_order);
+   plan.exec = make_dense_execution_plan(ExprKind::Elementwise, ir, descs,
+                                         descs.front().shape, loop_order);
 
    return plan;
 }

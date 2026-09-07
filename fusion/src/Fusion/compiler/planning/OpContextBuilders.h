@@ -190,7 +190,7 @@ make_contraction_context_einsum(const DenseTensor<T> &lhs,
    ctx.out.update = fuir::UpdateKind::Accumulate;
 
    ctx.plan =
-       make_contraction_plan_einsum_out({ctx.out, ctx.lhs, ctx.rhs}, binding);
+       make_contraction_plan_from_binding({ctx.out, ctx.lhs, ctx.rhs}, binding);
 
    ctx.fastpath = lhs.is_contiguous() && rhs.is_contiguous();
    ctx.fast_len = 0;
