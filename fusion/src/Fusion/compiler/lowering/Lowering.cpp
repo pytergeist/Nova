@@ -7,34 +7,23 @@
 #include <utility>
 #include <vector>
 
+#include "Fusion/common/error/Check.h"
+#include "Fusion/compiler/ir/IRErrors.h"
 #include "Fusion/compiler/ir/IRValidation.h"
 
 namespace fusion::fuir {
 
-// std::int64_t stride_bytes_for_binding(const OperandDescription &desc,
-//                                       const std::int32_t axis,
-//                                       const std::size_t index_extent,
-//                                       const std::size_t itemsize) {
-//    if (axis < 0) {
-//       return 0;
-//    }
-//
-//    const std::size_t ax = static_cast<std::size_t>(axis);
-//    const std::size_t dim_in = desc.shape[ax];
-//
-//    if (dim_in == 1 && index_extent > 1) {
-//       return 0;
-//    }
-//
-//    return static_cast<std::int64_t>(desc.strides[ax]) *
-//           static_cast<std::int64_t>(itemsize);
-// }
+namespace ferr = fusion::error;
+using ferr::ErrorCategory;
 
-std::int64_t stride_bytes_for_logical_axis(
-    const OperandDescription &desc,
-    const OperandUse &operand_use,
-    const LogicalAxisId logical_axis_id,
-    const std::size_t itemsize) {
+namespace {
+std::int64_t stride_bytes_for_logical_axis(const OperandDescription &desc,
+                                           const OperandUse &operand_use,
+                                           const LogicalAxisId logical_axis_id,
+                                           const std::size_t itemsize) {
+
+   constexpr std::string_view where = "stride_bytes_for_logical_axis";
+
    for (const AxisUse &axis_use : operand_use.axis_use) {
       if (axis_use.logical_axis_id != logical_axis_id) {
          continue;
@@ -49,29 +38,26 @@ std::int64_t stride_bytes_for_logical_axis(
       case AxisAccess::Broadcast:
          return 0;
 
-      // case AxisAccess::Indexed:
-      //    FUSION_INTERNAL_ASSERT_CODE(
-      //        false,
-      //        fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-      //        ferr::message(
-      //            where,
-      //            ": fuir.lowering.indexed_axis_use_in_affine_lowering: "
-      //            "operand ",
-      //            operand_use.operand_id, " maps logical_axis_id ",
-      //            logical_axis_id,
-      //            " using indexed access, which cannot be represented by an "
-      //            "affine byte stride"));
-      //    return 0;
+      case AxisAccess::Indexed:
+         FUSION_CHECK_UNSUPPORTED(
+             false,
+             ferr::message(
+                 where,
+                 ": fuir.lowering.indexed_axis_use_unsupported: operand ",
+                 operand_use.operand_id, " maps logical_axis_id ", logical_axis_id,
+                 " using indexed access, which cannot be represented by an affine "
+                 "byte stride"));
+         return 0; // unreachable return for control flow analysis (TODO: make macro noreturn?)
       }
    }
 
    return 0;
 }
-
+} // namespace
 std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
                const std::vector<OperandDescription> &descs,
-               const std::vector<std::uint32_t> &loop_order) {
+               const std::vector<LogicalAxisId> &loop_order) {
    constexpr std::string_view where = "lower_to_loops";
 
    validation::validate_ir_matches_descs(ir, descs, where);
@@ -80,7 +66,7 @@ lower_to_loops(const IndexSpaceIR &ir,
    std::vector<LoopDim> loops;
    loops.reserve(loop_order.size());
 
-   for (const std::uint32_t id : loop_order) {
+   for (const LogicalAxisId id : loop_order) {
       const LogicalAxis &axis = ir.logical_axes.at(id);
 
       LoopDim ld;
@@ -97,7 +83,7 @@ lower_to_loops(const IndexSpaceIR &ir,
 std::vector<LoopDim>
 lower_to_loops(const IndexSpaceIR &ir,
                const std::vector<OperandDescription> &descs,
-               const std::vector<std::uint32_t> &loop_order,
+               const std::vector<LogicalAxisId> &loop_order,
                const std::vector<IndexRole> *role_of_id) {
    constexpr std::string_view where = "lower_to_loops";
 
@@ -108,7 +94,7 @@ lower_to_loops(const IndexSpaceIR &ir,
    std::vector<LoopDim> loops;
    loops.reserve(loop_order.size());
 
-   for (const std::uint32_t id : loop_order) {
+   for (const LogicalAxisId id : loop_order) {
       const LogicalAxis &axis = ir.logical_axes.at(id);
 
       LoopDim ld;
@@ -125,7 +111,7 @@ lower_to_loops(const IndexSpaceIR &ir,
 std::vector<OperandAccess>
 lower_operand_access(const IndexSpaceIR &ir,
                      const std::vector<OperandDescription> &descs,
-                     const std::vector<std::uint32_t> &loop_order) {
+                     const std::vector<LogicalAxisId> &loop_order) {
    constexpr std::string_view where = "lower_operand_access";
 
    validation::validate_ir_matches_descs(ir, descs, where);
@@ -139,24 +125,18 @@ lower_operand_access(const IndexSpaceIR &ir,
       AffineAccess af;
 
       oa.operand_id = op;
-      oa.layout = descs[op].layout;
-      oa.storage = descs[op].storage;
-      oa.update = descs[op].update;
-      oa.access = descs[op].access;
+      oa.layout = descs.at(op).layout;
+      oa.storage = descs.at(op).storage;
+      oa.update = descs.at(op).update;
+      oa.access = descs.at(op).access;
 
       af.byte_stride_per_loop.resize(loop_order.size());
 
       for (std::size_t pos = 0; pos < loop_order.size(); ++pos) {
-         const std::uint32_t index_id = loop_order[pos];
-         const LogicalAxis &axis = ir.logical_axes.at(index_id);
+         const LogicalAxisId logical_index_id = loop_order[pos];
 
-         if (op == 0 && axis.kind == IndexKind::Reduction) {
-            af.byte_stride_per_loop[pos] = 0;
-            continue;
-         }
-
-         af.byte_stride_per_loop[pos] = stride_bytes_for_logical_axis(
-             descs.at(op), ir.operand_use.at(op), index_id, ir.itemsize);
+         af.byte_stride_per_loop.at(pos) = stride_bytes_for_logical_axis(
+             descs.at(op), ir.operand_use.at(op), logical_index_id, ir.itemsize);
       }
 
       oa.affine = std::move(af);
@@ -228,8 +208,7 @@ compute_roles_for_gemm_like(const IndexSpaceIR &ir,
 
    std::vector<IndexRole> role_of_id(ir.logical_axes.size(), IndexRole::Batch);
 
-   for (std::uint32_t id = 0;
-        id < static_cast<std::uint32_t>(ir.logical_axes.size()); ++id) {
+   for (LogicalAxisId id = 0; id < ir.logical_axes.size(); ++id) {
       const Label label = ir.logical_axes[id].label;
 
       if (const auto it = role_of_label.find(label);

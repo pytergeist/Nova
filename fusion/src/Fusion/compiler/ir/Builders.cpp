@@ -13,7 +13,6 @@
 #include "Fusion/compiler/ir/IRValidation.h"
 #include "Fusion/compiler/ir/ShapeRules.h"
 
-#include <iostream>
 
 namespace fusion::fuir {
 
@@ -21,35 +20,6 @@ namespace ferr = fusion::error;
 using ferr::ErrorCategory;
 
 namespace {
-
-// calculate max_ndm
-
-// Loop num operands:
-// calculate logical indices/index kind from max ndim/padding
-// create logical axis/set index kind
-
-// set OperandId
-// outputId = 0
-// +1 A
-// +2 B
-
-// per OperandId:
-// Set PhysicalAxisId
-// i = 0
-// j = i + 1
-// k = j + 1
-// ...
-
-// Set extent
-// extent = operand.shape[OperandAxis]
-
-// Set AxisAccess
-// Direct: if physical coord = logical coord | base + l * stride
-// Indexed: if physical coord = I[logical coord] | base + I[l] * stride
-// Broadcast: if physical coord = 0 | base + I[l] * 0
-
-// create Axis Use
-// create OperandUse
 
 std::vector<LogicalAxis>
 build_elementwise_logical_axes(const std::vector<OperandDescription> &descs,
@@ -93,7 +63,10 @@ build_contraction_logical_axes(const shape::LabelExtentMap &label_extent_map,
                                const OperandLabelBinding &binding) {
 
    std::vector<LogicalAxis> logical_axes;
+   logical_axes.reserve(label_extent_map.size());
+
    std::unordered_set<Label> labels_seen;
+   labels_seen.reserve(label_extent_map.size());
 
    for (const Label label : binding.out_labels) {
       if (!labels_seen.insert(label).second) {
@@ -358,16 +331,6 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
    ir.operand_use = operand_uses;
    validation::validate_unary_reduction_index_space_ir(ir, where);
    return ir;
-}
-
-std::string print_kind(const IndexKind kind) {
-   if (kind == IndexKind::Independent) {
-      return std::string("Independent");
-   }
-   if (kind == IndexKind::Reduction) {
-      return std::string("Reduction");
-   }
-   return std::string("Unknown");
 }
 
 IndexSpaceIR
