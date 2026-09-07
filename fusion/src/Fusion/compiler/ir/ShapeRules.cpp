@@ -1,13 +1,13 @@
 #include "Fusion/compiler/ir/ShapeRules.h"
 
 #include <cstddef>
-#include <iostream>
+#include <cstdint>
+#include <algorithm>
 #include <string_view>
 #include <unordered_set>
 #include <vector>
 
 #include "Fusion/common/error/Check.h"
-#include "Fusion/compiler/ir/Builders.h"
 #include "Fusion/compiler/ir/IRErrors.h"
 #include "Fusion/compiler/ir/IRValidation.h"
 #include "Fusion/compiler/ir/OperandConstraints.h"
@@ -93,24 +93,6 @@ resolve_contraction_label_extents(const std::vector<OperandDescription> &inputs,
    return extents_by_label;
 }
 
-std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir) {
-   // TODO: this is not an inference - therefore this does not belong in
-   // shaperules
-   constexpr std::string_view where = "out_shape_from_ir";
-
-   validation::validate_index_space_ir(ir, where);
-
-   const std::vector<PhysicalAxis> &out_axes = ir.physical_axes.front();
-
-   std::vector<std::size_t> out_shape;
-   out_shape.reserve(out_axes.size());
-
-   for (const PhysicalAxis &axis : out_axes) {
-      out_shape.push_back(axis.extent);
-   }
-   return out_shape;
-}
-
 std::vector<std::size_t>
 infer_elementwise_out_shape(const std::vector<OperandDescription> &inputs) {
    std::size_t max_rank = 0;
@@ -139,7 +121,7 @@ infer_elementwise_out_shape(const std::vector<OperandDescription> &inputs) {
 std::vector<std::size_t> infer_binary_contraction_out_shape_from_binding(
     const std::vector<OperandDescription> &inputs,
     const OperandLabelBinding &binding) {
-   constexpr std::string_view where = "infer_out_shape_from_binding";
+   constexpr std::string_view where = "infer_binary_contraction_out_shape_from_binding";
 
    FUSION_CHECK_CODE(
        inputs.size() == 2,

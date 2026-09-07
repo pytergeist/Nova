@@ -20,8 +20,6 @@ LabelExtentMap
 resolve_contraction_label_extents(const std::vector<OperandDescription> &inputs,
                                   const OperandLabelBinding &binding);
 
-std::vector<std::size_t> out_shape_from_ir(const IndexSpaceIR &ir);
-
 std::vector<std::size_t>
 infer_elementwise_out_shape(const std::vector<OperandDescription> &inputs);
 
