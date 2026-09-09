@@ -10,7 +10,6 @@
 // and into lowering
 
 namespace fusion::fuir::validation {
-
 namespace ferr = fusion::error;
 using ferr::ErrorCategory;
 
@@ -57,7 +56,7 @@ void validate_physical_axis_ids(const PhysicalAxesByOperand &physical_axes,
    }
 }
 
-static void validate_physical_axis_extents(const PhysicalAxesByOperand &physical_axes,
+void validate_physical_axis_extents(const PhysicalAxesByOperand &physical_axes,
                                     std::string_view where) {
    for (const std::vector<PhysicalAxis> &axes_by_operand : physical_axes) {
       for (const PhysicalAxis &physical_ax : axes_by_operand) {
@@ -127,6 +126,31 @@ void validate_axis_use_logical_axis_references(
                  axis_use.logical_axis_id, ", but that operation has ",
                  logical_axes.size(), " logical axes"));
       }
+   }
+}
+
+void validate_unique_logical_axis_labels(
+    const std::vector<LogicalAxis> &logical_axes,
+    const std::string_view where) {
+   std::unordered_map<Label, LogicalAxisId> first_axis_by_label;
+   first_axis_by_label.reserve(logical_axes.size());
+
+   for (std::size_t position = 0; position < logical_axes.size(); ++position) {
+      const LogicalAxisId logical_axis_id =
+          static_cast<LogicalAxisId>(position);
+      const Label label = logical_axes[position].label;
+
+      const auto [it, inserted] =
+          first_axis_by_label.emplace(label, logical_axis_id);
+
+      FUSION_CHECK_CODE(
+          inserted,
+          fuir_error(FuirError::DuplicateLogicalAxisLabel,
+                     ErrorCategory::InvalidArgument),
+          ferr::message(where,
+                        ": fuir.logical_axis.duplicate_label: logical_axis_id ",
+                        logical_axis_id, " duplicates label ", label,
+                        " first used by logical_axis_id ", it->second));
    }
 }
 
@@ -291,45 +315,39 @@ void validate_operand_use_operand_ids(
    }
 }
 
-
 void validate_physical_axis_collection_count(
-    const PhysicalAxesByOperand &physical_axes,
-    const std::size_t num_operands,
+    const PhysicalAxesByOperand &physical_axes, const std::size_t num_operands,
     const std::string_view where) {
    FUSION_CHECK_CODE(
        physical_axes.size() == num_operands,
        fuir_error(FuirError::PhysicalAxisCollectionCountMismatch,
                   ErrorCategory::InvalidArgument),
-       ferr::message(
-           where,
-           ": fuir.physical_axes.operand_count_mismatch: expected ",
-           num_operands, " physical-axis collections, but found ",
-           physical_axes.size()));
+       ferr::message(where,
+                     ": fuir.physical_axes.operand_count_mismatch: expected ",
+                     num_operands, " physical-axis collections, but found ",
+                     physical_axes.size()));
 }
 
-void validate_logical_axis_extents(
-    const std::vector<LogicalAxis> &logical_axes,
-    const std::string_view where) {
-   for (std::size_t logical_axis_id = 0;
-        logical_axis_id < logical_axes.size(); ++logical_axis_id) {
+void validate_logical_axis_extents(const std::vector<LogicalAxis> &logical_axes,
+                                   const std::string_view where) {
+   for (std::size_t logical_axis_id = 0; logical_axis_id < logical_axes.size();
+        ++logical_axis_id) {
       const LogicalAxis &logical_axis = logical_axes[logical_axis_id];
 
       FUSION_CHECK_CODE(
           logical_axis.extent > 0,
           fuir_error(FuirError::InvalidLogicalExtent,
                      ErrorCategory::InvalidArgument),
-          ferr::message(
-              where,
-              ": fuir.logical_axis.invalid_extent: logical_axis_id ",
-              logical_axis_id, " has extent ", logical_axis.extent,
-              "; expected an extent greater than zero"));
-        }
+          ferr::message(where,
+                        ": fuir.logical_axis.invalid_extent: logical_axis_id ",
+                        logical_axis_id, " has extent ", logical_axis.extent,
+                        "; expected an extent greater than zero"));
+   }
 }
 
 void validate_complete_physical_axis_uses(
     const std::vector<OperandUse> &operand_uses,
-    const PhysicalAxesByOperand &physical_axes,
-    const std::string_view where) {
+    const PhysicalAxesByOperand &physical_axes, const std::string_view where) {
    for (const OperandUse &operand_use : operand_uses) {
       const std::size_t operand_id =
           static_cast<std::size_t>(operand_use.operand_id);
@@ -351,8 +369,7 @@ void validate_complete_physical_axis_uses(
 }
 
 void validate_unique_logical_axis_uses(
-    const std::vector<OperandUse> &operand_uses,
-    const std::string_view where) {
+    const std::vector<OperandUse> &operand_uses, const std::string_view where) {
    for (const OperandUse &operand_use : operand_uses) {
       std::unordered_set<LogicalAxisId> logical_axis_ids;
       logical_axis_ids.reserve(operand_use.axis_use.size());
@@ -374,19 +391,17 @@ void validate_unique_logical_axis_uses(
    }
 }
 
-void validate_unary_reduction_operand_count(
-    const IndexSpaceIR &ir,
-    const std::string_view where) {
+void validate_unary_reduction_operand_count(const IndexSpaceIR &ir,
+                                            const std::string_view where) {
    FUSION_CHECK_CODE(
        ir.num_operands == 2,
        fuir_error(FuirError::UnaryReductionOperandCountMismatch,
                   ErrorCategory::InvalidArgument),
-       ferr::message(
-           where,
-           ": fuir.reduction.operand_count_mismatch: unary reduction "
-           "requires exactly two operands—output operand 0 and input "
-           "operand 1—but found ",
-           ir.num_operands));
+       ferr::message(where,
+                     ": fuir.reduction.operand_count_mismatch: unary reduction "
+                     "requires exactly two operands—output operand 0 and input "
+                     "operand 1—but found ",
+                     ir.num_operands));
 }
 
 void validate_single_reduction_logical_axis(
@@ -413,19 +428,17 @@ void validate_single_reduction_logical_axis(
 
 void validate_unary_reduction_input_mapping(
     const std::vector<LogicalAxis> &logical_axes,
-    const std::vector<PhysicalAxis> &input_axes,
-    const OperandUse &input_use,
+    const std::vector<PhysicalAxis> &input_axes, const OperandUse &input_use,
     const std::string_view where) {
    FUSION_CHECK_CODE(
        input_axes.size() == logical_axes.size(),
        fuir_error(FuirError::ReductionInputMappingMismatch,
                   ErrorCategory::InvalidArgument),
-       ferr::message(
-           where,
-           ": fuir.reduction.input_rank_mismatch: input operand ",
-           input_use.operand_id, " has ", input_axes.size(),
-           " physical axes, but the reduction has ", logical_axes.size(),
-           " logical axes"));
+       ferr::message(where,
+                     ": fuir.reduction.input_rank_mismatch: input operand ",
+                     input_use.operand_id, " has ", input_axes.size(),
+                     " physical axes, but the reduction has ",
+                     logical_axes.size(), " logical axes"));
 
    for (const AxisUse &axis_use : input_use.axis_use) {
       const LogicalAxisId expected_logical_axis_id =
@@ -447,24 +460,22 @@ void validate_unary_reduction_input_mapping(
           axis_use.access == AxisAccess::Direct,
           fuir_error(FuirError::ReductionInputMappingMismatch,
                      ErrorCategory::InvalidArgument),
-          ferr::message(
-              where,
-              ": fuir.reduction.invalid_input_access: input operand ",
-              input_use.operand_id, " physical_axis_id ",
-              axis_use.physical_axis_id,
-              " must use Direct access in a unary reduction"));
+          ferr::message(where,
+                        ": fuir.reduction.invalid_input_access: input operand ",
+                        input_use.operand_id, " physical_axis_id ",
+                        axis_use.physical_axis_id,
+                        " must use Direct access in a unary reduction"));
    }
 }
 
 void validate_unary_reduction_output_mapping(
     const std::vector<LogicalAxis> &logical_axes,
-    const std::vector<PhysicalAxis> &output_axes,
-    const OperandUse &output_use,
+    const std::vector<PhysicalAxis> &output_axes, const OperandUse &output_use,
     const std::string_view where) {
    std::size_t reduction_axis_id = logical_axes.size();
 
-   for (std::size_t logical_axis_id = 0;
-        logical_axis_id < logical_axes.size(); ++logical_axis_id) {
+   for (std::size_t logical_axis_id = 0; logical_axis_id < logical_axes.size();
+        ++logical_axis_id) {
       if (logical_axes[logical_axis_id].kind == IndexKind::Reduction) {
          reduction_axis_id = logical_axis_id;
          break;
@@ -481,48 +492,43 @@ void validate_unary_reduction_output_mapping(
            "axis was found"));
 
    const bool keepdim = output_axes.size() == logical_axes.size();
-   const bool removes_dimension =
-       logical_axes.size() == output_axes.size() + 1;
+   const bool removes_dimension = logical_axes.size() == output_axes.size() + 1;
 
    FUSION_CHECK_CODE(
        keepdim || removes_dimension,
        fuir_error(FuirError::ReductionOutputMappingMismatch,
                   ErrorCategory::InvalidArgument),
-       ferr::message(
-           where,
-           ": fuir.reduction.output_rank_mismatch: output operand ",
-           output_use.operand_id, " has ", output_axes.size(),
-           " physical axes, but expected ", logical_axes.size(),
-           " for keepdim=true or ", logical_axes.size() - 1,
-           " for keepdim=false"));
+       ferr::message(where,
+                     ": fuir.reduction.output_rank_mismatch: output operand ",
+                     output_use.operand_id, " has ", output_axes.size(),
+                     " physical axes, but expected ", logical_axes.size(),
+                     " for keepdim=true or ", logical_axes.size() - 1,
+                     " for keepdim=false"));
 
    for (const AxisUse &axis_use : output_use.axis_use) {
       const std::size_t physical_axis_id =
           static_cast<std::size_t>(axis_use.physical_axis_id);
 
       const std::size_t expected_logical_axis_id =
-          keepdim
-              ? physical_axis_id
-              : physical_axis_id < reduction_axis_id
-                    ? physical_axis_id
-                    : physical_axis_id + 1;
+          keepdim                                ? physical_axis_id
+          : physical_axis_id < reduction_axis_id ? physical_axis_id
+                                                 : physical_axis_id + 1;
 
       FUSION_CHECK_CODE(
           static_cast<std::size_t>(axis_use.logical_axis_id) ==
               expected_logical_axis_id,
           fuir_error(FuirError::ReductionOutputMappingMismatch,
                      ErrorCategory::InvalidArgument),
-          ferr::message(
-              where,
-              ": fuir.reduction.output_axis_mapping_mismatch: output "
-              "physical_axis_id ",
-              axis_use.physical_axis_id, " maps to logical_axis_id ",
-              axis_use.logical_axis_id, ", but expected logical_axis_id ",
-              expected_logical_axis_id));
+          ferr::message(where,
+                        ": fuir.reduction.output_axis_mapping_mismatch: output "
+                        "physical_axis_id ",
+                        axis_use.physical_axis_id, " maps to logical_axis_id ",
+                        axis_use.logical_axis_id,
+                        ", but expected logical_axis_id ",
+                        expected_logical_axis_id));
 
       if (expected_logical_axis_id == reduction_axis_id) {
-         const PhysicalAxis &physical_axis =
-             output_axes.at(physical_axis_id);
+         const PhysicalAxis &physical_axis = output_axes.at(physical_axis_id);
          const LogicalAxis &logical_axis =
              logical_axes.at(expected_logical_axis_id);
 
@@ -537,9 +543,9 @@ void validate_unary_reduction_output_mapping(
                  axis_use.physical_axis_id, " has extent ",
                  physical_axis.extent, "; expected extent 1"));
 
-         const AxisAccess expected_access =
-             logical_axis.extent > 1 ? AxisAccess::Broadcast
-                                     : AxisAccess::Direct;
+         const AxisAccess expected_access = logical_axis.extent > 1
+                                                ? AxisAccess::Broadcast
+                                                : AxisAccess::Direct;
 
          FUSION_CHECK_CODE(
              axis_use.access == expected_access,
@@ -557,36 +563,66 @@ void validate_unary_reduction_output_mapping(
              axis_use.access == AxisAccess::Direct,
              fuir_error(FuirError::ReductionOutputMappingMismatch,
                         ErrorCategory::InvalidArgument),
-             ferr::message(
-                 where,
-                 ": fuir.reduction.invalid_output_access: independent "
-                 "output physical_axis_id ",
-                 axis_use.physical_axis_id,
-                 " must use Direct access"));
+             ferr::message(where,
+                           ": fuir.reduction.invalid_output_access: Reduction "
+                           "output physical_axis_id ",
+                           axis_use.physical_axis_id,
+                           " must use Direct access"));
       }
+   }
+}
+
+void validate_elementwise_logical_axes_independent(
+    const std::vector<LogicalAxis> &logical_axes,
+    const std::string_view where) {
+   for (std::size_t logical_axis_id = 0; logical_axis_id < logical_axes.size();
+        ++logical_axis_id) {
+      const LogicalAxis &logical_axis = logical_axes[logical_axis_id];
+
+      FUSION_CHECK_CODE(
+          logical_axis.kind == IndexKind::Independent,
+          fuir_error(FuirError::InvalidIndexKind,
+                     ErrorCategory::InvalidArgument),
+          ferr::message(
+              where,
+              ": fuir.elementwise.invalid_logical_axis_kind: logical_axis_id ",
+              logical_axis_id, " must have IndexKind::Independent"));
    }
 }
 
 } // namespace detail
 
-void validate_elementwise_index_space_ir(const IndexSpaceIR &ir,
-                                         const std::string_view where) {
+void validate_index_space_ir(const IndexSpaceIR &ir,
+                             const std::string_view where) {
+   FUSION_CHECK_CODE(
+       ir.num_operands > 0,
+       fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
+       ferr::message(
+           where, ": fuir.ir.invalid_num_operands: num_operands must be > 0"));
 
-   detail::validate_physical_axis_operand_ids(ir.physical_axes, where);
+   FUSION_CHECK_CODE(
+       ir.itemsize > 0,
+       fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
+       ferr::message(where,
+                     ": fuir.ir.invalid_itemsize: itemsize must be > 0"));
+
+   detail::validate_physical_axis_collection_count(ir.physical_axes,
+                                                   ir.num_operands, where);
    detail::validate_physical_axis_ids(ir.physical_axes, where);
+   detail::validate_physical_axis_operand_ids(ir.physical_axes, where);
    detail::validate_physical_axis_extents(ir.physical_axes, where);
-
+   detail::validate_logical_axis_extents(ir.logical_axes, where);
+   detail::validate_unique_logical_axis_labels(ir.logical_axes, where);
    detail::validate_operand_use_operand_ids(ir.operand_use, ir.num_operands,
                                             where);
-
    detail::validate_axis_use_physical_axis_references(ir.operand_use,
                                                       ir.physical_axes, where);
-
    detail::validate_axis_use_logical_axis_references(ir.operand_use,
                                                      ir.logical_axes, where);
-
    detail::validate_unique_physical_axis_uses(ir.operand_use, where);
-   detail::validate_no_indexed_axis_uses(ir.operand_use, where);
+   detail::validate_unique_logical_axis_uses(ir.operand_use, where);
+   detail::validate_complete_physical_axis_uses(ir.operand_use,
+                                                ir.physical_axes, where);
 
    detail::validate_direct_axis_uses(ir.operand_use, ir.physical_axes,
                                      ir.logical_axes, where);
@@ -598,61 +634,29 @@ void validate_elementwise_index_space_ir(const IndexSpaceIR &ir,
                                                where);
 }
 
+void validate_elementwise_index_space_ir(const IndexSpaceIR &ir,
+                                         const std::string_view where) {
 
-void validate_unary_reduction_index_space_ir(
-    const IndexSpaceIR &ir,
-    const std::string_view where) {
+   validate_index_space_ir(ir, where);
+   detail::validate_no_indexed_axis_uses(ir.operand_use, where);
+   detail::validate_elementwise_logical_axes_independent(ir.logical_axes,
+                                                         where);
+}
+
+void validate_unary_reduction_index_space_ir(const IndexSpaceIR &ir,
+                                             const std::string_view where) {
 
    detail::validate_unary_reduction_operand_count(ir, where);
-
-   detail::validate_physical_axis_collection_count(
-       ir.physical_axes, ir.num_operands, where);
-
-   detail::validate_physical_axis_operand_ids(ir.physical_axes, where);
-   detail::validate_physical_axis_ids(ir.physical_axes, where);
-   detail::validate_physical_axis_extents(ir.physical_axes, where);
-   detail::validate_logical_axis_extents(ir.logical_axes, where);
-
-   detail::validate_operand_use_operand_ids(
-       ir.operand_use, ir.num_operands, where);
-
-   detail::validate_axis_use_physical_axis_references(
-       ir.operand_use, ir.physical_axes, where);
-
-   detail::validate_axis_use_logical_axis_references(
-       ir.operand_use, ir.logical_axes, where);
-
-   detail::validate_unique_physical_axis_uses(ir.operand_use, where);
-   detail::validate_unique_logical_axis_uses(ir.operand_use, where);
-
-   detail::validate_complete_physical_axis_uses(
-       ir.operand_use, ir.physical_axes, where);
-
+   validate_index_space_ir(ir, where);
    detail::validate_no_indexed_axis_uses(ir.operand_use, where);
 
-   detail::validate_direct_axis_uses(
-       ir.operand_use, ir.physical_axes, ir.logical_axes, where);
-
-   detail::validate_broadcast_axis_uses(
-       ir.operand_use, ir.physical_axes, ir.logical_axes, where);
-
-   detail::validate_single_reduction_logical_axis(
-       ir.logical_axes, where);
+   detail::validate_single_reduction_logical_axis(ir.logical_axes, where);
 
    detail::validate_unary_reduction_input_mapping(
-       ir.logical_axes,
-       ir.physical_axes.at(1),
-       ir.operand_use.at(1),
-       where);
+       ir.logical_axes, ir.physical_axes.at(1), ir.operand_use.at(1), where);
 
    detail::validate_unary_reduction_output_mapping(
-       ir.logical_axes,
-       ir.physical_axes.at(0),
-       ir.operand_use.at(0),
-       where);
-
-   detail::validate_logical_axis_participation(
-       ir.logical_axes, ir.operand_use, where);
+       ir.logical_axes, ir.physical_axes.at(0), ir.operand_use.at(0), where);
 }
 
 void validate_descs_itemsize_group(const std::vector<OperandDescription> &descs,
@@ -875,32 +879,6 @@ void validate_reduction_request(const std::vector<OperandDescription> &descs,
    }
 }
 
-void validate_index_space_ir(const IndexSpaceIR &ir,
-                             const std::string_view where) {
-   FUSION_CHECK_CODE(
-       ir.num_operands > 0,
-       fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-       ferr::message(
-           where, ": fuir.ir.invalid_num_operands: num_operands must be > 0"));
-
-   FUSION_CHECK_CODE(
-       ir.itemsize > 0,
-       fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-       ferr::message(where,
-                     ": fuir.ir.invalid_itemsize: itemsize must be > 0"));
-
-   for (std::size_t id = 0; id < ir.logical_axes.size(); ++id) {
-      const LogicalAxis &axis = ir.logical_axes[id];
-
-      FUSION_CHECK_CODE(
-          axis.extent > 0,
-          fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-          ferr::message(where, ": fuir.ir.invalid_index_extent: logical axis ", id,
-                        " has extent ", axis.extent));
-
-   }
-}
-
 void validate_loop_order(const IndexSpaceIR &ir,
                          const std::vector<std::uint32_t> &loop_order,
                          const std::string_view where) {
@@ -912,9 +890,10 @@ void validate_loop_order(const IndexSpaceIR &ir,
       FUSION_CHECK_CODE(
           id < ir.logical_axes.size(),
           fuir_error(FuirError::InvalidIndexId, ErrorCategory::Internal),
-          ferr::message(
-              where, ": fuir.lowering.invalid_loop_index_id: loop_order[", pos,
-              "] = ", id, " but logical_axes size is ", ir.logical_axes.size()));
+          ferr::message(where,
+                        ": fuir.lowering.invalid_loop_index_id: loop_order[",
+                        pos, "] = ", id, " but logical_axes size is ",
+                        ir.logical_axes.size()));
    }
 }
 
@@ -933,9 +912,7 @@ void validate_ir_matches_descs(const IndexSpaceIR &ir,
                                const std::string_view where) {
    validate_index_space_ir(ir, where);
    validate_desc_count_matches_ir(ir, descs, where);
-
-   }
-
+}
 
 void validate_role_vector_matches_ir(const IndexSpaceIR &ir,
                                      const std::vector<IndexRole> *role_of_id,

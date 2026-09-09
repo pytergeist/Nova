@@ -36,6 +36,7 @@ enum class FuirError : std::uint8_t {
    InvalidLogicalAxisReference, // used
    InvalidLogicalAxisId,
    DuplicatePhysicalAxisUse, // used
+   InvalidIndexKind,
 
    DirectExtentMismatch,
    BroadcastExtentMismatch,
@@ -46,6 +47,7 @@ enum class FuirError : std::uint8_t {
    InvalidLogicalExtent,
    IncompletePhysicalAxisUse,
    DuplicateLogicalAxisUse,
+   DuplicateLogicalAxisLabel,
    UnaryReductionOperandCountMismatch,
    InvalidReductionAxisCount,
    ReductionInputMappingMismatch,

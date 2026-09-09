@@ -90,7 +90,7 @@ TEST(TensorPlanContractionTest,
        .out_labels = {0, 1},
    };
    fusion::planning::ContractionPlan plan =
-       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
+       fusion::planning::make_contraction_plan_from_binding({out, a, b}, binding);
 
    EXPECT_EQ(plan.exec.core.num_operands, 3);
    EXPECT_EQ(plan.exec.core.out_ndim, 2);
@@ -144,7 +144,7 @@ TEST(TensorPlanContractionTest,
    };
 
    fusion::planning::ContractionPlan plan =
-       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
+       fusion::planning::make_contraction_plan_from_binding({out, a, b}, binding);
 
    fusion::planning::DenseTraversalPlan dense =
        std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
@@ -207,7 +207,7 @@ TEST(TensorPlanContractionTest,
    };
 
    fusion::planning::ContractionPlan plan =
-       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
+       fusion::planning::make_contraction_plan_from_binding({out, a, b}, binding);
    fusion::planning::DenseTraversalPlan dense =
        std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
 
@@ -264,7 +264,7 @@ TEST(TensorPlanContractionTest,
    };
 
    fusion::planning::ContractionPlan plan =
-       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding);
+       fusion::planning::make_contraction_plan_from_binding({out, a, b}, binding);
 
    EXPECT_TRUE(plan.exec.hints.gemm_like);
 
@@ -329,7 +329,7 @@ TEST(TensorPlanContractionTest,
    };
 
    EXPECT_THROW(
-       fusion::planning::make_contraction_plan_einsum_out({out, a, b}, binding),
+       fusion::planning::make_contraction_plan_from_binding({out, a, b}, binding),
        std::runtime_error);
 }
 
