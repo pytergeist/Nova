@@ -13,7 +13,6 @@
 #include "Fusion/compiler/ir/IRValidation.h"
 #include "Fusion/compiler/ir/ShapeRules.h"
 
-
 namespace fusion::fuir {
 
 namespace ferr = fusion::error;
@@ -343,6 +342,7 @@ build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
    validation::validate_operand_label_binding(descs, binding, where);
 
    const std::vector<OperandDescription> inputs(descs.begin() + 1, descs.end());
+   validation::validate_contraction_extent_request(inputs, binding, where);
    const shape::LabelExtentMap label_extent_map =
        shape::resolve_contraction_label_extents(inputs, binding);
 
@@ -360,7 +360,7 @@ build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
    ir.logical_axes = logical_axes;
    ir.physical_axes = physical_axes;
    ir.operand_use = operand_uses;
-
+   validation::validate_label_binding_index_space_ir(ir, binding, where);
    return ir;
 }
 

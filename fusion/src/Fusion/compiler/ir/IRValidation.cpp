@@ -589,8 +589,147 @@ void validate_elementwise_logical_axes_independent(
               logical_axis_id, " must have IndexKind::Independent"));
    }
 }
-
 } // namespace detail
+
+void validate_contraction_extent_request(
+    const std::vector<OperandDescription> &inputs,
+    const OperandLabelBinding &binding, const std::string_view where) {
+   FUSION_CHECK_CODE(
+       !inputs.empty(),
+       fuir_error(FuirError::EmptyOperands, ErrorCategory::InvalidArgument),
+       ferr::message(
+           where,
+           ": fuir.contraction.empty_inputs: contraction requires at least "
+           "one input operand"));
+
+   FUSION_CHECK_CODE(
+       binding.op_axis_labels.size() == inputs.size() + 1,
+       fuir_error(FuirError::BindingOperandCountMismatch,
+                  ErrorCategory::InvalidArgument),
+       ferr::message(
+           where,
+           ": fuir.contraction.binding_operand_count_mismatch: expected ",
+           inputs.size() + 1,
+           " binding entries for {output, inputs...}, but got ",
+           binding.op_axis_labels.size()));
+
+   FUSION_CHECK_CODE(
+       binding.op_axis_labels.front() == binding.out_labels,
+       fuir_error(FuirError::OutputLabelMismatch,
+                  ErrorCategory::InvalidArgument),
+       ferr::message(
+           where,
+           ": fuir.contraction.output_label_mismatch: operand 0 labels must "
+           "exactly match out_labels"));
+
+   std::unordered_set<Label> output_labels;
+   output_labels.reserve(binding.out_labels.size());
+
+   for (const Label label : binding.out_labels) {
+      FUSION_CHECK_CODE(
+          output_labels.insert(label).second,
+          fuir_error(FuirError::RepeatedOperandLabelUnsupported,
+                     ErrorCategory::Unsupported),
+          ferr::message(
+              where, ": fuir.contraction.repeated_output_label: output label ",
+              label,
+              " appears more than once; diagonal-style output bindings are "
+              "not supported"));
+   }
+
+   std::size_t total_axis_count = 0;
+   for (const OperandDescription &input : inputs) {
+      total_axis_count += input.ndims();
+   }
+
+   std::unordered_map<Label, std::size_t> resolved_extents;
+   resolved_extents.reserve(total_axis_count);
+
+   for (std::size_t input_id = 0; input_id < inputs.size(); ++input_id) {
+      const OperandDescription &input = inputs[input_id];
+      const std::size_t operand_id = input_id + 1;
+      const std::vector<Label> &labels = binding.op_axis_labels[operand_id];
+
+      FUSION_CHECK_CODE(
+          labels.size() == input.ndims(),
+          fuir_error(FuirError::BindingAxisCountMismatch,
+                     ErrorCategory::InvalidArgument),
+          ferr::message(
+              where, ": fuir.contraction.input_axis_count_mismatch: operand ",
+              operand_id, " has ", labels.size(), " labels but rank ",
+              input.ndims()));
+
+      std::unordered_set<Label> labels_seen_in_input;
+      labels_seen_in_input.reserve(labels.size());
+
+      for (std::size_t axis_id = 0; axis_id < labels.size(); ++axis_id) {
+         const Label label = labels[axis_id];
+
+         FUSION_CHECK_CODE(
+             labels_seen_in_input.insert(label).second,
+             fuir_error(FuirError::RepeatedOperandLabelUnsupported,
+                        ErrorCategory::Unsupported),
+             ferr::message(
+                 where, ": fuir.contraction.repeated_input_label: label ",
+                 label, " appears more than once in operand ", operand_id,
+                 "; diagonal-style bindings are not supported"));
+
+         const std::size_t physical_extent = input.shape[axis_id];
+
+         const auto [it, first_occurrence] =
+             resolved_extents.emplace(label, physical_extent);
+
+         if (first_occurrence) {
+            continue;
+         }
+
+         if (output_labels.contains(label)) {
+            const std::size_t resolved_extent = it->second;
+
+            FUSION_CHECK_CODE(
+                resolved_extent == physical_extent || resolved_extent == 1 ||
+                    physical_extent == 1,
+                fuir_error(FuirError::BroadcastMismatch,
+                           ErrorCategory::InvalidArgument),
+                ferr::message(
+                    where,
+                    ": fuir.contraction.output_label_extent_mismatch: output "
+                    "label ",
+                    label, " has incompatible input extents ", resolved_extent,
+                    " and ", physical_extent));
+
+            if (resolved_extent == 1) {
+               it->second = physical_extent;
+            }
+
+            continue;
+         }
+
+         FUSION_CHECK_CODE(
+             it->second == physical_extent,
+             fuir_error(FuirError::InvalidBinding,
+                        ErrorCategory::InvalidArgument),
+             ferr::message(
+                 where,
+                 ": fuir.contraction.reduction_label_extent_mismatch: "
+                 "reduction label ",
+                 label, " has incompatible extents ", it->second, " and ",
+                 physical_extent));
+      }
+   }
+
+   for (const Label label : binding.out_labels) {
+      FUSION_CHECK_CODE(
+          resolved_extents.contains(label),
+          fuir_error(FuirError::OutputLabelMissing,
+                     ErrorCategory::InvalidArgument),
+          ferr::message(
+              where,
+              ": fuir.contraction.output_label_missing_from_inputs: output "
+              "label ",
+              label, " does not appear in any input operand"));
+   }
+}
 
 void validate_index_space_ir(const IndexSpaceIR &ir,
                              const std::string_view where) {
@@ -657,6 +796,12 @@ void validate_unary_reduction_index_space_ir(const IndexSpaceIR &ir,
 
    detail::validate_unary_reduction_output_mapping(
        ir.logical_axes, ir.physical_axes.at(0), ir.operand_use.at(0), where);
+}
+
+void validate_label_binding_index_space_ir(const IndexSpaceIR &ir,
+                                           const OperandLabelBinding &binding,
+                                           const std::string_view where) {
+   validate_index_space_ir(ir, where);
 }
 
 void validate_descs_itemsize_group(const std::vector<OperandDescription> &descs,
