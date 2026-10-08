@@ -139,7 +139,7 @@ std::vector<std::size_t> infer_binary_contraction_out_shape_from_binding(
 
    std::vector<std::size_t> out_shape;
    out_shape.reserve(binding.out_labels.size());
-
+   validation::validate_contraction_extent_request(inputs, binding, where);
    const LabelExtentMap label_extents =
        resolve_contraction_label_extents(inputs, binding);
 
