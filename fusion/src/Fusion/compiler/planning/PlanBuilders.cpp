@@ -154,7 +154,7 @@ ContractionPlan make_contraction_plan_from_binding(
                                                                     binding);
 
    fuir::IndexSpaceIR ir =
-       build_ir_from_label_binding(descs, binding, constraint);
+       build_contraction_ir(descs, binding, constraint);
 
    FUSION_CHECK_CODE(
        descs.front().shape == expected,

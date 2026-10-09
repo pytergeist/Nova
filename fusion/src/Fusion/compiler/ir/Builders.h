@@ -18,7 +18,7 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
                                 OperandGroupConstraint constraint);
 
 IndexSpaceIR
-build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
+build_contraction_ir(const std::vector<OperandDescription> &descs,
                             const OperandLabelBinding &bind,
                             OperandGroupConstraint constraint);
 

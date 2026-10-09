@@ -333,10 +333,10 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
 }
 
 IndexSpaceIR
-build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
+build_contraction_ir(const std::vector<OperandDescription> &descs,
                             const OperandLabelBinding &binding,
                             const OperandGroupConstraint constraint) {
-   constexpr std::string_view where = "build_ir_from_label_binding";
+   constexpr std::string_view where = "build_contraction_ir";
 
    validation::validate_descs_itemsize_group(descs, constraint, where);
    validation::validate_operand_label_binding(descs, binding, where);
@@ -360,7 +360,7 @@ build_ir_from_label_binding(const std::vector<OperandDescription> &descs,
    ir.logical_axes = logical_axes;
    ir.physical_axes = physical_axes;
    ir.operand_use = operand_uses;
-   validation::validate_label_binding_index_space_ir(ir, binding, where);
+   validation::validate_contraction_index_space_ir(ir, binding, where);
    return ir;
 }
 

@@ -52,9 +52,9 @@ void validate_unary_reduction_index_space_ir(
     const IndexSpaceIR &ir,
     std::string_view where = "validate_unary_reduction_index_space_ir");
 
-void validate_label_binding_index_space_ir(
+void validate_contraction_index_space_ir(
     const IndexSpaceIR &ir, const OperandLabelBinding &binding,
-    std::string_view where = "validate_label_binding_index_space_ir");
+    std::string_view where = "validate_contraction_index_space_ir");
 
 void validate_contraction_extent_request(
     const std::vector<OperandDescription> &inputs,

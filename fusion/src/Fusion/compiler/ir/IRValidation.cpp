@@ -245,10 +245,8 @@ void validate_no_indexed_axis_uses(const std::vector<OperandUse> &operand_uses,
                                    std::string_view where) {
    for (const OperandUse &operand_use : operand_uses) {
       for (const AxisUse &axis_use : operand_use.axis_use) {
-         FUSION_CHECK_CODE(
+         FUSION_CHECK_UNSUPPORTED(
              axis_use.access != AxisAccess::Indexed,
-             fuir_error(FuirError::IndexedAccessUnsupported,
-                        ErrorCategory::InvalidArgument),
              ferr::message(
                  where, ": fuir.axis_use.indexed_access_unsupported: operand ",
                  operand_use.operand_id,
@@ -256,8 +254,7 @@ void validate_no_indexed_axis_uses(const std::vector<OperandUse> &operand_uses,
                  "physical_axis_id ",
                  axis_use.physical_axis_id, " targeting logical_axis_id ",
                  axis_use.logical_axis_id,
-                 "; Indexed access is not supported by the elementwise "
-                 "builder"));
+                 "; Indexed access is not supported"));
       }
    }
 }
@@ -589,13 +586,166 @@ void validate_elementwise_logical_axes_independent(
               logical_axis_id, " must have IndexKind::Independent"));
    }
 }
+
+void validate_contraction_operand_count(const std::size_t num_operands,
+                                        const std::string_view where) {
+   FUSION_CHECK_CODE(
+       num_operands >= 3,
+       fuir_error(FuirError::ContractionOperandCountMismatch,
+                  ErrorCategory::InvalidArgument),
+       ferr::message(
+           where,
+           ": fuir.contraction.operand_count_mismatch: contraction requires "
+           "at least three operands—output operand 0 and at least two input "
+           "operands—but found ",
+           num_operands));
+}
+
+void validate_contraction_output_mapping(
+    const std::vector<LogicalAxis> &logical_axes, const OperandUse &output_use,
+    std::string_view where) {
+   std::vector<bool> output_uses_logical_axis(logical_axes.size());
+
+   for (const AxisUse &axis_use : output_use.axis_use) {
+      const LogicalAxisId logical_axis_id = axis_use.logical_axis_id;
+      const LogicalAxis &logical_axis = logical_axes.at(logical_axis_id);
+      FUSION_CHECK_CODE(
+          logical_axis.kind == IndexKind::Independent,
+          fuir_error(FuirError::ContractionOutputMappingMismatch,
+                     ErrorCategory::InvalidArgument),
+          ferr::message(
+              where,
+              ": fuir.contraction.invalid_output_axis_kind: output operand ",
+              output_use.operand_id, " physical_axis_id ",
+              axis_use.physical_axis_id, " maps to logical_axis_id ",
+              logical_axis_id, " with label ", logical_axis.label,
+              ", but contraction outputs may map only Independent logical "
+              "axes"));
+
+      FUSION_CHECK_CODE(
+          axis_use.access == AxisAccess::Direct,
+          fuir_error(FuirError::ContractionOutputMappingMismatch,
+                     ErrorCategory::InvalidArgument),
+          ferr::message(
+              where,
+              ": fuir.contraction.invalid_output_access: output operand ",
+              output_use.operand_id, " physical_axis_id ",
+              axis_use.physical_axis_id, " maps to logical_axis_id ",
+              logical_axis_id, " with label ", logical_axis.label,
+              ", but contraction output mappings must use "
+              "AxisAccess::Direct"));
+
+      output_uses_logical_axis.at(logical_axis_id) = true;
+   }
+
+   for (std::size_t logical_axis_id = 0; logical_axis_id < logical_axes.size();
+        logical_axis_id++) {
+      const LogicalAxis &logical_axis = logical_axes[logical_axis_id];
+
+      if (logical_axis.kind == IndexKind::Reduction) {
+         continue;
+      }
+
+      const bool logical_axis_output_mapped =
+          output_uses_logical_axis.at(logical_axis_id);
+
+      FUSION_CHECK_CODE(
+          logical_axis_output_mapped,
+          fuir_error(FuirError::ContractionOutputMappingMismatch,
+                     ErrorCategory::InvalidArgument),
+          ferr::message(where,
+                        ": fuir.contraction.missing_output_axis: Independent "
+                        "logical_axis_id ",
+                        logical_axis_id, " with label ", logical_axis.label,
+                        " and extent ", logical_axis.extent,
+                        " is not mapped by output operand ",
+                        output_use.operand_id));
+   }
+}
+
+
+void validate_contraction_input_mappings(
+    const std::vector<LogicalAxis> &logical_axes,
+    const std::vector<OperandUse> &operand_uses,
+    const std::string_view where) {
+   std::vector<bool> input_uses_logical_axis(logical_axes.size(), false);
+
+   for (std::size_t operand_id = 1; operand_id < operand_uses.size();
+        ++operand_id) {
+      const OperandUse &input_use = operand_uses.at(operand_id);
+
+      for (const AxisUse &axis_use : input_use.axis_use) {
+         const LogicalAxisId logical_axis_id = axis_use.logical_axis_id;
+         const LogicalAxis &logical_axis =
+             logical_axes.at(logical_axis_id);
+
+         if (logical_axis.kind == IndexKind::Independent) {
+            FUSION_CHECK_CODE(
+                axis_use.access == AxisAccess::Direct ||
+                    axis_use.access == AxisAccess::Broadcast,
+                fuir_error(FuirError::ContractionInputMappingMismatch,
+                           ErrorCategory::InvalidArgument),
+                ferr::message(
+                    where,
+                    ": fuir.contraction.invalid_independent_input_access: "
+                    "input operand ",
+                    input_use.operand_id, " physical_axis_id ",
+                    axis_use.physical_axis_id,
+                    " maps to Independent logical_axis_id ", logical_axis_id,
+                    " with label ", logical_axis.label,
+                    ", but independent contraction input mappings must use "
+                    "AxisAccess::Direct or AxisAccess::Broadcast"));
+
+            input_uses_logical_axis.at(logical_axis_id) = true;
+            continue;
+         }
+
+         FUSION_CHECK_CODE(
+             axis_use.access == AxisAccess::Direct,
+             fuir_error(FuirError::ContractionInputMappingMismatch,
+                        ErrorCategory::InvalidArgument),
+             ferr::message(
+                 where,
+                 ": fuir.contraction.invalid_reduction_input_access: input "
+                 "operand ",
+                 input_use.operand_id, " physical_axis_id ",
+                 axis_use.physical_axis_id,
+                 " maps to Reduction logical_axis_id ", logical_axis_id,
+                 " with label ", logical_axis.label,
+                 ", but reduction contraction input mappings must use "
+                 "AxisAccess::Direct"));
+      }
+   }
+
+   for (std::size_t logical_axis_id = 0;
+        logical_axis_id < logical_axes.size();
+        ++logical_axis_id) {
+      const LogicalAxis &logical_axis = logical_axes[logical_axis_id];
+
+      if (logical_axis.kind == IndexKind::Reduction) {
+         continue;
+      }
+
+      FUSION_CHECK_CODE(
+          input_uses_logical_axis.at(logical_axis_id),
+          fuir_error(FuirError::ContractionInputMappingMismatch,
+                     ErrorCategory::InvalidArgument),
+          ferr::message(
+              where,
+              ": fuir.contraction.missing_input_axis: Independent "
+              "logical_axis_id ",
+              logical_axis_id, " with label ", logical_axis.label,
+              " and extent ", logical_axis.extent,
+              " is not mapped by any contraction input operand"));
+   }
+}
 } // namespace detail
 
 void validate_contraction_extent_request(
     const std::vector<OperandDescription> &inputs,
     const OperandLabelBinding &binding, const std::string_view where) {
    FUSION_CHECK_CODE(
-       !inputs.empty(),
+       inputs.size() >= 2,
        fuir_error(FuirError::EmptyOperands, ErrorCategory::InvalidArgument),
        ferr::message(
            where,
@@ -798,10 +948,15 @@ void validate_unary_reduction_index_space_ir(const IndexSpaceIR &ir,
        ir.logical_axes, ir.physical_axes.at(0), ir.operand_use.at(0), where);
 }
 
-void validate_label_binding_index_space_ir(const IndexSpaceIR &ir,
-                                           const OperandLabelBinding &binding,
-                                           const std::string_view where) {
+void validate_contraction_index_space_ir(const IndexSpaceIR &ir,
+                                         const OperandLabelBinding &binding,
+                                         const std::string_view where) {
    validate_index_space_ir(ir, where);
+   detail::validate_no_indexed_axis_uses(ir.operand_use, where);
+   detail::validate_contraction_operand_count(ir.num_operands, where);
+   detail::validate_contraction_output_mapping(ir.logical_axes,
+                                               ir.operand_use.at(0), where);
+   detail::validate_contraction_input_mappings(ir.logical_axes, ir.operand_use, where);
 }
 
 void validate_descs_itemsize_group(const std::vector<OperandDescription> &descs,

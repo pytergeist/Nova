@@ -52,6 +52,9 @@ enum class FuirError : std::uint8_t {
    InvalidReductionAxisCount,
    ReductionInputMappingMismatch,
    ReductionOutputMappingMismatch,
+   ContractionOperandCountMismatch,
+   ContractionOutputMappingMismatch,
+   ContractionInputMappingMismatch
 };
 
 constexpr error::ErrorCode
