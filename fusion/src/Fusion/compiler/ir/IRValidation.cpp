@@ -663,11 +663,9 @@ void validate_contraction_output_mapping(
    }
 }
 
-
 void validate_contraction_input_mappings(
     const std::vector<LogicalAxis> &logical_axes,
-    const std::vector<OperandUse> &operand_uses,
-    const std::string_view where) {
+    const std::vector<OperandUse> &operand_uses, const std::string_view where) {
    std::vector<bool> input_uses_logical_axis(logical_axes.size(), false);
 
    for (std::size_t operand_id = 1; operand_id < operand_uses.size();
@@ -676,8 +674,7 @@ void validate_contraction_input_mappings(
 
       for (const AxisUse &axis_use : input_use.axis_use) {
          const LogicalAxisId logical_axis_id = axis_use.logical_axis_id;
-         const LogicalAxis &logical_axis =
-             logical_axes.at(logical_axis_id);
+         const LogicalAxis &logical_axis = logical_axes.at(logical_axis_id);
 
          if (logical_axis.kind == IndexKind::Independent) {
             FUSION_CHECK_CODE(
@@ -717,8 +714,7 @@ void validate_contraction_input_mappings(
       }
    }
 
-   for (std::size_t logical_axis_id = 0;
-        logical_axis_id < logical_axes.size();
+   for (std::size_t logical_axis_id = 0; logical_axis_id < logical_axes.size();
         ++logical_axis_id) {
       const LogicalAxis &logical_axis = logical_axes[logical_axis_id];
 
@@ -730,13 +726,12 @@ void validate_contraction_input_mappings(
           input_uses_logical_axis.at(logical_axis_id),
           fuir_error(FuirError::ContractionInputMappingMismatch,
                      ErrorCategory::InvalidArgument),
-          ferr::message(
-              where,
-              ": fuir.contraction.missing_input_axis: Independent "
-              "logical_axis_id ",
-              logical_axis_id, " with label ", logical_axis.label,
-              " and extent ", logical_axis.extent,
-              " is not mapped by any contraction input operand"));
+          ferr::message(where,
+                        ": fuir.contraction.missing_input_axis: Independent "
+                        "logical_axis_id ",
+                        logical_axis_id, " with label ", logical_axis.label,
+                        " and extent ", logical_axis.extent,
+                        " is not mapped by any contraction input operand"));
    }
 }
 } // namespace detail
@@ -949,14 +944,14 @@ void validate_unary_reduction_index_space_ir(const IndexSpaceIR &ir,
 }
 
 void validate_contraction_index_space_ir(const IndexSpaceIR &ir,
-                                         const OperandLabelBinding &binding,
                                          const std::string_view where) {
    validate_index_space_ir(ir, where);
    detail::validate_no_indexed_axis_uses(ir.operand_use, where);
    detail::validate_contraction_operand_count(ir.num_operands, where);
    detail::validate_contraction_output_mapping(ir.logical_axes,
                                                ir.operand_use.at(0), where);
-   detail::validate_contraction_input_mappings(ir.logical_axes, ir.operand_use, where);
+   detail::validate_contraction_input_mappings(ir.logical_axes, ir.operand_use,
+                                               where);
 }
 
 void validate_descs_itemsize_group(const std::vector<OperandDescription> &descs,

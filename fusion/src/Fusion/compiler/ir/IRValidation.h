@@ -1,7 +1,6 @@
 #ifndef FUSION_CORE_FUIR_FUIR_VALIDATION_H
 #define FUSION_CORE_FUIR_FUIR_VALIDATION_H
 
-#include <cstdint>
 #include <string_view>
 #include <vector>
 
@@ -53,7 +52,7 @@ void validate_unary_reduction_index_space_ir(
     std::string_view where = "validate_unary_reduction_index_space_ir");
 
 void validate_contraction_index_space_ir(
-    const IndexSpaceIR &ir, const OperandLabelBinding &binding,
+    const IndexSpaceIR &ir,
     std::string_view where = "validate_contraction_index_space_ir");
 
 void validate_contraction_extent_request(

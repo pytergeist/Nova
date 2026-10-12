@@ -54,10 +54,6 @@ lower_operand_access(const IndexSpaceIR &ir,
                      const std::vector<OperandDescription> &descs,
                      const std::vector<LogicalAxisId> &loop_order);
 
-std::vector<IndexRole>
-compute_roles_for_gemm_like(const IndexSpaceIR &ir,
-                            const OperandLabelBinding &binding);
-
 } // namespace fusion::fuir
 
 #endif

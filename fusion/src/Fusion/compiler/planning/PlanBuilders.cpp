@@ -167,13 +167,20 @@ ContractionPlan make_contraction_plan_from_binding(
    const std::vector<std::uint32_t> loop_order =
        make_logical_axis_order(ir.logical_axes);
 
-   const std::vector<fuir::IndexRole> role_of_id =
-       compute_roles_for_gemm_like(ir, binding);
+   const std::optional<std::vector<fuir::IndexRole>> role_of_id_optional =
+       analysis::compute_roles_for_gemm_like(ir);
+
+
+   const std::optional<std::vector<fuir::IndexRole>> roles =
+       analysis::compute_roles_for_gemm_like(ir);
+
+   const std::vector<fuir::IndexRole> *role_ptr =
+       roles.has_value() ? &roles.value() : nullptr;
 
    ContractionPlan plan;
    plan.exec =
        make_dense_execution_plan(ExprKind::Contraction, ir, descs,
-                                 descs.front().shape, loop_order, &role_of_id);
+                                 descs.front().shape, loop_order, role_ptr);
 
    if (std::optional<GemmLikeDesc> gemm =
            analysis::analyse_gemm_like_contraction(plan.exec)) {

@@ -44,10 +44,13 @@ std::int64_t stride_bytes_for_logical_axis(const OperandDescription &desc,
              ferr::message(
                  where,
                  ": fuir.lowering.indexed_axis_use_unsupported: operand ",
-                 operand_use.operand_id, " maps logical_axis_id ", logical_axis_id,
-                 " using indexed access, which cannot be represented by an affine "
+                 operand_use.operand_id, " maps logical_axis_id ",
+                 logical_axis_id,
+                 " using indexed access, which cannot be represented by an "
+                 "affine "
                  "byte stride"));
-         return 0; // unreachable return for control flow analysis (TODO: make macro noreturn?)
+         return 0; // unreachable return for control flow analysis (TODO: make
+                   // macro noreturn?)
       }
    }
 
@@ -135,8 +138,9 @@ lower_operand_access(const IndexSpaceIR &ir,
       for (std::size_t pos = 0; pos < loop_order.size(); ++pos) {
          const LogicalAxisId logical_index_id = loop_order[pos];
 
-         af.byte_stride_per_loop.at(pos) = stride_bytes_for_logical_axis(
-             descs.at(op), ir.operand_use.at(op), logical_index_id, ir.itemsize);
+         af.byte_stride_per_loop.at(pos) =
+             stride_bytes_for_logical_axis(descs.at(op), ir.operand_use.at(op),
+                                           logical_index_id, ir.itemsize);
       }
 
       oa.affine = std::move(af);
@@ -144,80 +148,6 @@ lower_operand_access(const IndexSpaceIR &ir,
    }
 
    return op_access;
-}
-
-std::vector<IndexRole>
-compute_roles_for_gemm_like(const IndexSpaceIR &ir,
-                            const OperandLabelBinding &binding) {
-   validation::validate_index_space_ir(ir, "compute_roles_for_gemm_like");
-
-   const auto &outL = binding.op_axis_labels[0];
-   const auto &aL = binding.op_axis_labels[1];
-   const auto &bL = binding.op_axis_labels[2];
-
-   auto as_set = [](const std::vector<Label> &values) {
-      std::unordered_set<Label> result;
-      result.reserve(values.size());
-
-      for (Label label : values) {
-         result.insert(label);
-      }
-
-      return result;
-   };
-
-   const auto outS = as_set(outL);
-   const auto aS = as_set(aL);
-   const auto bS = as_set(bL);
-
-   std::unordered_map<Label, IndexRole> role_of_label;
-   role_of_label.reserve(64);
-
-   std::unordered_set<Label> all;
-   all.reserve(outS.size() + aS.size() + bS.size());
-
-   for (Label label : outS) {
-      all.insert(label);
-   }
-
-   for (Label label : aS) {
-      all.insert(label);
-   }
-
-   for (Label label : bS) {
-      all.insert(label);
-   }
-
-   for (Label label : all) {
-      const bool inO = outS.contains(label);
-      const bool inA = aS.contains(label);
-      const bool inB = bS.contains(label);
-
-      if (inO && inA && inB) {
-         role_of_label[label] = IndexRole::Batch;
-      } else if (inO && inA && !inB) {
-         role_of_label[label] = IndexRole::M;
-      } else if (inO && !inA && inB) {
-         role_of_label[label] = IndexRole::N;
-      } else if (!inO && inA && inB) {
-         role_of_label[label] = IndexRole::K;
-      } else {
-         role_of_label[label] = IndexRole::Batch;
-      }
-   }
-
-   std::vector<IndexRole> role_of_id(ir.logical_axes.size(), IndexRole::Batch);
-
-   for (LogicalAxisId id = 0; id < ir.logical_axes.size(); ++id) {
-      const Label label = ir.logical_axes[id].label;
-
-      if (const auto it = role_of_label.find(label);
-          it != role_of_label.end()) {
-         role_of_id[id] = it->second;
-      }
-   }
-
-   return role_of_id;
 }
 
 } // namespace fusion::fuir
