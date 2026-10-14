@@ -167,8 +167,7 @@ analyse_gemm_like_contraction(const ExecutionPlan &exec) {
 
 std::optional<std::vector<fuir::IndexRole>>
 compute_roles_for_gemm_like(const fuir::IndexSpaceIR &ir) {
-
-   // TODO: this logic only works for binary contraction
+   
    if (ir.num_operands != 3) {
       return std::nullopt;
    }
