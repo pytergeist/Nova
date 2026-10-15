@@ -36,7 +36,8 @@ BinaryEwiseContext make_binary_ewise_context(const DenseTensor<T> &lhs,
 
    ElementwisePlan input_plan = make_elementwise_plan({lhs_desc, rhs_desc});
 
-   ctx.out_shape = fuir::shape::infer_elementwise_out_shape({lhs_desc, rhs_desc});
+   ctx.out_shape =
+       fuir::shape::infer_elementwise_out_shape({lhs_desc, rhs_desc});
 
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
    ctx.out.update = fuir::UpdateKind::Overwrite;
@@ -189,8 +190,8 @@ make_contraction_context_einsum(const DenseTensor<T> &lhs,
    ctx.out = make_desc_from_shape<T>(ctx.out_shape, nullptr);
    ctx.out.update = fuir::UpdateKind::Accumulate;
 
-   ctx.plan =
-       make_contraction_plan_from_binding({ctx.out, ctx.lhs, ctx.rhs}, binding);
+   ctx.plan = make_binary_contraction_plan_from_binding(
+       {ctx.out, ctx.lhs, ctx.rhs}, binding);
 
    ctx.fastpath = lhs.is_contiguous() && rhs.is_contiguous();
    ctx.fast_len = 0;

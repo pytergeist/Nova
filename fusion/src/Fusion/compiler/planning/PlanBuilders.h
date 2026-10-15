@@ -15,7 +15,7 @@ ReductionPlan
 make_reduction_plan(const std::vector<fuir::OperandDescription> &desc,
                     const std::size_t axis, const bool keepdim);
 
-ContractionPlan make_contraction_plan_from_binding(
+ContractionPlan make_binary_contraction_plan_from_binding(
     const std::vector<fuir::OperandDescription> &descs,
     const fuir::OperandLabelBinding &binding);
 
