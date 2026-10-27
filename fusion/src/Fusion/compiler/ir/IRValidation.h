@@ -27,21 +27,9 @@ void validate_reduction_request(
 void validate_index_space_ir(
     const IndexSpaceIR &ir, std::string_view where = "validate_index_space_ir");
 
-void validate_loop_order(const IndexSpaceIR &ir,
-                         const std::vector<std::uint32_t> &loop_order,
-                         std::string_view where = "validate_loop_order");
-
 void validate_desc_count_matches_ir(
     const IndexSpaceIR &ir, const std::vector<OperandDescription> &descs,
     std::string_view where = "validate_desc_count_matches_ir");
-
-void validate_ir_matches_descs(
-    const IndexSpaceIR &ir, const std::vector<OperandDescription> &descs,
-    std::string_view where = "validate_ir_matches_descs");
-
-void validate_role_vector_matches_ir(
-    const IndexSpaceIR &ir, const std::vector<IndexRole> *role_of_id,
-    std::string_view where = "validate_role_vector_matches_ir");
 
 void validate_elementwise_index_space_ir(
     const IndexSpaceIR &ir,

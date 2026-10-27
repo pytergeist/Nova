@@ -5,6 +5,7 @@
 #include <optional>
 #include <ranges>
 #include <vector>
+#include <numeric>
 
 #include "Fusion/common/error/Check.h"
 #include "Fusion/compiler/planning/PlanErrors.h"
@@ -47,7 +48,7 @@ DenseTraversalPlan make_dense_traversal_plan(
     const std::vector<fuir::LogicalAxisId> &loop_order,
     const std::vector<fuir::IndexRole> *role_of_id = nullptr) {
    DenseTraversalPlan plan;
-   plan.loop = lower_to_loops(ir, descs, loop_order, role_of_id);
+   plan.loop = lowering::lower_to_loops(ir, descs, loop_order, role_of_id);
    return plan;
 }
 
@@ -56,7 +57,7 @@ make_access_plan(const fuir::IndexSpaceIR &ir,
                  const std::vector<fuir::OperandDescription> &descs,
                  const std::vector<fuir::LogicalAxisId> &loop_order) {
    AccessPlan plan;
-   plan.operands = lower_operand_access(ir, descs, loop_order);
+   plan.operands = lowering::lower_operand_access(ir, descs, loop_order);
    return plan;
 }
 
@@ -77,6 +78,14 @@ ExecutionPlan make_dense_execution_plan(
    validation::validate_execution_plan(exec, "make_dense_execution_plan");
 
    return exec;
+}
+
+
+std::vector<fuir::LogicalAxisId>
+make_logical_axis_order(const fuir::IndexSpaceIR &ir) {
+   std::vector<fuir::LogicalAxisId> order(ir.logical_axes.size());
+   std::iota(order.begin(), order.end(), fuir::LogicalAxisId{0});
+   return order;
 }
 
 std::vector<fuir::LogicalAxisId>
@@ -225,7 +234,7 @@ make_elementwise_plan(const std::vector<fuir::OperandDescription> &descs) {
        build_elementwise_ir_right_aligned(descs, constraint);
 
    const std::vector<fuir::LogicalAxisId> loop_order =
-       make_output_axis_order(ir);
+       make_logical_axis_order(ir);
 
    ElementwisePlan plan;
    plan.exec = make_dense_execution_plan(ExprKind::Elementwise, ir, descs,

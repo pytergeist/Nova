@@ -115,7 +115,7 @@ void walk(int dim, int inner_dim, const DenseIterPlanView &view,
       return;
    }
 
-   const fuir::LoopDim &loop_dim = view.loop[dim];
+   const lowering::LoopDim &loop_dim = view.loop[dim];
    const std::int64_t extent = static_cast<std::int64_t>(loop_dim.size);
 
    for (std::int64_t i = 0; i < extent; ++i) {

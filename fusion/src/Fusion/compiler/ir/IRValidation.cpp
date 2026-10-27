@@ -1174,56 +1174,6 @@ void validate_reduction_request(const std::vector<OperandDescription> &descs,
    }
 }
 
-void validate_loop_order(const IndexSpaceIR &ir,
-                         const std::vector<std::uint32_t> &loop_order,
-                         const std::string_view where) {
-   validate_index_space_ir(ir, where);
 
-   for (std::size_t pos = 0; pos < loop_order.size(); ++pos) {
-      const std::uint32_t id = loop_order[pos];
-
-      FUSION_CHECK_CODE(
-          id < ir.logical_axes.size(),
-          fuir_error(FuirError::InvalidIndexId, ErrorCategory::Internal),
-          ferr::message(where,
-                        ": fuir.lowering.invalid_loop_index_id: loop_order[",
-                        pos, "] = ", id, " but logical_axes size is ",
-                        ir.logical_axes.size()));
-   }
-}
-
-void validate_desc_count_matches_ir(
-    const IndexSpaceIR &ir, const std::vector<OperandDescription> &descs,
-    const std::string_view where) {
-   FUSION_CHECK_CODE(
-       descs.size() == ir.num_operands,
-       fuir_error(FuirError::DescriptorCountMismatch, ErrorCategory::Internal),
-       ferr::message(where, ": fuir.lowering.desc_count_mismatch: descs has ",
-                     descs.size(), " operands but IR has ", ir.num_operands));
-}
-
-void validate_ir_matches_descs(const IndexSpaceIR &ir,
-                               const std::vector<OperandDescription> &descs,
-                               const std::string_view where) {
-   validate_index_space_ir(ir, where);
-   validate_desc_count_matches_ir(ir, descs, where);
-}
-
-void validate_role_vector_matches_ir(const IndexSpaceIR &ir,
-                                     const std::vector<IndexRole> *role_of_id,
-                                     const std::string_view where) {
-   if (role_of_id == nullptr) {
-      return;
-   }
-
-   FUSION_CHECK_CODE(
-       role_of_id->size() == ir.logical_axes.size(),
-       fuir_error(FuirError::InvalidIR, ErrorCategory::Internal),
-       ferr::message(where,
-                     ": fuir.lowering.role_vector_size_mismatch: role_of_id "
-                     "has size ",
-                     role_of_id->size(), " but IR has ", ir.logical_axes.size(),
-                     " logical axes"));
-}
 
 } // namespace fusion::fuir::validation

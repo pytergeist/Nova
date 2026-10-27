@@ -25,7 +25,7 @@ struct GemmRoleExtents {
 GemmRoleExtents compute_gemm_role_extents(const DenseTraversalPlan &traversal) {
    GemmRoleExtents extents{};
 
-   for (const fuir::LoopDim &ld : traversal.loop) {
+   for (const lowering::LoopDim &ld : traversal.loop) {
       switch (ld.role) {
       case fuir::IndexRole::Batch:
          extents.batch *= ld.size;
@@ -57,7 +57,7 @@ bool has_three_affine_operands(const ExecutionPlan &exec) {
       return false;
    }
 
-   for (const fuir::OperandAccess &operand : exec.access.operands) {
+   for (const lowering::OperandAccess &operand : exec.access.operands) {
       if (operand.access != fuir::AccessKind::Affine) {
          return false;
       }
@@ -75,7 +75,7 @@ bool access_rank_matches_loop_rank(const ExecutionPlan &exec,
                                    const DenseTraversalPlan &traversal) {
    const std::size_t rank = traversal.loop.size();
 
-   for (const fuir::OperandAccess &operand : exec.access.operands) {
+   for (const lowering::OperandAccess &operand : exec.access.operands) {
       if (operand.affine.byte_stride_per_loop.size() != rank) {
          return false;
       }
@@ -121,7 +121,7 @@ extract_gemm_desc_from_dense_plan(const ExecutionPlan &exec,
    gemm.K = extents.K;
 
    for (std::size_t pos = 0; pos < traversal.loop.size(); ++pos) {
-      const fuir::LoopDim &ld = traversal.loop[pos];
+      const lowering::LoopDim &ld = traversal.loop[pos];
 
       if (ld.role == fuir::IndexRole::M) {
          gemm.out_rs = out_access[pos] / item;

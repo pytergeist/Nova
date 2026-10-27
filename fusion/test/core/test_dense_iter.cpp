@@ -22,8 +22,8 @@ TEST(DenseIterTest, for_each_outer_then_inner_with_zero_dim_calls_inner_once) {
 
    struct DenseIterPlanView {
       std::size_t num_operands{};
-      std::span<const fusion::fuir::LoopDim> loop;
-      std::span<const fusion::fuir::OperandAccess> operands;
+      std::span<const fusion::lowering::LoopDim> loop;
+      std::span<const fusion::lowering::OperandAccess> operands;
    };
 
    fusion::dense::iter::DenseIterPlanView view =
@@ -69,9 +69,9 @@ TEST(DenseIterTest, for_each_outer_then_inner_2_dim_calls_inner_per_outer_row) {
    fusion::planning::DenseTraversalPlan &dense =
        std::get<fusion::planning::DenseTraversalPlan>(plan.exec.traversal);
    dense.loop = {
-       fusion::fuir::LoopDim{.size = 2,
+       fusion::lowering::LoopDim{.size = 2,
                              .kind = fusion::fuir::IndexKind::Independent},
-       fusion::fuir::LoopDim{.size = 3,
+       fusion::lowering::LoopDim{.size = 3,
                              .kind = fusion::fuir::IndexKind::Independent},
    };
 

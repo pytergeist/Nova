@@ -54,7 +54,9 @@ enum class FuirError : std::uint8_t {
    ReductionOutputMappingMismatch,
    ContractionOperandCountMismatch,
    ContractionOutputMappingMismatch,
-   ContractionInputMappingMismatch
+   ContractionInputMappingMismatch,
+   // TODO: give loop errors there own struct?
+   InvalidLoopOrder,
 };
 
 constexpr error::ErrorCode

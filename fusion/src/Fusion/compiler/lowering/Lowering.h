@@ -9,7 +9,7 @@
 #include "Fusion/compiler/ir/OperandDescription.h"
 #include "Fusion/core/Layout.h"
 
-namespace fusion::fuir {
+namespace fusion::lowering {
 
 struct AffineAccess {
    std::vector<std::int64_t> byte_stride_per_loop;
@@ -20,18 +20,18 @@ struct IndexedAccess {};
 
 struct LoopDim {
    std::size_t size{};
-   IndexKind kind{IndexKind::Independent};
-   IndexRole role{IndexRole::Batch};
+   fuir::IndexKind kind{fuir::IndexKind::Independent};
+   fuir::IndexRole role{fuir::IndexRole::Batch};
 };
 
 struct OperandAccess {
    std::size_t operand_id{0};
 
    core::LayoutKind layout{core::LayoutKind::Dense};
-   StorageKind storage{StorageKind::Owned};
-   UpdateKind update{UpdateKind::ReadOnly};
+   fuir::StorageKind storage{fuir::StorageKind::Owned};
+   fuir::UpdateKind update{fuir::UpdateKind::ReadOnly};
 
-   AccessKind access{AccessKind::Affine};
+   fuir::AccessKind access{fuir::AccessKind::Affine};
 
    AffineAccess affine{};
    BlockedAccess blocked{};
@@ -39,20 +39,20 @@ struct OperandAccess {
 };
 
 std::vector<LoopDim>
-lower_to_loops(const IndexSpaceIR &ir,
-               const std::vector<OperandDescription> &descs,
-               const std::vector<LogicalAxisId> &loop_order);
+lower_to_loops(const fuir::IndexSpaceIR &ir,
+               const std::vector<fuir::OperandDescription> &descs,
+               const std::vector<fuir::LogicalAxisId> &loop_order);
 
 std::vector<LoopDim>
-lower_to_loops(const IndexSpaceIR &ir,
-               const std::vector<OperandDescription> &descs,
-               const std::vector<LogicalAxisId> &loop_order,
-               const std::vector<IndexRole> *role_of_id);
+lower_to_loops(const fuir::IndexSpaceIR &ir,
+               const std::vector<fuir::OperandDescription> &descs,
+               const std::vector<fuir::LogicalAxisId> &loop_order,
+               const std::vector<fuir::IndexRole> *role_of_id);
 
 std::vector<OperandAccess>
-lower_operand_access(const IndexSpaceIR &ir,
-                     const std::vector<OperandDescription> &descs,
-                     const std::vector<LogicalAxisId> &loop_order);
+lower_operand_access(const fuir::IndexSpaceIR &ir,
+                     const std::vector<fuir::OperandDescription> &descs,
+                     const std::vector<fuir::LogicalAxisId> &loop_order);
 
 } // namespace fusion::fuir
 

@@ -143,6 +143,7 @@ add_library(fusion_compiler STATIC
         ${FUSION_SRC_DIR}/compiler/planning/analysis/ContractionAnalysis.cpp
         ${FUSION_SRC_DIR}/compiler/ir/Builders.cpp
         ${FUSION_SRC_DIR}/compiler/lowering/Lowering.cpp
+        ${FUSION_SRC_DIR}/compiler/lowering/LoweringValidation.cpp
         ${FUSION_SRC_DIR}/compiler/ir/IRValidation.cpp
         ${FUSION_SRC_DIR}/compiler/ir/ShapeRules.cpp
 )
