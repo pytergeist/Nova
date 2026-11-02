@@ -17,7 +17,7 @@ make_reduction_plan(const std::vector<fuir::OperandDescription> &desc,
 
 ContractionPlan make_binary_contraction_plan_from_binding(
     const std::vector<fuir::OperandDescription> &descs,
-    const fuir::OperandLabelBinding &binding);
+    const fuir::binding::OperandLabelBinding &binding);
 
 IndexedPlan
 make_indexed_plan(const std::vector<fuir::OperandDescription> &descs,

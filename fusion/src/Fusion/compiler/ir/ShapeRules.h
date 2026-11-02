@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Fusion/compiler/ir/IndexSpaceIR.h"
+#include "Fusion/compiler/ir/OperandLabelBinding.h"
 #include "Fusion/compiler/ir/OperandDescription.h"
 
 namespace fusion::fuir::shape {
@@ -18,14 +19,14 @@ std::size_t broadcast_dim(std::size_t a, std::size_t b);
 
 LabelExtentMap
 resolve_contraction_label_extents(const std::vector<OperandDescription> &inputs,
-                                  const OperandLabelBinding &binding);
+                                  const binding::OperandLabelBinding &binding);
 
 std::vector<std::size_t>
 infer_elementwise_out_shape(const std::vector<OperandDescription> &inputs);
 
 std::vector<std::size_t> infer_binary_contraction_out_shape_from_binding(
     const std::vector<OperandDescription> &inputs,
-    const OperandLabelBinding &binding);
+    const binding::OperandLabelBinding &binding);
 
 } // namespace fusion::fuir::shape
 

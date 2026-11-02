@@ -55,7 +55,7 @@ std::size_t broadcast_dim(const std::size_t lhs, const std::size_t rhs) {
 
 LabelExtentMap
 resolve_contraction_label_extents(const std::vector<OperandDescription> &inputs,
-                                  const OperandLabelBinding &binding) {
+                                  const binding::OperandLabelBinding &binding) {
    const std::unordered_set<Label> output_labels(binding.out_labels.begin(),
                                                  binding.out_labels.end());
 
@@ -120,7 +120,7 @@ infer_elementwise_out_shape(const std::vector<OperandDescription> &inputs) {
 
 std::vector<std::size_t> infer_binary_contraction_out_shape_from_binding(
     const std::vector<OperandDescription> &inputs,
-    const OperandLabelBinding &binding) {
+    const binding::OperandLabelBinding &binding) {
    constexpr std::string_view where = "infer_binary_contraction_out_shape_from_binding";
 
    FUSION_CHECK_CODE(

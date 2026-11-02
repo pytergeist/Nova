@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Fusion/compiler/ir/IndexSpaceIR.h"
+#include "Fusion/compiler/ir/OperandLabelBinding.h"
 #include "Fusion/compiler/ir/OperandConstraints.h"
 #include "Fusion/compiler/ir/OperandDescription.h"
 
@@ -19,7 +20,7 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
 
 IndexSpaceIR
 build_contraction_ir(const std::vector<OperandDescription> &descs,
-                            const OperandLabelBinding &bind,
+                            const binding::OperandLabelBinding &bind,
                             OperandGroupConstraint constraint);
 
 } // namespace fusion::fuir

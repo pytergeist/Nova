@@ -157,7 +157,7 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_infers_matmul_output_shape) {
    DenseTensor<float> b({4, 3}, std::vector<float>(12, 1.0), DType::FLOAT32,
                         Device{DeviceType::CPU, 0});
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1}, // Out: [i, j]
@@ -183,7 +183,7 @@ TEST(PlanMetaTest, make_contraction_meta_einsum_stores_binding) {
    DenseTensor<float> b({4, 3}, std::vector<float>(12, 1.0f), DType::FLOAT32,
                         Device{DeviceType::CPU, 0});
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1}, // Out: [i, j]

@@ -9,5 +9,6 @@
 #include "Fusion/compiler/ir/OperandConstraints.h"
 #include "Fusion/compiler/ir/OperandDescription.h"
 #include "Fusion/compiler/ir/ShapeRules.h"
+#include "Fusion/compiler/ir/OperandLabelBinding.h"
 
 #endif // FUSION_COMPILER_IR_IR_H

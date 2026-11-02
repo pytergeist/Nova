@@ -29,7 +29,7 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_returns_matmul_shape) {
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -80,7 +80,7 @@ TEST(TensorPlanContractionTest,
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -133,7 +133,7 @@ TEST(TensorPlanContractionTest,
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -196,7 +196,7 @@ TEST(TensorPlanContractionTest,
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -253,7 +253,7 @@ TEST(TensorPlanContractionTest,
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -318,7 +318,7 @@ TEST(TensorPlanContractionTest,
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -357,7 +357,7 @@ TEST(TensorPlanContractionTest,
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -395,7 +395,7 @@ TEST(TensorPlanContractionTest, infer_einsum_out_shape_rejects_mixed_itemsize) {
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1},
@@ -434,7 +434,7 @@ TEST(TensorPlanContractionTest,
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 0}, // repeated label
@@ -473,7 +473,7 @@ TEST(TensorPlanContractionTest,
        .type = fusion::fuir::OperandDescType::Tensor,
    };
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 0},

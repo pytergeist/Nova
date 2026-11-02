@@ -140,7 +140,7 @@ make_contraction_loop_order(const fuir::IndexSpaceIR &ir) {
 
 ContractionPlan make_binary_contraction_plan_from_binding(
     const std::vector<fuir::OperandDescription> &descs,
-    const fuir::OperandLabelBinding &binding) {
+    const fuir::binding::OperandLabelBinding &binding) {
    FUSION_CHECK_CODE(descs.size() == 3,
                      planning_error(PlanningError::InvalidContraction,
                                     ErrorCategory::InvalidArgument),

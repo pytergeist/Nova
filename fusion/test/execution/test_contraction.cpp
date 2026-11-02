@@ -56,7 +56,7 @@ TEST(ExecutionCPUContractionTest,
 
    DenseTensor<float> out({2, 3}, DType::FLOAT32, Device{DeviceType::CPU, 0});
 
-   fusion::fuir::OperandLabelBinding binding{
+   fusion::fuir::binding::OperandLabelBinding binding{
        .op_axis_labels =
            {
                {0, 1}, // Out: [i, j]

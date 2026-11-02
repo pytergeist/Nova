@@ -76,7 +76,7 @@ struct ContractionContext {
    fuir::OperandDescription rhs{};
    fuir::OperandDescription out{};
 
-   fuir::OperandLabelBinding binding{};
+   fuir::binding::OperandLabelBinding binding{};
 };
 
 inline std::string_view to_string(BinaryExecKind k) noexcept {

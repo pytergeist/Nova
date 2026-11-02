@@ -129,7 +129,7 @@ ReductionContext make_reduction_context(const DenseTensor<T> &input,
    return ctx;
 }
 
-inline fuir::OperandLabelBinding make_matmul_binding(std::size_t a_nd,
+inline fuir::binding::OperandLabelBinding make_matmul_binding(std::size_t a_nd,
                                                      std::size_t b_nd) {
    if (a_nd < 2 || b_nd < 2) {
       throw std::runtime_error("matmul: expected rank >= 2 for both operands");
@@ -165,7 +165,7 @@ inline fuir::OperandLabelBinding make_matmul_binding(std::size_t a_nd,
    out_labels.push_back(Li);
    out_labels.push_back(Lj);
 
-   fuir::OperandLabelBinding binding;
+   fuir::binding::OperandLabelBinding binding;
    binding.op_axis_labels = {out_labels, a_labels, b_labels};
    binding.out_labels = out_labels;
    return binding;
@@ -175,7 +175,7 @@ template <typename T>
 ContractionContext
 make_contraction_context_einsum(const DenseTensor<T> &lhs,
                                 const DenseTensor<T> &rhs,
-                                const fuir::OperandLabelBinding &binding) {
+                                const fuir::binding::OperandLabelBinding &binding) {
    ContractionContext ctx{};
 
    ctx.lhs = make_desc_from_tensor<T>(lhs);
@@ -203,7 +203,7 @@ make_contraction_context_einsum(const DenseTensor<T> &lhs,
 template <typename T>
 ContractionContext make_matmul_context(const DenseTensor<T> &lhs,
                                        const DenseTensor<T> &rhs) {
-   const fuir::OperandLabelBinding binding =
+   const fuir::binding::OperandLabelBinding binding =
        planning::make_matmul_binding(lhs.shape().size(), rhs.shape().size());
    ContractionContext ctx =
        planning::make_contraction_context_einsum<T>(lhs, rhs, binding);

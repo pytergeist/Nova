@@ -65,11 +65,6 @@ struct IndexSpaceIR {
 
 };
 
-struct OperandLabelBinding {
-   std::vector<std::vector<Label>> op_axis_labels;
-   std::vector<Label> out_labels;
-};
-
 } // namespace fusion::fuir
 
 #endif

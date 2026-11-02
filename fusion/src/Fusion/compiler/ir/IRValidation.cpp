@@ -738,7 +738,7 @@ void validate_contraction_input_mappings(
 
 void validate_contraction_extent_request(
     const std::vector<OperandDescription> &inputs,
-    const OperandLabelBinding &binding, const std::string_view where) {
+    const binding::OperandLabelBinding &binding, const std::string_view where) {
    FUSION_CHECK_CODE(
        inputs.size() >= 2,
        fuir_error(FuirError::EmptyOperands, ErrorCategory::InvalidArgument),
@@ -998,7 +998,7 @@ void validate_descs_itemsize_group(const std::vector<OperandDescription> &descs,
 
 void validate_operand_label_binding(
     const std::vector<OperandDescription> &descs,
-    const OperandLabelBinding &binding, const std::string_view where) {
+    const binding::OperandLabelBinding &binding, const std::string_view where) {
    FUSION_CHECK_CODE(
        binding.op_axis_labels.size() == descs.size(),
        fuir_error(FuirError::BindingOperandCountMismatch,

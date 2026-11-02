@@ -59,7 +59,7 @@ build_unary_reduction_logical_axes(const std::vector<OperandDescription> &descs,
 
 std::vector<LogicalAxis>
 build_contraction_logical_axes(const shape::LabelExtentMap &label_extent_map,
-                               const OperandLabelBinding &binding) {
+                               const binding::OperandLabelBinding &binding) {
 
    std::vector<LogicalAxis> logical_axes;
    logical_axes.reserve(label_extent_map.size());
@@ -223,7 +223,7 @@ std::vector<OperandUse> build_elementwise_operand_uses_right_aligned(
 std::vector<OperandUse> build_contraction_operand_uses(
     const std::vector<std::vector<PhysicalAxis>> &physical_axes,
     const std::vector<LogicalAxis> &logical_axes,
-    const OperandLabelBinding &binding) {
+    const binding::OperandLabelBinding &binding) {
 
    LogicalAxisIdByLabel logical_axis_id_by_label =
        build_logical_axis_id_by_label(logical_axes);
@@ -333,7 +333,7 @@ IndexSpaceIR build_reduction_ir(const std::vector<OperandDescription> &descs,
 }
 
 IndexSpaceIR build_contraction_ir(const std::vector<OperandDescription> &descs,
-                                  const OperandLabelBinding &binding,
+                                  const binding::OperandLabelBinding &binding,
                                   const OperandGroupConstraint constraint) {
    constexpr std::string_view where = "build_contraction_ir";
 

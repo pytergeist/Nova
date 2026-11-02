@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Fusion/compiler/ir/IndexSpaceIR.h"
+#include "Fusion/compiler/ir/OperandLabelBinding.h"
 #include "Fusion/compiler/ir/OperandConstraints.h"
 #include "Fusion/compiler/ir/OperandDescription.h"
 
@@ -17,7 +18,7 @@ void validate_descs_itemsize_group(
 
 void validate_operand_label_binding(
     const std::vector<OperandDescription> &descs,
-    const OperandLabelBinding &binding,
+    const binding::OperandLabelBinding &binding,
     std::string_view where = "validate_operand_label_binding");
 
 void validate_reduction_request(
@@ -45,7 +46,7 @@ void validate_contraction_index_space_ir(
 
 void validate_contraction_extent_request(
     const std::vector<OperandDescription> &inputs,
-    const OperandLabelBinding &binding,
+    const binding::OperandLabelBinding &binding,
     std::string_view where = "validate_contraction_extent_request");
 
 } // namespace fusion::fuir::validation
