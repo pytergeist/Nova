@@ -4,11 +4,11 @@
 #include <string_view>
 #include <vector>
 
-#include "../../../../core/tensor/RawTensor.hpp"
 #include "Fusion/autodiff/AutodiffMeta.hpp"
 #include "Fusion/autodiff/AutodiffMode.hpp"
 #include "Fusion/autodiff/registry/Operation.hpp"
 #include "Fusion/common/Checks.hpp"
+#include "Fusion/core/tensor/Tensor.hpp"
 
 #include "Fusion/simulation/autodiff/SimParamPlan.hpp"
 #include "Fusion/simulation/cpu/pairwise/PairwiseParams.hpp"
@@ -28,11 +28,11 @@ template <typename T, class ParticlesT> struct PairDelta3 {
 
    Out forward(Context<T> &context, In &input) {
       const autodiff::NoGradGuard _;
-      const RawTensor<T> &x = input.at(0);
+      const Tensor<T> &x = input.at(0);
       const ParamPlan &p = std::any_cast<const ParamPlan &>(input.op_param);
       GatherIndexMeta<T, ParticlesT> meta = p.meta;
       context.save("x", x);
-      RawTensor<T> e = pair_delta3_from_meta(x, *p.particles, meta, p.params);
+      Tensor<T> e = pair_delta3_from_meta(x, *p.particles, meta, p.params);
       Out out;
       out.push_back(e);
       return out;
@@ -42,15 +42,15 @@ template <typename T, class ParticlesT> struct PairDelta3 {
       ////      if (grad_out.empty()) {
       ////         return {};
       ////      }
-      ////      const RawTensor<T> &x = context.template
-      /// load<RawTensor<T>>("x"); /      const RawTensor<T> &g0 =
+      ////      const Tensor<T> &x = context.template
+      /// load<Tensor<T>>("x"); /      const Tensor<T> &g0 =
       /// grad_out.at(0); /      FUSION_CHECK(!g0.empty(), "MatMul::backward:
       /// upstream grad is empty"); /      FUSION_CHECK(x.rank() >= 2 &&
       /// y.rank()
-      ///>= 2, "MatMul: rank must be >= 2"); /      RawTensor<T> yT =
-      /// transpose_last2<T>(y); /      RawTensor<T> xT = transpose_last2<T>(x);
-      ////      RawTensor<T> gx = g0.matmul(yT);
-      ////      RawTensor<T> gy = xT.matmul(g0);
+      ///>= 2, "MatMul: rank must be >= 2"); /      Tensor<T> yT =
+      /// transpose_last2<T>(y); /      Tensor<T> xT = transpose_last2<T>(x);
+      ////      Tensor<T> gx = g0.matmul(yT);
+      ////      Tensor<T> gy = xT.matmul(g0);
       GradIn g;
       ////      g.push_back(gx);
       ////      g.push_back(gy);

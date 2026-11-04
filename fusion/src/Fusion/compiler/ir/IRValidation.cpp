@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "Fusion/common/error/Check.h"
 #include "Fusion/compiler/ir/IRErrors.h"
