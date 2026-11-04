@@ -15,9 +15,9 @@ jobs:
       matrix:
         include:
           - suite: tensor
-            path: tests/unit/tensor
+            path: test/unit/tensor
           - suite: activations
-            path: tests/unit/activations
+            path: test/unit/activations
 
     steps:
       - name: Checkout code
@@ -71,10 +71,10 @@ jobs:
       - name: "CMake build (preset: dev)"
         run: cmake --build --preset dev -j"$(nproc)"
 
-      - name: Export PYTHONPATH for tests
+      - name: Export PYTHONPATH for test
         run: |
           echo "PYTHONPATH=${{ github.workspace }}/nova/src/backend/core/clib:${{ github.workspace }}" >> $GITHUB_ENV
 
-      - name: Run ${{ matrix.suite }} unit tests
+      - name: Run ${{ matrix.suite }} unit test
         run: |
           poetry run pytest -v ${{ matrix.path }}

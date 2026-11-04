@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+cmake-build-debug
 # Distribution / packaging
 .Python
 build/

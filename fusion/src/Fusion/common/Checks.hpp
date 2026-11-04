@@ -68,8 +68,8 @@ inline void allow_scalar_binary(
 
 } // namespace fusion::detail
 
-#define FUSION_CHECK(cond, msg)                                                \
-   ::fusion::detail::check(static_cast<bool>(cond), (msg))
+// #define FUSION_CHECK(cond, msg)                                                \
+//    ::fusion::detail::check(static_cast<bool>(cond), (msg))
 
 #define FUSION_BOUNDS_CHECK(idx, size)                                         \
    ::fusion::detail::bounds_check(static_cast<long long>(idx),                 \

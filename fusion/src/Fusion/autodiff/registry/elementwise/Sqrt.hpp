@@ -1,0 +1,48 @@
+#ifndef SQRT_HPP
+#define SQRT_HPP
+
+#include <string_view>
+#include <vector>
+
+#include "Fusion/autodiff/AutodiffMeta.hpp"
+#include "Fusion/autodiff/AutodiffMode.hpp"
+#include "Fusion/autodiff/registry/Operation.hpp"
+#include "Fusion/common/Checks.hpp"
+#include "Fusion/core/tensor/Tensor.hpp"
+
+template <typename T> struct Sqrt {
+   using tag = SqrtTag;
+   using In = AutodiffMeta<T>;
+   using Out = AutodiffMeta<T>;
+   using GradIn = AutodiffMeta<T>;
+   using GradOut = AutodiffMeta<T>;
+
+   Out forward(Context<T> &context, const In &input) {
+      FUSION_CHECK(!input.empty(), "Sqrt requires one inputs");
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &x = input.at(0);
+      context.save("x", x);
+      Tensor<T> y = x.sqrt();
+      Out out;
+      out.push_back(y);
+      return out;
+   };
+
+   GradIn backward(Context<T> &context, GradOut &grad_out) {
+      if (grad_out.empty()) {
+         return {};
+      }
+      FUSION_CHECK(grad_out.size() == 1,
+                   "Sqrt::backward expects exactly 1 upstream grad tensor");
+      const autodiff::NoGradGuard _;
+      const Tensor<T> &g0 = grad_out.at(0);
+      FUSION_CHECK(!g0.empty(), "Sqrt::backward: upstream grad is empty");
+      const Tensor<T> &x = context.template load<Tensor<T>>("x");
+      Tensor<T> gx = g0 / (x.sqrt() * 2);
+      GradIn g;
+      g.push_back(gx);
+      return g;
+   }
+};
+
+#endif // SQRT_HPP

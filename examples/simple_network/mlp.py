@@ -70,7 +70,7 @@ for epoch in range(1, epochs + 1):
             loss.backward()
 
         optimizer.step()
-        batch_losses.append(loss.mean().to_numpy())
+        batch_losses.append(loss.mean(axis=1).to_numpy())
 
     epoch_mses.append(
         batch_losses[0].mean()

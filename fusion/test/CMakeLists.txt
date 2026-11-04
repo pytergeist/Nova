@@ -1,0 +1,6 @@
+add_subdirectory(core/memory/alloc)
+add_subdirectory(core/device)
+add_subdirectory(core/memory/storage)
+add_subdirectory(core)
+add_subdirectory(execution)
+add_subdirectory(autodiff)

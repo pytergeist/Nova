@@ -73,37 +73,39 @@ set(FUSION_INCLUDE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/fusion/src")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# ------------------------------------------------------------
-# allocation layer
-# ------------------------------------------------------------
-add_library(fusion_alloc STATIC
-        ${FUSION_SRC_DIR}/alloc/BFCPoolAllocator.cpp
-        ${FUSION_SRC_DIR}/alloc/CPUSubAllocator.cpp
-)
+## ------------------------------------------------------------
+## allocation layer
+## ------------------------------------------------------------
+#add_library(fusion_alloc STATIC
+#        ${FUSION_SRC_DIR}/alloc/FUAllocator.cpp
+#        ${FUSION_SRC_DIR}/alloc/CPUSubAllocator.cpp
+#)
 
-target_include_directories(fusion_alloc PUBLIC ${FUSION_INCLUDE_ROOT})
+#target_include_directories(fusion_alloc PUBLIC ${FUSION_INCLUDE_ROOT})
 
-# ------------------------------------------------------------
-# device abstraction layer
-# ------------------------------------------------------------
-add_library(fusion_device INTERFACE)
-target_include_directories(fusion_device INTERFACE ${FUSION_INCLUDE_ROOT})
+## ------------------------------------------------------------
+## device abstraction layer
+## ------------------------------------------------------------
+#add_library(fusion_device INTERFACE)
+#target_include_directories(fusion_device INTERFACE ${FUSION_INCLUDE_ROOT})
 
-# ------------------------------------------------------------
-# storage abstraction layer
-# ------------------------------------------------------------
-add_library(fusion_storage INTERFACE)
-target_include_directories(fusion_storage INTERFACE ${FUSION_INCLUDE_ROOT})
-target_link_libraries(fusion_storage INTERFACE
-        fusion_alloc
-        fusion_device
-)
+## ------------------------------------------------------------
+## storage abstraction layer
+## ------------------------------------------------------------
+#add_library(fusion_storage INTERFACE)
+#target_include_directories(fusion_storage INTERFACE ${FUSION_INCLUDE_ROOT})
+#target_link_libraries(fusion_storage INTERFACE
+#        fusion_alloc
+#        fusion_device
+#)
 # ------------------------------------------------------------
 # core layer (Tensor semantics)
 # ------------------------------------------------------------
 add_library(fusion_core STATIC
-        ${FUSION_SRC_DIR}/core/TensorPlan.cpp
-        ${FUSION_SRC_DIR}/core/ThreadPool.cpp
+        ${FUSION_SRC_DIR}/core/runtime/ThreadPool.cpp
+        ${FUSION_SRC_DIR}/core/topology/PairSort.cpp
+        ${FUSION_SRC_DIR}/core/memory/alloc/FUAllocator.cpp
+        ${FUSION_SRC_DIR}/core/memory/alloc/CPUSubAllocator.cpp
 )
 
 set_target_properties(fusion_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -116,9 +118,6 @@ target_include_directories(fusion_core
 )
 
 target_link_libraries(fusion_core PUBLIC
-        fusion_storage
-        fusion_device
-        fusion_alloc
         ${BLAS_LIBRARIES}
         ${ACCELERATE_FRAMEWORK}
         OpenBLAS::OpenBLAS
@@ -126,12 +125,47 @@ target_link_libraries(fusion_core PUBLIC
 )
 
 if(TARGET sleef::sleef)
-  target_link_libraries(fusion_core PRIVATE sleef::sleef)
+  target_link_libraries(fusion_core PUBLIC sleef::sleef)
 endif()
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
-  target_compile_definitions(fusion_core PRIVATE FUSION_ENABLE_NEON=1)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64|arm64")
+  target_compile_definitions(fusion_core PUBLIC FUSION_ENABLE_NEON=1)
 endif()
+
+
+
+# ------------------------------------------------------------
+# compiler layer (Operation semantics)
+# ------------------------------------------------------------
+add_library(fusion_compiler STATIC
+        ${FUSION_SRC_DIR}/compiler/planning/PlanBuilders.cpp
+        ${FUSION_SRC_DIR}/compiler/planning/PlanValidation.cpp
+        ${FUSION_SRC_DIR}/compiler/planning/analysis/ContractionAnalysis.cpp
+        ${FUSION_SRC_DIR}/compiler/ir/Builders.cpp
+        ${FUSION_SRC_DIR}/compiler/lowering/Lowering.cpp
+        ${FUSION_SRC_DIR}/compiler/lowering/LoweringValidation.cpp
+        ${FUSION_SRC_DIR}/compiler/ir/IRValidation.cpp
+        ${FUSION_SRC_DIR}/compiler/ir/ShapeRules.cpp
+)
+
+set_target_properties(fusion_compiler PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+target_include_directories(fusion_compiler
+        PUBLIC
+        ${FUSION_INCLUDE_ROOT}
+)
+
+
+# ------------------------------------------------------------
+# execution
+# ------------------------------------------------------------
+add_library(fusion_execution INTERFACE)
+
+target_include_directories(fusion_execution INTERFACE ${FUSION_INCLUDE_ROOT})
+target_link_libraries(fusion_execution INTERFACE
+        fusion_core
+        fusion_compiler
+)
 
 
 # ------------------------------------------------------------
@@ -154,17 +188,22 @@ target_link_libraries(fusion_autodiff INTERFACE
 )
 
 
-# ------------------------------------------------------------
-# physics
-# ------------------------------------------------------------
-add_library(fusion_physics INTERFACE)
-
-target_include_directories(fusion_physics INTERFACE ${FUSION_INCLUDE_ROOT})
-target_link_libraries(fusion_physics INTERFACE
-        fusion_autodiff
-        fusion_ops
-        fusion_core
-)
+## ------------------------------------------------------------
+## simulation
+## ------------------------------------------------------------
+#add_library(fusion_simulation STATIC
+#        ${FUSION_SRC_DIR}/simulation/core/NeighbourSort.cpp
+#        ${FUSION_SRC_DIR}/simulation/core/InteractionPlan.cpp
+#        ${FUSION_SRC_DIR}/simulation/core/InteractionIR.cpp
+#
+#)
+#
+#target_include_directories(fusion_simulation PUBLIC ${FUSION_INCLUDE_ROOT})
+#target_link_libraries(fusion_simulation PUBLIC
+#        fusion_autodiff
+#        fusion_ops
+#        fusion_core
+#)
 
 # ============================================================
 # Python extension
@@ -179,13 +218,11 @@ pybind11_add_module(fusion
 )
 
 target_link_libraries(fusion PRIVATE
-        fusion_physics
+#        fusion_simulation
         fusion_autodiff
         fusion_ops
+        fusion_compiler
         fusion_core
-        fusion_storage
-        fusion_device
-        fusion_alloc
         ${BLAS_LIBRARIES}
         ${ACCELERATE_FRAMEWORK}
 )
@@ -208,12 +245,13 @@ if(NOVA_BUILD_CLI)
           ${FUSION_SRC_DIR}/main.cpp
   )
   target_link_libraries(FusionExecutable PRIVATE fusion_core)
+  target_link_libraries(FusionExecutable PRIVATE fusion_simulation)
 endif()
 
-# ============================================================
-# Benchmarks
-# ============================================================
-add_subdirectory(fusion/benchmarks)
+## ============================================================
+## Benchmarks
+## ============================================================
+#add_subdirectory(fusion/benchmarks)
 
 # ============================================================
 # Tests
@@ -224,5 +262,5 @@ if(NOVA_BUILD_TEST)
   enable_testing()
   find_package(GTest REQUIRED)
   include(GoogleTest)
-  add_subdirectory(fusion/src/Fusion/tests)
+  add_subdirectory(fusion/test)
 endif()

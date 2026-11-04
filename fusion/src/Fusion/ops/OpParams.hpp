@@ -9,8 +9,8 @@ struct SwapAxesParam {
 };
 
 struct ReductionParam {
-   const std::size_t reduction_axis;
-   const bool keepdim;
+   std::size_t reduction_axis{};
+   bool keepdim{};
 };
 
 #endif // OP_PARAMS_HPP

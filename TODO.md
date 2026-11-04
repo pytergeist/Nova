@@ -4,9 +4,13 @@
 ## TODO:
 ## General Layering
 - Use c++23 modules to define ABI boundaries of each layer
+- Introduce more concepts throughout the codebase
 ## CPU
 ### SIMD
 - Numerical Stability for exp/log
+- Scalar tail latency is high - tile structure with last tile padded & partially filled?
+- Change SIMD dispatch to concepts + overload sets (or CPO point with tag_invoke?)
+- Refactor contiguous kernel in structs for clarity - rn using lambdas which is bad for readability past one line
 ### BLAS
 - Build concept model for Blas backend (similar to SIMD)
 - Implement DotLikeDesc
@@ -17,3 +21,6 @@
 ### Autodiff
 - Sparse gradients
 - Multi-output model gradient accumulation
+
+### Physics
+- - Change physics SIMD dispatch to concepts + overload sets (or CPO point with tag_invoke?)

@@ -21,12 +21,28 @@ template <typename T> void bind_factory(py::module_ &m, const char *name) {
 
    auto submod = m.def_submodule(name, doc.c_str());
 
-   submod.def("fill", &fill<T>, "Create a tensor filled with a given value",
-              py::arg("shape"), py::arg("value"), py::arg("device"));
-   submod.def("zeros", &zeros<T>, "Create a tensor of zeros", py::arg("shape"),
-              py::arg("device"));
-   submod.def("ones", &ones<T>, "Create a tensor of ones", py::arg("shape"),
-              py::arg("device"));
+   submod.def(
+       "fill",
+       [](const std::vector<std::size_t> &shape, T value, Device device,
+          DType dtype) {
+          return fusion::factory::fill<T>(shape, value, device, dtype, nullptr);
+       },
+       "Create a tensor filled with a given value", py::arg("shape"),
+       py::arg("value"), py::arg("device"), py::arg("dtype") = DType::FLOAT32);
+   submod.def(
+       "zeros",
+       [](const std::vector<std::size_t> &shape, Device device, DType dtype) {
+          return fusion::factory::zeros<T>(shape, device, dtype, nullptr);
+       },
+       "Create a tensor of zeros", py::arg("shape"), py::arg("device"),
+       py::arg("dtype") = DType::FLOAT32);
+   submod.def(
+       "ones",
+       [](const std::vector<std::size_t> &shape, Device device, DType dtype) {
+          return fusion::factory::ones<T>(shape, device, dtype, nullptr);
+       },
+       "Create a tensor of ones", py::arg("shape"), py::arg("device"),
+       py::arg("dtype") = DType::FLOAT32);
    submod.def(
        "zeros_like", [](const ADTensor<T> &t) { return ad_zeros_like<T>(t); },
        py::arg("other"));
