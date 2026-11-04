@@ -26,64 +26,57 @@ set(PYBIND11_FINDPYTHON ON CACHE BOOL "Force pybind11 to use FindPython")
 find_package(pybind11 REQUIRED)
 
 # ---------- OpenBLAS ----------
-find_package(OpenBLAS QUIET)
+#
+# Do not use find_package(OpenBLAS) here. Some Ubuntu packages provide
+# incorrect paths such as /usr/lib/include and /usr/lib/lib/libopenblas.so.
 
-if(OpenBLAS_FOUND)
-  message(STATUS "Found OpenBLAS via find_package: ${OpenBLAS_LIBRARIES}")
-  set(OPENBLAS_LIB "${OpenBLAS_LIBRARIES}")
+unset(OPENBLAS_LIB CACHE)
+unset(OPENBLAS_LIB)
+unset(OPENBLAS_INCLUDE_DIR CACHE)
+unset(OPENBLAS_INCLUDE_DIR)
 
-  # Some Linux OpenBLAS packages report an invalid include directory.
-  foreach(candidate IN LISTS OpenBLAS_INCLUDE_DIRS)
-    if(IS_DIRECTORY "${candidate}")
-      set(OPENBLAS_INCLUDE_DIR "${candidate}")
-      break()
-    endif()
-  endforeach()
-endif()
+find_library(
+        OPENBLAS_LIB
+        NAMES openblas
+        HINTS
+        "${HOMEBREW_PREFIX}/opt/openblas/lib"
+        /opt/homebrew/opt/openblas/lib
+        /usr/local/opt/openblas/lib
+        /usr/local/lib
+        /usr/lib
+        "/usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}"
+        PATH_SUFFIXES
+        openblas
+        openblas-pthread
+        openblas-openmp
+        openblas-serial
+)
 
-if(NOT OPENBLAS_LIB)
-  find_library(
-          OPENBLAS_LIB
-          NAMES openblas
-          PATHS
-          "${HOMEBREW_PREFIX}/opt/openblas/lib"
-          /opt/homebrew/opt/openblas/lib
-          /usr/local/opt/openblas/lib
-          /usr/local/lib
-          /usr/lib
-          "/usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}"
-  )
-endif()
-
-if(NOT OPENBLAS_INCLUDE_DIR
-        OR NOT IS_DIRECTORY "${OPENBLAS_INCLUDE_DIR}")
-  unset(OPENBLAS_INCLUDE_DIR CACHE)
-  unset(OPENBLAS_INCLUDE_DIR)
-
-  find_path(
-          OPENBLAS_INCLUDE_DIR
-          NAMES
-          cblas.h
-          openblas_config.h
-          PATHS
-          "${HOMEBREW_PREFIX}/opt/openblas/include"
-          /opt/homebrew/opt/openblas/include
-          /usr/local/opt/openblas/include
-          /usr/local/include
-          /usr/include
-          PATH_SUFFIXES
-          openblas
-          openblas-pthread
-          openblas-openmp
-          openblas-serial
-          "${CMAKE_LIBRARY_ARCHITECTURE}/openblas"
-          "${CMAKE_LIBRARY_ARCHITECTURE}/openblas-pthread"
-          "${CMAKE_LIBRARY_ARCHITECTURE}/openblas-openmp"
-          "${CMAKE_LIBRARY_ARCHITECTURE}/openblas-serial"
-  )
-endif()
+find_path(
+        OPENBLAS_INCLUDE_DIR
+        NAMES
+        cblas.h
+        openblas_config.h
+        HINTS
+        "${HOMEBREW_PREFIX}/opt/openblas/include"
+        /opt/homebrew/opt/openblas/include
+        /usr/local/opt/openblas/include
+        /usr/local/include
+        /usr/include
+        PATH_SUFFIXES
+        openblas
+        openblas-pthread
+        openblas-openmp
+        openblas-serial
+        "${CMAKE_LIBRARY_ARCHITECTURE}"
+        "${CMAKE_LIBRARY_ARCHITECTURE}/openblas"
+        "${CMAKE_LIBRARY_ARCHITECTURE}/openblas-pthread"
+        "${CMAKE_LIBRARY_ARCHITECTURE}/openblas-openmp"
+        "${CMAKE_LIBRARY_ARCHITECTURE}/openblas-serial"
+)
 
 if(NOT OPENBLAS_LIB
+        OR NOT EXISTS "${OPENBLAS_LIB}"
         OR NOT OPENBLAS_INCLUDE_DIR
         OR NOT IS_DIRECTORY "${OPENBLAS_INCLUDE_DIR}")
   message(
@@ -97,23 +90,16 @@ if(NOT OPENBLAS_LIB
   )
 endif()
 
-if(TARGET OpenBLAS::OpenBLAS)
-  # Replace potentially invalid include metadata supplied by the package.
-  set_target_properties(
-          OpenBLAS::OpenBLAS
-          PROPERTIES
-          INTERFACE_INCLUDE_DIRECTORIES "${OPENBLAS_INCLUDE_DIR}"
-  )
-else()
+if(NOT TARGET OpenBLAS::OpenBLAS)
   add_library(OpenBLAS::OpenBLAS UNKNOWN IMPORTED)
-
-  set_target_properties(
-          OpenBLAS::OpenBLAS
-          PROPERTIES
-          IMPORTED_LOCATION "${OPENBLAS_LIB}"
-          INTERFACE_INCLUDE_DIRECTORIES "${OPENBLAS_INCLUDE_DIR}"
-  )
 endif()
+
+set_target_properties(
+        OpenBLAS::OpenBLAS
+        PROPERTIES
+        IMPORTED_LOCATION "${OPENBLAS_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${OPENBLAS_INCLUDE_DIR}"
+)
 
 message(STATUS "OpenBLAS library: ${OPENBLAS_LIB}")
 message(STATUS "OpenBLAS include directory: ${OPENBLAS_INCLUDE_DIR}")
