@@ -47,7 +47,7 @@ $$\vec{p}_o=(p_{o,0},\ldots,p_{o,R_o-1})$$
 
 Its byte address is:
 
-$$\operatorname{addr}_o(\vec{p}_o)=\operatorname{base}_o+w\sum_{a=0}^{R_o-1}\sigma_{o,a}p_{o,a}$$
+$$\mathrm{addr}_o(\vec{p}_o)=\mathrm{base}_o+w\sum_{a=0}^{R_o-1}\sigma_{o,a}p_{o,a}$$
 
 For example, a contiguous tensor with shape $[2,3,4]$ normally has element strides:
 
@@ -134,11 +134,11 @@ A logical axis unused by an operand has a zero column in that operand's mapping 
 
 Substituting the coordinate mapping into the physical address equation gives:
 
-$$\operatorname{addr}_o(\vec{\ell})=\operatorname{base}_o+w\vec{\sigma}_o^{\mathsf T}\vec{p}_o$$
+$$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+w\vec{\sigma}_o^{\mathsf T}\vec{p}_o$$
 
 Using $\vec{p}_o=M_o\vec{\ell}$:
 
-$$\operatorname{addr}_o(\vec{\ell})=\operatorname{base}_o+w\vec{\sigma}_o^{\mathsf T}M_o\vec{\ell}$$
+$$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+w\vec{\sigma}_o^{\mathsf T}M_o\vec{\ell}$$
 
 Define the byte-stride vector over logical axes as:
 
@@ -146,7 +146,7 @@ $$\vec{\beta}_o=wM_o^{\mathsf T}\vec{\sigma}_o$$
 
 The address can then be written as:
 
-$$\operatorname{addr}_o(\vec{\ell})=\operatorname{base}_o+\sum_{m=0}^{L-1}\beta_{o,m}\ell_m$$
+$$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+\sum_{m=0}^{L-1}\beta_{o,m}\ell_m$$
 
 This is the defining property of the affine access model:
 
@@ -178,15 +178,15 @@ The leading logical axis $i$ is absent from $B$ because $B$ is right-aligned as 
 
 The output address is:
 
-$$\operatorname{addr}_Y(i,j,k)=\operatorname{base}_Y+w\left(i\sigma_{Y,0}+j\sigma_{Y,1}+k\sigma_{Y,2}\right)$$
+$$\mathrm{addr}_Y(i,j,k)=\mathrm{base}_Y+w\left(i\sigma_{Y,0}+j\sigma_{Y,1}+k\sigma_{Y,2}\right)$$
 
 The address of $A$ is:
 
-$$\operatorname{addr}_A(i,j,k)=\operatorname{base}_A+w\left(i\sigma_{A,0}+k\sigma_{A,2}\right)$$
+$$\mathrm{addr}_A(i,j,k)=\mathrm{base}_A+w\left(i\sigma_{A,0}+k\sigma_{A,2}\right)$$
 
 The address of $B$ is:
 
-$$\operatorname{addr}_B(i,j,k)=\operatorname{base}_B+wj\sigma_{B,0}$$
+$$\mathrm{addr}_B(i,j,k)=\mathrm{base}_B+wj\sigma_{B,0}$$
 
 The corresponding logical byte strides are:
 
@@ -290,7 +290,7 @@ The loop coordinate at position $q$ corresponds to logical axis $\pi_q$.
 
 Lowering therefore produces:
 
-$$\operatorname{byte\_stride\_per\_loop}_o[q]=\beta_{o,\pi_q}$$
+$$\mathrm{byte\_stride\_per\_loop}_o[q]=\beta_{o,\pi_q}$$
 
 For a contraction, the loop order might be `(i, j, k)`, placing the output coordinates before the reduction coordinate.
 
@@ -338,7 +338,7 @@ Once they hold, the compiler can safely replace the structural IR mapping with t
 
 The affine scheme requires:
 
-$$\operatorname{addr}_o(\vec{\ell})=\operatorname{base}_o+\vec{\beta}_o^{\mathsf T}\vec{\ell}$$
+$$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+\vec{\beta}_o^{\mathsf T}\vec{\ell}$$
 
 The byte-stride vector $\vec{\beta}_o$ is fixed before execution.
 
@@ -352,7 +352,7 @@ rather than by a direct or constant mapping.
 
 Substituting that lookup into the address equation gives:
 
-$$\operatorname{addr}_o(\vec{\ell})=\operatorname{base}_o+w\left(\sigma_{o,a}I[\ell_m]+\sum_{b\ne a}\sigma_{o,b}p_{o,b}\right)$$
+$$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+w\left(\sigma_{o,a}I[\ell_m]+\sum_{b\ne a}\sigma_{o,b}p_{o,b}\right)$$
 
 The value of $I[\ell_m]$ must be loaded at runtime. The address is therefore no longer a fixed affine function of the logical loop coordinates.
 
