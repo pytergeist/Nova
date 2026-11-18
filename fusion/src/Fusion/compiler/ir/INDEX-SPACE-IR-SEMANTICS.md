@@ -136,7 +136,7 @@ Substituting the coordinate mapping into the physical address equation gives:
 
 $$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+w\vec{\sigma}_o^{\mathsf T}\vec{p}_o$$
 
-Using $\vec{p}_o=M_o\vec{\ell}$:
+Using $\mathbf{p}_o = M_o\mathbf{\ell}$:
 
 $$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+w\vec{\sigma}_o^{\mathsf T}M_o\vec{\ell}$$
 
@@ -290,7 +290,7 @@ The loop coordinate at position $q$ corresponds to logical axis $\pi_q$.
 
 Lowering therefore produces:
 
-$$\mathrm{byte\_stride\_per\_loop}_o[q]=\beta_{o,\pi_q}$$
+$$\mathrm{byte\_stride\_per\_loop}_{o}[q]=\beta_{o,\pi_{q}}$$
 
 For a contraction, the loop order might be `(i, j, k)`, placing the output coordinates before the reduction coordinate.
 
