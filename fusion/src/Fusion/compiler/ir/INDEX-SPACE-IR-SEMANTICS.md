@@ -288,9 +288,11 @@ This permutation defines the physical loop order.
 
 The loop coordinate at position $q$ corresponds to logical axis $\pi_q$.
 
+Let $s_o$ denote the `byte_stride_per_loop` vector for operand $o$.
+
 Lowering therefore produces:
 
-$$\mathrm{byte\_stride\_per\_loop}_{o}[q]=\beta_{o,\pi_{q}}$$
+$$s_o[q]=\beta_o[\pi(q)]$$
 
 For a contraction, the loop order might be `(i, j, k)`, placing the output coordinates before the reduction coordinate.
 
