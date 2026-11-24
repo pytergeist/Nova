@@ -1,12 +1,12 @@
 # Index-Space IR Semantics
 
-# Part I: Affine Access semantics
+# Part I: Affine Access Semantics
 
 ## Scope
 
 This document defines the mathematical semantics of Nova's index-space IR. It describes how a shared logical iteration space maps onto the physical axes and storage of each operand, and how those mappings lower into loop dimensions and operand-access plans.
 
-The current document formalises dense affine access, including:
+Part I formalises dense affine access, including:
 
 - Direct access
 - Broadcasting
@@ -15,7 +15,7 @@ The current document formalises dense affine access, including:
 - Contractions
 - Loop-order lowering
 
-Indexed and topological access will be added subsequently.
+Part II extends this model with indexed and topological access.
 
 The central idea is:
 
@@ -138,7 +138,7 @@ Substituting the coordinate mapping into the physical address equation gives:
 
 $$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+w\vec{\sigma}_o^{\mathsf T}\vec{p}_o$$
 
-Using $\mathbf{p}_o = M_o\mathbf{\ell}$:
+Using $\vec{p}_o=M_o\vec{\ell}$:
 
 $$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+w\vec{\sigma}_o^{\mathsf T}M_o\vec{\ell}$$
 
@@ -284,11 +284,11 @@ Roles such as `M`, `N`, `K` and `Batch` are planning annotations derived from op
 
 Logical axes have stable IDs, but the planner selects a permutation:
 
-$$\pi=(\pi_0,\pi_1,\ldots,\pi_{L-1})$$
+$$\pi=\bigl(\pi(0),\pi(1),\ldots,\pi(L-1)\bigr)$$
 
 This permutation defines the physical loop order.
 
-The loop coordinate at position $q$ corresponds to logical axis $\pi_q$.
+The loop coordinate at position $q$ corresponds to logical axis $\pi(q)$.
 
 Let $s_o$ denote the `byte_stride_per_loop` vector for operand $o$.
 
@@ -314,7 +314,7 @@ A different legal permutation changes traversal and performance but does not cha
 | `PhysicalAxis` | One coordinate `p[o,a]` in an operand's physical index space |
 | `AxisAccess::Direct` | `p[o,a] = ell[m]` |
 | `AxisAccess::Broadcast` | `p[o,a] = 0` |
-| `OperandUse` | The complete coordinate mapping `M_o` for one operand |
+| `OperandUse` | The coordinate mapping associated with one operand slot |
 | `loop_order` | A permutation of the logical coordinates |
 | `AffineAccess` | The byte-stride coefficients `beta_o` in the address equation |
 
@@ -350,15 +350,15 @@ Indexed access crosses this boundary.
 
 In an indexed operand, at least one physical coordinate is produced by a lookup such as:
 
-$$p_{o,a}=I[\ell_m]$$
+$$p_{o,a}=I_r(\ell_m)$$
 
 rather than by a direct or constant mapping.
 
 Substituting that lookup into the address equation gives:
 
-$$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+w\left(\sigma_{o,a}I[\ell_m]+\sum_{b\ne a}\sigma_{o,b}p_{o,b}\right)$$
+$$\mathrm{addr}_o(\vec{\ell})=\mathrm{base}_o+w\left(\sigma_{o,a}I_r(\ell_m)+\sum_{b\ne a}\sigma_{o,b}p_{o,b}\right)$$
 
-The value of $I[\ell_m]$ must be loaded at runtime. The address is therefore no longer a fixed affine function of the logical loop coordinates.
+The value of $I_r(\ell_m)$ must be loaded at runtime. The address is therefore no longer a fixed affine function of the logical loop coordinates.
 
 The indexed-access section of this specification will define:
 
@@ -506,11 +506,11 @@ Consequently, two different physical topology representations may implement the 
 
 Two indexed mappings using the same logical and physical axes are not necessarily equivalent.
 
-For example:
+For example, the source map $s$ and target map $t$ have distinct identities even though both map an interaction identifier $e$ to a particle identifier. Their values may coincide for a self-interaction:
 
-$$s(e)\neq t(e)$$
+$$s(e)=t(e)$$
 
-even though both functions map an interaction identifier $e$ to a particle identifier.
+Map identity therefore cannot be inferred from the domain, codomain or value observed at one interaction.
 
 An indexed `AxisUse` must therefore identify the index map it uses. Marking the access only as `Indexed` is insufficient.
 
@@ -567,11 +567,13 @@ The index-space IR does not require these maps to be named source and target. Th
 
 The pair $\bigl(s(e),t(e)\bigr)$ is ordered.
 
-Therefore:
+For a non-self interaction, reversing the endpoints generally produces a different ordered pair:
 
-$$\bigl(s(e),t(e)\bigr)\neq\bigl(t(e),s(e)\bigr)$$
+$$s(e)\neq t(e)\quad\Longrightarrow\quad\bigl(s(e),t(e)\bigr)\neq\bigl(t(e),s(e)\bigr)$$
 
-unless the operation explicitly defines those interactions as equivalent.
+For a self-interaction, the reversed pair has the same values because $s(e)=t(e)$. The source and target maps nevertheless retain distinct semantic roles.
+
+An operation may additionally define reversed non-self interactions as equivalent, but that is an operation-level symmetry rather than equality of the ordered pairs.
 
 An undirected relation may be represented by:
 
@@ -972,9 +974,9 @@ These traversal decisions affect performance but do not change the mathematical 
 | `PhysicalAxis` | One coordinate in an operand's physical domain |
 | `AxisAccess::Direct` | `p = ell` |
 | `AxisAccess::Broadcast` | `p = 0` |
-| `AxisAccess::Indexed` | `p = I(ell)` |
+| `AxisAccess::Indexed` | `p[o,a] = I_r(ell[m])` |
 | `IndexMapId` | Stable reference to an index map |
-| `OperandUse` | Coordinate mapping for one operand access occurrence |
+| `OperandUse` | Coordinate mapping associated with one operand slot |
 | Topology binding | Concrete implementation of one or more index maps |
 | Indexed access plan | Runtime procedure for resolving indexed addresses |
 | Update kind | Assignment, accumulation or another write operation |
